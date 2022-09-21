@@ -88,10 +88,7 @@
       rename(Start_Date = Start_dt) %>%
       relocate(End_dt, .before = Observers) %>%
       rename(End_Date = End_dt)
-  
-  
-  cams_s21_wolf <- format_time2(cams_s21_wolf)
-  
+ 
   ####  Consistent LocationID naming structure  ####
   #'  ------------------------------------------
   #'  Step 1: make sure GMUs with "A"s are always uppercase
@@ -157,8 +154,10 @@
   #'  Merge all deployment data together
   eoe_cams <- rbind(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe)
   length(unique(eoe_cams$LocationID))
+  summary(eoe_cams)
   wolf_cams <- rbind(cams_s19_wolf, cams_s20_wolf, cams_s21_wolf)
   length(unique(wolf_cams$LocationID))
+  summary(wolf_cams)
   
   ####  Explore deployment locations  ####
   #'  --------------------------------
@@ -184,7 +183,7 @@
     cams_t1to2$same_Lat <- same_Lat1
     cams_t1to2$same_Long <- same_Long1
     cams_t1to2$same_camID <- same_camID1
-    cams_t1to2 <- dplyr::select(cams_t1to2, c(Region, Gmu, Setup, Target, LocationID, Lat, Long, CamID, same_locID, same_Lat, same_Long, same_camID)) %>%
+    cams_t1to2 <- dplyr::select(cams_t1to2, c(Region, Gmu, Setup, Target, LocationID, Lat, Long, CamID, CameraHeight_M, same_locID, same_Lat, same_Long, same_camID)) %>%
       mutate(Monitor_season = season1) %>%
       relocate(Monitor_season, .after = CamID)
     #'  For sites montored in season 2, was the same LocationID, etc. monitored the previous season?
@@ -193,7 +192,7 @@
     cams_t2from1$same_Lat <- same_Lat2
     cams_t2from1$same_Long <- same_Long2
     cams_t2from1$same_camID <- same_camID2
-    cams_t2from1 <- dplyr::select(cams_t2from1, c(Region, Gmu, Setup, Target, LocationID, Lat, Long, CamID, same_locID, same_Lat, same_Long, same_camID)) %>%
+    cams_t2from1 <- dplyr::select(cams_t2from1, c(Region, Gmu, Setup, Target, LocationID, Lat, Long, CamID, CameraHeight_M, same_locID, same_Lat, same_Long, same_camID)) %>%
       mutate(Monitor_season = season2) %>%
       relocate(Monitor_season, .after = CamID)
     
@@ -203,23 +202,103 @@
     return(multi_season_cam_deploy)
   }
   same_s20_w2021_eoe <- samesame(dat1 = cams_s20_eoe, dat2 = cams_w20_eoe, season1 = "Smr20", season2 = "Wtr2021")
+  same_w2021_s20_eoe <- samesame(dat1 = cams_w20_eoe, dat2 = cams_s20_eoe, season1 = "Wtr2021", season2 = "Smr20")
   same_s20_s21_eoe <- samesame(dat1 = cams_s20_eoe, dat2 = cams_s21_eoe, season1 = "Smr20", season2 = "Smr21")
   same_s19_s20_wolf <- samesame(dat1 = cams_s19_wolf, dat2 = cams_s20_wolf, season1 = "Smr19", season2 = "Smr20")
   same_s19_s21_wolf <- samesame(dat1 = cams_s19_wolf, dat2 = cams_s21_wolf, season1 = "Smr19", season2 = "Smr21")
   same_s20_s21_wolf <- samesame(dat1 = cams_s20_wolf, dat2 = cams_s21_wolf, season1 = "Smr20", season2 = "Smr21")
   
+  #'  How many cameras did not run the next season or were new in the current season?
+  #'  Summer EoE cameras that did not run in winter
+  missing_w2021_eoe <- filter(same_s20_w2021_eoe, same_locID == FALSE) #202 smr20 cams did not run wtr2021
+  #'  Winter EoE cameras that did not run in previous summer
+  new_w2021_eoe <- filter(same_w2021_s20_eoe, Monitor_season == "Wtr2021" & same_locID == FALSE) #no new cameras went out for wtr2021
+  #'  Summer EoE cameras that did not run the next summer
+  missing_smr_eoe <- filter(same_s20_s21_eoe, same_locID == FALSE) # 254 smr21 cams but all in GMU1 where cams first went out smr21
+  
+  #'  Wolf locations that were only monitored for 1 summer
+  #'  No consistent GMU or style of camera (Abundance vs Occupancy)
+  deployed20 <- cams_s19_wolf$LocationID %in% cams_s20_wolf$LocationID
+  deployed21 <- cams_s19_wolf$LocationID %in% cams_s21_wolf$LocationID
+  lone_cams_s19_wolf <- cbind(cams_s19_wolf, deployed20, deployed21) %>%
+    filter(deployed20 == FALSE) %>%
+    filter(deployed21 == FALSE)                                           # 141 smr19 cams did not run again
+  deployed19 <- cams_s20_wolf$LocationID %in% cams_s19_wolf$LocationID
+  deployed21 <- cams_s20_wolf$LocationID %in% cams_s21_wolf$LocationID
+  lone_cams_s20_wolf <- cbind(cams_s20_wolf, deployed19, deployed21) %>%
+    filter(deployed19 == FALSE) %>%
+    filter(deployed21 == FALSE)                                           # 44 smr20 cams did not run previously or again
+  deployed19 <- cams_s21_wolf$LocationID %in% cams_s19_wolf$LocationID
+  deployed20 <- cams_s21_wolf$LocationID %in% cams_s20_wolf$LocationID
+  lone_cams_s21_wolf <- cbind(cams_s21_wolf, deployed19, deployed20) %>%
+    filter(deployed19 == FALSE) %>%
+    filter(deployed20 == FALSE)                                           # 61 smr20 cams did not run previously
+  
   ####  Potential problem cameras  ####
   #'  -----------------------------
   #'  Cameras with same deployment & retrieval date
-  same_startend_eoe <- filter(eoe_cams, Date_Deployed == Date_Retrieved)
-  same_startend_wolf <- filter(wolf_cams, Date_Deployed == Date_Retrieved) #none
+  same_startend_eoe <- filter(eoe_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date)
+  same_startend_wolf <- filter(wolf_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date) 
   
-  #'  Cameras with deploy or retrieval dates outside focal monitoring season
-  longdeploy_eoe 
-  #'  Cameras with missing GMU information
-  #'  Wolf locations that were only monitored for 1 summer
-  #'  Look at covariates that weren't collected
-  #'  What are some of these other fields?
+  ####  Reorganize data for me  ####
+  #'  ---------------------------
+  #'  Function to reorganize camera data so it's easier to use
+  organize_cols <- function(dat) {
+    dat <- dat %>%
+      #'  Drop unneeded columns
+      dplyr::select(-c(Project, TargetSpecies, LocationIDSource, CameraBearing, Observers, Strata, GeneralLocation, M_pics, T_pics)) %>%
+      #'  Add "NA" if cell left blank  
+      mutate(across(c("CameraFacing", "MarkerType_A", "MarkerType_B", "DominantHabitatType", "Topography"), 
+                    ~ifelse(.=="", NA, as.character(.)))) %>%
+      #'  Fill in field for ungulate cameras, which monitored truly random locations
+      mutate(CameraFacing = ifelse(is.na(CameraFacing) & Setup == "ungulate", "random", CameraFacing)) %>%
+      #'  Move columns around so they're better organized
+      relocate(Season, .after = CamID) %>%
+      relocate(Date_Deployed, .after = Season) %>%
+      relocate(Date_Retrieved, .after = Date_Deployed) %>%
+      relocate(Start_Date, .after = Date_Retrieved) %>%
+      relocate(End_Date, .after = Start_Date) %>%
+      relocate(CameraHeight_M, .after = End_Date) %>%
+      relocate(CameraFacing, .after = CameraHeight_M) %>%
+      relocate(CamStatus_Arrival, .after = last_col()) %>%
+      relocate(CamStatus_Leaving, .after = last_col())
+    return(dat)
+  }
+  #'  Reformat data in long format
+  eoe_cams_long <- arrange(eoe_cams, LocationID) %>%
+    organize_cols(.)
+  wolf_cams_long <- arrange(wolf_cams, LocationID) %>%
+    organize_cols(.)
+  #'  Reformat data in wide format
+  #'  Resulting data frame is bananas b/c so many repeat columns that I don't 
+  #'  know if they're important or not
+  eoe_list <- list(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe)
+  eoe_trim <- lapply(eoe_list, organize_cols)
+  eoe_cams_wide <- full_join(eoe_trim[[1]], eoe_trim[[2]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "AreaType")) %>%
+    full_join(eoe_trim[[3]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "AreaType")) %>%
+    dplyr::select(-c(DominantHabitatType.x, DominantHabitatType.y, Topography.x, Topography.y, CanopyCover.x, CanopyCover.y))
+  #'  Make at least some of these repeat columns easier to keep track of
+  #'  Final season's worth of data retains original column names
+  names(eoe_cams_wide) <- gsub(".x", "_smr20", names(eoe_cams_wide), fixed = T)
+  names(eoe_cams_wide) <- gsub(".y", "_wtr2021", names(eoe_cams_wide), fixed = T)
+  
+  #'  Reduced camera location data set to something more usable
+  #'  For simplicity, retain each unique camera location with first lat/long coordinates
+  #'  associated with the location and some site-specific sampling effort/habitat data 
+  eoe_cams_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "LocationID", "Lat_smr20", "Long_smr20", "CameraHeight_M_smr20", "CameraFacing_smr20", "DominantHabitatType", "Topography", "CanopyCover")) %>%
+    #'  Drop data from GMU1 b/c these weren't deployed in 2020
+    filter(Gmu != "1")
+  names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Lat_smr20"] <- "Lat"
+  names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Long_smr20"] <- "Long"
+  names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraHeight_M_smr20"] <- "CameraHeight_M"
+  names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraFacing_smr20"] <- "CameraFacing"
+  eoe_cams_s21_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "LocationID", "Lat", "Long", "CameraHeight_M", "CameraFacing", "DominantHabitatType", "Topography", "CanopyCover")) %>%
+    #'  Retain only data from GMU1 to match data from cameras deployed in GMU6 & GMU10A in 2020
+    filter(Gmu == "1")
+  eoe_cams_skinny <- rbind(eoe_cams_skinny, eoe_cams_s21_skinny)
+  
+  ####  Visualize these locations  ####
+  #'  ------------------------------
   
   
   
