@@ -9,7 +9,10 @@
   #'  ---------------------------------
   
   #'  Load libraries
-  library(stringr)  
+  library(stringr)
+  library(sf)
+  library(raster)
+  library(ggplot2)
   library(tidyverse)
   
   #'  Camera deployment data
@@ -269,6 +272,7 @@
     organize_cols(.)
   wolf_cams_long <- arrange(wolf_cams, LocationID) %>%
     organize_cols(.)
+  
   #'  Reformat data in wide format
   #'  Resulting data frame is bananas b/c so many repeat columns that I don't 
   #'  know if they're important or not
@@ -281,6 +285,14 @@
   #'  Final season's worth of data retains original column names
   names(eoe_cams_wide) <- gsub(".x", "_smr20", names(eoe_cams_wide), fixed = T)
   names(eoe_cams_wide) <- gsub(".y", "_wtr2021", names(eoe_cams_wide), fixed = T)
+  
+  wolf_list <- list(cams_s19_wolf, cams_s20_wolf, cams_s21_wolf)
+  wolf_trim <- lapply(wolf_list, organize_cols)
+  wolf_cams_wide <- full_join(wolf_trim[[1]], wolf_trim[[2]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "AreaType", "MarkerDistance_A_M", "MarkerType_A", "MarkerDistance_B_M", "MarkerType_B", "MarkerDistance_C_M", "MarkerType_C")) %>%
+    full_join(wolf_trim[[3]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "AreaType", "MarkerDistance_A_M", "MarkerType_A", "MarkerDistance_B_M", "MarkerType_B", "MarkerDistance_C_M", "MarkerType_C")) %>%
+    dplyr::select(-c(DominantHabitatType.x, DominantHabitatType.y, Topography.x, Topography.y, CanopyCover.x, CanopyCover.y))
+
+  #### STILL NEED TO FINISH CLEANING UP WOLF DATA SOME MORE  ####
   
   #'  Reduced camera location data set to something more usable
   #'  For simplicity, retain each unique camera location with first lat/long coordinates
@@ -295,12 +307,57 @@
   eoe_cams_s21_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "LocationID", "Lat", "Long", "CameraHeight_M", "CameraFacing", "DominantHabitatType", "Topography", "CanopyCover")) %>%
     #'  Retain only data from GMU1 to match data from cameras deployed in GMU6 & GMU10A in 2020
     filter(Gmu == "1")
-  eoe_cams_skinny <- rbind(eoe_cams_skinny, eoe_cams_s21_skinny)
+  eoe_cams_skinny <- rbind(eoe_cams_skinny, eoe_cams_s21_skinny) %>%
+    arrange(LocationID)
   
   ####  Visualize these locations  ####
   #'  ------------------------------
+  #'  Read in shapefiles
+  gmu <- st_read("./Shapefiles/IDFG_Game_Management_Units/Game_Management_Units.shp")
+  eoe_gmus <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp")
   
+  wgs84 <- projection("+proj=longlat +datum=WGS84 +no_defs")
+  sa_proj <- projection(eoe_gmus)
   
+  #'  Make camera locations spatial
+  LocationID <- eoe_cams_long$LocationID
+  Season <- eoe_cams_long$Season
+  cams <- st_as_sf(eoe_cams_long, coords = c("Long", "Lat"), crs = wgs84)
+  cams_reproj <- st_transform(cams, crs = sa_proj)
+  cams_reproj <- mutate(cams_reproj, Season = ifelse(Season == "Smr20", "Summer 2020", Season),
+                        Season = ifelse(Season == "Wtr20", "Winter 2020-2021", Season),
+                        Season = ifelse(Season == "Smr21", "Summer 2021", Season))
+  
+  #'  Quick plot to visualize camera locations within GMUs
+  ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
+    scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
+    geom_sf(data = cams_reproj, aes(color = Season), shape = 16) +
+    guides(fill=guide_legend(title="GMU")) +
+    coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
+    theme_bw() 
+  #'  5 cameras appear to have incorrect coordinates - way outside focal GMUs
+  #'  1) GMU1 predator cam, LocationID: UNKNOWN, coords: 48.04700, -116.9418
+  
+  #'  Problem cams
+  LocationID <- c("UNKNOWN", "GMU6_P_109", "GMU6_U_122", "GMU6_U_109", "GMU6_P_63", "GMU6_U_63", "GMU10A_U_101")
+  Lat <- c(48.04700, 47.67241, 47.48708, 47.48655, 46.72188, 46.72188, 46.79938)
+  Long <- c(-116.9418, -116.7394, -116.7189, -116.7187, -117.0134, -117.0134, -116.5604)
+  Season <- c("Smr21", "Wtr20", "Wtr20", "Wtr20", "Wtr20", "Wtr20", "Wtr20")
+  prob_cams <- as.data.frame(cbind(LocationID, Lat, Long, Season))
+  prob_cams <- st_as_sf(prob_cams, coords = c("Long", "Lat"), crs = wgs84)
+  probs_reproj <- st_transform(prob_cams, crs = sa_proj)
+  
+  ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
+    scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
+    geom_sf(data = cams_reproj, aes(color = Season), shape = 16) +
+    geom_sf(data = probs_reproj, shape = 16, colour = "black", size = 2) +
+    guides(fill=guide_legend(title="GMU")) +
+    coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
+    theme_bw() 
   
   
   
