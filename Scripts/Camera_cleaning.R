@@ -110,7 +110,8 @@
   #'  Step 2: differentiate Abundance and Occupancy Cameras for wolf data sets
   AOC <- function(dat) {
     cam_target <- dat %>%
-      mutate(NewTarget = ifelse(Target == "Abundance", "A", "O"),
+      mutate(Target = ifelse(Target == "AbundOccu", "Abund_Occu", Target),
+             NewTarget = ifelse(Target == "Abundance", "A", "O"),
              NewTarget = ifelse(Target == "Abund_Occu", "B", NewTarget),
              NewLocationID = paste0(NewTarget, "_", LocationID)) %>%
       dplyr::select(-c(NewTarget, LocationID)) %>%
@@ -124,7 +125,6 @@
   new_LocationID <- function(dat) {
     camera_station <- dat %>%
       mutate(NewSetup = ifelse(Setup == "ungulate", "U", "P"),
-             # NewSetup = ifelse(Setup == "WLF", "WLF", NewSetup), 
              NewLocationID = paste0("GMU", Gmu, "_", NewSetup, "_", LocationID)) %>%
       dplyr::select(-c(NewSetup, LocationID)) %>%
       rename(LocationID = NewLocationID) %>%
@@ -313,6 +313,7 @@
     arrange(LocationID)
   # write.csv(eoe_cams_skinny, file = "./Data/IDFG camera data/cams_eoe_skinny.csv")
   
+  
   ####  Visualize these locations  ####
   #'  ------------------------------
   #'  Read in shapefiles
@@ -323,12 +324,18 @@
   sa_proj <- projection(eoe_gmus)
   
   #'  Make camera locations spatial
-  LocationID <- eoe_cams_long$LocationID
-  Season <- eoe_cams_long$Season
+  eoe_cams_long <- mutate(eoe_cams_long, Setup = factor(Setup, levels = c("ungulate", "predator")))
   cams <- st_as_sf(eoe_cams_long, coords = c("Long", "Lat"), crs = wgs84)
   cams_reproj <- st_transform(cams, crs = sa_proj)
   cams_reproj <- mutate(cams_reproj, Season = ifelse(Season == "Smr20", "Summer 2020", Season),
                         Season = ifelse(Season == "Wtr20", "Winter 2020-2021", Season),
+                        Season = ifelse(Season == "Smr21", "Summer 2021", Season))
+  
+  wolf_cams_long <- mutate(wolf_cams_long, Target = factor(Target, levels = c("Abundance", "Occupancy", "Abund_Occu")))
+  wcams <- st_as_sf(wolf_cams_long, coords = c("Long", "Lat"), crs = wgs84)
+  wcams_reproj <- st_transform(wcams, crs = sa_proj)
+  wcams_reproj <- mutate(wcams_reproj, Season = ifelse(Season == "Smr19", "Summer 2019", Season),
+                        Season = ifelse(Season == "Smr20", "Summer 2020", Season),
                         Season = ifelse(Season == "Smr21", "Summer 2021", Season))
   
   #'  Quick plot to visualize camera locations within GMUs
@@ -337,7 +344,9 @@
     geom_sf(data = eoe_gmus, aes(fill = NAME)) +
     scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
     geom_sf(data = cams_reproj, aes(color = Season), shape = 16) +
+    scale_color_manual(values=c("#d1495b", "#edae49", "#00798c")) +
     guides(fill=guide_legend(title="GMU")) +
+    ggtitle("IDFG Cameras for EoE Project") +
     coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
     theme_bw() 
   #'  Several cameras appear to have incorrect coordinates - way outside focal GMUs
@@ -347,7 +356,8 @@
   Lat <- c(48.04700, 47.67241, 47.48708, 47.48655, 46.72188, 46.72188, 46.79938)
   Long <- c(-116.9418, -116.7394, -116.7189, -116.7187, -117.0134, -117.0134, -116.5604)
   Season <- c("Smr21", "Wtr20", "Wtr20", "Wtr20", "Wtr20", "Wtr20", "Wtr20")
-  prob_cams <- as.data.frame(cbind(LocationID, Lat, Long, Season))
+  Probs <- rep("Problem locations", length(LocationID))
+  prob_cams <- as.data.frame(cbind(LocationID, Lat, Long, Season, Probs)) 
   # write.csv(prob_cams, file = "./Data/IDFG camera data/problem_eoe_cam_locs.csv")
   prob_cams <- st_as_sf(prob_cams, coords = c("Long", "Lat"), crs = wgs84)
   probs_reproj <- st_transform(prob_cams, crs = sa_proj)
@@ -358,43 +368,67 @@
     geom_sf(data = eoe_gmus, aes(fill = NAME)) +
     scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
     geom_sf(data = cams_reproj, aes(color = Season), shape = 16) +
-    geom_sf(data = probs_reproj, shape = 16, colour = "black", size = 2) +
-    guides(fill=guide_legend(title="GMU")) +
+    geom_sf(data = probs_reproj, aes(color = Probs), shape = 16, size = 3) +
+    scale_color_manual(values=c("#B90E0A", "#d1495b", "#edae49", "#00798c")) +
+    guides(fill = guide_legend(title = "GMU"), color = guide_legend(title = "Camera Setup")) +
     coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
+    ggtitle("Problematic EoE Cameras?") +
     theme_bw() 
   
   #'  Zoom in on each GMU
+  #'  GMU 1
   ggplot() +
     geom_sf(data = gmu) +
     geom_sf(data = eoe_gmus[eoe_gmus$NAME == "1",], aes(fill = NAME)) +
     scale_fill_manual(values=c("#CC6666")) +
-    geom_sf(data = cams_reproj[cams_reproj$Gmu == "1",], aes(color = Setup), shape = 16) +
-    scale_color_manual(values=c("#000000", "#006A67")) +
-    guides(fill=guide_legend(title="GMU")) +
+    geom_sf(data = cams_reproj[cams_reproj$Gmu == "1",], aes(color = Setup), shape = 16, size = 2.5) +
+    scale_color_manual(values=c("#000000", "#006A67"), labels = c("Ungulate", "Predator")) +
+    guides(color = guide_legend(title = "Camera Setup"), fill = "none") +
     coord_sf(xlim = c(-13050000, -12900000), ylim = c(6100000, 6274865), expand = TRUE) +
-    theme_bw()
-  
+    ggtitle("IDFG Cameras for EoE Project: GMU 1") +
+    theme_bw() 
+  #'  GMU 6
   ggplot() +
     geom_sf(data = gmu) +
     geom_sf(data = eoe_gmus[eoe_gmus$NAME == "6",], aes(fill = NAME)) +
     scale_fill_manual(values=c("#9999CC")) +
-    geom_sf(data = cams_reproj[cams_reproj$Gmu == "6",], aes(color = Setup), shape = 16) +
-    scale_color_manual(values=c("#000000", "#ab5e00")) +
-    guides(fill=guide_legend(title="GMU")) +
-    coord_sf(xlim = c(-13000000, -12860000), ylim = c(5920000, 6050000), expand = TRUE) +
+    geom_sf(data = cams_reproj[cams_reproj$Gmu == "6",], aes(color = Setup), shape = 16, size = 2.5) +
+    scale_color_manual(values=c("#000000", "#ab5e00"), labels = c("Ungulate", "Predator")) +
+    guides(color = guide_legend(title = "Camera Setup"), fill = "none") +
+    coord_sf(xlim = c(-13000000, -12860000), ylim = c(5920000, 6050000), expand = TRUE) +    
+    ggtitle("IDFG Cameras for EoE Project: GMU 6") +
     theme_bw()
-  
+  #'  GMU 10A
   ggplot() +
     geom_sf(data = gmu) +
     geom_sf(data = eoe_gmus[eoe_gmus$NAME == "10A",], aes(fill = NAME)) +
     scale_fill_manual(values=c("#66CC99")) +
-    geom_sf(data = cams_reproj[cams_reproj$Gmu == "10A",], aes(color = Setup), shape = 16) +
-    scale_color_manual(values=c("#000000", "#ab5e00")) +
-    guides(fill=guide_legend(title="GMU")) +
+    geom_sf(data = cams_reproj[cams_reproj$Gmu == "10A",], aes(color = Setup), shape = 16, size = 2.5) +
+    scale_color_manual(values=c("#000000", "#ab5e00"), labels = c("Ungulate", "Predator")) +
+    guides(color = guide_legend(title = "Camera Setup"), fill = "none") +
     coord_sf(xlim = c(-13000000, -12800000), ylim = c(5750000, 6000000), expand = TRUE) +
+    ggtitle("IDFG Cameras for EoE Project: GMU 10A") +
     theme_bw()
   
   
+  #'  Map wolf locations
+  #'  By season of last deployment (most deployed all three seasons)
+  ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = wcams_reproj, aes(color = Season), shape = 16) +
+    guides(color = guide_legend(title = "Season last monitored")) +
+    ggtitle("IDFG Cameras for Wolf Monitoring") +
+    theme_bw() +
+    theme(legend.position = c(0.77, 0.85))
+  #'  By targeted inference based on sampling design
+  ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = wcams_reproj, aes(color = Target), shape = 16) +
+    scale_color_manual(values=c("#CC6666", "#66CC99", "#004D8C"), labels = c("Abundance", "Occupancy", "Abund/Occu")) +
+    guides(color = guide_legend(title = "Target Inference")) +
+    ggtitle("IDFG Cameras for Wolf Monitoring") +
+    theme_bw() +
+    theme(legend.position = c(0.80, 0.85))
   
   ####  NEXT map wolf cameras and look for similar problem coordinates
   ####  Then start to connect camera location data with detection data
