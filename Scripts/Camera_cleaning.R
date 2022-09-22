@@ -340,8 +340,7 @@
     guides(fill=guide_legend(title="GMU")) +
     coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
     theme_bw() 
-  #'  5 cameras appear to have incorrect coordinates - way outside focal GMUs
-  #'  1) GMU1 predator cam, LocationID: UNKNOWN, coords: 48.04700, -116.9418
+  #'  Several cameras appear to have incorrect coordinates - way outside focal GMUs
   
   #'  Problem cams!
   LocationID <- c("UNKNOWN", "GMU6_P_109", "GMU6_U_122", "GMU6_U_109", "GMU6_P_63", "GMU6_U_63", "GMU10A_U_101")
@@ -363,6 +362,38 @@
     guides(fill=guide_legend(title="GMU")) +
     coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
     theme_bw() 
+  
+  #'  Zoom in on each GMU
+  ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME == "1",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#CC6666")) +
+    geom_sf(data = cams_reproj[cams_reproj$Gmu == "1",], aes(color = Setup), shape = 16) +
+    scale_color_manual(values=c("#000000", "#006A67")) +
+    guides(fill=guide_legend(title="GMU")) +
+    coord_sf(xlim = c(-13050000, -12900000), ylim = c(6100000, 6274865), expand = TRUE) +
+    theme_bw()
+  
+  ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME == "6",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC")) +
+    geom_sf(data = cams_reproj[cams_reproj$Gmu == "6",], aes(color = Setup), shape = 16) +
+    scale_color_manual(values=c("#000000", "#ab5e00")) +
+    guides(fill=guide_legend(title="GMU")) +
+    coord_sf(xlim = c(-13000000, -12860000), ylim = c(5920000, 6050000), expand = TRUE) +
+    theme_bw()
+  
+  ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME == "10A",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#66CC99")) +
+    geom_sf(data = cams_reproj[cams_reproj$Gmu == "10A",], aes(color = Setup), shape = 16) +
+    scale_color_manual(values=c("#000000", "#ab5e00")) +
+    guides(fill=guide_legend(title="GMU")) +
+    coord_sf(xlim = c(-13000000, -12800000), ylim = c(5750000, 6000000), expand = TRUE) +
+    theme_bw()
+  
   
   
   ####  NEXT map wolf cameras and look for similar problem coordinates
