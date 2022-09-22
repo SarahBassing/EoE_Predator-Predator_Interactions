@@ -270,8 +270,10 @@
   #'  Reformat data in long format
   eoe_cams_long <- arrange(eoe_cams, LocationID) %>%
     organize_cols(.)
+  # write.csv(eoe_cams_long, file = "./Data/IDFG camera data/cams_eoe_long.csv")
   wolf_cams_long <- arrange(wolf_cams, LocationID) %>%
     organize_cols(.)
+  # write.csv(wolf_cams_long, file = "./Data/IDFG camera data/cams_wolf_long.csv")
   
   #'  Reformat data in wide format
   #'  Resulting data frame is bananas b/c so many repeat columns that I don't 
@@ -309,6 +311,7 @@
     filter(Gmu == "1")
   eoe_cams_skinny <- rbind(eoe_cams_skinny, eoe_cams_s21_skinny) %>%
     arrange(LocationID)
+  # write.csv(eoe_cams_skinny, file = "./Data/IDFG camera data/cams_eoe_skinny.csv")
   
   ####  Visualize these locations  ####
   #'  ------------------------------
@@ -340,15 +343,17 @@
   #'  5 cameras appear to have incorrect coordinates - way outside focal GMUs
   #'  1) GMU1 predator cam, LocationID: UNKNOWN, coords: 48.04700, -116.9418
   
-  #'  Problem cams
+  #'  Problem cams!
   LocationID <- c("UNKNOWN", "GMU6_P_109", "GMU6_U_122", "GMU6_U_109", "GMU6_P_63", "GMU6_U_63", "GMU10A_U_101")
   Lat <- c(48.04700, 47.67241, 47.48708, 47.48655, 46.72188, 46.72188, 46.79938)
   Long <- c(-116.9418, -116.7394, -116.7189, -116.7187, -117.0134, -117.0134, -116.5604)
   Season <- c("Smr21", "Wtr20", "Wtr20", "Wtr20", "Wtr20", "Wtr20", "Wtr20")
   prob_cams <- as.data.frame(cbind(LocationID, Lat, Long, Season))
+  # write.csv(prob_cams, file = "./Data/IDFG camera data/problem_eoe_cam_locs.csv")
   prob_cams <- st_as_sf(prob_cams, coords = c("Long", "Lat"), crs = wgs84)
   probs_reproj <- st_transform(prob_cams, crs = sa_proj)
   
+  #'  Map problem cams
   ggplot() +
     geom_sf(data = gmu) +
     geom_sf(data = eoe_gmus, aes(fill = NAME)) +
@@ -359,5 +364,9 @@
     coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
     theme_bw() 
   
+  
+  ####  NEXT map wolf cameras and look for similar problem coordinates
+  ####  Then start to connect camera location data with detection data
+  ####  Still need to sort out wide format cameras 
   
   
