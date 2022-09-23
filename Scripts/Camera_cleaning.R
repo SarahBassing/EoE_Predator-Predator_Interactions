@@ -107,6 +107,7 @@
   cams_s19_wolf <- uppercase_time(cams_s19_wolf) %>% mutate(Season = "Smr19")
   cams_s20_wolf <- uppercase_time(cams_s20_wolf) %>% mutate(Season = "Smr20")
   cams_s21_wolf <- uppercase_time(cams_s21_wolf) %>% mutate(Season = "Smr21")
+  
   #'  Step 2: differentiate Abundance and Occupancy Cameras for wolf data sets
   AOC <- function(dat) {
     cam_target <- dat %>%
@@ -114,41 +115,53 @@
              NewTarget = ifelse(Target == "Abundance", "A", "O"),
              NewTarget = ifelse(Target == "Abund_Occu", "B", NewTarget),
              NewLocationID = paste0(NewTarget, "_", LocationID)) %>%
-      dplyr::select(-c(NewTarget, LocationID)) %>%
-      rename(LocationID = NewLocationID) %>%
-      relocate(LocationID, .after = "TargetSpecies")
+      dplyr::select(-c(NewTarget)) %>% #, LocationID
+      # rename(LocationID = NewLocationID) %>%
+      relocate(LocationID, .after = "TargetSpecies") %>%
+      relocate(NewLocationID, .after = "LocationID")
     return(cam_target)
   }
   cams_s19_wolf <- AOC(cams_s19_wolf)
   cams_s20_wolf <- AOC(cams_s20_wolf)
+  
   #'  Step 3: combine GMU, Setup, and Location information into a single LocationID
   new_LocationID <- function(dat) {
     camera_station <- dat %>%
       mutate(NewSetup = ifelse(Setup == "ungulate", "U", "P"),
              NewLocationID = paste0("GMU", Gmu, "_", NewSetup, "_", LocationID)) %>%
-      dplyr::select(-c(NewSetup, LocationID)) %>%
-      rename(LocationID = NewLocationID) %>%
-      relocate(LocationID, .after = "TargetSpecies")
+      dplyr::select(-c(NewSetup)) %>% #, LocationID
+      # rename(LocationID = NewLocationID) %>%
+      relocate(LocationID, .after = "TargetSpecies") %>%
+      relocate(NewLocationID, .after = "LocationID")
     return(camera_station)
   }
   cams_s20_eoe <- new_LocationID(cams_s20_eoe)
   cams_w20_eoe <- new_LocationID(cams_w20_eoe)
+  #'  Slight tweak for summer 2021 data - need to generate LocationID that matches
+  #'  previous seasons
+  cams_s21_eoe <- mutate(cams_s21_eoe, NewLocationID = LocationID, 
+                         #'  Remove everything before underscore (do twice b/c 2 underscores)
+                         LocationID = sub(".*_", "", LocationID),
+                         LocationID = sub(".*_", "", LocationID)) %>%
+    relocate(NewLocationID, .after = "LocationID")
   #'  Slight tweaks for wolf cams
   new_LocationID_wolf1 <- function(dat) {
     camera_station <- dat %>%
       mutate(NewLocationID = paste0(Gmu, "_", Setup, LocationID)) %>%
-      dplyr::select(-LocationID) %>%
-      rename(LocationID = NewLocationID) %>%
-      relocate(LocationID, .after = "TargetSpecies")
+      # dplyr::select(-LocationID) %>%
+      # rename(LocationID = NewLocationID) %>%
+      relocate(LocationID, .after = "TargetSpecies") %>%
+      relocate(NewLocationID, .after = "LocationID")
     return(camera_station)
   }
   cams_s19_wolf <- new_LocationID_wolf1(cams_s19_wolf)
   new_LocationID_wolf2 <- function(dat) {
     camera_station <- dat %>%
       mutate(NewLocationID = paste0("GMU", Gmu, "_", Setup, LocationID)) %>%
-      dplyr::select(-LocationID) %>%
-      rename(LocationID = NewLocationID) %>%
-      relocate(LocationID, .after = "TargetSpecies")
+      # dplyr::select(-LocationID) %>%
+      # rename(LocationID = NewLocationID) %>%
+      relocate(LocationID, .after = "TargetSpecies") %>%
+      relocate(NewLocationID, .after = "LocationID")
     return(camera_station)
   }
   cams_s20_wolf <- new_LocationID_wolf2(cams_s20_wolf)
