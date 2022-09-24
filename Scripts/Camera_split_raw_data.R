@@ -62,25 +62,25 @@
   filter_dets <- function(dets, prefixname) {
     #'  Motion triggered detections
     allM <- dets[dets$TriggerMode == "M",]
-    wildM <- Mt[Mt$Wildlife != FALSE,]
-    humanM <- Mt[Mt$Human != FALSE,]
-    vehicleM <- Mt[Mt$Vehicle != FALSE,]
-    livestockM <- Mt[Mt$Livestock != FALSE,]
-    domesticM <- Mt[Mt$Pet_pack_horse != FALSE,]
+    wildM <- allM[allM$Wildlife != FALSE,]
+    humanM <- allM[allM$Human != FALSE,]
+    vehicleM <- allM[allM$Vehicle != FALSE,]
+    livestockM <- allM[allM$Livestock != FALSE,]
+    domesticM <- allM[allM$Pet_pack_horse != FALSE,]
     
     #'  Time triggered detections
     allT <- dets[dets$TriggerMode == "T",]
-    wildT <- Tt[Tt$Wildlife != FALSE,]
-    humanT <- Tt[Tt$Human != FALSE,]
-    vehicleT <- Tt[Tt$Vehicle != FALSE,]
-    livestockT <- Tt[Tt$Livestock != FALSE,]
-    domesticT <- Tt[Tt$Pet_pack_horse != FALSE,]
+    wildT <- allT[allT$Wildlife != FALSE,]
+    humanT <- allT[allT$Human != FALSE,]
+    vehicleT <- allT[allT$Vehicle != FALSE,]
+    livestockT <- allT[allT$Livestock != FALSE,]
+    domesticT <- allT[allT$Pet_pack_horse != FALSE,]
     
     #'  List smaller data sets together
-    dets_list <- list(Mt, wildM, humanM, vehicleM, livestockM, domesticM, 
-                      Tt, wildT, humanT, vehicleT, livestockT, domesticT)
-    names(dets_list) <- c(paste0(prefixname,"Mt"), paste0(prefixname,"wildM"), paste0(prefixname,"humanM"), paste0(prefixname,"vehicleM"), paste0(prefixname,"livestockM"), paste0(prefixname,"domesticM"), 
-                          paste0(prefixname,"Tt"), paste0(prefixname,"wildT"), paste0(prefixname,"humanT"), paste0(prefixname,"vehicleT"), paste0(prefixname,"livestockT"), paste0(prefixname,"domesticT"))
+    dets_list <- list(allM, wildM, humanM, vehicleM, livestockM, domesticM, 
+                      allT, wildT, humanT, vehicleT, livestockT, domesticT)
+    names(dets_list) <- c(paste0(prefixname,"allM"), paste0(prefixname,"wildM"), paste0(prefixname,"humanM"), paste0(prefixname,"vehicleM"), paste0(prefixname,"livestockM"), paste0(prefixname,"domesticM"), 
+                          paste0(prefixname,"allT"), paste0(prefixname,"wildT"), paste0(prefixname,"humanT"), paste0(prefixname,"vehicleT"), paste0(prefixname,"livestockT"), paste0(prefixname,"domesticT"))
     return(dets_list)
   }
   eoe20s_dets <- filter_dets(dets_s20_eoe, prefixname = "eoe20s_")
