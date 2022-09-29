@@ -48,6 +48,6 @@
   load("./Data/IDFG camera data/Split datasets/wolf_time_skinny.RData")
   
   
-  
+  eoe20s_noon <- eoe_time_skinny[[1]]
   
   
