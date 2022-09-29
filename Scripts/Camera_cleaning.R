@@ -256,6 +256,11 @@
   same_startend_eoe <- filter(eoe_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date)
   same_startend_wolf <- filter(wolf_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date) 
   
+  #'  Cameras with odd locations relative to GMUs
+  prob_locs <- cams_eoe_long[cams_eoe_long$NewLocationID == "GMU6_P_109" | cams_eoe_long$NewLocationID == "GMU6_U_122" | cams_eoe_long$NewLocationID == "GMU6_U_109" | cams_eoe_long$NewLocationID == "GMU6_P_63" | cams_eoe_long$NewLocationID == "GMU6_U_63" | cams_eoe_long$NewLocationID == "GMU10A_U_101" | cams_eoe_long$NewLocationID == "UNKNOWN",]
+  write.csv(prob_locs, "./Data/IDFG camera data/problem_eoe_cam_locs.csv")
+  
+  
   ####  Reorganize data for me  ####
   #'  ---------------------------
   #'  Function to reorganize camera data so it's easier to use
