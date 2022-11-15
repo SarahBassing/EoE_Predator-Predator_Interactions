@@ -115,8 +115,12 @@
   
   
   #'  =====================================================================
-  ####  Reduce datasets even further to just images flagged as "Keepers"  ####
+  ####  Reduce data sets even further to just images flagged as "Keepers"  ####
   #'  =====================================================================
+  #'  Keepers: flagged by S. Thompson as images with animals, some maintenance 
+  #'  images, all images taken at noon, and a smattering of setup-retrieval day 
+  #'  pics to help in case of ID errors.
+  
   #'  Motion triggered images
   load("./Data/IDFG camera data/Split datasets/eoe20s_allM.RData")
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM.RData")
