@@ -4,7 +4,7 @@
   #'  Sarah B. Bassing
   #'  September 2022
   #'  ---------------------------------
-  #'  Script to clean deployment and deteciton data, make sure annual datasets 
+  #'  Script to clean deployment and detection data, make sure annual data sets 
   #'  are consistent, filter and merge.
   #'  ---------------------------------
   
@@ -250,17 +250,6 @@
     filter(deployed19 == FALSE) %>%
     filter(deployed20 == FALSE)                                           # 61 smr20 cams did not run previously
   
-  ####  Potential problem cameras  ####
-  #'  -----------------------------
-  #'  Cameras with same deployment & retrieval date
-  same_startend_eoe <- filter(eoe_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date)
-  same_startend_wolf <- filter(wolf_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date) 
-  
-  #'  Cameras with odd locations relative to GMUs
-  prob_locs <- cams_eoe_long[cams_eoe_long$NewLocationID == "GMU6_P_109" | cams_eoe_long$NewLocationID == "GMU6_U_122" | cams_eoe_long$NewLocationID == "GMU6_U_109" | cams_eoe_long$NewLocationID == "GMU6_P_63" | cams_eoe_long$NewLocationID == "GMU6_U_63" | cams_eoe_long$NewLocationID == "GMU10A_U_101" | cams_eoe_long$NewLocationID == "UNKNOWN",]
-  write.csv(prob_locs, "./Data/IDFG camera data/problem_eoe_cam_locs.csv")
-  
-  
   ####  Reorganize data for me  ####
   #'  ---------------------------
   #'  Function to reorganize camera data so it's easier to use
@@ -312,6 +301,17 @@
     full_join(wolf_trim[[3]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "AreaType", "MarkerDistance_A_M", "MarkerType_A", "MarkerDistance_B_M", "MarkerType_B", "MarkerDistance_C_M", "MarkerType_C")) %>%
     dplyr::select(-c(DominantHabitatType.x, DominantHabitatType.y, Topography.x, Topography.y, CanopyCover.x, CanopyCover.y))
 
+  ####  Potential problem cameras  ####
+  #'  -----------------------------
+  #'  Cameras with same deployment & retrieval date
+  same_startend_eoe <- filter(eoe_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date)
+  same_startend_wolf <- filter(wolf_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date) 
+  
+  #'  Cameras with odd locations relative to GMUs
+  prob_locs <- eoe_cams_long[eoe_cams_long$NewLocationID == "GMU6_P_109" | eoe_cams_long$NewLocationID == "GMU6_U_122" | eoe_cams_long$NewLocationID == "GMU6_U_109" | eoe_cams_long$NewLocationID == "GMU6_P_63" | eoe_cams_long$NewLocationID == "GMU6_U_63" | eoe_cams_long$NewLocationID == "GMU10A_U_101" | eoe_cams_long$NewLocationID == "UNKNOWN",]
+  #write.csv(prob_locs, "./Data/IDFG camera data/problem_eoe_cam_locs.csv")
+  
+  
   #### STILL NEED TO FINISH CLEANING UP WOLF DATA SOME MORE  ####
   
   #'  Reduced camera location data set to something more usable
