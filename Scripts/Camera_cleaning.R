@@ -8,6 +8,9 @@
   #'  are consistent, filter and merge.
   #'  ---------------------------------
   
+  #'  Clear memory
+  rm(list=ls())
+
   #'  Load libraries
   library(stringr)
   library(sf)
@@ -129,8 +132,7 @@
     camera_station <- dat %>%
       mutate(NewSetup = ifelse(Setup == "ungulate", "U", "P"),
              NewLocationID = paste0("GMU", Gmu, "_", NewSetup, "_", LocationID)) %>%
-      dplyr::select(-c(NewSetup)) %>% #, LocationID
-      # rename(LocationID = NewLocationID) %>%
+      dplyr::select(-c(NewSetup)) %>% 
       relocate(LocationID, .after = "TargetSpecies") %>%
       relocate(NewLocationID, .after = "LocationID")
     return(camera_station)
@@ -147,9 +149,7 @@
   #'  Slight tweaks for wolf cams
   new_LocationID_wolf1 <- function(dat) {
     camera_station <- dat %>%
-      mutate(NewLocationID = paste0(Gmu, "_", Setup, LocationID)) %>%
-      # dplyr::select(-LocationID) %>%
-      # rename(LocationID = NewLocationID) %>%
+      mutate(NewLocationID = paste0(Gmu, "_", NewLocationID)) %>% #Setup, 
       relocate(LocationID, .after = "TargetSpecies") %>%
       relocate(NewLocationID, .after = "LocationID")
     return(camera_station)
@@ -157,14 +157,14 @@
   cams_s19_wolf <- new_LocationID_wolf1(cams_s19_wolf)
   new_LocationID_wolf2 <- function(dat) {
     camera_station <- dat %>%
-      mutate(NewLocationID = paste0("GMU", Gmu, "_", Setup, LocationID)) %>%
-      # dplyr::select(-LocationID) %>%
-      # rename(LocationID = NewLocationID) %>%
+      mutate(NewLocationID = paste0("GMU", Gmu, "_", NewLocationID)) %>% #Setup, 
       relocate(LocationID, .after = "TargetSpecies") %>%
       relocate(NewLocationID, .after = "LocationID")
     return(camera_station)
   }
   cams_s20_wolf <- new_LocationID_wolf2(cams_s20_wolf)
+  #'  summer 2021 wolf LocationID already has A/O info so just rename as NewLocationID
+  cams_s21_wolf <- mutate(cams_s21_wolf, NewLocationID = LocationID)
   cams_s21_wolf <- new_LocationID_wolf2(cams_s21_wolf)
   
   #'  Merge all deployment data together
@@ -202,7 +202,7 @@
     cams_t1to2 <- dplyr::select(cams_t1to2, c(Region, Gmu, Setup, Target, LocationID, Lat, Long, CamID, CameraHeight_M, same_locID, same_Lat, same_Long, same_camID)) %>%
       mutate(Monitor_season = season1) %>%
       relocate(Monitor_season, .after = CamID)
-    #'  For sites montored in season 2, was the same LocationID, etc. monitored the previous season?
+    #'  For sites monitored in season 2, was the same LocationID, etc. monitored the previous season?
     cams_t2from1 <- dat2
     cams_t2from1$same_locID <- same_locID2
     cams_t2from1$same_Lat <- same_Lat2
@@ -312,7 +312,8 @@
   #write.csv(prob_locs, "./Data/IDFG camera data/problem_eoe_cam_locs.csv")
   
   
-  #### STILL NEED TO FINISH CLEANING UP WOLF DATA SOME MORE  ####
+  #### NEED TO FINISH CLEANING WOLF CAMERAS TO IDENTIFY POTENTIAL PROBLEMS & MAKE SKINNY VERSION  ####
+  
   
   #'  Reduced camera location data set to something more usable
   #'  For simplicity, retain each unique camera location with first lat/long coordinates
@@ -448,8 +449,59 @@
     theme_bw() +
     theme(legend.position = c(0.80, 0.85))
   
-  ####  NEXT map wolf cameras and look for similar problem coordinates
-  ####  Then start to connect camera location data with detection data
-  ####  Still need to sort out wide format cameras 
+
+  ####  Summary stats on camera deployment  ####
+  #'  ---------------------------------------
+  #'  Number of unique EoE sites (exact coords vary by year but site basically the same)
+  n_eoe <- length(unique(eoe_cams_long$NewLocationID))
+  #'  Number of predator vs ungulate setup cameras
+  n_eoe_P <- length(unique(eoe_cams_long$NewLocationID[eoe_cams_long$Setup == "predator"]))
+  n_eoe_U <- length(unique(eoe_cams_long$NewLocationID[eoe_cams_long$Setup == "ungulate"]))
+  #'  Number of cameras per season and setup type
+  yr_eoe <- eoe_cams_long %>%
+    group_by(Setup, Season) %>%
+    summarize(n = n()) %>%
+    ungroup() %>%
+    mutate(Project = "EoE",
+           Season = ifelse(Season == "Wtr20", "Wtr20-21", Season)) %>%
+    relocate(Project, .before = Setup)
+  #'  Number of cameras per season, GMU, and setup type
+  yr_gmu_eoe <- eoe_cams_long %>%
+    group_by(Setup, Season, Gmu) %>%
+    summarize(n = n()) %>%
+    ungroup() %>%
+    mutate(Project = "EoE",
+           Season = ifelse(Season == "Wtr20", "Wtr20-21", Season)) %>%
+    relocate(Project, .before = Setup)
+  # write.csv(yr_gmu_eoe, file = "./Data/IDFG camera data/camera_EoE_summary.csv")
+
+  #'  Number of unique wolf sites (exact coords vary by year but site basically the same)
+  n_wolf <- length(unique(wolf_cams_long$NewLocationID))
+  #'  Number of abundance vs occupancy cameras (both counts include cameras that 
+  #'  were deployed for both abundance & occupancy)
+  n_wolf_A <- length(unique(wolf_cams_long$NewLocationID[wolf_cams_long$Target == "Abundance" | wolf_cams_long$Target == "Abund_Occu"]))
+  n_wolf_O <- length(unique(wolf_cams_long$NewLocationID[wolf_cams_long$Target == "Occupancy" | wolf_cams_long$Target == "Abund_Occu"]))
+  #'  Number of cameras per season and setup type
+  yr_wolf <- wolf_cams_long %>%
+    group_by(Target, Season) %>%
+    summarize(n = n()) %>%
+    ungroup() %>%
+    mutate(Project = "Wolf") %>%
+    relocate(Project, .before = Target) %>%
+    rename(Setup = Target)
+  
+  #'  Merge summary tables together and save
+  camera_summary <- rbind(yr_eoe, yr_wolf) %>%
+    arrange(Project, Season)
+  # write.csv(camera_summary, file = "./Data/IDFG camera data/camera_EoEWolf_summary.csv")
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   
