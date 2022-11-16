@@ -17,6 +17,7 @@
   library(ggplot2)
   library(tidyverse)
   library(lubridate)
+  library(chron)
   
   #'  Camera locations
   cams_eoe_long <- read.csv("./Data/IDFG camera data/cams_eoe_long.csv") %>%
@@ -149,6 +150,7 @@
   #'  Noon timelapse images only- represents camera function, not animal activity/detections
   eoe_noon_list[[1]] %>%  #  Summer 2020
     filter(posix_date_time < ymd(20210101)) %>% 
+    filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
     geom_freqpoly(binwidth = 86400) + # 86400 seconds = 1 day
     scale_x_datetime(
@@ -158,6 +160,7 @@
   
   eoe_noon_list[[2]] %>%  #  Winter 2020-2021
     filter(posix_date_time > ymd(20201101) & posix_date_time < ymd(20210531)) %>% 
+    filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
     geom_freqpoly(binwidth = 86400) +
     scale_x_datetime(
@@ -167,6 +170,7 @@
   
   eoe_noon_list[[3]] %>%  #  Summer 2021
     filter(posix_date_time > ymd(20210501) & posix_date_time < ymd(20211101)) %>% 
+    filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
     geom_freqpoly(binwidth = 86400) +
     scale_x_datetime(
@@ -176,6 +180,7 @@
   
   wolf_noon_list[[1]] %>%  # Summer 2019
     filter(posix_date_time < ymd(20200101)) %>% 
+    filter(Time == "12:0:0") %>%
     ggplot(aes(posix_date_time)) + 
     geom_freqpoly(binwidth = 86400) + # 86400 seconds = 1 day
     scale_x_datetime(
@@ -185,6 +190,7 @@
   
   wolf_noon_list[[2]] %>%  #  Summer 2020
     filter(posix_date_time < ymd(20210101)) %>% 
+    filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
     geom_freqpoly(binwidth = 86400) +
     scale_x_datetime(
@@ -194,12 +200,66 @@
   
   wolf_noon_list[[3]] %>%  #  Summer 2021
     filter(posix_date_time < ymd(20220101)) %>% 
+    filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
     geom_freqpoly(binwidth = 86400) +
     scale_x_datetime(
       name = "Dates",
       breaks = scales::date_breaks("month")) +
     ggtitle("Number of active wolf cameras, Summer 2021")
+  
+  
+  ####  How many cameras were operating  ####
+  #'  ------------------------------------
+  #'  How many cameras were deployed each season?
+  length(unique(cams_eoe_long$NewLocationID[cams_eoe_long$Season == "Smr20"]))
+  length(unique(cams_eoe_long$NewLocationID[cams_eoe_long$Season == "Wtr20"]))
+  length(unique(cams_eoe_long$NewLocationID[cams_eoe_long$Season == "Smr21"]))
+  
+  length(unique(cams_wolf_long$NewLocationID[cams_wolf_long$Season == "Smr19"]))
+  length(unique(cams_wolf_long$NewLocationID[cams_wolf_long$Season == "Smr20"]))
+  length(unique(cams_wolf_long$NewLocationID[cams_wolf_long$Season == "Smr21"]))
+  
+  #'  How many cameras were taking motion triggered images?
+  length(unique(eoe_motion_list[[1]]$NewLocationID))
+  length(unique(eoe_motion_list[[2]]$NewLocationID))
+  length(unique(eoe_motion_list[[3]]$NewLocationID))
+  
+  length(unique(wolf_motion_list[[1]]$NewLocationID))
+  length(unique(wolf_motion_list[[2]]$NewLocationID))
+  length(unique(wolf_motion_list[[3]]$NewLocationID))
+  
+  #'  How many cameras were taking time triggered images?
+  length(unique(eoe_noon_list[[1]]$NewLocationID))
+  length(unique(eoe_noon_list[[2]]$NewLocationID))
+  length(unique(eoe_noon_list[[3]]$NewLocationID))
+  
+  length(unique(wolf_noon_list[[1]]$NewLocationID))
+  length(unique(wolf_noon_list[[2]]$NewLocationID))
+  length(unique(wolf_noon_list[[3]]$NewLocationID))
+  
+  #'  Which cameras were taking motion but not time triggered images?
+  mt_mismatch <- function(motion_cams, noon_cams) {
+    mcams <- unique(motion_cams$NewLocationID)
+    tcams <- unique(noon_cams$NewLocationID)
+    print("Cameras with motion but no noon time triggered images")
+    print(m_not_in_t <- setdiff(mcams, tcams))
+    print("Cameras with noon time but no motion triggered images")
+    print(t_not_in_m <- setdiff(tcams, mcams))
+    mismatch_cams <- list(m_not_in_t, t_not_in_m)
+    return(mismatch_cams)
+  }
+  eoe_mismatch <- mapply(mt_mismatch, motion_cams = eoe_motion_list, noon_cams = eoe_noon_list)
+  wolf_mismatch <- mapply(mt_mismatch, motion_cams = wolf_motion_list, noon_cams = wolf_noon_list)
+  #'  Looks like wolf occupancy cameras did not take time triggered images which
+  #'  explains big differences in # of cams taking motion vs time triggered images
+  
+  
+  
+  
+  
+  
+  
   
   
   
