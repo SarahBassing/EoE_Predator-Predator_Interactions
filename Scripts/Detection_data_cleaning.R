@@ -16,17 +16,13 @@
   library(raster)
   library(ggplot2)
   library(tidyverse)
+  library(lubridate)
   
   #'  Camera locations
   cams_eoe_long <- read.csv("./Data/IDFG camera data/cams_eoe_long.csv") %>%
     dplyr::select(-X)
   cams_wolf_long <- read.csv("./Data/IDFG camera data/cams_wolf_long.csv") %>%
     dplyr::select(-X)
-  # cams_eoe <- read.csv("./Data/IDFG camera data/cams_eoe_skinny.csv") %>%
-  #   dplyr::select(-X)
-  # cams_wolf <- read.csv("./Data/IDFG camera data/cams_wolf_skinny.csv") %>%
-  #   dplyr::select(-X)
-  
   
   #' #'  Full detection data sets
   #' #'  Motion triggered images
@@ -39,9 +35,9 @@
   #' load("./Data/IDFG camera data/Split datasets/wolf21s_allM.RData")
   #' 
   #' #'  Time triggered images
-  #' load("./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
-  #' load("./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
-  #' load("./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
+  # load("./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
+  # load("./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
+  # load("./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
   #' 
   #' load("./Data/IDFG camera data/Split datasets/wolf19s_allT.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf20s_allT.RData")
@@ -80,6 +76,15 @@
   #'  Double check it worked
   eoe20s_noon <- eoe_noon_list[[1]]
   
+  #' #'  Run full eoe timelapse data sets through function
+  #' eoe20s_allT <- eoe_deploy_info(season = "Smr20", dets = eoe20s_allT, pred = "predator")
+  #' eoe20w_allT <- eoe_deploy_info(season = "Wtr20", dets = eoe20w_allT, pred = "predator")
+  #' eoe21s_allT <- eoe_deploy_info(season = "Smr21", dets = eoe21s_allT, pred = "predator")
+  #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
+  #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
+  #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
+  
+  
   #'  Wolf cameras
   wolf_deploy_info <- function(dets, season, abund, abund_occu) { 
     #'  Filter to specific season and Abundance cameras
@@ -113,5 +118,92 @@
   wolf_noon_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_time_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)  
   #'  Double check it worked
   wolf20s_noon <- wolf_noon_list[[2]]
+  
+  #' #'  Run full wolf timelapse data sets through function
+  #' wolf19s_allT <- wolf_deploy_info(season = "Smr19", dets = wolf19s_allT, pred = "predator")
+  #' wolf20s_allT <- wolf_deploy_info(season = "Smr20", dets = wolf20s_allT, pred = "predator")
+  #' wolf21s_allT <- wolf_deploy_info(season = "Smr21", dets = wolf21s_allT, pred = "predator")
+  #' save(wolf19s_allT, file = "./Data/IDFG camera data/Split datasets/wolf19s_allT.RData")
+  #' save(wolf20s_allT, file = "./Data/IDFG camera data/Split datasets/wolf20s_allT.RData")
+  #' save(wolf21s_allT, file = "./Data/IDFG camera data/Split datasets/wolf21s_allT.RData")
+  
+  
+  ####  Format & visulaize date/time data  ####
+  #  ---------------------------------------
+  #'  Detection data was recorded in MST (America/Edmonton (UTC-07:00); tz="America/Edmonton")
+  set_tzone <- function(dat) {
+    tz(dat$posix_date_time) <- "America/Edmonton"
+    print(attr(dat$posix_date_time, "tzone"))
+    print(range(dat$posix_date_time, na.rm = T))
+    return(dat)
+  }
+  eoe_motion_list <- lapply(eoe_motion_list, set_tzone)
+  eoe_noon_list <- lapply(eoe_noon_list, set_tzone)
+  wolf_motion_list <- lapply(wolf_motion_list, set_tzone)
+  wolf_noon_list <- lapply(wolf_noon_list, set_tzone)
+
+  #'  Visualize observations over time
+  #'  https://r4ds.had.co.nz/dates-and-times.html
+  #'  Note that when you use date-times in a numeric context (like in a histogram), 
+  #'  1 means 1 second, so a binwidth of 86400 means one day. For dates, 1 means 1 day.
+  #'  Noon timelapse images only- represents camera function, not animal activity/detections
+  eoe_noon_list[[1]] %>%  #  Summer 2020
+    filter(posix_date_time < ymd(20210101)) %>% 
+    ggplot(aes(posix_date_time)) + 
+    geom_freqpoly(binwidth = 86400) + # 86400 seconds = 1 day
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    ggtitle("Number of active EoE cameras, Summer 2020")
+  
+  eoe_noon_list[[2]] %>%  #  Winter 2020-2021
+    filter(posix_date_time > ymd(20201101) & posix_date_time < ymd(20210531)) %>% 
+    ggplot(aes(posix_date_time)) + 
+    geom_freqpoly(binwidth = 86400) +
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    ggtitle("Number of active EoE cameras, Winter 2020-2021")
+  
+  eoe_noon_list[[3]] %>%  #  Summer 2021
+    filter(posix_date_time > ymd(20210501) & posix_date_time < ymd(20211101)) %>% 
+    ggplot(aes(posix_date_time)) + 
+    geom_freqpoly(binwidth = 86400) +
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    ggtitle("Number of active EoE cameras, Summer 2021")
+  
+  wolf_noon_list[[1]] %>%  # Summer 2019
+    filter(posix_date_time < ymd(20200101)) %>% 
+    ggplot(aes(posix_date_time)) + 
+    geom_freqpoly(binwidth = 86400) + # 86400 seconds = 1 day
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    ggtitle("Number of active wolf cameras, Summer 2019")
+  
+  wolf_noon_list[[2]] %>%  #  Summer 2020
+    filter(posix_date_time < ymd(20210101)) %>% 
+    ggplot(aes(posix_date_time)) + 
+    geom_freqpoly(binwidth = 86400) +
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    ggtitle("Number of active wolf cameras, Summer 2020")
+  
+  wolf_noon_list[[3]] %>%  #  Summer 2021
+    filter(posix_date_time < ymd(20220101)) %>% 
+    ggplot(aes(posix_date_time)) + 
+    geom_freqpoly(binwidth = 86400) +
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    ggtitle("Number of active wolf cameras, Summer 2021")
+  
+  
+  
+  
+  
   
   
