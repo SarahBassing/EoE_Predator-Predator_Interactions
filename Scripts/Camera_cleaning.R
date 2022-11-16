@@ -30,7 +30,7 @@
   ####  Format date/time data  ####
   #'  -------------------------
   #'  Identify time zones of deployment data (start/end dates)
-  #'  Detetion data is in MST (America/Edmonton (UTC-07:00); tz="America/Edmonton")
+  #'  Detection data is in MST (America/Edmonton (UTC-07:00); tz="America/Edmonton")
   attr(cams_s20_eoe$Start_Date, "tzone") #"UTC"
   attr(cams_s19_wolf$Start_Date, "tzone") #NULL
   
