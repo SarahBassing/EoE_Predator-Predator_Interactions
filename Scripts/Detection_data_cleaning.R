@@ -77,6 +77,8 @@
   #'  Double check it worked
   eoe20s_noon <- eoe_noon_list[[1]]
   
+  eoe_motion_wtr20 <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
+  
   #' #'  Run full eoe timelapse data sets through function
   #' eoe20s_allT <- eoe_deploy_info(season = "Smr20", dets = eoe20s_allT, pred = "predator")
   #' eoe20w_allT <- eoe_deploy_info(season = "Wtr20", dets = eoe20w_allT, pred = "predator")
@@ -142,6 +144,8 @@
   eoe_noon_list <- lapply(eoe_noon_list, set_tzone)
   wolf_motion_list <- lapply(wolf_motion_list, set_tzone)
   wolf_noon_list <- lapply(wolf_noon_list, set_tzone)
+  
+  eoe_motion_wtr20 <- set_tzone(eoe_motion_wtr20)
 
   #'  Visualize observations over time
   #'  https://r4ds.had.co.nz/dates-and-times.html
@@ -246,17 +250,44 @@
     print(m_not_in_t <- setdiff(mcams, tcams))
     print("Cameras with noon time but no motion triggered images")
     print(t_not_in_m <- setdiff(tcams, mcams))
-    mismatch_cams <- list(m_not_in_t, t_not_in_m)
+    mismatch_cams <- cbind(m_not_in_t, t_not_in_m)
     return(mismatch_cams)
   }
   eoe_mismatch <- mapply(mt_mismatch, motion_cams = eoe_motion_list, noon_cams = eoe_noon_list)
   wolf_mismatch <- mapply(mt_mismatch, motion_cams = wolf_motion_list, noon_cams = wolf_noon_list)
-  #'  Looks like wolf occupancy cameras did not take time triggered images which
+  #'  Looks like wolf occupancy cameras did not take time-triggered images which
   #'  explains big differences in # of cams taking motion vs time triggered images
   
+  eoe_mismatch <- mt_mismatch(motion_cams = eoe_motion_wtr20, noon_cams = eoe_noon_list[[2]])
   
+  #'  Review motion triggered images
+  eoe_m_smr20 <- eoe_motion_list[[1]]
+  prob_eoe_m_smr20 <- eoe_m_smr20[eoe_m_smr20$NewLocationID == "GMU6_U_11" | 
+                                    eoe_m_smr20$NewLocationID == "GMU6_U_81" | 
+                                    eoe_m_smr20$NewLocationID == "GMU6_P_11" | 
+                                    eoe_m_smr20$NewLocationID == "GMU6_U_36" | 
+                                    eoe_m_smr20$NewLocationID == "GMU6_U_129" | 
+                                    eoe_m_smr20$NewLocationID == "GMU10A_U_160" | 
+                                    eoe_m_smr20$NewLocationID == "GMU10A_U_8",]
+  eoe_m_wtr20 <- eoe_motion_list[[2]]
+  prob_eoe_m_smr20 <- eoe_m_wtr20[eoe_m_wtr20$NewLocationID == "GMU6_U_164",]
+  eoe_m_smr21 <- eoe_motion_list[[3]]
   
+  wolf_m_smr20 <- wolf_motion_list[[1]]
+  wolf_m_wtr20 <- wolf_motion_list[[2]]
+  wolf_m_smr21 <- wolf_motion_list[[3]]
   
+  #'  Review noontime triggered images
+  eoe_t_smr20 <- eoe_noon_list[[1]]
+  prob_eoe_t_smr20 <- eoe_t_smr20[eoe_t_smr20$NewLocationID == "GMU6_U_69" | 
+                                    eoe_t_smr20$NewLocationID == "GMU6_U_105" | 
+                                    eoe_t_smr20$NewLocationID == "GMU10A_U_11",]
+  eoe_t_wtr20 <- eoe_noon_list[[2]]
+  eoe_t_smr21 <- eoe_noon_list[[3]]
+  
+  wolf_t_smr20 <- wolf_noon_list[[1]]
+  wolf_t_wtr20 <- wolf_noon_list[[2]]
+  wolf_t_smr21 <- wolf_noon_list[[3]]
   
   
   
