@@ -141,11 +141,13 @@
   cams_w20_eoe <- new_LocationID(cams_w20_eoe)
   #'  Slight tweak for summer 2021 data - need to generate LocationID that matches
   #'  previous seasons
-  cams_s21_eoe <- mutate(cams_s21_eoe, NewLocationID = LocationID, 
-                         #'  Remove everything before underscore (do twice b/c 2 underscores)
-                         LocationID = sub(".*_", "", LocationID),
-                         LocationID = sub(".*_", "", LocationID)) %>%
+  cams_s21_eoe <- mutate(cams_s21_eoe, NewLocationID = LocationID) %>%
     relocate(NewLocationID, .after = "LocationID")
+  #' cams_s21_eoe <- mutate(cams_s21_eoe, NewLocationID = LocationID, 
+  #'                        #'  Remove everything before underscore (do twice b/c 2 underscores)
+  #'                        LocationID = sub(".*_", "", LocationID),
+  #'                        LocationID = sub(".*_", "", LocationID)) %>%
+  #'   relocate(NewLocationID, .after = "LocationID")
   #'  Slight tweaks for wolf cams
   new_LocationID_wolf1 <- function(dat) {
     camera_station <- dat %>%
@@ -287,8 +289,8 @@
   #'  know if they're important or not
   eoe_list <- list(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe)
   eoe_trim <- lapply(eoe_list, organize_cols)
-  eoe_cams_wide <- full_join(eoe_trim[[1]], eoe_trim[[2]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "AreaType")) %>%
-    full_join(eoe_trim[[3]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "AreaType")) %>%
+  eoe_cams_wide <- full_join(eoe_trim[[1]], eoe_trim[[2]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "AreaType")) %>%
+    full_join(eoe_trim[[3]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "AreaType")) %>%
     dplyr::select(-c(DominantHabitatType.x, DominantHabitatType.y, Topography.x, Topography.y, CanopyCover.x, CanopyCover.y))
   #'  Make at least some of these repeat columns easier to keep track of
   #'  Final season's worth of data retains original column names
@@ -297,8 +299,8 @@
   
   wolf_list <- list(cams_s19_wolf, cams_s20_wolf, cams_s21_wolf)
   wolf_trim <- lapply(wolf_list, organize_cols)
-  wolf_cams_wide <- full_join(wolf_trim[[1]], wolf_trim[[2]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "AreaType", "MarkerDistance_A_M", "MarkerType_A", "MarkerDistance_B_M", "MarkerType_B", "MarkerDistance_C_M", "MarkerType_C")) %>%
-    full_join(wolf_trim[[3]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "AreaType", "MarkerDistance_A_M", "MarkerType_A", "MarkerDistance_B_M", "MarkerType_B", "MarkerDistance_C_M", "MarkerType_C")) %>%
+  wolf_cams_wide <- full_join(wolf_trim[[1]], wolf_trim[[2]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "AreaType", "MarkerDistance_A_M", "MarkerType_A", "MarkerDistance_B_M", "MarkerType_B", "MarkerDistance_C_M", "MarkerType_C")) %>%
+    full_join(wolf_trim[[3]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "AreaType", "MarkerDistance_A_M", "MarkerType_A", "MarkerDistance_B_M", "MarkerType_B", "MarkerDistance_C_M", "MarkerType_C")) %>%
     dplyr::select(-c(DominantHabitatType.x, DominantHabitatType.y, Topography.x, Topography.y, CanopyCover.x, CanopyCover.y))
 
   ####  Potential problem cameras  ####
@@ -318,14 +320,14 @@
   #'  Reduced camera location data set to something more usable
   #'  For simplicity, retain each unique camera location with first lat/long coordinates
   #'  associated with the location and some site-specific sampling effort/habitat data 
-  eoe_cams_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "LocationID", "Lat_smr20", "Long_smr20", "CameraHeight_M_smr20", "CameraFacing_smr20", "DominantHabitatType", "Topography", "CanopyCover")) %>%
+  eoe_cams_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "Lat_smr20", "Long_smr20", "CameraHeight_M_smr20", "CameraFacing_smr20", "DominantHabitatType", "Topography", "CanopyCover")) %>%
     #'  Drop data from GMU1 b/c these weren't deployed in 2020
     filter(Gmu != "1")
   names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Lat_smr20"] <- "Lat"
   names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Long_smr20"] <- "Long"
   names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraHeight_M_smr20"] <- "CameraHeight_M"
   names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraFacing_smr20"] <- "CameraFacing"
-  eoe_cams_s21_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "LocationID", "Lat", "Long", "CameraHeight_M", "CameraFacing", "DominantHabitatType", "Topography", "CanopyCover")) %>%
+  eoe_cams_s21_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "Lat", "Long", "CameraHeight_M", "CameraFacing", "DominantHabitatType", "Topography", "CanopyCover")) %>%
     #'  Retain only data from GMU1 to match data from cameras deployed in GMU6 & GMU10A in 2020
     filter(Gmu == "1")
   eoe_cams_skinny <- rbind(eoe_cams_skinny, eoe_cams_s21_skinny) %>%
