@@ -25,7 +25,7 @@
   cams_wolf_long <- read.csv("./Data/IDFG camera data/cams_wolf_long.csv") %>%
     dplyr::select(-X)
   
-  #' #'  Full detection data sets
+  #' #'  Full detection data sets - MASSIVE so only load 1-2 at a time
   #' #'  Motion triggered images
   #' load("./Data/IDFG camera data/Split datasets/eoe20s_allM.RData")
   #' load("./Data/IDFG camera data/Split datasets/eoe20w_allM.RData")
@@ -36,9 +36,9 @@
   #' load("./Data/IDFG camera data/Split datasets/wolf21s_allM.RData")
   #' 
   #' #'  Time triggered images
-  # load("./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
-  # load("./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
-  # load("./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
+  #' load("./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
+  #' load("./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
+  #' load("./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
   #' 
   #' load("./Data/IDFG camera data/Split datasets/wolf19s_allT.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf20s_allT.RData")
@@ -93,29 +93,36 @@
   eoe21s_noon <- eoe_noon_list[[3]]
   
   #'  Run full eoe motion trigger data sets through function
-  eoe_motion_smr20 <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator")
-  eoe_motion_wtr20 <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
-  eoe_motion_smr21 <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator")
-  #' eoe20s_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Smr20", pred = "predator")
-  #' eoe20w_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
-  #' eoe21s_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Smr21", pred = "predator")
-  #' eoe21s_allM <- dplyr::select(eoe21s_allM, -c(NewLocationID)) %>%
+  #' eoe_motion_smr20 <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator")
+  #' eoe_motion_wtr20 <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
+  #' eoe_motion_smr21 <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
   #'   mutate(NewLocationID = LocationID) %>%
   #'   relocate(NewLocationID, .after = LocationID)
-  #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
-  #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
-  #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
+  #' eoe20s_allM <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator")
+  #' eoe20w_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
+  #' eoe21s_allM <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator")
+  #' eoe21s_allM <- mutate(eoe21s_allM, NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' save(eoe20s_allM, file = "./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
+  #' save(eoe20w_allM, file = "./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
+  #' save(eoe21s_allM, file = "./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
   
   #' #'  Run full eoe timelapse data sets through function
+  #' eoe_time_smr20 <- eoe_deploy_info(dets = eoe20s_allT, season = "Smr20", pred = "predator")
+  #' eoe_time_wtr20 <- eoe_deploy_info(dets = eoe20w_allT, season = "Wtr20", pred = "predator")
+  #' eoe_time_smr21 <- eoe_deploy_info(dets = eoe21s_allT, season = "Smr21", pred = "predator") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
   #' eoe20s_allT <- eoe_deploy_info(season = "Smr20", dets = eoe20s_allT, pred = "predator")
   #' eoe20w_allT <- eoe_deploy_info(season = "Wtr20", dets = eoe20w_allT, pred = "predator")
   #' eoe21s_allT <- eoe_deploy_info(season = "Smr21", dets = eoe21s_allT, pred = "predator")
-  #' eoe21s_allT <- dplyr::select(eoe21s_allT, -c(NewLocationID)) %>%
-  #'   mutate(NewLocationID = LocationID) %>%
+  #' eoe21s_allT <- mutate(eoe21s_allT, NewLocationID = LocationID) %>%
   #'   relocate(NewLocationID, .after = LocationID)
-  #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
-  #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
-  #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
+  #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
+  #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
+  #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
   
   
   #'  Wolf cameras
@@ -178,12 +185,46 @@
   wolf21s_noon <- wolf_noon_list[[3]]
   
   #' #'  Run full wolf timelapse data sets through function
-  #' wolf19s_allT <- wolf_deploy_info(season = "Smr19", dets = wolf19s_allT, pred = "predator")
-  #' wolf20s_allT <- wolf_deploy_info(season = "Smr20", dets = wolf20s_allT, pred = "predator")
-  #' wolf21s_allT <- wolf_deploy_info(season = "Smr21", dets = wolf21s_allT, pred = "predator")
-  #' save(wolf19s_allT, file = "./Data/IDFG camera data/Split datasets/wolf19s_allT.RData")
-  #' save(wolf20s_allT, file = "./Data/IDFG camera data/Split datasets/wolf20s_allT.RData")
-  #' save(wolf21s_allT, file = "./Data/IDFG camera data/Split datasets/wolf21s_allT.RData")
+  #' wolf_motion_smr20 <- wolf_deploy_info(dets = wolf19s_allM, season = "Smr19", abund = "Abundance", abund_occu = "Abund_Occu")
+  #' wolf_motion_wtr20 <- wolf_deploy_info(dets = wolf20s_allM, season = "Smr20", abund = "Abundance", abund_occu = "Abund_Occu") %>%
+  #'   mutate(NewLocationID = paste0("GMU", NewLocationID))
+  #' wolf_motion_smr21 <- wolf_deploy_info(dets = wolf21s_allM, season = "Smr21", abund = "Abundance", abund_occu = "Abund_Occu") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
+  #'          NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' wolf19s_allM <- wolf_deploy_info(season = "Smr19", dets = wolf19s_allM, abund = "Abundance", abund_occu = "Abund_Occu")
+  #' wolf20s_allM <- wolf_deploy_info(season = "Smr20", dets = wolf20s_allM, abund = "Abundance", abund_occu = "Abund_Occu") %>%
+  #'   mutate(NewLocationID = paste0("GMU", NewLocationID))
+  #' wolf21s_allM <- wolf_deploy_info(season = "Smr21", dets = wolf21s_allM, abund = "Abundance", abund_occu = "Abund_Occu") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
+  #'          NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' save(wolf19s_allM, file = "./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
+  #' save(wolf20s_allM, file = "./Data/IDFG camera data/Split datasets/wolf20s_allM_NewLocationID.RData")
+  #' save(wolf21s_allM, file = "./Data/IDFG camera data/Split datasets/wolf21s_allM_NewLocationID.RData")
+  
+  #' #'  Run full wolf timelapse data sets through function
+  #' wolf_time_smr20 <- wolf_deploy_info(dets = wolf19s_allT, season = "Smr19", abund = "Abundance", abund_occu = "Abund_Occu")
+  #' wolf_time_wtr20 <- wolf_deploy_info(dets = wolf20s_allT, season = "Smr20", abund = "Abundance", abund_occu = "Abund_Occu") %>%
+  #'   mutate(NewLocationID = paste0("GMU", NewLocationID))
+  #' wolf_time_smr21 <- wolf_deploy_info(dets = wolf21s_allT, season = "Smr21", abund = "Abundance", abund_occu = "Abund_Occu") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
+  #'          NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' wolf19s_allT <- wolf_deploy_info(season = "Smr19", dets = wolf19s_allT, abund = "Abundance", abund_occu = "Abund_Occu")
+  #' wolf20s_allT <- wolf_deploy_info(season = "Smr20", dets = wolf20s_allT, abund = "Abundance", abund_occu = "Abund_Occu") %>%
+  #'   mutate(NewLocationID = paste0("GMU", NewLocationID))
+  #' wolf21s_allT <- wolf_deploy_info(season = "Smr21", dets = wolf21s_allT, abund = "Abundance", abund_occu = "Abund_Occu")%>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
+  #'          NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' save(wolf19s_allT, file = "./Data/IDFG camera data/Split datasets/wolf19s_allT_NewLocationID.RData")
+  #' save(wolf20s_allT, file = "./Data/IDFG camera data/Split datasets/wolf20s_allT_NewLocationID.RData")
+  #' save(wolf21s_allT, file = "./Data/IDFG camera data/Split datasets/wolf21s_allT_NewLocationID.RData")
   
   
   ####  Format & visualize date/time data  ####
@@ -200,9 +241,25 @@
   wolf_motion_list <- lapply(wolf_motion_list, set_tzone)
   wolf_noon_list <- lapply(wolf_noon_list, set_tzone)
   
+  eoe_motion_smr20 <- set_tzone(eoe_motion_smr20)
   eoe_motion_wtr20 <- set_tzone(eoe_motion_wtr20)
+  eoe_motion_smr21 <- set_tzone(eoe_motion_smr21)
+  
+  eoe_time_smr20 <- set_tzone(eoe_time_smr20)
+  eoe_time_wtr20 <- set_tzone(eoe_time_wtr20)
+  eoe_time_smr21 <- set_tzone(eoe_time_smr21)
+  
+  wolf_motion_smr20 <- set_tzone(wolf_motion_smr20)
+  wolf_motion_wtr20 <- set_tzone(wolf_motion_wtr20)
+  wolf_motion_smr21 <- set_tzone(wolf_motion_smr21)
+  
+  wolf_time_smr20 <- set_tzone(wolf_time_smr20)
+  wolf_time_wtr20 <- set_tzone(wolf_time_wtr20)
+  wolf_time_smr21 <- set_tzone(wolf_time_smr21)
 
-  #'  Visualize observations over time
+  
+  ####  Visualize observations over time  ####
+  #'  ------------------------------------
   #'  https://r4ds.had.co.nz/dates-and-times.html
   #'  Note that when you use date-times in a numeric context (like in a histogram), 
   #'  1 means 1 second, so a binwidth of 86400 means one day. For dates, 1 means 1 day.
@@ -397,10 +454,18 @@
   #'  Looks like wolf occupancy cameras did not take time-triggered images which
   #'  explains big differences in # of cams taking motion vs time triggered images
   
-  eoe_mismatch <- mt_mismatch(motion_cams = eoe_motion_wtr20, noon_cams = eoe_noon_list[[2]])
+  #' #'  Same thing but with FULL data sets, not keepers only
+  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe_motion_smr20, noon_cams = eoe_time_smr20)
+  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe_motion_wtr20, noon_cams = eoe_time_wtr20)
+  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe_motion_smr21, noon_cams = eoe_time_smr21)
+  #' 
+  #' wolf_mismatch <- mt_mismatch(motion_cams = wolf19s_allM, noon_cams = wolf19s_allT)
+  #' wolf_mismatch <- mt_mismatch(motion_cams = wolf20s_allM, noon_cams = wolf20s_allT)
+  #' wolf_mismatch <- mt_mismatch(motion_cams = wolf21s_allM, noon_cams = wolf21s_allT)
   
   #'  Review motion triggered images
   eoe_m_smr20 <- eoe_motion_list[[1]]
+  # eoe_m_smr20 <- eoe_motion_smr20 # full data set
   prob_eoe_m_smr20 <- eoe_m_smr20[eoe_m_smr20$NewLocationID == "GMU6_U_11" | 
                                     eoe_m_smr20$NewLocationID == "GMU6_U_81" | 
                                     eoe_m_smr20$NewLocationID == "GMU6_P_11" | 
@@ -409,27 +474,108 @@
                                     eoe_m_smr20$NewLocationID == "GMU10A_U_160" | 
                                     eoe_m_smr20$NewLocationID == "GMU10A_U_8",]
   eoe_m_wtr20 <- eoe_motion_list[[2]]
-  prob_eoe_m_smr20 <- eoe_m_wtr20[eoe_m_wtr20$NewLocationID == "GMU6_U_164",]
+  # eoe_m_wtr20 <- eoe_motion_wtr20 # full data set
+  prob_eoe_m_wtr20 <- eoe_m_wtr20[eoe_m_wtr20$NewLocationID == "GMU6_U_164" |
+                                    eoe_m_wtr20$NewLocationID == "GMU6_P_99" |
+                                    eoe_m_wtr20$NewLocationID == "GMU6_U_99" |
+                                    eoe_m_wtr20$NewLocationID == "GMU6_U_36" |
+                                    eoe_m_wtr20$NewLocationID == "GMU10A_U_46" |
+                                    eoe_m_wtr20$NewLocationID == "GMU10A_U_87" |
+                                    eoe_m_wtr20$NewLocationID == "GMU6_U_69" |
+                                    eoe_m_wtr20$NewLocationID == "GMU6_U_105" |
+                                    eoe_m_wtr20$NewLocationID == "GMU10A_U_11",]
   eoe_m_smr21 <- eoe_motion_list[[3]]
+  # eoe_m_smr21 <- eoe_motion_smr21 # full data set
+  prob_eoe_m_smr21 <- eoe_m_smr21[eoe_m_smr21$NewLocationID == "GMU6_P_19" |
+                                    eoe_m_smr21$NewLocationID == "GMU10A_U_75" |
+                                    eoe_m_smr21$NewLocationID == "GMU10A_U_159" |
+                                    eoe_m_smr21$NewLocationID == "GMU6_P_29" |
+                                    eoe_m_smr21$NewLocationID == "GMU6_P_92",]
   
-  wolf_m_smr20 <- wolf_motion_list[[1]]
-  wolf_m_wtr20 <- wolf_motion_list[[2]]
+  wolf_m_smr19 <- wolf_motion_list[[1]]
+  # wolf_m_smr19 <- wolf19s_allM # full data set
+  prob_wolf_m_smr19 <- wolf_m_smr19[wolf_m_smr19$NewLocationID == "GMU48_A_2777",]
+  
+  wolf_m_smr20 <- wolf_motion_list[[2]]
+  # wolf_m_smr20 <- wolf20s_allM # full data set
+  prob_wolf_m_smr20 <- wolf_m_smr20[wolf_m_smr20$NewLocationID == "GMU29_A_1559" |
+                                      wolf_m_smr20$NewLocationID == "GMU13_B_1026" |
+                                      wolf_m_smr20$NewLocationID == "GMU12_B_947" |
+                                      wolf_m_smr20$NewLocationID == "GMU12_B_49" |
+                                      wolf_m_smr20$NewLocationID == "GMU10A_B_45" |
+                                      wolf_m_smr20$NewLocationID == "GMU12_B_54" |
+                                      wolf_m_smr20$NewLocationID == "GMU8A_B_36" |
+                                      wolf_m_smr20$NewLocationID == "GMU10_B_48",]
+  
   wolf_m_smr21 <- wolf_motion_list[[3]]
+  # wolf_m_smr21 <- wolf21s_allM # full data set
+  prob_wolf_m_smr21 <- wolf_m_smr21[wolf_m_smr21$NewLocationID == "GMU3_A_310" |
+                                      wolf_m_smr21$NewLocationID == "GMU4A_A_201" |
+                                      wolf_m_smr21$NewLocationID == "GMU8A_A_576" |
+                                      wolf_m_smr21$NewLocationID == "GMU4A_A_202" |
+                                      wolf_m_smr21$NewLocationID == "GMU39_A_3101" |
+                                      wolf_m_smr21$NewLocationID == "GMU59_A_2057" |
+                                      wolf_m_smr21$NewLocationID == "GMU51_A_2606" |
+                                      wolf_m_smr21$NewLocationID == "GMU51_A_2735" |
+                                      wolf_m_smr21$NewLocationID == "GMU61_A_1995",]
   
   #'  Review noontime triggered images
-  eoe_t_smr20 <- eoe_noon_list[[1]]
-  prob_eoe_t_smr20 <- eoe_t_smr20[eoe_t_smr20$NewLocationID == "GMU6_U_69" | 
-                                    eoe_t_smr20$NewLocationID == "GMU6_U_105" | 
-                                    eoe_t_smr20$NewLocationID == "GMU10A_U_11",]
+  eoe_t_smr20 <- eoe_noon_list[[1]] 
+  # eoe_t_smr20 <- eoe_motion_wtr20 # full data set
+  prob_eoe_t_smr20 <- eoe_t_smr20[eoe_t_smr20$NewLocationID == "GMU6_U_11" | 
+                                    eoe_t_smr20$NewLocationID == "GMU6_U_81" | 
+                                    eoe_t_smr20$NewLocationID == "GMU6_P_11" | 
+                                    eoe_t_smr20$NewLocationID == "GMU6_U_36" | 
+                                    eoe_t_smr20$NewLocationID == "GMU6_U_129" | 
+                                    eoe_t_smr20$NewLocationID == "GMU10A_U_160" | 
+                                    eoe_t_smr20$NewLocationID == "GMU10A_U_8",]
   eoe_t_wtr20 <- eoe_noon_list[[2]]
+  # eoe_t_wtr20 <- eoe_time_wtr20 # full data set
+  prob_eoe_t_wtr20 <- eoe_t_wtr20[eoe_t_wtr20$NewLocationID == "GMU6_U_164" |
+                                    eoe_t_wtr20$NewLocationID == "GMU6_P_99" |
+                                    eoe_t_wtr20$NewLocationID == "GMU6_U_99" |
+                                    eoe_t_wtr20$NewLocationID == "GMU6_U_36" |
+                                    eoe_t_wtr20$NewLocationID == "GMU10A_U_46" |
+                                    eoe_t_wtr20$NewLocationID == "GMU10A_U_87" |
+                                    eoe_t_wtr20$NewLocationID == "GMU6_U_69" |
+                                    eoe_t_wtr20$NewLocationID == "GMU6_U_105" |
+                                    eoe_t_wtr20$NewLocationID == "GMU10A_U_11",]
   eoe_t_smr21 <- eoe_noon_list[[3]]
+  # eoe_t_smr21 <- eoe_time_smr21 # full data set
+  prob_eoe_t_smr21 <- eoe_t_smr21[eoe_t_smr21$NewLocationID == "GMU6_P_19" |
+                                    eoe_t_smr21$NewLocationID == "GMU10A_U_75" |
+                                    eoe_t_smr21$NewLocationID == "GMU10A_U_159" |
+                                    eoe_t_smr21$NewLocationID == "GMU6_P_29" |
+                                    eoe_t_smr21$NewLocationID == "GMU6_P_92",]
   
-  wolf_t_smr20 <- wolf_noon_list[[1]]
-  wolf_t_wtr20 <- wolf_noon_list[[2]]
+  wolf_t_smr19 <- wolf_noon_list[[1]]
+  # wolf_t_smr19 <- wolf19s_allT # full data set
+  prob_wolf_t_smr19 <- wolf_t_smr19[wolf_t_smr19$NewLocationID == "GMU48_A_2777",]
+  
+  wolf_t_smr20 <- wolf_noon_list[[2]]
+  # wolf_t_smr20 <- wolf20s_allT # full data set
+  prob_wolf_t_smr20 <- wolf_t_smr20[wolf_t_smr20$NewLocationID == "GMU29_A_1559" |
+                                      wolf_t_smr20$NewLocationID == "GMU13_B_1026" |
+                                      wolf_t_smr20$NewLocationID == "GMU12_B_947" |
+                                      wolf_t_smr20$NewLocationID == "GMU12_B_49" |
+                                      wolf_t_smr20$NewLocationID == "GMU10A_B_45" |
+                                      wolf_t_smr20$NewLocationID == "GMU12_B_54" |
+                                      wolf_t_smr20$NewLocationID == "GMU8A_B_36" |
+                                      wolf_t_smr20$NewLocationID == "GMU10_B_48",]
+  
   wolf_t_smr21 <- wolf_noon_list[[3]]
+  # wolf_t_smr21 <- wolf21s_allT # full data set
+  prob_wolf_t_smr21 <- wolf_t_smr21[wolf_t_smr21$NewLocationID == "GMU3_A_310" |
+                                      wolf_t_smr21$NewLocationID == "GMU4A_A_201" |
+                                      wolf_t_smr21$NewLocationID == "GMU8A_A_576" |
+                                      wolf_t_smr21$NewLocationID == "GMU4A_A_202" |
+                                      wolf_t_smr21$NewLocationID == "GMU39_A_3101" |
+                                      wolf_t_smr21$NewLocationID == "GMU59_A_2057" |
+                                      wolf_t_smr21$NewLocationID == "GMU51_A_2606" |
+                                      wolf_t_smr21$NewLocationID == "GMU51_A_2735" |
+                                      wolf_t_smr21$NewLocationID == "GMU61_A_1995",]
   
-  
-  
+  #'  Notes regarding missing motion vs time trigger images recorded in "Problem cameras - notes" Excel file in Data folder
   
   
   
