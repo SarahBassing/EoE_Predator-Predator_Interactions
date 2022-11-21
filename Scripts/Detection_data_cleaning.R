@@ -207,7 +207,7 @@
   #'  Note that when you use date-times in a numeric context (like in a histogram), 
   #'  1 means 1 second, so a binwidth of 86400 means one day. For dates, 1 means 1 day.
   #'  Noon timelapse images only- represents camera function, not animal activity/detections
-  eoe_noon_list[[1]] %>%  #  Summer 2020
+  EoE_noon_cams_Smr20 <- eoe_noon_list[[1]] %>%  #  Summer 2020
     filter(posix_date_time < ymd(20210101)) %>% 
     filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
@@ -215,9 +215,14 @@
     scale_x_datetime(
       name = "Dates",
       breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2020-07-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2020-09-01")), linetype = 4, color = "blue") +
     ggtitle("Number of active EoE cameras, Summer 2020")
+  EoE_noon_cams_Smr20
+  ggsave("./Outputs/Figures/EoE_noon_cams_Smr20.png", EoE_noon_cams_Smr20, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
   
-  eoe_noon_list[[2]] %>%  #  Winter 2020-2021
+  EoE_noon_cams_Wtr2021 <- eoe_noon_list[[2]] %>%  #  Winter 2020-2021
     filter(posix_date_time > ymd(20201101) & posix_date_time < ymd(20210531)) %>% 
     filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
@@ -225,9 +230,14 @@
     scale_x_datetime(
       name = "Dates",
       breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2020-12-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2021-02-01")), linetype = 4, color = "blue") +
     ggtitle("Number of active EoE cameras, Winter 2020-2021")
+  EoE_noon_cams_Wtr2021
+  ggsave("./Outputs/Figures/EoE_noon_cams_Wtr2021.png", EoE_noon_cams_Wtr2021, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
   
-  eoe_noon_list[[3]] %>%  #  Summer 2021
+  EoE_noon_cams_Smr21 <- eoe_noon_list[[3]] %>%  #  Summer 2021
     filter(posix_date_time > ymd(20210501) & posix_date_time < ymd(20211101)) %>% 
     filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
@@ -235,9 +245,14 @@
     scale_x_datetime(
       name = "Dates",
       breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2021-07-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2021-09-01")), linetype = 4, color = "blue") +
     ggtitle("Number of active EoE cameras, Summer 2021")
+  EoE_noon_cams_Smr21
+  ggsave("./Outputs/Figures/EoE_noon_cams_Smr21.png", EoE_noon_cams_Smr21, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
   
-  wolf_noon_list[[1]] %>%  # Summer 2019
+  Wolf_noon_cams_Smr19 <- wolf_noon_list[[1]] %>%  # Summer 2019
     filter(posix_date_time < ymd(20200101)) %>% 
     filter(Time == "12:0:0") %>%
     ggplot(aes(posix_date_time)) + 
@@ -245,9 +260,14 @@
     scale_x_datetime(
       name = "Dates",
       breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2019-07-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2019-09-15")), linetype = 4, color = "blue") +
     ggtitle("Number of active wolf cameras, Summer 2019")
+  Wolf_noon_cams_Smr19
+  ggsave("./Outputs/Figures/Wolf_noon_cams_Smr19.png", Wolf_noon_cams_Smr19, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
   
-  wolf_noon_list[[2]] %>%  #  Summer 2020
+  Wolf_noon_cams_Smr20 <- wolf_noon_list[[2]] %>%  #  Summer 2020
     filter(posix_date_time < ymd(20210101)) %>% 
     filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
@@ -255,9 +275,14 @@
     scale_x_datetime(
       name = "Dates",
       breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2020-07-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2020-09-15")), linetype = 4, color = "blue") +
     ggtitle("Number of active wolf cameras, Summer 2020")
+  Wolf_noon_cams_Smr20
+  ggsave("./Outputs/Figures/Wolf_noon_cams_Smr20.png", Wolf_noon_cams_Smr20, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
   
-  wolf_noon_list[[3]] %>%  #  Summer 2021
+  Wolf_noon_cams_Smr21 <- wolf_noon_list[[3]] %>%  #  Summer 2021
     filter(posix_date_time < ymd(20220101)) %>% 
     filter(Time == "12:00:00") %>%
     ggplot(aes(posix_date_time)) + 
@@ -265,7 +290,66 @@
     scale_x_datetime(
       name = "Dates",
       breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2021-07-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2021-09-15")), linetype = 4, color = "blue") +
     ggtitle("Number of active wolf cameras, Summer 2021")
+  Wolf_noon_cams_Smr21
+  ggsave("./Outputs/Figures/Wolf_noon_cams_Smr21.png", Wolf_noon_cams_Smr21, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
+  
+  
+  #'  By GMU - are there temporal trends in deployment by GMU?
+  EoE_noon_cams_Smr20GMU <- eoe_noon_list[[1]] %>%  #  Summer 2020
+    filter(posix_date_time < ymd(20210101)) %>% 
+    filter(Time == "12:00:00") %>%
+    ggplot(aes(posix_date_time, group = Gmu)) + 
+    geom_freqpoly(binwidth = 86400) + # 86400 seconds = 1 day
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2020-07-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2020-09-01")), linetype = 4, color = "blue") +
+    facet_wrap(~Gmu, scales = "free_y") +
+    ggtitle("Number of active EoE cameras by GMU, Summer 2020")
+  EoE_noon_cams_Smr20GMU
+  ggsave("./Outputs/Figures/EoE_noon_cams_Smr20GMU.png", EoE_noon_cams_Smr20GMU, units = "in", 
+         width = 12, height = 6, dpi = 600, device = "png")
+  
+  EoE_noon_cams_Wtr2021GMU <- eoe_noon_list[[2]] %>%  #  Winter 2020-2021
+    filter(posix_date_time > ymd(20201101) & posix_date_time < ymd(20210531)) %>% 
+    filter(Time == "12:00:00") %>%
+    ggplot(aes(posix_date_time, group = Gmu)) + 
+    geom_freqpoly(binwidth = 86400) +
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2020-12-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2021-02-01")), linetype = 4, color = "blue") +
+    facet_wrap(~Gmu, scales = "free_y") +
+    ggtitle("Number of active EoE cameras by GMU, Winter 2020-2021")
+  EoE_noon_cams_Wtr2021GMU
+  ggsave("./Outputs/Figures/EoE_noon_cams_Wtr2021GMU.png", EoE_noon_cams_Wtr2021GMU, units = "in", 
+         width = 12, height = 6, dpi = 600, device = "png")
+  
+  EoE_noon_cams_Smr21GMU <- eoe_noon_list[[3]] %>%  #  Summer 2021
+    filter(posix_date_time > ymd(20210501) & posix_date_time < ymd(20211101)) %>% 
+    filter(Time == "12:00:00") %>%
+    filter(!is.na(Gmu)) %>%
+    ggplot(aes(posix_date_time, group = Gmu)) + 
+    geom_freqpoly(binwidth = 86400) +
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2021-07-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2021-09-01")), linetype = 4, color = "blue") +
+    facet_wrap(~Gmu, scales = "free_y") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+    ggtitle("Number of active EoE cameras, Summer 2021")
+  EoE_noon_cams_Smr21GMU
+  ggsave("./Outputs/Figures/EoE_noon_cams_Smr21GMU.png", EoE_noon_cams_Smr21GMU, units = "in", 
+         width = 12, height = 6, dpi = 600, device = "png")
+  
+  #'  Not plotting by GMU for wolf data b/c basically state-wide... TOO MANY to plot
   
   
   ####  How many cameras were operating  ####
