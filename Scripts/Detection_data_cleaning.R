@@ -75,7 +75,16 @@
   eoe_motion_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_motion_skinny, pred = "predator", SIMPLIFY = FALSE) 
   eoe_noon_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_time_skinny, pred = "predator", SIMPLIFY = FALSE)  
   #'  Double check it worked
-  eoe20s_noon <- eoe_noon_list[[1]]
+  eoe21s_noon <- eoe_noon_list[[3]]
+  #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
+  #'  original data set so unnecessary info gets added in this function - need to
+  #'  revert back to original information
+  eoe_motion_list[[3]] <- dplyr::select(eoe_motion_list[[3]], -c(NewLocationID)) %>%
+    mutate(NewLocationID = LocationID) %>%
+    relocate(NewLocationID, .after = LocationID)
+  eoe_noon_list[[3]] <- dplyr::select(eoe_noon_list[[3]], -c(NewLocationID)) %>%
+    mutate(NewLocationID = LocationID) %>%
+    relocate(NewLocationID, .after = LocationID)
   
   eoe_motion_wtr20 <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
   
@@ -120,7 +129,16 @@
   wolf_motion_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_motion_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)  
   wolf_noon_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_time_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)  
   #'  Double check it worked
-  wolf20s_noon <- wolf_noon_list[[2]]
+  wolf21s_noon <- wolf_noon_list[[3]]
+  #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
+  #'  original data set so unnecessary info gets added in this function - need to
+  #'  revert back to original information
+  wolf_motion_list[[3]] <- dplyr::select(wolf_motion_list[[3]], -c(NewLocationID)) %>%
+    mutate(NewLocationID = LocationID) %>%
+    relocate(NewLocationID, .after = LocationID)
+  wolf_noon_list[[3]] <- dplyr::select(wolf_noon_list[[3]], -c(NewLocationID)) %>%
+    mutate(NewLocationID = LocationID) %>%
+    relocate(NewLocationID, .after = LocationID)
   
   #' #'  Run full wolf timelapse data sets through function
   #' wolf19s_allT <- wolf_deploy_info(season = "Smr19", dets = wolf19s_allT, pred = "predator")
@@ -131,7 +149,7 @@
   #' save(wolf21s_allT, file = "./Data/IDFG camera data/Split datasets/wolf21s_allT.RData")
   
   
-  ####  Format & visulaize date/time data  ####
+  ####  Format & visualize date/time data  ####
   #  ---------------------------------------
   #'  Detection data was recorded in MST (America/Edmonton (UTC-07:00); tz="America/Edmonton")
   set_tzone <- function(dat) {
