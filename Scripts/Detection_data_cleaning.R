@@ -71,27 +71,48 @@
       relocate(Setup, .after = NewLocationID)
     return(dets)
   }
+  #'  Run keeper eoe data sets through function
   eoe_seasons <- list("Smr20", "Wtr20", "Smr21")
   eoe_motion_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_motion_skinny, pred = "predator", SIMPLIFY = FALSE) 
-  eoe_noon_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_time_skinny, pred = "predator", SIMPLIFY = FALSE)  
-  #'  Double check it worked
-  eoe21s_noon <- eoe_noon_list[[3]]
   #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
   #'  original data set so unnecessary info gets added in this function - need to
   #'  revert back to original information
   eoe_motion_list[[3]] <- dplyr::select(eoe_motion_list[[3]], -c(NewLocationID)) %>%
     mutate(NewLocationID = LocationID) %>%
     relocate(NewLocationID, .after = LocationID)
+  
+  eoe_noon_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_time_skinny, pred = "predator", SIMPLIFY = FALSE)  
+  #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
+  #'  original data set so unnecessary info gets added in this function - need to
+  #'  revert back to original information
   eoe_noon_list[[3]] <- dplyr::select(eoe_noon_list[[3]], -c(NewLocationID)) %>%
     mutate(NewLocationID = LocationID) %>%
     relocate(NewLocationID, .after = LocationID)
   
+  #'  Double check it worked
+  eoe21s_noon <- eoe_noon_list[[3]]
+  
+  #'  Run full eoe motion trigger data sets through function
+  eoe_motion_smr20 <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator")
   eoe_motion_wtr20 <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
+  eoe_motion_smr21 <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator")
+  #' eoe20s_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Smr20", pred = "predator")
+  #' eoe20w_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
+  #' eoe21s_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Smr21", pred = "predator")
+  #' eoe21s_allM <- dplyr::select(eoe21s_allM, -c(NewLocationID)) %>%
+  #'   mutate(NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
+  #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
+  #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
   
   #' #'  Run full eoe timelapse data sets through function
   #' eoe20s_allT <- eoe_deploy_info(season = "Smr20", dets = eoe20s_allT, pred = "predator")
   #' eoe20w_allT <- eoe_deploy_info(season = "Wtr20", dets = eoe20w_allT, pred = "predator")
   #' eoe21s_allT <- eoe_deploy_info(season = "Smr21", dets = eoe21s_allT, pred = "predator")
+  #' eoe21s_allT <- dplyr::select(eoe21s_allT, -c(NewLocationID)) %>%
+  #'   mutate(NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
   #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
   #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
   #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
@@ -119,17 +140,30 @@
     dets <- dets %>%
       mutate(Setup = ifelse(acams == "TRUE", "A", "O"),
              Setup = ifelse(aocams == "TRUE", "B", Setup),
-             NewLocationID = paste0("GMU", Gmu, "_", Setup, "_", LocationID)) %>%
+             NewLocationID = paste0(Gmu, "_", Setup, "_", LocationID)) %>%
       dplyr::select(-c(acams, aocams)) %>%
       relocate(NewLocationID, .before = File) %>%
       relocate(Setup, .after = NewLocationID)
     return(dets)
   }
+  #'  Run keeper wolf data sets through function
   wolf_seasons <- list("Smr19", "Smr20", "Smr21")
-  wolf_motion_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_motion_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)  
+  wolf_motion_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_motion_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)
+  #'  Fix NewLocationID info- this was recorded differently for Smr20 & Smr21 
+  #'  images in original data set so unnecessary info gets added in this function - 
+  #'  need to revert back to original information
+  wolf_motion_list[[2]] <- mutate(wolf_motion_list[[2]], NewLocationID = paste0("GMU", NewLocationID))
+  wolf_motion_list[[3]] <- dplyr::select(wolf_motion_list[[3]], -c(NewLocationID)) %>%
+    mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
+           NewLocationID = LocationID) %>%
+    relocate(NewLocationID, .after = LocationID)
+  
   wolf_noon_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_time_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)  
-  #'  Double check it worked
-  wolf21s_noon <- wolf_noon_list[[3]]
+  wolf_noon_list[[2]] <- mutate(wolf_noon_list[[2]], NewLocationID = paste0("GMU", NewLocationID))
+  wolf_noon_list[[3]] <- dplyr::select(wolf_noon_list[[3]], -c(NewLocationID)) %>%
+    mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
+           NewLocationID = LocationID) %>%
+    relocate(NewLocationID, .after = LocationID)
   #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
   #'  original data set so unnecessary info gets added in this function - need to
   #'  revert back to original information
@@ -139,6 +173,9 @@
   wolf_noon_list[[3]] <- dplyr::select(wolf_noon_list[[3]], -c(NewLocationID)) %>%
     mutate(NewLocationID = LocationID) %>%
     relocate(NewLocationID, .after = LocationID)
+  
+  #'  Double check it worked
+  wolf21s_noon <- wolf_noon_list[[3]]
   
   #' #'  Run full wolf timelapse data sets through function
   #' wolf19s_allT <- wolf_deploy_info(season = "Smr19", dets = wolf19s_allT, pred = "predator")
