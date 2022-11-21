@@ -578,6 +578,31 @@
   #'  Notes regarding missing motion vs time trigger images recorded in "Problem cameras - notes" Excel file in Data folder
   
   
+  ####  Cameras with known operational issues  ####
+  #'  -----------------------------------------
+  #'  Pull out any camera with a noted misdirected/obscured viewshed
+  #'  Looking for images labeled: "severely misdirected", "partially obscured", 
+  #'  "completely obscured", "malfunction"
+  #'  Images marked "minorly misdirected" are still OK to use per S.Thompson
+  #'  "partially obscured": 25-75% obscured but probably can still see some animals
+  problem_children <- function(dat) {
+    #'  Retain NewLocationID info of cameras with known problems
+    prob_cams <- as.data.frame(unique(dat$NewLocationID[dat$OpState == "severely misdirected" |
+                                                          dat$OpState == "partially obscured" |
+                                                          dat$OpState == "completely obscured" |
+                                                          dat$OpState == "malfunction"]))
+    colnames(prob_cams) <- "NewLocationID"
+    #'  Retain all images from just problem cameras
+    prob_pix <- semi_join(dat, prob_cams, by = "NewLocationID")
+    #'  Double check I have the same number of cameras
+    print(nrow(prob_cams))
+    print(length(unique(prob_pix$NewLocationID)))
+    return(prob_pix)
+  }
+  eoe_probs <- lapply(eoe_motion_list, problem_children)
+  wolf_probs <- lapply(wolf_motion_list, problem_children)
+  
+  
   
   
   
