@@ -4,8 +4,12 @@
   #'  Sarah B. Bassing
   #'  September 2022
   #'  ---------------------------------
-  #'  Script to clean camea deteciton data, make sure annual datasets are consistent, 
-  #'  filter into manageable data sets, and connect to camera locations.
+  #'  Script to clean camera detection data, make sure annual data sets are 
+  #'  consistent, identify cameras with potential problems (non-operational or 
+  #'  missing data), and filter into more manageable data sets.
+  #'  
+  #'  Camera deployment data prepared in Camera_cleaning.R
+  #'  Massive detection data sets separated/thinned in Camera_split_raw_data.R
   #'  ---------------------------------
   
   #'  Clear memory
@@ -45,6 +49,7 @@
   #' load("./Data/IDFG camera data/Split datasets/wolf21s_allT.RData")
   
   #'  Keeper data sets (all animal/human/vehicle images & noon timelapse images)
+  #'  Much easier to manage...
   load("./Data/IDFG camera data/Split datasets/eoe_motion_skinny.RData")
   load("./Data/IDFG camera data/Split datasets/eoe_time_skinny.RData")
   load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny.RData")
@@ -80,6 +85,8 @@
   eoe_motion_list[[3]] <- dplyr::select(eoe_motion_list[[3]], -c(NewLocationID)) %>%
     mutate(NewLocationID = LocationID) %>%
     relocate(NewLocationID, .after = LocationID)
+  #'  Save for later use
+  # save(eoe_motion_list, file = "./Data/IDFG camera data/Split datasets/eoe_motion_skinny_NewLocationID.RData")
   
   eoe_noon_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_time_skinny, pred = "predator", SIMPLIFY = FALSE)  
   #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
@@ -88,6 +95,9 @@
   eoe_noon_list[[3]] <- dplyr::select(eoe_noon_list[[3]], -c(NewLocationID)) %>%
     mutate(NewLocationID = LocationID) %>%
     relocate(NewLocationID, .after = LocationID)
+  #'  Save for later use
+  eoe_time_list <- eoe_noon_list
+  # save(eoe_time_list, file = "./Data/IDFG camera data/Split datasets/eoe_time_skinny_NewLocationID.RData")
   
   #'  Double check it worked
   eoe21s_noon <- eoe_noon_list[[3]]
@@ -164,6 +174,8 @@
     mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
            NewLocationID = LocationID) %>%
     relocate(NewLocationID, .after = LocationID)
+  #'  Save for later use
+  # save(wolf_motion_list, file = "./Data/IDFG camera data/Split datasets/wolf_motion_skinny_NewLocationID.RData")
   
   wolf_noon_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_time_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)  
   wolf_noon_list[[2]] <- mutate(wolf_noon_list[[2]], NewLocationID = paste0("GMU", NewLocationID))
@@ -180,6 +192,9 @@
   wolf_noon_list[[3]] <- dplyr::select(wolf_noon_list[[3]], -c(NewLocationID)) %>%
     mutate(NewLocationID = LocationID) %>%
     relocate(NewLocationID, .after = LocationID)
+  #'  Save for later use
+  wolf_time_list <- wolf_noon_list
+  # save(wolf_time_list, file = "./Data/IDFG camera data/Split datasets/wolf_time_skinny_NewLocationID.RData")
   
   #'  Double check it worked
   wolf21s_noon <- wolf_noon_list[[3]]
@@ -241,21 +256,22 @@
   wolf_motion_list <- lapply(wolf_motion_list, set_tzone)
   wolf_noon_list <- lapply(wolf_noon_list, set_tzone)
   
-  eoe_motion_smr20 <- set_tzone(eoe_motion_smr20)
-  eoe_motion_wtr20 <- set_tzone(eoe_motion_wtr20)
-  eoe_motion_smr21 <- set_tzone(eoe_motion_smr21)
-  
-  eoe_time_smr20 <- set_tzone(eoe_time_smr20)
-  eoe_time_wtr20 <- set_tzone(eoe_time_wtr20)
-  eoe_time_smr21 <- set_tzone(eoe_time_smr21)
-  
-  wolf_motion_smr20 <- set_tzone(wolf_motion_smr20)
-  wolf_motion_wtr20 <- set_tzone(wolf_motion_wtr20)
-  wolf_motion_smr21 <- set_tzone(wolf_motion_smr21)
-  
-  wolf_time_smr20 <- set_tzone(wolf_time_smr20)
-  wolf_time_wtr20 <- set_tzone(wolf_time_wtr20)
-  wolf_time_smr21 <- set_tzone(wolf_time_smr21)
+  #' #'  Set time zone on full datasets
+  #' eoe_motion_smr20 <- set_tzone(eoe_motion_smr20)
+  #' eoe_motion_wtr20 <- set_tzone(eoe_motion_wtr20)
+  #' eoe_motion_smr21 <- set_tzone(eoe_motion_smr21)
+  #' 
+  #' eoe_time_smr20 <- set_tzone(eoe_time_smr20)
+  #' eoe_time_wtr20 <- set_tzone(eoe_time_wtr20)
+  #' eoe_time_smr21 <- set_tzone(eoe_time_smr21)
+  #' 
+  #' wolf_motion_smr20 <- set_tzone(wolf_motion_smr20)
+  #' wolf_motion_wtr20 <- set_tzone(wolf_motion_wtr20)
+  #' wolf_motion_smr21 <- set_tzone(wolf_motion_smr21)
+  #' 
+  #' wolf_time_smr20 <- set_tzone(wolf_time_smr20)
+  #' wolf_time_wtr20 <- set_tzone(wolf_time_wtr20)
+  #' wolf_time_smr21 <- set_tzone(wolf_time_smr21)
 
   
   ####  Visualize observations over time  ####
@@ -584,11 +600,12 @@
   #'  Looking for images labeled: "severely misdirected", "partially obscured", 
   #'  "completely obscured", "malfunction"
   #'  Images marked "minorly misdirected" are still OK to use per S.Thompson
-  #'  "partially obscured": 25-75% obscured but probably can still see some animals
+  #'  "partially obscured": 25-75% obscured but probably can still see some animals,
+  #'  generally associated with animal messing with camera but other images from 
+  #'  trigger still usable to ID species - currently assumign OK to use
   problem_children <- function(dat) {
     #'  Retain NewLocationID info of cameras with known problems
     prob_cams <- as.data.frame(unique(dat$NewLocationID[dat$OpState == "severely misdirected" |
-                                                          dat$OpState == "partially obscured" |
                                                           dat$OpState == "completely obscured" |
                                                           dat$OpState == "malfunction"]))
     colnames(prob_cams) <- "NewLocationID"
@@ -599,12 +616,65 @@
     print(length(unique(prob_pix$NewLocationID)))
     return(prob_pix)
   }
-  eoe_probs <- lapply(eoe_motion_list, problem_children)
-  wolf_probs <- lapply(wolf_motion_list, problem_children)
+  eoe_m_probs <- lapply(eoe_motion_list, problem_children)
+  eoe_t_probs <- lapply(eoe_time_list, problem_children)   # will probably want the full data set, not just noon images
+  wolf_m_probs <- lapply(wolf_motion_list, problem_children)
+  wolf_t_probs <- lapply(wolf_time_list, problem_children)   # will probably want the full data set, not just noon images
+  
+  probs <- eoe_m_probs[[2]]
+ 
+  #'  Pull out images from any day were the OpState was labeled as having a 
+  #'  potential problem - includes normal images to help assess the extent of problem
+  bad_day_cams <- function(dat, opstate) {
+    bad_days <- dat[dat$OpState == opstate,] %>%
+      dplyr::select(c(Date, NewLocationID, OpState, Species)) %>%
+      unique()
+    bad_day_pix <- semi_join(probs_s20, bad_days, by = c("Date", "NewLocationID"))
+    return(bad_day_pix)
+  }
+  eoe_m_obscured_pix <- lapply(eoe_m_probs, bad_day_cams, opstate = "completely obscured")
+  
+  eoe_obscured_pix <- bad_day_cams(probs, opstate = "completely obscured")
   
   
   
   
+  
+  
+  
+  bad_days <- probs_s20[probs_s20$OpState == "severely misdirected" |
+                          probs_s20$OpState == "completely obscured" |
+                          probs_s20$OpState == "malfunction",] %>%
+    dplyr::select(c(Date, NewLocationID, OpState, Species)) %>%
+    unique()
+  bad_day_pix <- semi_join(probs_s20, bad_days, by = c("Date", "NewLocationID"))
+  
+  #'  Review "completely obscured" images- is  view blocked temporarily due to 
+  #'  animal/human interacting with camera but other images from trigger useful 
+  #'  to label image or is blocked view due to other visual obstructions like
+  #'  snow, frost, vegetation?
+  
+  
+  
+  
+  
+  
+  #'  Only look at cameras where the viewshed was partially obscured at some point- 
+  #'  likely did not affect camera operation enough to alter sampling effort at
+  #'  these cameras but want to double check
+  partial_block <- function(dat) {
+    #'  Retain NewLocationID info of cameras with known problems
+    prob_cams <- as.data.frame(unique(dat$NewLocationID[dat$OpState == "partially obscured"]))
+    colnames(prob_cams) <- "NewLocationID"
+    #'  Retain all images from just problem cameras
+    prob_pix <- semi_join(dat, prob_cams, by = "NewLocationID")
+    #'  Double check I have the same number of cameras
+    print(nrow(prob_cams))
+    print(length(unique(prob_pix$NewLocationID)))
+    return(prob_pix)
+  }
+  eoe_partblock <- lapply(eoe_motion_list, partial_block)
+  wolf_partblock <- lapply(wolf_motion_list, partial_block)
   
   
   
