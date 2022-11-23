@@ -256,7 +256,35 @@
   wolf_motion_list <- lapply(wolf_motion_list, set_tzone)
   wolf_noon_list <- lapply(wolf_noon_list, set_tzone)
   
-  #' #'  Set time zone on full datasets
+  #'  Set time zone on full data sets
+  load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
+  eoe20s_allM <- set_tzone(eoe20s_allM)
+  load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
+  eoe20w_allM <- set_tzone(eoe20w_allM)
+  load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
+  eoe21s_allM <- set_tzone(eoe21s_allM)
+  
+  load("./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
+  eoe20s_allT <- set_tzone(eoe20s_allT)
+  load("./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
+  eoe20w_allT <- set_tzone(eoe20w_allT)
+  load("./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
+  eoe21s_allT <- set_tzone(eoe21s_allT)
+  
+  load("./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
+  wolf19s_allM <- set_tzone(wolf19s_allM)
+  load("./Data/IDFG camera data/Split datasets/wolf20s_allM_NewLocationID.RData")
+  wolf20s_allM <- set_tzone(wolf20s_allM)
+  load("./Data/IDFG camera data/Split datasets/wolf21s_allM_NewLocationID.RData")
+  wolf21s_allM <- set_tzone(wolf21s_allM)
+  
+  load("./Data/IDFG camera data/Split datasets/wolf19s_allT_NewLocationID.RData")
+  wolf19s_allT <- set_tzone(wolf19s_allT)
+  load("./Data/IDFG camera data/Split datasets/wolf20s_allT_NewLocationID.RData")
+  wolf20s_allT <- set_tzone(wolf20s_allT)
+  load("./Data/IDFG camera data/Split datasets/wolf21s_allT_NewLocationID.RData")
+  wolf21s_allT <- set_tzone(wolf21s_allT)
+  
   #' eoe_motion_smr20 <- set_tzone(eoe_motion_smr20)
   #' eoe_motion_wtr20 <- set_tzone(eoe_motion_wtr20)
   #' eoe_motion_smr21 <- set_tzone(eoe_motion_smr21)
@@ -596,18 +624,19 @@
   
   ####  Cameras with known operational issues  ####
   #'  -----------------------------------------
-  #'  Pull out any camera with a noted misdirected/obscured viewshed
+  #'  Pull out any images from cameras with a noted misdirected/obscured viewshed
   #'  Looking for images labeled: "severely misdirected", "partially obscured", 
-  #'  "completely obscured", "malfunction"
+  #'  "completely obscured", "malfunction", "nightbad__dayok
   #'  Images marked "minorly misdirected" are still OK to use per S.Thompson
   #'  "partially obscured": 25-75% obscured but probably can still see some animals,
   #'  generally associated with animal messing with camera but other images from 
-  #'  trigger still usable to ID species - currently assumign OK to use
+  #'  trigger still usable to ID species - currently assuming OK to use
   problem_children <- function(dat) {
     #'  Retain NewLocationID info of cameras with known problems
     prob_cams <- as.data.frame(unique(dat$NewLocationID[dat$OpState == "severely misdirected" |
                                                           dat$OpState == "completely obscured" |
-                                                          dat$OpState == "malfunction"]))
+                                                          dat$OpState == "malfunction" |
+                                                          dat$OpState == "nightbad__dayok"]))
     colnames(prob_cams) <- "NewLocationID"
     #'  Retain all images from just problem cameras
     prob_pix <- semi_join(dat, prob_cams, by = "NewLocationID")
@@ -616,65 +645,100 @@
     print(length(unique(prob_pix$NewLocationID)))
     return(prob_pix)
   }
+  #'  Run keeper data sets through to help flag potentially problematic cameras
   eoe_m_probs <- lapply(eoe_motion_list, problem_children)
-  eoe_t_probs <- lapply(eoe_time_list, problem_children)   # will probably want the full data set, not just noon images
+  eoe_t_probs <- lapply(eoe_time_list, problem_children)   
   wolf_m_probs <- lapply(wolf_motion_list, problem_children)
-  wolf_t_probs <- lapply(wolf_time_list, problem_children)   # will probably want the full data set, not just noon images
+  wolf_t_probs <- lapply(wolf_time_list, problem_children)   
   
-  probs <- eoe_m_probs[[2]]
+  #'  Focus on the full time trigger data sets - these provide a lot more information
+  #'  about whether visual obstructions and misalignment are a long-term problem
+  #'  that need to be addressed or short-lived and not a real issue.
+  eoe_t_20s_probs <- problem_children(eoe20s_allT)
+  eoe_t_20w_probs <- problem_children(eoe20w_allT)
+  eoe_t_21s_probs <- problem_children(eoe21s_allT)
+  
+  wolf_t_19s_probs <- problem_children(wolf19s_allT)
+  wolf_t_20s_probs <- problem_children(wolf20s_allT)
+  wolf_t_21s_probs <- problem_children(wolf21s_allT)
+  
+  #'  Filter images to series where camera was obscured or misdirected for 1+ hour
+  #'  Using this to represent days when camera wasn't full operational
+  sequential_probs <- function(dat) {
+    #'  If camera's view is completely obscured
+    cond1 <- expr(dat$OpState == "completely obscured")
+    bad_view_pix1 <- dat %>% 
+      mutate(problem_pix = 
+               rep(rle(!!cond1)$values & rle(!!cond1)$lengths >= 6, 
+                   rle(!!cond1)$lengths)) %>%
+      filter(problem_pix)
+    #'  If camera's angle is severely misdirected from initial deployment
+    cond2 <- expr(dat$OpState == "severely misdirected")
+    bad_view_pix2 <- dat %>% 
+      mutate(problem_pix = 
+               rep(rle(!!cond2)$values & rle(!!cond2)$lengths >= 6, 
+                   rle(!!cond2)$lengths)) %>%
+      filter(problem_pix)
+    #'  If camera's view is ok during the day but compromised at night
+    cond3 <- expr(dat$OpState == "nightbad__dayok")
+    bad_view_pix3 <- dat %>% 
+      mutate(problem_pix = 
+               rep(rle(!!cond3)$values & rle(!!cond3)$lengths >= 6, 
+                   rle(!!cond3)$lengths)) %>%
+      filter(problem_pix)
+    #'  Merge all images with problems
+    bad_view_pix <- rbind(bad_view_pix1, bad_view_pix2, bad_view_pix3) %>%
+      arrange(NewLocationID, posix_date_time)
+    return(bad_view_pix)
+  }
+  #'  Flag problematic images from each full time-trigger data set
+  eoe_1hr_20s <- sequential_probs(eoe_t_20s_probs)
+  eoe_1hr_20w <- sequential_probs(eoe_t_20w_probs)
+  eoe_1hr_21s <- sequential_probs(eoe_t_21s_probs)
+  
+  wolf_1hr_19s <- sequential_probs(wolf_t_19s_probs)
+  wolf_1hr_20s <- sequential_probs(wolf_t_20s_probs)
+  wolf_1hr_21s <- sequential_probs(wolf_t_21s_probs)
+  
  
-  #'  Pull out images from any day were the OpState was labeled as having a 
+  #'  Pull out images from any day were the sequential_probs function indicated
   #'  potential problem - includes normal images to help assess the extent of problem
-  bad_day_cams <- function(dat, opstate) {
-    bad_days <- dat[dat$OpState == opstate,] %>%
-      dplyr::select(c(Date, NewLocationID, OpState, Species)) %>%
-      unique()
-    bad_day_pix <- semi_join(probs_s20, bad_days, by = c("Date", "NewLocationID"))
-    return(bad_day_pix)
+  bad_day_cams <- function(dat, prob_condition) {
+    bad_days <- semi_join(dat, prob_condition, by = c("Date", "NewLocationID")) %>%
+      # dplyr::select(c(NewLocationID, Date, Time, posix_date_time, OpState, Species, File)) %>%
+      arrange(NewLocationID, posix_date_time)
+    return(bad_days)
   }
-  eoe_m_obscured_pix <- lapply(eoe_m_probs, bad_day_cams, opstate = "completely obscured")
+  #'  Save all images from camera on problem days - to be used to record start 
+  #'  and stop problem days and indicated which images should be filtered out
+  eoe_badday_t20s <- bad_day_cams(eoe_t_20s_probs, prob_condition = eoe_1hr_20s)
+  save(eoe_badday_t20s, file = "./Data/IDFG camera data/eoe20s_t_bad_cam_days.RData")
+  eoe_badday_t20w <- bad_day_cams(eoe_t_20w_probs, prob_condition = eoe_1hr_20w)
+  save(eoe_badday_t20w, file = "./Data/IDFG camera data/eoe20w_t_bad_cam_days.RData")
+  eoe_badday_t21s <- bad_day_cams(eoe_t_21s_probs, prob_condition = eoe_1hr_21s)
+  save(eoe_badday_t21s, file = "./Data/IDFG camera data/eoe21s_t_bad_cam_days.RData")
   
-  eoe_obscured_pix <- bad_day_cams(probs, opstate = "completely obscured")
-  
-  
-  
-  
-  
-  
-  
-  bad_days <- probs_s20[probs_s20$OpState == "severely misdirected" |
-                          probs_s20$OpState == "completely obscured" |
-                          probs_s20$OpState == "malfunction",] %>%
-    dplyr::select(c(Date, NewLocationID, OpState, Species)) %>%
-    unique()
-  bad_day_pix <- semi_join(probs_s20, bad_days, by = c("Date", "NewLocationID"))
-  
-  #'  Review "completely obscured" images- is  view blocked temporarily due to 
-  #'  animal/human interacting with camera but other images from trigger useful 
-  #'  to label image or is blocked view due to other visual obstructions like
-  #'  snow, frost, vegetation?
+  wolf_badday_t19s <- bad_day_cams(wolf_t_19s_probs, prob_condition = wolf_1hr_19s)
+  save(wolf_badday_t19s, file = "./Data/IDFG camera data/wolf19s_t_bad_cam_days.RData")
+  wolf_badday_t20s <- bad_day_cams(wolf_t_20s_probs, prob_condition = wolf_1hr_20s)
+  save(wolf_badday_t20s, file = "./Data/IDFG camera data/wolf20s_t_bad_cam_days.RData")
+  wolf_badday_t21s <- bad_day_cams(wolf_t_21s_probs, prob_condition = wolf_1hr_21s)
+  save(wolf_badday_t21s, file = "./Data/IDFG camera data/wolf21s_t_bad_cam_days.RData")
   
   
   
   
   
   
-  #'  Only look at cameras where the viewshed was partially obscured at some point- 
-  #'  likely did not affect camera operation enough to alter sampling effort at
-  #'  these cameras but want to double check
-  partial_block <- function(dat) {
-    #'  Retain NewLocationID info of cameras with known problems
-    prob_cams <- as.data.frame(unique(dat$NewLocationID[dat$OpState == "partially obscured"]))
-    colnames(prob_cams) <- "NewLocationID"
-    #'  Retain all images from just problem cameras
-    prob_pix <- semi_join(dat, prob_cams, by = "NewLocationID")
-    #'  Double check I have the same number of cameras
-    print(nrow(prob_cams))
-    print(length(unique(prob_pix$NewLocationID)))
-    return(prob_pix)
-  }
-  eoe_partblock <- lapply(eoe_motion_list, partial_block)
-  wolf_partblock <- lapply(wolf_motion_list, partial_block)
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   
   
