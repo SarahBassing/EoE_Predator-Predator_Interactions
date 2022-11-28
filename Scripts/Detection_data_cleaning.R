@@ -712,18 +712,24 @@
   #'  Save all images from camera on problem days - to be used to record start 
   #'  and stop problem days and indicated which images should be filtered out
   eoe_badday_t20s <- bad_day_cams(eoe_t_20s_probs, prob_condition = eoe_1hr_20s)
-  save(eoe_badday_t20s, file = "./Data/IDFG camera data/eoe20s_t_bad_cam_days.RData")
+  save(eoe_badday_t20s, file = "./Data/IDFG camera data/Problem cams/eoe20s_t_bad_cam_days.RData")
+  write.csv(eoe_badday_t20s, "./Data/IDFG camera data/Problem cams/eoe20s_t_bad_cam_days.csv")
   eoe_badday_t20w <- bad_day_cams(eoe_t_20w_probs, prob_condition = eoe_1hr_20w)
-  save(eoe_badday_t20w, file = "./Data/IDFG camera data/eoe20w_t_bad_cam_days.RData")
+  save(eoe_badday_t20w, file = "./Data/IDFG camera data/Problem cams/eoe20w_t_bad_cam_days.RData")
+  write.csv(eoe_badday_t20w, "./Data/IDFG camera data/Problem cams/eoe20w_t_bad_cam_days.csv")
   eoe_badday_t21s <- bad_day_cams(eoe_t_21s_probs, prob_condition = eoe_1hr_21s)
-  save(eoe_badday_t21s, file = "./Data/IDFG camera data/eoe21s_t_bad_cam_days.RData")
+  save(eoe_badday_t21s, file = "./Data/IDFG camera data/Problem cams/eoe21s_t_bad_cam_days.RData")
+  write.csv(eoe_badday_t21s, "./Data/IDFG camera data/Problem cams/eoe21s_t_bad_cam_days.csv")
   
   wolf_badday_t19s <- bad_day_cams(wolf_t_19s_probs, prob_condition = wolf_1hr_19s)
-  save(wolf_badday_t19s, file = "./Data/IDFG camera data/wolf19s_t_bad_cam_days.RData")
+  save(wolf_badday_t19s, file = "./Data/IDFG camera data/Problem cams/wolf19s_t_bad_cam_days.RData")
+  write.csv(wolf_badday_t19s, "./Data/IDFG camera data/Problem cams/wolf19s_t_bad_cam_days.csv")
   wolf_badday_t20s <- bad_day_cams(wolf_t_20s_probs, prob_condition = wolf_1hr_20s)
-  save(wolf_badday_t20s, file = "./Data/IDFG camera data/wolf20s_t_bad_cam_days.RData")
+  save(wolf_badday_t20s, file = "./Data/IDFG camera data/Problem cams/wolf20s_t_bad_cam_days.RData")
+  write.csv(wolf_badday_t20s, "./Data/IDFG camera data/Problem cams/wolf20s_t_bad_cam_days.csv")
   wolf_badday_t21s <- bad_day_cams(wolf_t_21s_probs, prob_condition = wolf_1hr_21s)
-  save(wolf_badday_t21s, file = "./Data/IDFG camera data/wolf21s_t_bad_cam_days.RData")
+  save(wolf_badday_t21s, file = "./Data/IDFG camera data/Problem cams/wolf21s_t_bad_cam_days.RData")
+  write.csv(wolf_badday_t21s, "./Data/IDFG camera data/Problem cams/wolf21s_t_bad_cam_days.csv")
   
   
   
