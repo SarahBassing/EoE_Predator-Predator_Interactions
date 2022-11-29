@@ -662,6 +662,8 @@
   wolf_t_20s_probs <- problem_children(wolf20s_allT)
   wolf_t_21s_probs <- problem_children(wolf21s_allT)
   
+  
+  
   #'  Filter images to series where camera was obscured or misdirected for 1+ hour
   #'  Using this to represent days when camera wasn't full operational
   sequential_probs <- function(dat) {
@@ -700,7 +702,74 @@
   wolf_1hr_20s <- sequential_probs(wolf_t_20s_probs)
   wolf_1hr_21s <- sequential_probs(wolf_t_21s_probs)
   
- 
+  
+  #'  Pull out problem dates based on images when camera is obscured/misdirected
+  #'  for 1+ hour on a given day
+  prob_days <- function(dat) {
+    prob_dates <- dat %>%
+      dplyr::select(c(NewLocationID, Date, OpState)) %>%
+      distinct() %>%
+      mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
+      #'  Label sequential dates from same camera as a single burst
+      group_by(NewLocationID) %>%
+        mutate(Burst = cumsum(c(1, diff(Date) > 1))) %>%
+      ungroup() %>%
+      #'  filter to just the start and end date of each burst
+      group_by(NewLocationID, Burst) %>%
+        mutate(StartEnd = ifelse(Date == min(Date), "First", NA),
+               StartEnd = ifelse(Date == max(Date), "Last", StartEnd)) %>%
+        filter(!is.na(StartEnd)) %>%
+      # filter(Date == min(Date) | Date == max(Date)) %>%
+      ungroup()
+    #'  Filter down to rows where only one day at a camera site had issues - leads
+    #'  to only "End" date, no "Start" date
+    lone_date <- prob_dates %>%
+      filter((NewLocationID != lag(NewLocationID)) & (StartEnd == "Last" & lag(StartEnd == "Last"))) %>%
+      mutate(StartEnd = "First")
+    #'  Filter down to rows instances where many date ranges with problems at a
+    #'  camera site, including a few single days
+    extra_single_day <- prob_dates %>%
+      filter((NewLocationID == lag(NewLocationID)) & (StartEnd == "Last" & lag(StartEnd == "Last"))) %>%
+      mutate(StartEnd = "First")
+    #'  Merge with larger data set so cameras with only one problem day have a
+    #'  start and end date for that problem day
+    prob_dates <- rbind(prob_dates, lone_date, extra_single_day) %>%
+      arrange(NewLocationID, Date, StartEnd)
+    return(prob_dates)
+  }
+  # eoe_prob_dates_20s <- prob_days(eoe_1hr_20s)
+  # eoe_prob_dates_20w <- prob_days(eoe_1hr_20w)
+  eoe_prob_dates_21s <- prob_days(eoe_1hr_21s)
+  
+  wolf_prob_dates_19s <- prob_days(wolf_1hr_19s)
+  wolf_prob_dates_20s <- prob_days(wolf_1hr_20s)
+  wolf_prob_dates_21s <- prob_days(wolf_1hr_21s)
+  
+  #'  Create wide data frame based on each burst per camera
+  #'  Start and end dates will be listed horizontally by camera burst
+  problem_df <- function(dat) {
+    wide_format <- eoe_prob_dates_21s %>% 
+      mutate(Problem = paste0(Burst, "_", StartEnd)) %>%
+      dplyr::select(-c(OpState, Burst, StartEnd)) %>%
+      spread(Problem, Date) %>%
+      relocate(c(`10_First`, `10_Last`, `11_First`, `11_Last`, `12_First`, `12_Last`), .after = `9_Last`) 
+    return(wide_format)
+  }
+  eoe_wide_probs_20s <- problem_df(eoe_prob_dates_20s)
+  eoe_wide_probs_20w <- problem_df(eoe_prob_dates_20w)
+  eoe_wide_probs_21s <- problem_df(eoe_prob_dates_21s)
+  
+  wolf_wide_probs_19s <- problem_df(wolf_prob_dates_19s)
+  wolf_wide_probs_20s <- problem_df(wolf_prob_dates_20s)
+  wolf_wide_probs_21s <- problem_df(wolf_prob_dates_21s)
+  
+  
+  #'  From here, add full start and end dates to this df,
+  #'  review partial misdirection data to see if most of is based on animal disturbance
+  #'  double check sever misdirection is an all season long issue
+  #'  look for date ranges where cameras just didn't take any pictures and add these problem date ranges to the above df
+  
+  
   #'  Pull out images from any day were the sequential_probs function indicated
   #'  potential problem - includes normal images to help assess the extent of problem
   bad_day_cams <- function(dat, prob_condition) {
