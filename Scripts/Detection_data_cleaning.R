@@ -252,6 +252,7 @@
     # dat$Date <- as.Date(dat$Date, format = "%d-%b-%Y")
     return(dat)
   }
+  #'  Set time zone on keeper data sets
   load("./Data/IDFG camera data/Split datasets/eoe_motion_skinny_NewLocationID.RData")
   eoe_motion_list <- lapply(eoe_motion_list, set_tzone)
   load("./Data/IDFG camera data/Split datasets/eoe_time_skinny_NewLocationID.RData")
@@ -261,20 +262,22 @@
   load("./Data/IDFG camera data/Split datasets/wolf_time_skinny_NewLocationID.RData")
   wolf_noon_list <- lapply(wolf_time_list, set_tzone)
   
-  #' #'  Set time zone on full data sets
-  #' load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
-  #' eoe20s_allM <- set_tzone(eoe20s_allM)
-  #' load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
-  #' eoe20w_allM <- set_tzone(eoe20w_allM)
-  #' load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
-  #' eoe21s_allM <- set_tzone(eoe21s_allM)
+  #'  Set time zone on full data sets
+  load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
+  eoe20s_allM <- set_tzone(eoe20s_allM)
+  load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
+  eoe20w_allM <- set_tzone(eoe20w_allM)
+  load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
+  eoe21s_allM <- set_tzone(eoe21s_allM) %>%
+    mutate(Setup = "U or P whatever") %>%
+    relocate(Setup, .after = NewLocationID)
   
-  # load("./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
-  # eoe20s_allT <- set_tzone(eoe20s_allT)
-  # load("./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
-  # eoe20w_allT <- set_tzone(eoe20w_allT)
-  # load("./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
-  # eoe21s_allT <- set_tzone(eoe21s_allT)
+  load("./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
+  eoe20s_allT <- set_tzone(eoe20s_allT)
+  load("./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
+  eoe20w_allT <- set_tzone(eoe20w_allT)
+  load("./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
+  eoe21s_allT <- set_tzone(eoe21s_allT)
   
   load("./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
   wolf19s_allM <- set_tzone(wolf19s_allM)
@@ -283,8 +286,6 @@
   load("./Data/IDFG camera data/Split datasets/wolf21s_allM_NewLocationID.RData")
   wolf21s_allM <- set_tzone(wolf21s_allM)
   
-  #'  NOTE only cameras set for abundance monitoring took time-trigger images -
-  #'  this is only half the wolf cameras!
   load("./Data/IDFG camera data/Split datasets/wolf19s_allT_NewLocationID.RData")
   wolf19s_allT <- set_tzone(wolf19s_allT)
   load("./Data/IDFG camera data/Split datasets/wolf20s_allT_NewLocationID.RData")
@@ -292,22 +293,6 @@
   load("./Data/IDFG camera data/Split datasets/wolf21s_allT_NewLocationID.RData")
   wolf21s_allT <- set_tzone(wolf21s_allT)
   
-  #' eoe_motion_smr20 <- set_tzone(eoe_motion_smr20)
-  #' eoe_motion_wtr20 <- set_tzone(eoe_motion_wtr20)
-  #' eoe_motion_smr21 <- set_tzone(eoe_motion_smr21)
-  #' 
-  #' eoe_time_smr20 <- set_tzone(eoe_time_smr20)
-  #' eoe_time_wtr20 <- set_tzone(eoe_time_wtr20)
-  #' eoe_time_smr21 <- set_tzone(eoe_time_smr21)
-  #' 
-  #' wolf_motion_smr20 <- set_tzone(wolf_motion_smr20)
-  #' wolf_motion_wtr20 <- set_tzone(wolf_motion_wtr20)
-  #' wolf_motion_smr21 <- set_tzone(wolf_motion_smr21)
-  #' 
-  #' wolf_time_smr20 <- set_tzone(wolf_time_smr20)
-  #' wolf_time_wtr20 <- set_tzone(wolf_time_wtr20)
-  #' wolf_time_smr21 <- set_tzone(wolf_time_smr21)
-
   
   ####  Visualize observations over time  ####
   #'  ------------------------------------
@@ -661,9 +646,12 @@
   #'  Focus on the full time trigger data sets - these provide a lot more information
   #'  about whether visual obstructions and misalignment are a long-term problem
   #'  that need to be addressed or short-lived and not a real issue.
-  eoe_t_20s_probs <- problem_children(eoe20s_allT)
-  eoe_t_20w_probs <- problem_children(eoe20w_allT)
-  eoe_t_21s_probs <- problem_children(eoe21s_allT)
+  eoe20s_all <- list(eoe20s_allM, eoe20s_allT)
+  eoe20s_probs <- lapply(eoe20s_all, problem_children)
+  eoe20w_all <- list(eoe20w_allM, eoe20w_allT)
+  eoe20w_probs <- lapply(eoe20w_all, problem_children)
+  eoe21s_all <- list(eoe21s_allM, eoe21s_allT)
+  eoe21s_probs <- lapply(eoe21s_all, problem_children)
   
   wolf19s_all <- list(wolf19s_allM, wolf19s_allT)
   wolf19s_probs <- lapply(wolf19s_all, problem_children)
@@ -671,10 +659,6 @@
   wolf20s_probs <- lapply(wolf20s_all, problem_children)
   wolf21s_all <- list(wolf21s_allM, wolf21s_allT)
   wolf21s_probs <- lapply(wolf21s_all, problem_children)
-  
-  # wolf_t_19s_probs <- problem_children(wolf19s_allT)
-  # wolf_t_20s_probs <- problem_children(wolf20s_allT)
-  # wolf_t_21s_probs <- problem_children(wolf21s_allT)
   
 
   #'  Filter images to series where camera was obscured or misdirected for 1+ hour
@@ -707,31 +691,29 @@
     return(bad_view_pix)
   }
   #'  Flag problematic images from each full time-trigger data set
-  eoe_1hr_20s <- sequential_probs(eoe_t_20s_probs)
-  eoe_1hr_20w <- sequential_probs(eoe_t_20w_probs)
-  eoe_1hr_21s <- sequential_probs(eoe_t_21s_probs)
+  eoe_1hr_20s <- lapply(eoe20s_probs, sequential_probs) %>%
+    #'  Merge motion & time trigger data sets into one dataframe - important for next step
+    do.call(rbind.data.frame, .) %>%
+    arrange(NewLocationID, posix_date_time)
+  eoe_1hr_20w <- lapply(eoe20w_probs, sequential_probs) %>%
+    do.call(rbind.data.frame, .) %>%
+    arrange(NewLocationID, posix_date_time)
+  eoe_1hr_21s <- lapply(eoe21s_probs, sequential_probs) %>%
+    do.call(rbind.data.frame, .) %>%
+    arrange(NewLocationID, posix_date_time)
   
   wolf_1hr_19s <- lapply(wolf19s_probs, sequential_probs) %>%
-    #'  Merge motion & time trigger data sets into one dataframe - important for
-    #'  next step
+    #'  Merge motion & time trigger data sets into one dataframe
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
   wolf_1hr_20s <- lapply(wolf20s_probs, sequential_probs) %>%
-    #'  Merge motion & time trigger data sets into one dataframe - important for
-    #'  next step
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
   wolf_1hr_21s <- lapply(wolf21s_probs, sequential_probs) %>%
-    #'  Merge motion & time trigger data sets into one dataframe - important for
-    #'  next step
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
   
-  # wolf_1hr_19s <- sequential_probs(wolf_t_19s_probs)
-  # wolf_1hr_20s <- sequential_probs(wolf_t_20s_probs)
-  # wolf_1hr_21s <- sequential_probs(wolf_t_21s_probs)
-  
-  
+
   #'  Pull out problem dates based on images when camera is obscured/misdirected
   #'  for 1+ hour on a given day
   prob_days <- function(dat) {
@@ -768,15 +750,20 @@
     return(prob_dates)
   }
   eoe_prob_dates_20s <- prob_days(eoe_1hr_20s) %>%
+    arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop this one observation - same camera labeled w/ 2 problems on same day
-    filter(NewLocationID != "GMU10A_U_67" | OpState != "completely obscured")
+    filter(NewLocationID != "GMU10A_U_67" | OpState != "completely obscured") %>%
+    filter(NewLocationID != "GMU6_U_123" | OpState != "completely obscured")
   eoe_prob_dates_20w <- prob_days(eoe_1hr_20w) %>%
+    arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop these observation - same camera labeled w/ 2 problems on same day
     filter(NewLocationID != "GMU10A_U_23" | OpState != "completely obscured") %>%
     filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-01") %>%
     filter(NewLocationID != "GMU6_P_67" | OpState != "nightbad__dayok" | Date != "2021-01-02") %>%
-    filter(NewLocationID != "GMU6_P_34" | OpState != "nightbad__dayok" | Date != "2020-12-15") 
-  eoe_prob_dates_21s <- prob_days(eoe_1hr_21s)
+    filter(NewLocationID != "GMU6_P_34" | OpState != "nightbad__dayok" | Date != "2020-12-15") %>%
+    filter(NewLocationID != "GMU6_P_92" | OpState != "nightbad__dayok")
+  eoe_prob_dates_21s <- prob_days(eoe_1hr_21s) %>%
+    arrange(NewLocationID, Date, StartEnd)
   
   wolf_prob_dates_19s <- prob_days(wolf_1hr_19s) %>%
     arrange(NewLocationID, Date, StartEnd) %>%
@@ -859,13 +846,22 @@
     return(startend)
   }
   #'  Merge deployment data with problem dates
+  #'  Using setup/retrieval dates from only time-trigger data set for EoE cameras
+  #'  because all cameras were set up to take both motion & time trigger images.
+  #'  Time trigger data set is generally a better representation of start/stop 
+  #'  and problem dates in the data.
   eoe_probcams_20s <- start_stop_dates(eoe20s_allT) %>%
+    arrange(NewLocationID) %>% 
     full_join(eoe_wide_probs_20s, by = "NewLocationID")
   eoe_probcams_20w <- start_stop_dates(eoe20w_allT) %>%
+    arrange(NewLocationID) %>% 
     full_join(eoe_wide_probs_20w, by = "NewLocationID")
   eoe_probcams_21s <- start_stop_dates(eoe21s_allT) %>%
+    arrange(NewLocationID) %>% 
     full_join(eoe_wide_probs_21s, by = "NewLocationID")
-    
+  
+  #'  Using both motion & time trigger data sets for wolf cameras b/c not all 
+  #'  cameras were taking both types of image  
   wolf_probcams_19s <- lapply(wolf19s_all, start_stop_dates) %>% 
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID) %>%
