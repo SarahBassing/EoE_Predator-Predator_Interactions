@@ -242,27 +242,32 @@
   #' save(wolf21s_allT, file = "./Data/IDFG camera data/Split datasets/wolf21s_allT_NewLocationID.RData")
   
   
-  ####  Format & visualize date/time data  ####
-  #  ---------------------------------------
+  ####  Set time zone  ####
+  #'  ------------------
   #'  Detection data was recorded in MST (America/Edmonton (UTC-07:00); tz="America/Edmonton")
   set_tzone <- function(dat) {
     tz(dat$posix_date_time) <- "America/Edmonton"
     print(attr(dat$posix_date_time, "tzone"))
     print(range(dat$posix_date_time, na.rm = T))
+    # dat$Date <- as.Date(dat$Date, format = "%d-%b-%Y")
     return(dat)
   }
+  load("./Data/IDFG camera data/Split datasets/eoe_motion_skinny_NewLocationID.RData")
   eoe_motion_list <- lapply(eoe_motion_list, set_tzone)
-  eoe_noon_list <- lapply(eoe_noon_list, set_tzone)
+  load("./Data/IDFG camera data/Split datasets/eoe_time_skinny_NewLocationID.RData")
+  eoe_noon_list <- lapply(eoe_time_list, set_tzone)
+  load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny_NewLocationID.RData")
   wolf_motion_list <- lapply(wolf_motion_list, set_tzone)
-  wolf_noon_list <- lapply(wolf_noon_list, set_tzone)
+  load("./Data/IDFG camera data/Split datasets/wolf_time_skinny_NewLocationID.RData")
+  wolf_noon_list <- lapply(wolf_time_list, set_tzone)
   
-  #'  Set time zone on full data sets
-  load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
-  eoe20s_allM <- set_tzone(eoe20s_allM)
-  load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
-  eoe20w_allM <- set_tzone(eoe20w_allM)
-  load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
-  eoe21s_allM <- set_tzone(eoe21s_allM)
+  #' #'  Set time zone on full data sets
+  #' load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
+  #' eoe20s_allM <- set_tzone(eoe20s_allM)
+  #' load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
+  #' eoe20w_allM <- set_tzone(eoe20w_allM)
+  #' load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
+  #' eoe21s_allM <- set_tzone(eoe21s_allM)
   
   load("./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
   eoe20s_allT <- set_tzone(eoe20s_allT)
@@ -278,6 +283,8 @@
   load("./Data/IDFG camera data/Split datasets/wolf21s_allM_NewLocationID.RData")
   wolf21s_allM <- set_tzone(wolf21s_allM)
   
+  #'  NOTE only cameras set for abundance monitoring took time-trigger images -
+  #'  this is only half the cameras!
   load("./Data/IDFG camera data/Split datasets/wolf19s_allT_NewLocationID.RData")
   wolf19s_allT <- set_tzone(wolf19s_allT)
   load("./Data/IDFG camera data/Split datasets/wolf20s_allT_NewLocationID.RData")
@@ -647,9 +654,9 @@
   }
   #'  Run keeper data sets through to help flag potentially problematic cameras
   eoe_m_probs <- lapply(eoe_motion_list, problem_children)
-  eoe_t_probs <- lapply(eoe_time_list, problem_children)   
+  eoe_t_probs <- lapply(eoe_noon_list, problem_children)   
   wolf_m_probs <- lapply(wolf_motion_list, problem_children)
-  wolf_t_probs <- lapply(wolf_time_list, problem_children)   
+  wolf_t_probs <- lapply(wolf_noon_list, problem_children)   
   
   #'  Focus on the full time trigger data sets - these provide a lot more information
   #'  about whether visual obstructions and misalignment are a long-term problem
@@ -658,12 +665,18 @@
   eoe_t_20w_probs <- problem_children(eoe20w_allT)
   eoe_t_21s_probs <- problem_children(eoe21s_allT)
   
-  wolf_t_19s_probs <- problem_children(wolf19s_allT)
-  wolf_t_20s_probs <- problem_children(wolf20s_allT)
-  wolf_t_21s_probs <- problem_children(wolf21s_allT)
+  wolf19s_all <- list(wolf19s_allM, wolf19s_allT)
+  wolf19s_probs <- lapply(wolf19s_all, problem_children)
+  wolf20s_all <- list(wolf20s_allM, wolf20s_allT)
+  wolf20s_probs <- lapply(wolf20s_all, problem_children)
+  wolf21s_all <- list(wolf21s_allM, wolf21s_allT)
+  wolf21s_probs <- lapply(wolf21s_all, problem_children)
   
+  # wolf_t_19s_probs <- problem_children(wolf19s_allT)
+  # wolf_t_20s_probs <- problem_children(wolf20s_allT)
+  # wolf_t_21s_probs <- problem_children(wolf21s_allT)
   
-  
+
   #'  Filter images to series where camera was obscured or misdirected for 1+ hour
   #'  Using this to represent days when camera wasn't full operational
   sequential_probs <- function(dat) {
@@ -698,9 +711,13 @@
   eoe_1hr_20w <- sequential_probs(eoe_t_20w_probs)
   eoe_1hr_21s <- sequential_probs(eoe_t_21s_probs)
   
-  wolf_1hr_19s <- sequential_probs(wolf_t_19s_probs)
-  wolf_1hr_20s <- sequential_probs(wolf_t_20s_probs)
-  wolf_1hr_21s <- sequential_probs(wolf_t_21s_probs)
+  wolf_1hr_19s <- lapply(wolf19s_probs, sequential_probs)
+  wolf_1hr_20s <- lapply(wolf20s_probs, sequential_probs)
+  wolf_1hr_21s <- lapply(wolf21s_probs, sequential_probs)
+  
+  # wolf_1hr_19s <- sequential_probs(wolf_t_19s_probs)
+  # wolf_1hr_20s <- sequential_probs(wolf_t_20s_probs)
+  # wolf_1hr_21s <- sequential_probs(wolf_t_21s_probs)
   
   
   #'  Pull out problem dates based on images when camera is obscured/misdirected
@@ -722,12 +739,12 @@
       # filter(Date == min(Date) | Date == max(Date)) %>%
       ungroup()
     #'  Filter down to rows where only one day at a camera site had issues - leads
-    #'  to only "End" date, no "Start" date
+    #'  to only "Last" date, no "First" date
     lone_date <- prob_dates %>%
       filter((NewLocationID != lag(NewLocationID)) & (StartEnd == "Last" & lag(StartEnd == "Last"))) %>%
       mutate(StartEnd = "First")
-    #'  Filter down to rows instances where many date ranges with problems at a
-    #'  camera site, including a few single days
+    #'  Filter down to cameras where there were multiple date ranges with problems, 
+    #'  including single days with problems that need a "First" date duplicated
     extra_single_day <- prob_dates %>%
       filter((NewLocationID == lag(NewLocationID)) & (StartEnd == "Last" & lag(StartEnd == "Last"))) %>%
       mutate(StartEnd = "First")
@@ -737,34 +754,128 @@
       arrange(NewLocationID, Date, StartEnd)
     return(prob_dates)
   }
-  # eoe_prob_dates_20s <- prob_days(eoe_1hr_20s)
-  # eoe_prob_dates_20w <- prob_days(eoe_1hr_20w)
+  eoe_prob_dates_20s <- prob_days(eoe_1hr_20s) %>%
+    #'  Drop this one observation - same camera labeled w/ 2 problems on same day
+    filter(NewLocationID != "GMU10A_U_67" | OpState != "completely obscured")
+  eoe_prob_dates_20w <- prob_days(eoe_1hr_20w) %>%
+    #'  Drop these observation - same camera labeled w/ 2 problems on same day
+    filter(NewLocationID != "GMU10A_U_23" | OpState != "completely obscured") %>%
+    filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-01") %>%
+    filter(NewLocationID != "GMU6_P_67" | OpState != "nightbad__dayok" | Date != "2021-01-02") %>%
+    filter(NewLocationID != "GMU6_P_34" | OpState != "nightbad__dayok" | Date != "2020-12-15") 
   eoe_prob_dates_21s <- prob_days(eoe_1hr_21s)
   
-  wolf_prob_dates_19s <- prob_days(wolf_1hr_19s)
-  wolf_prob_dates_20s <- prob_days(wolf_1hr_20s)
-  wolf_prob_dates_21s <- prob_days(wolf_1hr_21s)
+  #'  Merge motion and trigger datasets together for wolf cameras
+  wolf_prob_dates_19s <- lapply(wolf_1hr_19s, prob_days) %>%
+    do.call(rbind.data.frame, .) %>%
+    #'  Remove unnamed camera with no coordinate information
+    filter(NewLocationID != "NA_O_NA")
+  wolf_prob_dates_20s <- lapply(wolf_1hr_20s, prob_days)
+  wolf_prob_dates_21s <- lapply(wolf_1hr_21s, prob_days) %>%
+    do.call(rbind.data.frame, .) %>%
+    arrange(NewLocationID, Date, StartEnd)
+  #'  Need to add a "First" row for this data set since lag in function above doesn't
+  #'  work if first observation is labeled "Last"
+  first_row <- wolf_prob_dates_21s[1,] %>%
+    mutate(StartEnd = ifelse(StartEnd == "Last", "First", StartEnd))
+  wolf_prob_dates_21s <- bind_rows(first_row, wolf_prob_dates_21s)
+
+  
+  #' wolf_prob_dates_19s <- prob_days(wolf_1hr_19s) %>%
+  #'   #'  Remove unnamed camera with no coordinate information
+  #'   filter(NewLocationID != "NA_O_NA")
+  #' wolf_prob_dates_20s <- prob_days(wolf_1hr_20s)
+  #' wolf_prob_dates_21s <- prob_days(wolf_1hr_21s)
+  
+  #'  Save dates of first/last image and problem dates for all cameras
+  write.csv(eoe_prob_dates_20s, "./Data/IDFG camera data/Problem cams/eoe20s_OpState_probs.csv")
+  write.csv(eoe_prob_dates_20w, "./Data/IDFG camera data/Problem cams/eoe20w_OpState_probs.csv")
+  write.csv(eoe_prob_dates_21s, "./Data/IDFG camera data/Problem cams/eoe21s_OpState_probs.csv")
+  
+  write.csv(wolf_prob_dates_19s, "./Data/IDFG camera data/Problem cams/wolf19s_OpState_probs.csv")
+  write.csv(wolf_prob_dates_20s, "./Data/IDFG camera data/Problem cams/wolf20s_OpState_probs.csv")
+  write.csv(wolf_prob_dates_21s, "./Data/IDFG camera data/Problem cams/wolf21s_OpState_probs.csv")
   
   #'  Create wide data frame based on each burst per camera
   #'  Start and end dates will be listed horizontally by camera burst
   problem_df <- function(dat) {
-    wide_format <- eoe_prob_dates_21s %>% 
-      mutate(Problem = paste0(Burst, "_", StartEnd)) %>%
+    wide_format <- dat %>% 
+      mutate(Problem = ifelse(StartEnd == "First", paste0("Problem", Burst, "_from"), paste0("Problem", Burst, "_to"))) %>% 
+             # Problem = paste0(Burst, "_", StartEnd)) %>%
       dplyr::select(-c(OpState, Burst, StartEnd)) %>%
-      spread(Problem, Date) %>%
-      relocate(c(`10_First`, `10_Last`, `11_First`, `11_Last`, `12_First`, `12_Last`), .after = `9_Last`) 
+      spread(Problem, Date)    
     return(wide_format)
   }
-  eoe_wide_probs_20s <- problem_df(eoe_prob_dates_20s)
-  eoe_wide_probs_20w <- problem_df(eoe_prob_dates_20w)
-  eoe_wide_probs_21s <- problem_df(eoe_prob_dates_21s)
+  eoe_wide_probs_20s <- problem_df(eoe_prob_dates_20s) %>%
+    relocate(c(`Problem10_from`, `Problem10_to`, `Problem11_from`, `Problem11_to`, `Problem12_from`, `Problem12_to`, `Problem13_from`, `Problem13_to`, `Problem14_from`, `Problem14_to`), .after = `Problem9_to`)
+  eoe_wide_probs_20w <- problem_df(eoe_prob_dates_20w) %>%
+    relocate(c(`Problem1_from`, `Problem1_to`, `Problem2_from`, `Problem2_to`, `Problem3_from`, `Problem3_to`, `Problem4_from`, `Problem4_to`, `Problem5_from`, `Problem5_to`, `Problem6_from`, `Problem6_to`, `Problem7_from`, `Problem7_to`, `Problem8_from`, `Problem8_to`, `Problem9_from`, `Problem9_to`), .after = `NewLocationID`)
+  eoe_wide_probs_21s <- problem_df(eoe_prob_dates_21s) %>%
+    relocate(c(`Problem10_from`, `Problem10_to`, `Problem11_from`, `Problem11_to`, `Problem12_from`, `Problem12_to`), .after = `Problem9_to`)
   
-  wolf_wide_probs_19s <- problem_df(wolf_prob_dates_19s)
-  wolf_wide_probs_20s <- problem_df(wolf_prob_dates_20s)
+  wolf_wide_probs_19s <- problem_df(wolf_prob_dates_19s) %>%
+    relocate(c(`Problem10_from`, `Problem10_to`, `Problem11_from`, `Problem11_to`, `Problem12_from`, `Problem12_to`), .after = `Problem9_to`)
+  wolf_wide_probs_20s <- problem_df(wolf_prob_dates_20s) %>%
+    relocate(c(`Problem10_from`, `Problem10_to`, `Problem11_from`, `Problem11_to`, `Problem12_from`, `Problem12_to`, `Problem13_from`, `Problem13_to`), .after = `Problem9_to`)
   wolf_wide_probs_21s <- problem_df(wolf_prob_dates_21s)
   
   
-  #'  From here, add full start and end dates to this df,
+  #'  Extract dates of first and last images taken by camera per season
+  start_stop_dates <- function(dat) {
+    startend <- dat %>%
+      #'  Group by each camera site
+      group_by(NewLocationID) %>%
+      #'  Arrange by date and time
+      arrange(posix_date_time) %>%
+      #'  Filter to just the first and last observation per group
+      slice(c(1, n())) %>%
+      ungroup() %>%
+      dplyr::select(c(NewLocationID, Date, Lat, Long)) %>%
+      #'  Remove camera if missing NewLocationID - currently only one EoE Smr21 
+      #'  camera with this problem - need to find out where these data came from!
+      filter(!is.na(NewLocationID)) %>%
+      #'  Add a column representing whether the date is the start or end of photos
+      mutate(Date = as.Date(Date, format = "%d-%b-%Y"),
+             StartEnd = ifelse((NewLocationID == lag(NewLocationID)), "Retrieval_date", "Setup_date"), 
+             StartEnd = ifelse(is.na(StartEnd), "Setup_date", StartEnd)) %>%
+      spread(StartEnd, Date) %>%
+      relocate(Retrieval_date, .after = Setup_date)
+    return(startend)
+  }
+  #'  Merge deployment data with problem dates
+  eoe_probcams_20s <- start_stop_dates(eoe20s_allT) %>%
+    full_join(eoe_wide_probs_20s, by = "NewLocationID")
+  eoe_probcams_20w <- start_stop_dates(eoe20w_allT) %>%
+    full_join(eoe_wide_probs_20w, by = "NewLocationID")
+  eoe_probcams_21s <- start_stop_dates(eoe21s_allT) %>%
+    full_join(eoe_wide_probs_21s, by = "NewLocationID")
+    
+  wolf_probcams_19s <- start_stop_dates(wolf19s_allT) %>%
+    full_join(wolf_wide_probs_19s, by = "NewLocationID") %>%
+    #'  Remove unnamed camera with no coordinate information
+    filter(NewLocationID != "NA_O_NA")
+  wolf_probcams_20s <- start_stop_dates(wolf20s_allT) %>%
+    full_join(wolf_wide_probs_20s, by = "NewLocationID")
+  wolf_probcams_21s <- start_stop_dates(wolf21s_allT) %>%
+    full_join(wolf_wide_probs_21s, by = "NewLocationID")
+    
+  #'  Save dates of first/last image and problem dates for all cameras
+  save(eoe_probcams_20s, file = "./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
+  write.csv(eoe_probcams_20s, "./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.csv")
+  save(eoe_probcams_20w, file = "./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
+  write.csv(eoe_probcams_20w, "./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.csv")
+  save(eoe_probcams_21s, file = "./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
+  write.csv(eoe_probcams_21s, "./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.csv")
+  
+  save(wolf_probcams_19s, file = "./Data/IDFG camera data/Problem cams/wolf19s_problem_cams.RData")
+  write.csv(wolf_probcams_19s, "./Data/IDFG camera data/Problem cams/wolf19s_problem_cams.csv")
+  save(wolf_probcams_20s, file = "./Data/IDFG camera data/Problem cams/wolf20s_problem_cams.RData")
+  write.csv(wolf_probcams_20s, "./Data/IDFG camera data/Problem cams/wolf20s_problem_cams.csv")
+  save(wolf_probcams_21s, file = "./Data/IDFG camera data/Problem cams/wolf21s_problem_cams.RData")
+  write.csv(wolf_probcams_21s, "./Data/IDFG camera data/Problem cams/wolf21s_problem_cams.csv")
+  
+  
+    #'  From here, add full start and end dates to this df,
   #'  review partial misdirection data to see if most of is based on animal disturbance
   #'  double check sever misdirection is an all season long issue
   #'  look for date ranges where cameras just didn't take any pictures and add these problem date ranges to the above df
