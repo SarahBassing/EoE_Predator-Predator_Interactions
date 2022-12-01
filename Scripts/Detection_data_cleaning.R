@@ -663,53 +663,63 @@
 
   #'  Filter images to series where camera was obscured or misdirected for 1+ hour
   #'  Using this to represent days when camera wasn't full operational
-  sequential_probs <- function(dat) {
-    #'  If camera's view is completely obscured
-    cond1 <- expr(dat$OpState == "completely obscured")
-    bad_view_pix1 <- dat %>% 
+  sequential_probs <- function(dat, ntime) {
+    #' #'  If camera's view is completely obscured
+    #' cond1 <- expr(dat$OpState == "completely obscured")
+    #' bad_view_pix1 <- dat %>% 
+    #'   mutate(problem_pix = 
+    #'            rep(rle(!!cond1)$values & rle(!!cond1)$lengths >= ntime, 
+    #'                rle(!!cond1)$lengths)) %>%
+    #'   filter(problem_pix)
+    #' #'  If camera's angle is severely misdirected from initial deployment
+    #' cond2 <- expr(dat$OpState == "severely misdirected")
+    #' bad_view_pix2 <- dat %>% 
+    #'   mutate(problem_pix = 
+    #'            rep(rle(!!cond2)$values & rle(!!cond2)$lengths >= ntime, 
+    #'                rle(!!cond2)$lengths)) %>%
+    #'   filter(problem_pix)
+    #' #'  If camera's view is ok during the day but compromised at night
+    #' cond3 <- expr(dat$OpState == "nightbad__dayok")
+    #' bad_view_pix3 <- dat %>% 
+    #'   mutate(problem_pix = 
+    #'            rep(rle(!!cond3)$values & rle(!!cond3)$lengths >= ntime, 
+    #'                rle(!!cond3)$lengths)) %>%
+    #'   filter(problem_pix)
+    #' #'  Merge all images with problems
+    #' bad_view_pix <- rbind(bad_view_pix1, bad_view_pix2, bad_view_pix3) %>%
+    #'   arrange(NewLocationID, posix_date_time)
+    
+    cond <- expr(dat$OpState == "completely obscured" | dat$OpState == "severely misdirected" | 
+                   dat$OpState == "nightbad__dayok")
+    bad_view_pix <- dat %>% 
       mutate(problem_pix = 
-               rep(rle(!!cond1)$values & rle(!!cond1)$lengths >= 6, 
-                   rle(!!cond1)$lengths)) %>%
-      filter(problem_pix)
-    #'  If camera's angle is severely misdirected from initial deployment
-    cond2 <- expr(dat$OpState == "severely misdirected")
-    bad_view_pix2 <- dat %>% 
-      mutate(problem_pix = 
-               rep(rle(!!cond2)$values & rle(!!cond2)$lengths >= 6, 
-                   rle(!!cond2)$lengths)) %>%
-      filter(problem_pix)
-    #'  If camera's view is ok during the day but compromised at night
-    cond3 <- expr(dat$OpState == "nightbad__dayok")
-    bad_view_pix3 <- dat %>% 
-      mutate(problem_pix = 
-               rep(rle(!!cond3)$values & rle(!!cond3)$lengths >= 6, 
-                   rle(!!cond3)$lengths)) %>%
-      filter(problem_pix)
-    #'  Merge all images with problems
-    bad_view_pix <- rbind(bad_view_pix1, bad_view_pix2, bad_view_pix3) %>%
+               rep(rle(!!cond)$values & rle(!!cond)$lengths >= ntime, 
+                   rle(!!cond)$lengths)) %>%
+      filter(problem_pix) %>%
       arrange(NewLocationID, posix_date_time)
+    
     return(bad_view_pix)
   }
   #'  Flag problematic images from each full time-trigger data set
-  eoe_1hr_20s <- lapply(eoe20s_probs, sequential_probs) %>%
+  eoe_1hr_20s <- lapply(eoe20s_probs, sequential_probs, ntime = 6) %>% #' 6 = 1 hr, 36 = 6 hr, 72 = 12 hr
     #'  Merge motion & time trigger data sets into one dataframe - important for next step
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  eoe_1hr_20w <- lapply(eoe20w_probs, sequential_probs) %>%
+  eoe_1hr_20w <- lapply(eoe20w_probs, sequential_probs, ntime = 6) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  eoe_1hr_21s <- lapply(eoe21s_probs, sequential_probs) %>%
+  eoe_1hr_21s <- lapply(eoe21s_probs, sequential_probs, ntime = 6) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
   
-  wolf_1hr_19s <- lapply(wolf19s_probs, sequential_probs) %>%
+  wolf_1hr_19s <- lapply(wolf19s_probs, sequential_probs, ntime = 6) %>%
     #'  Merge motion & time trigger data sets into one dataframe
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  wolf_1hr_20s <- lapply(wolf20s_probs, sequential_probs) %>%
+  wolf_1hr_20s <- lapply(wolf20s_probs, sequential_probs, ntime = 6) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  wolf_1hr_21s <- lapply(wolf21s_probs, sequential_probs) %>%
+  wolf_1hr_21s <- lapply(wolf21s_probs, sequential_probs, ntime = 6) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
   
@@ -747,13 +757,28 @@
     #'  start and end date for that problem day
     prob_dates <- rbind(prob_dates, lone_date, extra_single_day) %>%
       arrange(NewLocationID, Date, StartEnd)
+    #'  Calculate length of each problem date range
+    prob_dates <- prob_dates %>%
+      group_by(NewLocationID, Burst) %>%
+      mutate(ndays = as.numeric(difftime(Date, lag(Date), units = "days")),
+             #'  Add 1 to each count so 1 day problems = 1, not 0, and start day
+             #'  of each problem is included in the count
+             ndays = ndays + 1) %>%   
+      ungroup()
     return(prob_dates)
   }
-  eoe_prob_dates_20s <- prob_days(eoe_1hr_20s) %>%
+  eoe_prob_dates_20s <- prob_days(eoe_1hr_20s) %>% 
     arrange(NewLocationID, Date, StartEnd) %>%
-    #'  Drop this one observation - same camera labeled w/ 2 problems on same day
+    #'  Drop this one observation - same camera labeled w/ 2 problems on same day 
     filter(NewLocationID != "GMU10A_U_67" | OpState != "completely obscured") %>%
-    filter(NewLocationID != "GMU6_U_123" | OpState != "completely obscured")
+    filter(NewLocationID != "GMU6_U_123" | OpState != "completely obscured") %>%
+    filter(NewLocationID != "GMU6_U_99" | OpState != "completely obscured") #%>% # STOP HERE if ntime > 6
+    # filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-11") %>%
+    # filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-14") %>%
+    # filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-16") %>%
+    # filter(NewLocationID != "GMU10A_P_110" | OpState != "severely misdirected" | Date != "2020-10-16" | StartEnd != "First") %>%
+    # mutate(ndays = ifelse(NewLocationID == "GMU10A_P_110" & OpState == "severely misdirected" & Date == "2020-10-16" & StartEnd == "Last", 3, ndays)) %>%
+    # filter(NewLocationID != "GMU10A_U_37" | OpState != "severely misdirected")
   eoe_prob_dates_20w <- prob_days(eoe_1hr_20w) %>%
     arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop these observation - same camera labeled w/ 2 problems on same day
@@ -797,13 +822,55 @@
   write.csv(wolf_prob_dates_20s, "./Data/IDFG camera data/Problem cams/wolf20s_OpState_probs.csv")
   write.csv(wolf_prob_dates_21s, "./Data/IDFG camera data/Problem cams/wolf21s_OpState_probs.csv")
   
+  #'  Calculate summary stats on duration of typical problem days
+  mean_problem_days <- function(dat) {
+    #'  Overall mean, range, boxplot, median
+    print("Mean number of problem days")
+    print(mean(dat$ndays, na.rm = TRUE))
+    print("Range of problem days")
+    print(range(dat$ndays, na.rm = TRUE))
+    boxplot(dat$ndays, na.rm = TRUE)
+    
+    print("Median number of problem days")
+    print(median(dat$ndays, na.rm = TRUE))
+    
+    #'  A few cameras have MANY problems- weighted average to account for this
+    mean_prob_days_wgtd <- dat %>%
+      group_by(NewLocationID) %>%
+      summarize(wgt = n()/2,
+                mean_days = mean(ndays, na.rm = TRUE)) %>%
+      ungroup()
+    sum_wtd <- sum(mean_prob_days_wgtd$wgt)
+    mean_prob_days_wgtd$wgt <- mean_prob_days_wgtd$wgt/sum_wtd
+    mean_wgtd_prob_days <- weighted.mean(mean_prob_days_wgtd$mean_days, mean_prob_days_wgtd$wgt)
+    print("Weighted mean number of problem days, weighted by # of problems per camera")
+    print(mean_wgtd_prob_days)
+    
+    #'  Mean, range, boxplot, median of first problem per cameras (most cameras only had one)
+    print("Mean number of problem days for first problem only")
+    print(mean(dat$ndays[dat$Burst == 1], na.rm = TRUE))
+    print("Range of problem days for first problem only")
+    print(range(dat$ndays[dat$Burst == 1], na.rm = TRUE))
+    boxplot(dat$ndays[dat$Burst == 1], na.rm = TRUE)
+    print("Median number of problem days for first problem only")
+    print(median(dat$ndays[dat$Burst == 1], na.rm = TRUE))
+   }
+  mean_problem_days(eoe_prob_dates_20s)
+  mean_problem_days(eoe_prob_dates_20w)
+  mean_problem_days(eoe_prob_dates_21s)
+  
+  mean_problem_days(wolf_prob_dates_19s)
+  mean_problem_days(wolf_prob_dates_20s)
+  mean_problem_days(wolf_prob_dates_21s)
+  
+  
   #'  Create wide data frame based on each burst per camera
   #'  Start and end dates will be listed horizontally by camera burst
   problem_df <- function(dat) {
     wide_format <- dat %>% 
       mutate(Problem = ifelse(StartEnd == "First", paste0("Problem", Burst, "_from"), paste0("Problem", Burst, "_to"))) %>% 
              # Problem = paste0(Burst, "_", StartEnd)) %>%
-      dplyr::select(-c(OpState, Burst, StartEnd)) %>%
+      dplyr::select(-c(OpState, Burst, StartEnd, ndays)) %>%
       #'  Spread dataframe so problem dates are in a wide format (necessary if 
       #'  using camtrapR to create detection histories)
       spread(Problem, Date) %>%
@@ -893,6 +960,37 @@
   write.csv(wolf_probcams_20s, "./Data/IDFG camera data/Problem cams/wolf20s_problem_cams.csv")
   save(wolf_probcams_21s, file = "./Data/IDFG camera data/Problem cams/wolf21s_problem_cams.RData")
   write.csv(wolf_probcams_21s, "./Data/IDFG camera data/Problem cams/wolf21s_problem_cams.csv")
+  
+  
+  #'  What proportion of cameras had problems
+  proportion_of_probcams <- function(dat) {
+    #'  Total number of cameras
+    ncams <- nrow(dat)
+    #'  Number of cameras with 1 or more problems
+    ncams_1prob <- length(na.omit(dat$Problem1_from))
+    #'  Number of cameras with 2 or more problems
+    ncams_2prob <- length(na.omit(dat$Problem2_from))
+    #'  Number of cameras with 3 or more problems
+    ncams_3prob <- length(na.omit(dat$Problem3_from))
+    #'  Number of cameras with 10 or more problems
+    ncams_10prob <- length(na.omit(dat$Problem10_from))
+    nmbr_prob_cams <- c(ncams_1prob, ncams_2prob, ncams_3prob, ncams_10prob)
+    proportion_prob_cams <- round(nmbr_prob_cams/ncams, 3)
+    nmbr_probs <- c("1 or more", "2 or more", "3 or more", "4 or more")
+    prop_prob_cams <- as.data.frame(cbind(nmbr_probs, nmbr_prob_cams, proportion_prob_cams)) 
+    new_name <- paste0("% problem cams (n = ", ncams, ")")
+    names(prop_prob_cams)[names(prop_prob_cams) == 'proportion_prob_cams'] <- new_name
+    return(prop_prob_cams)
+  }
+  eoe20s_prop_probcams <- proportion_of_probcams(eoe_probcams_20s)
+  eoe20w_prop_probcams <- proportion_of_probcams(eoe_probcams_20w)
+  eoe21s_prop_probcams <- proportion_of_probcams(eoe_probcams_21s)
+  
+  wolf19s_prop_probcams <- proportion_of_probcams(wolf_probcams_19s)
+  wolf20s_prop_probcams <- proportion_of_probcams(wolf_probcams_20s)
+  wolf21s_prop_probcams <- proportion_of_probcams(wolf_probcams_21s)
+  
+  
   
   
   #'  From here, review partial misdirection data to see if most of is based on animal disturbance
