@@ -661,36 +661,15 @@
   wolf21s_probs <- lapply(wolf21s_all, problem_children)
   
 
-  #'  Filter images to series where camera was obscured or misdirected for 1+ hour
+  #'  Filter images to series where camera was obscured or misdirected for a defined amount of time
   #'  Using this to represent days when camera wasn't full operational
   sequential_probs <- function(dat, ntime) {
-    #' #'  If camera's view is completely obscured
-    #' cond1 <- expr(dat$OpState == "completely obscured")
-    #' bad_view_pix1 <- dat %>% 
-    #'   mutate(problem_pix = 
-    #'            rep(rle(!!cond1)$values & rle(!!cond1)$lengths >= ntime, 
-    #'                rle(!!cond1)$lengths)) %>%
-    #'   filter(problem_pix)
-    #' #'  If camera's angle is severely misdirected from initial deployment
-    #' cond2 <- expr(dat$OpState == "severely misdirected")
-    #' bad_view_pix2 <- dat %>% 
-    #'   mutate(problem_pix = 
-    #'            rep(rle(!!cond2)$values & rle(!!cond2)$lengths >= ntime, 
-    #'                rle(!!cond2)$lengths)) %>%
-    #'   filter(problem_pix)
-    #' #'  If camera's view is ok during the day but compromised at night
-    #' cond3 <- expr(dat$OpState == "nightbad__dayok")
-    #' bad_view_pix3 <- dat %>% 
-    #'   mutate(problem_pix = 
-    #'            rep(rle(!!cond3)$values & rle(!!cond3)$lengths >= ntime, 
-    #'                rle(!!cond3)$lengths)) %>%
-    #'   filter(problem_pix)
-    #' #'  Merge all images with problems
-    #' bad_view_pix <- rbind(bad_view_pix1, bad_view_pix2, bad_view_pix3) %>%
-    #'   arrange(NewLocationID, posix_date_time)
-    
+    #'  Create condition for data to meet: camera's view is completely obscured, 
+    #'  severely misdirected, or the images are nightbad_dayOK
     cond <- expr(dat$OpState == "completely obscured" | dat$OpState == "severely misdirected" | 
                    dat$OpState == "nightbad__dayok")
+    #'  Look through sequential images and if they meet this condition for the
+    #'  defined time (ntime) then flag and filter data set to just these images
     bad_view_pix <- dat %>% 
       mutate(problem_pix = 
                rep(rle(!!cond)$values & rle(!!cond)$lengths >= ntime, 
@@ -1003,9 +982,9 @@
   
   
   
-  #'  From here, review partial misdirection data to see if most of is based on animal disturbance
-  #'  double check sever misdirection is an all season long issue
-  #'  look for date ranges where cameras just didn't take any pictures and add these problem date ranges to the above df
+  #'  From here, map problem cameras - is there any obvious spatial autocorrelation?
+  #'  Then look for date ranges where cameras just didn't take any pictures and 
+  #'  add these problem date ranges to the above df
   
   
   #' #'  Pull out images from any day were the sequential_probs function indicated
