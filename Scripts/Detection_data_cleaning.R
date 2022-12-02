@@ -701,7 +701,8 @@
     return(bad_view_pix)
   }
   #'  Flag problematic images from each full time-trigger data set
-  eoe_1hr_20s <- lapply(eoe20s_probs, sequential_probs, ntime = 6) %>% #' 6 = 1 hr, 36 = 6 hr, 72 = 12 hr
+  #'  ntime: 6 = 1 hr, 36 = 6 hrs, 72 = 12 hrs
+  eoe_1hr_20s <- lapply(eoe20s_probs, sequential_probs, ntime = 6) %>% 
     #'  Merge motion & time trigger data sets into one dataframe - important for next step
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
@@ -783,10 +784,19 @@
     arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop these observation - same camera labeled w/ 2 problems on same day
     filter(NewLocationID != "GMU10A_U_23" | OpState != "completely obscured") %>%
-    filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-01") %>%
-    filter(NewLocationID != "GMU6_P_67" | OpState != "nightbad__dayok" | Date != "2021-01-02") %>%
     filter(NewLocationID != "GMU6_P_34" | OpState != "nightbad__dayok" | Date != "2020-12-15") %>%
-    filter(NewLocationID != "GMU6_P_92" | OpState != "nightbad__dayok")
+    filter(NewLocationID != "GMU6_P_92" | OpState != "nightbad__dayok") %>%
+    filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-01") %>%
+    filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-05") %>%
+    filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2021-01-02") %>%
+    filter(NewLocationID != "GMU6_P_67" | OpState != "nightbad__dayok" | Date != "2021-01-02" | StartEnd != "Last") %>%
+    mutate(StartEnd = ifelse(NewLocationID == "GMU6_P_67" & OpState == "nightbad__dayok" & Date == "2021-01-02", "Last", StartEnd)) %>%
+    filter(NewLocationID != "GMU6_U_7" | OpState != "completely obscured") #%>%  # STOP HERE if ntime = 6, DON'T DO if ntime = 72
+    # filter(NewLocationID != "GMU6_P_34" | Date != "2021-03-22" | StartEnd != "Last") %>% # Needed for ntime = 72
+    # mutate(StartEnd = ifelse(NewLocationID == "GMU6_P_34" & Date == "2021-03-22", "Last", StartEnd)) %>% # Needed for ntime = 72
+    # filter(NewLocationID != "GMU10A_U_78" | Date != "2021-02-06" | StartEnd != "Last") %>% # Needed for ntime = 72
+    # mutate(StartEnd = ifelse(NewLocationID == "GMU10A_U_78" & Date == "2021-02-06", "Last", StartEnd)) %>% # Needed for ntime = 72
+    # filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-02") # Needed for ntime = 36 only
   eoe_prob_dates_21s <- prob_days(eoe_1hr_21s) %>%
     arrange(NewLocationID, Date, StartEnd)
   
