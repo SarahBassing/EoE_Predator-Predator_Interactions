@@ -771,11 +771,11 @@
     filter(NewLocationID != "GMU6_P_67" | OpState != "nightbad__dayok" | Date != "2021-01-02" | StartEnd != "Last") %>%
     mutate(StartEnd = ifelse(NewLocationID == "GMU6_P_67" & OpState == "nightbad__dayok" & Date == "2021-01-02", "Last", StartEnd)) %>%
     filter(NewLocationID != "GMU6_U_7" | OpState != "completely obscured") #%>%  # STOP HERE if ntime = 6, DON'T DO if ntime = 72
+    # filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-02") # Needed for ntime = 36 only
     # filter(NewLocationID != "GMU6_P_34" | Date != "2021-03-22" | StartEnd != "Last") %>% # Needed for ntime = 72
     # mutate(StartEnd = ifelse(NewLocationID == "GMU6_P_34" & Date == "2021-03-22", "Last", StartEnd)) %>% # Needed for ntime = 72
     # filter(NewLocationID != "GMU10A_U_78" | Date != "2021-02-06" | StartEnd != "Last") %>% # Needed for ntime = 72
-    # mutate(StartEnd = ifelse(NewLocationID == "GMU10A_U_78" & Date == "2021-02-06", "Last", StartEnd)) %>% # Needed for ntime = 72
-    # filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-02") # Needed for ntime = 36 only
+    # mutate(StartEnd = ifelse(NewLocationID == "GMU10A_U_78" & Date == "2021-02-06", "Last", StartEnd)) # Needed for ntime = 72
   eoe_prob_dates_21s <- prob_days(eoe_1hr_21s) %>%
     arrange(NewLocationID, Date, StartEnd)
   
@@ -811,48 +811,7 @@
   write.csv(wolf_prob_dates_20s, "./Data/IDFG camera data/Problem cams/wolf20s_OpState_probs.csv")
   write.csv(wolf_prob_dates_21s, "./Data/IDFG camera data/Problem cams/wolf21s_OpState_probs.csv")
   
-  #'  Calculate summary stats on duration of typical problem days
-  mean_problem_days <- function(dat) {
-    #'  Overall mean, range, boxplot, median
-    print("Mean number of problem days")
-    print(mean(dat$ndays, na.rm = TRUE))
-    print("Range of problem days")
-    print(range(dat$ndays, na.rm = TRUE))
-    boxplot(dat$ndays, na.rm = TRUE)
-    
-    print("Median number of problem days")
-    print(median(dat$ndays, na.rm = TRUE))
-    
-    #'  A few cameras have MANY problems- weighted average to account for this
-    mean_prob_days_wgtd <- dat %>%
-      group_by(NewLocationID) %>%
-      summarize(wgt = n()/2,
-                mean_days = mean(ndays, na.rm = TRUE)) %>%
-      ungroup()
-    sum_wtd <- sum(mean_prob_days_wgtd$wgt)
-    mean_prob_days_wgtd$wgt <- mean_prob_days_wgtd$wgt/sum_wtd
-    mean_wgtd_prob_days <- weighted.mean(mean_prob_days_wgtd$mean_days, mean_prob_days_wgtd$wgt)
-    print("Weighted mean number of problem days, weighted by # of problems per camera")
-    print(mean_wgtd_prob_days)
-    
-    #'  Mean, range, boxplot, median of first problem per cameras (most cameras only had one)
-    print("Mean number of problem days for first problem only")
-    print(mean(dat$ndays[dat$Burst == 1], na.rm = TRUE))
-    print("Range of problem days for first problem only")
-    print(range(dat$ndays[dat$Burst == 1], na.rm = TRUE))
-    boxplot(dat$ndays[dat$Burst == 1], na.rm = TRUE)
-    print("Median number of problem days for first problem only")
-    print(median(dat$ndays[dat$Burst == 1], na.rm = TRUE))
-   }
-  mean_problem_days(eoe_prob_dates_20s)
-  mean_problem_days(eoe_prob_dates_20w)
-  mean_problem_days(eoe_prob_dates_21s)
-  
-  mean_problem_days(wolf_prob_dates_19s)
-  mean_problem_days(wolf_prob_dates_20s)
-  mean_problem_days(wolf_prob_dates_21s)
-  
-  
+   
   #'  Create wide data frame based on each burst per camera
   #'  Start and end dates will be listed horizontally by camera burst
   problem_df <- function(dat) {
@@ -951,6 +910,49 @@
   write.csv(wolf_probcams_21s, "./Data/IDFG camera data/Problem cams/wolf21s_problem_cams.csv")
   
   
+  ####  Summary stats on problem cameras  ####
+  #'  -------------------------------------
+  #'  Calculate summary stats on duration of typical problem days
+  mean_problem_days <- function(dat) {
+    #'  Overall mean, range, boxplot, median
+    print("Mean number of problem days")
+    print(mean(dat$ndays, na.rm = TRUE))
+    print("Range of problem days")
+    print(range(dat$ndays, na.rm = TRUE))
+    boxplot(dat$ndays, na.rm = TRUE)
+    
+    print("Median number of problem days")
+    print(median(dat$ndays, na.rm = TRUE))
+    
+    #'  A few cameras have MANY problems- weighted average to account for this
+    mean_prob_days_wgtd <- dat %>%
+      group_by(NewLocationID) %>%
+      summarize(wgt = n()/2,
+                mean_days = mean(ndays, na.rm = TRUE)) %>%
+      ungroup()
+    sum_wtd <- sum(mean_prob_days_wgtd$wgt)
+    mean_prob_days_wgtd$wgt <- mean_prob_days_wgtd$wgt/sum_wtd
+    mean_wgtd_prob_days <- weighted.mean(mean_prob_days_wgtd$mean_days, mean_prob_days_wgtd$wgt)
+    print("Weighted mean number of problem days, weighted by # of problems per camera")
+    print(mean_wgtd_prob_days)
+    
+    #'  Mean, range, boxplot, median of first problem per cameras (most cameras only had one)
+    print("Mean number of problem days for first problem only")
+    print(mean(dat$ndays[dat$Burst == 1], na.rm = TRUE))
+    print("Range of problem days for first problem only")
+    print(range(dat$ndays[dat$Burst == 1], na.rm = TRUE))
+    boxplot(dat$ndays[dat$Burst == 1], na.rm = TRUE)
+    print("Median number of problem days for first problem only")
+    print(median(dat$ndays[dat$Burst == 1], na.rm = TRUE))
+  }
+  mean_problem_days(eoe_prob_dates_20s)
+  mean_problem_days(eoe_prob_dates_20w)
+  mean_problem_days(eoe_prob_dates_21s)
+  
+  mean_problem_days(wolf_prob_dates_19s)
+  mean_problem_days(wolf_prob_dates_20s)
+  mean_problem_days(wolf_prob_dates_21s)
+  
   #'  What proportion of cameras had problems
   proportion_of_probcams <- function(dat) {
     #'  Total number of cameras
@@ -980,42 +982,89 @@
   wolf21s_prop_probcams <- proportion_of_probcams(wolf_probcams_21s)
   
   
+  ####  Map problem cameras  ####
+  #'  -----------------------
+  #'  Read in shapefiles
+  gmu <- st_read("./Shapefiles/IDFG_Game_Management_Units/Game_Management_Units.shp")
+  eoe_gmus <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp")
+  
+  wgs84 <- projection("+proj=longlat +datum=WGS84 +no_defs")
+  sa_proj <- projection(eoe_gmus)
+  
+  #'  Function to format camera location data for mapping
+  format_probcam_locations <- function(dat) {
+    #'  Label cameras as either having or not having a problem
+    flag_problem_cams <- dat %>%
+      mutate(ProblemCams = ifelse(is.na(Problem1_from), "No problems", "Problem Camera")) %>%
+      dplyr::select(c(NewLocationID, Lat, Long, ProblemCams))
+    
+    #'  Make camera locations spatial
+    cams <- st_as_sf(flag_problem_cams, coords = c("Long", "Lat"), crs = wgs84) %>%
+      st_transform(cams, crs = sa_proj)
+    return(cams)
+  }
+  eoe20s_probcam_locs <- format_probcam_locations(eoe_probcams_20s)
+  eoe20w_probcam_locs <- format_probcam_locations(eoe_probcams_20w)
+  eoe21s_probcam_locs <- format_probcam_locations(eoe_probcams_21s)
+  
+  wolf19s_probcam_locs <- format_probcam_locations(wolf_probcams_19s)
+  wolf20s_probcam_locs <- format_probcam_locations(wolf_probcams_20s)
+  wolf21s_probcam_locs <- format_probcam_locations(wolf_probcams_21s)
+  
+
+  #'  Plot Smr20 problem cameras
+  EoE20s_problem_cam_map <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe20s_probcam_locs, aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "darkred")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ Operational Problems (1hr Rule)") + # UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12830000), ylim = c(5800000, 6050000), expand = TRUE) +
+    theme_bw()
+  EoE20s_problem_cam_map
+  # ggsave("./Outputs/Figures/Maps/EoE20s_problem_cams_1hr.png", EoE20s_problem_cam_map, units = "in", 
+  #        width = 6, height = 6, dpi = 600, device = "png")
+  
+  #'  Plot Wtr20 problem cameras
+  EoE20w_problem_cam_map <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe20w_probcam_locs, aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "#edae49")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ Operational Problems (1h Rule)") +# UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12830000), ylim = c(5800000, 6050000), expand = TRUE) +
+    theme_bw()
+  EoE20w_problem_cam_map
+  # ggsave("./Outputs/Figures/Maps/EoE20w_problem_cams_1hr.png", EoE20w_problem_cam_map, units = "in",
+  #        width = 6, height = 6, dpi = 600, device = "png")
+  
+  #'  Plot Smr21 problem cameras
+  EoE21s_problem_cam_map <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
+    scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
+    geom_sf(data = eoe21s_probcam_locs, aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "#edae49")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ Operational Problems (1h Rule)") +
+    coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
+    theme_bw()
+  EoE21s_problem_cam_map
+  ggsave("./Outputs/Figures/Maps/EoE21s_problem_cams_1hr.png", EoE21s_problem_cam_map, units = "in",
+         width = 6, height = 6, dpi = 600, device = "png")
   
   
-  #'  From here, map problem cameras - is there any obvious spatial autocorrelation?
+  #'  From here, map cameras that had problems that lasted >1 wk & >1 month under 12hr rule
   #'  Then look for date ranges where cameras just didn't take any pictures and 
   #'  add these problem date ranges to the above df
+  #'  
+  #'  Don't forget to look at the Wolf data too
   
   
-  #' #'  Pull out images from any day were the sequential_probs function indicated
-  #' #'  potential problem - includes normal images to help assess the extent of problem
-  #' bad_day_cams <- function(dat, prob_condition) {
-  #'   bad_days <- semi_join(dat, prob_condition, by = c("Date", "NewLocationID")) %>%
-  #'     # dplyr::select(c(NewLocationID, Date, Time, posix_date_time, OpState, Species, File)) %>%
-  #'     arrange(NewLocationID, posix_date_time)
-  #'   return(bad_days)
-  #' }
-  #' #'  Save all images from camera on problem days - to be used to record start 
-  #' #'  and stop problem days and indicated which images should be filtered out
-  #' eoe_badday_t20s <- bad_day_cams(eoe_t_20s_probs, prob_condition = eoe_1hr_20s)
-  #' save(eoe_badday_t20s, file = "./Data/IDFG camera data/Problem cams/eoe20s_t_bad_cam_days.RData")
-  #' write.csv(eoe_badday_t20s, "./Data/IDFG camera data/Problem cams/eoe20s_t_bad_cam_days.csv")
-  #' eoe_badday_t20w <- bad_day_cams(eoe_t_20w_probs, prob_condition = eoe_1hr_20w)
-  #' save(eoe_badday_t20w, file = "./Data/IDFG camera data/Problem cams/eoe20w_t_bad_cam_days.RData")
-  #' write.csv(eoe_badday_t20w, "./Data/IDFG camera data/Problem cams/eoe20w_t_bad_cam_days.csv")
-  #' eoe_badday_t21s <- bad_day_cams(eoe_t_21s_probs, prob_condition = eoe_1hr_21s)
-  #' save(eoe_badday_t21s, file = "./Data/IDFG camera data/Problem cams/eoe21s_t_bad_cam_days.RData")
-  #' write.csv(eoe_badday_t21s, "./Data/IDFG camera data/Problem cams/eoe21s_t_bad_cam_days.csv")
-  #' 
-  #' wolf_badday_t19s <- bad_day_cams(wolf_t_19s_probs, prob_condition = wolf_1hr_19s)
-  #' save(wolf_badday_t19s, file = "./Data/IDFG camera data/Problem cams/wolf19s_t_bad_cam_days.RData")
-  #' write.csv(wolf_badday_t19s, "./Data/IDFG camera data/Problem cams/wolf19s_t_bad_cam_days.csv")
-  #' wolf_badday_t20s <- bad_day_cams(wolf_t_20s_probs, prob_condition = wolf_1hr_20s)
-  #' save(wolf_badday_t20s, file = "./Data/IDFG camera data/Problem cams/wolf20s_t_bad_cam_days.RData")
-  #' write.csv(wolf_badday_t20s, "./Data/IDFG camera data/Problem cams/wolf20s_t_bad_cam_days.csv")
-  #' wolf_badday_t21s <- bad_day_cams(wolf_t_21s_probs, prob_condition = wolf_1hr_21s)
-  #' save(wolf_badday_t21s, file = "./Data/IDFG camera data/Problem cams/wolf21s_t_bad_cam_days.RData")
-  #' write.csv(wolf_badday_t21s, "./Data/IDFG camera data/Problem cams/wolf21s_t_bad_cam_days.csv")
   
   
   
