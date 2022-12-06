@@ -752,13 +752,13 @@
     #'  Drop this one observation - same camera labeled w/ 2 problems on same day 
     filter(NewLocationID != "GMU10A_U_67" | OpState != "completely obscured") %>%
     filter(NewLocationID != "GMU6_U_123" | OpState != "completely obscured") %>%
-    filter(NewLocationID != "GMU6_U_99" | OpState != "completely obscured") #%>% # STOP HERE if ntime > 6
-    # filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-11") %>%
-    # filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-14") %>%
-    # filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-16") %>%
-    # filter(NewLocationID != "GMU10A_P_110" | OpState != "severely misdirected" | Date != "2020-10-16" | StartEnd != "First") %>%
-    # mutate(ndays = ifelse(NewLocationID == "GMU10A_P_110" & OpState == "severely misdirected" & Date == "2020-10-16" & StartEnd == "Last", 3, ndays)) %>%
-    # filter(NewLocationID != "GMU10A_U_37" | OpState != "severely misdirected")
+    filter(NewLocationID != "GMU6_U_99" | OpState != "completely obscured") %>% # STOP HERE if ntime > 6
+    filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-11") %>%
+    filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-14") %>%
+    filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-16") %>%
+    filter(NewLocationID != "GMU10A_P_110" | OpState != "severely misdirected" | Date != "2020-10-16" | StartEnd != "First") %>%
+    mutate(ndays = ifelse(NewLocationID == "GMU10A_P_110" & OpState == "severely misdirected" & Date == "2020-10-16" & StartEnd == "Last", 3, ndays)) %>%
+    filter(NewLocationID != "GMU10A_U_37" | OpState != "severely misdirected")
   eoe_prob_dates_20w <- prob_days(eoe_1hr_20w) %>%
     arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop these observation - same camera labeled w/ 2 problems on same day
@@ -1058,11 +1058,88 @@
          width = 6, height = 6, dpi = 600, device = "png")
   
   
+  #'  Map problem cameras where problem lasts longer than 1 week and 1 month
+  wk_month_long_probs <- function(obs, cams) {
+    #'  Snag camera coordinates from full observation data
+    camlocs <- obs %>%
+      dplyr::select(c(NewLocationID, Lat, Long)) %>%
+      #'  Group by each camera site
+      group_by(NewLocationID) %>%
+      #'  Filter to just the first observation per camera
+      slice(1) %>%
+      ungroup() 
+    
+    #'  Identify and format cameras that had a problem for >1 week long
+    weeklong_probs <- cams %>%
+      #'  Filter to only problems that lasted longer than 1 week
+      filter(ndays >7) %>%
+      #'  Retain only the first problem at each camera (doesn't matter if there
+      #'  was more than one problem, just that at least one 1-wk problem occurred)
+      group_by(NewLocationID) %>%
+      slice(1) %>%
+      ungroup() %>%
+      #'  Merge with camera coordinate data
+      full_join(camlocs, by = "NewLocationID") %>%
+      #'  Flag each problem as having a problem or not
+      mutate(ProblemCams = ifelse(is.na(ndays), "No problems", "Problem Camera")) %>%
+      dplyr::select(c(NewLocationID, Lat, Long, ProblemCams)) %>%
+      #'  Convert to a sf object for mapping
+      st_as_sf(coords = c("Long", "Lat"), crs = wgs84) %>%
+      st_transform(crs = sa_proj)
+    
+    #'  Identify and format cameras that had a problem for >1 month (30 days) long
+    #'  Same deal as above but filtering to cameras with >30 day long problems
+    monthlong_probs <- cams %>%
+      filter(ndays >30) %>%
+      full_join(camlocs, by = "NewLocationID") %>%
+      mutate(ProblemCams = ifelse(is.na(ndays), "No problems", "Problem Camera")) %>%
+      dplyr::select(c(NewLocationID, Lat, Long, ProblemCams)) %>%
+      st_as_sf(coords = c("Long", "Lat"), crs = wgs84) %>%
+      st_transform(crs = sa_proj)
+    
+    #'  List week and month-long problem cameras together and return this object
+    prob_list <- list(weeklong_probs, monthlong_probs)
+    return(prob_list)
+  }
+  eoe_prob_wkmo_20s <- wk_month_long_probs(obs = eoe20s_allT, cams = eoe_prob_dates_20s)
+  
+ 
+  #'  Plot cameras with >1week long problems and >1month long problems
+  #'  Plot Smr20 problem cameras
+  EoE20s_problem_cam_map_1wk <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe_prob_wkmo_20s[[1]], aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "darkred")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ >1 Week Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12830000), ylim = c(5800000, 6050000), expand = TRUE) +
+    theme_bw()
+  EoE20s_problem_cam_map_1wk
+  ggsave("./Outputs/Figures/Maps/EoE20s_problem_cams_1hr_1wk.png", EoE20s_problem_cam_map_1wk, units = "in",
+         width = 6, height = 6, dpi = 600, device = "png")
+  
+  EoE20s_problem_cam_map_1mo <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe_prob_wkmo_20s[[1]], aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "darkred")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ >1 Month Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12830000), ylim = c(5800000, 6050000), expand = TRUE) +
+    theme_bw()
+  EoE20s_problem_cam_map_1mo
+  ggsave("./Outputs/Figures/Maps/EoE20s_problem_cams_1hr_1mo.png", EoE20s_problem_cam_map_1mo, units = "in",
+         width = 6, height = 6, dpi = 600, device = "png")
+  
+  
   #'  From here, map cameras that had problems that lasted >1 wk & >1 month under 12hr rule
   #'  Then look for date ranges where cameras just didn't take any pictures and 
   #'  add these problem date ranges to the above df
-  #'  
-  #'  Don't forget to look at the Wolf data too
+  #'  Don't forget to look at the Wolf data!
+  
   
   
   
