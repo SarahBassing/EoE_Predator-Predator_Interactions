@@ -1169,7 +1169,7 @@
   #'  Plot Smr21 problem cameras
   EoE21s_problem_cam_map_1wk <- ggplot() +
     geom_sf(data = gmu) +
-    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
     scale_fill_manual(values=c("#9999CC", "#66CC99")) +
     geom_sf(data = eoe_prob_wkmo_21s[[1]], aes(color = ProblemCams), shape = 16, size = 2) +
     scale_color_manual(values=c("black", "darkred")) +
@@ -1183,7 +1183,7 @@
   
   EoE21s_problem_cam_map_1mo <- ggplot() +
     geom_sf(data = gmu) +
-    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
     scale_fill_manual(values=c("#9999CC", "#66CC99")) +
     geom_sf(data = eoe_prob_wkmo_21s[[2]], aes(color = ProblemCams), shape = 16, size = 2) +
     scale_color_manual(values=c("black", "darkred")) +
