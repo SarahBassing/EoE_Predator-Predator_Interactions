@@ -1018,7 +1018,7 @@
     geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
     scale_fill_manual(values=c("#9999CC", "#66CC99")) +
     geom_sf(data = eoe20s_probcam_locs, aes(color = ProblemCams), shape = 16, size = 2) +
-    scale_color_manual(values=c("black", "darkred")) +
+    scale_color_manual(values=c("black", "red")) +
     guides(fill=guide_legend(title="GMU")) +
     ggtitle("EoE Cameras w/ Operational Problems (1hr Rule)") + # UPDATE THE TIME HERE
     coord_sf(xlim = c(-13020000, -12830000), ylim = c(5800000, 6050000), expand = TRUE) +
@@ -1048,7 +1048,7 @@
     geom_sf(data = eoe_gmus, aes(fill = NAME)) +
     scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
     geom_sf(data = eoe21s_probcam_locs, aes(color = ProblemCams), shape = 16, size = 2) +
-    scale_color_manual(values=c("black", "#edae49")) +
+    scale_color_manual(values=c("black", "#darkred")) +
     guides(fill=guide_legend(title="GMU")) +
     ggtitle("EoE Cameras w/ Operational Problems (1h Rule)") +
     coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
@@ -1067,7 +1067,8 @@
       group_by(NewLocationID) %>%
       #'  Filter to just the first observation per camera
       slice(1) %>%
-      ungroup() 
+      ungroup() %>%
+      filter(!is.na(NewLocationID))
     
     #'  Identify and format cameras that had a problem for >1 week long
     weeklong_probs <- cams %>%
@@ -1102,6 +1103,8 @@
     return(prob_list)
   }
   eoe_prob_wkmo_20s <- wk_month_long_probs(obs = eoe20s_allT, cams = eoe_prob_dates_20s)
+  eoe_prob_wkmo_20w <- wk_month_long_probs(obs = eoe20w_allT, cams = eoe_prob_dates_20w)
+  eoe_prob_wkmo_21s <- wk_month_long_probs(obs = eoe21s_allT, cams = eoe_prob_dates_21s)
   
  
   #'  Plot cameras with >1week long problems and >1month long problems
@@ -1111,28 +1114,87 @@
     geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
     scale_fill_manual(values=c("#9999CC", "#66CC99")) +
     geom_sf(data = eoe_prob_wkmo_20s[[1]], aes(color = ProblemCams), shape = 16, size = 2) +
-    scale_color_manual(values=c("black", "darkred")) +
+    scale_color_manual(values=c("black", "red")) +
     guides(fill=guide_legend(title="GMU")) +
     ggtitle("EoE Cameras w/ >1 Week Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
     coord_sf(xlim = c(-13020000, -12830000), ylim = c(5800000, 6050000), expand = TRUE) +
     theme_bw()
   EoE20s_problem_cam_map_1wk
-  ggsave("./Outputs/Figures/Maps/EoE20s_problem_cams_1hr_1wk.png", EoE20s_problem_cam_map_1wk, units = "in",
-         width = 6, height = 6, dpi = 600, device = "png")
+  # ggsave("./Outputs/Figures/Maps/EoE20s_problem_cams_1hr_1wk.png", EoE20s_problem_cam_map_1wk, units = "in",
+  #        width = 6, height = 6, dpi = 600, device = "png")
   
   EoE20s_problem_cam_map_1mo <- ggplot() +
     geom_sf(data = gmu) +
     geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
     scale_fill_manual(values=c("#9999CC", "#66CC99")) +
-    geom_sf(data = eoe_prob_wkmo_20s[[1]], aes(color = ProblemCams), shape = 16, size = 2) +
-    scale_color_manual(values=c("black", "darkred")) +
+    geom_sf(data = eoe_prob_wkmo_20s[[2]], aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "red")) +
     guides(fill=guide_legend(title="GMU")) +
     ggtitle("EoE Cameras w/ >1 Month Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
     coord_sf(xlim = c(-13020000, -12830000), ylim = c(5800000, 6050000), expand = TRUE) +
     theme_bw()
   EoE20s_problem_cam_map_1mo
-  ggsave("./Outputs/Figures/Maps/EoE20s_problem_cams_1hr_1mo.png", EoE20s_problem_cam_map_1mo, units = "in",
+  # ggsave("./Outputs/Figures/Maps/EoE20s_problem_cams_1hr_1mo.png", EoE20s_problem_cam_map_1mo, units = "in",
+  #        width = 6, height = 6, dpi = 600, device = "png")
+  
+  #'  Plot Wtr20 problem cameras
+  EoE20w_problem_cam_map_1wk <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe_prob_wkmo_20w[[1]], aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "#edae49")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ >1 Week Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12830000), ylim = c(5800000, 6050000), expand = TRUE) +
+    theme_bw()
+  EoE20w_problem_cam_map_1wk
+  # ggsave("./Outputs/Figures/Maps/EoE20w_problem_cams_1hr_1wk.png", EoE20w_problem_cam_map_1wk, units = "in",
+  #        width = 6, height = 6, dpi = 600, device = "png")
+  
+  EoE20w_problem_cam_map_1mo <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe_prob_wkmo_20w[[2]], aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "#edae49")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ >1 Month Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12830000), ylim = c(5800000, 6050000), expand = TRUE) +
+    theme_bw()
+  EoE20w_problem_cam_map_1mo
+  # ggsave("./Outputs/Figures/Maps/EoE20w_problem_cams_1hr_1mo.png", EoE20w_problem_cam_map_1mo, units = "in",
+  #        width = 6, height = 6, dpi = 600, device = "png")
+  
+  #'  Plot Smr21 problem cameras
+  EoE21s_problem_cam_map_1wk <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe_prob_wkmo_21s[[1]], aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "darkred")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ >1 Week Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
+    theme_bw()
+  EoE21s_problem_cam_map_1wk
+  ggsave("./Outputs/Figures/Maps/EoE21s_problem_cams_1hr_1wk.png", EoE21s_problem_cam_map_1wk, units = "in",
          width = 6, height = 6, dpi = 600, device = "png")
+  
+  EoE21s_problem_cam_map_1mo <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus[eoe_gmus$NAME != "1",], aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe_prob_wkmo_21s[[2]], aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "darkred")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ >1 Month Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
+    theme_bw()
+  EoE21s_problem_cam_map_1mo
+  ggsave("./Outputs/Figures/Maps/EoE21s_problem_cams_1hr_1mo.png", EoE21s_problem_cam_map_1mo, units = "in",
+         width = 6, height = 6, dpi = 600, device = "png")
+  
   
   
   #'  From here, map cameras that had problems that lasted >1 wk & >1 month under 12hr rule
