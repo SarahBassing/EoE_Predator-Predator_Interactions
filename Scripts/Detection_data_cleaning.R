@@ -614,6 +614,29 @@
   #'  Notes regarding missing motion vs time trigger images recorded in "Problem cameras - notes" Excel file in Data folder
   
   
+  ####  Flag gaps in camera data  ####
+  #'  ----------------------------
+  #'  Calculate length of gaps in data due to NO pictures being taken
+  no_pix <- function(dat) {
+    gaps <- dat %>%
+      dplyr::select(NewLocationID, Lat, Long, Date, Time, posix_date_time, OpState) %>%
+      arrange(NewLocationID, posix_date_time) %>%
+      #'  Floor each time to nearest minute (drops seconds to 00)
+      mutate(Floordt = floor_date(posix_date_time, "minutes")) %>%
+      group_by(NewLocationID) %>%
+      #'  Calculate time since last image at each camera site
+      mutate(nmin = as.numeric(difftime(Floordt, lag(Floordt), units = "mins"))) %>%
+      ungroup() %>%
+      #'  Report in hours and days
+      mutate(nhrs = round(nmin/60, 2),
+             ndays = round(nhrs/24, 2))
+    return(gaps)
+  }
+  eoe_nopix_20s <- no_pix(eoe20s_allT)
+  eoe_nopix_20w <- no_pix(eoe20w_allT)
+  eoe_nopix_21s <- no_pix(eoe21s_allT)
+  
+ 
   ####  Cameras with known operational issues  ####
   #'  -----------------------------------------
   #'  Pull out any images from cameras with a noted misdirected/obscured viewshed
@@ -1178,8 +1201,8 @@
     coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
     theme_bw()
   EoE21s_problem_cam_map_1wk
-  ggsave("./Outputs/Figures/Maps/EoE21s_problem_cams_1hr_1wk.png", EoE21s_problem_cam_map_1wk, units = "in",
-         width = 6, height = 6, dpi = 600, device = "png")
+  # ggsave("./Outputs/Figures/Maps/EoE21s_problem_cams_1hr_1wk.png", EoE21s_problem_cam_map_1wk, units = "in",
+  #        width = 6, height = 6, dpi = 600, device = "png")
   
   EoE21s_problem_cam_map_1mo <- ggplot() +
     geom_sf(data = gmu) +
@@ -1192,13 +1215,12 @@
     coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
     theme_bw()
   EoE21s_problem_cam_map_1mo
-  ggsave("./Outputs/Figures/Maps/EoE21s_problem_cams_1hr_1mo.png", EoE21s_problem_cam_map_1mo, units = "in",
-         width = 6, height = 6, dpi = 600, device = "png")
+  # ggsave("./Outputs/Figures/Maps/EoE21s_problem_cams_1hr_1mo.png", EoE21s_problem_cam_map_1mo, units = "in",
+  #        width = 6, height = 6, dpi = 600, device = "png")
   
   
   
-  #'  From here, map cameras that had problems that lasted >1 wk & >1 month under 12hr rule
-  #'  Then look for date ranges where cameras just didn't take any pictures and 
+  #'  From here, look for date ranges where cameras just didn't take any pictures and 
   #'  add these problem date ranges to the above df
   #'  Don't forget to look at the Wolf data!
   
