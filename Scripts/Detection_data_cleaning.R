@@ -636,6 +636,9 @@
   eoe_nopix_20w <- no_pix(eoe20w_allT)
   eoe_nopix_21s <- no_pix(eoe21s_allT)
   
+  
+  ########## FROM HERE integrate into functions below? Get start/end date based on 1, 6, 12 hr rule and incorporate into problem cams
+  
  
   ####  Cameras with known operational issues  ####
   #'  -----------------------------------------
@@ -725,6 +728,38 @@
   wolf_1hr_21s <- lapply(wolf21s_probs, sequential_probs, ntime = 6) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
+  
+  
+  #'  Plot distribution of problem times - is there a temporal pattern?
+  eoe_probtimes_20s <- eoe_1hr_20s %>%  #  Summer 2020
+    mutate(Time = hms::as_hms(Time),
+           Hours = hour(Time)) %>%
+    ggplot(aes(Time)) + #Hours
+    geom_freqpoly(binwidth = 1) +
+    ggtitle("Number of images w/ OpState problems over 24 cycle \n(1hr Rule)")
+  eoe_probtimes_20s
+  ggsave("./Outputs/Figures/eoe_probtimes_20s_1hr.png", eoe_probtimes_20s, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
+  
+  eoe_probtimes_20w <- eoe_1hr_20w %>%  #  Winter 2020-2021
+    mutate(Time = hms::as_hms(Time),
+           Hours = hour(Time)) %>%
+    ggplot(aes(Time)) + #Hours
+    geom_freqpoly(binwidth = 1) +
+    ggtitle("Number of images w/ OpState problems over 24 cycle \n(1hr Rule)")
+  eoe_probtimes_20w
+  ggsave("./Outputs/Figures/eoe_probtimes_20w_1hr.png", eoe_probtimes_20w, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
+  
+  eoe_probtimes_21s <- eoe_1hr_21s %>%  #  Summer 2021
+    mutate(Time = hms::as_hms(Time),
+           Hours = hour(Time)) %>%
+    ggplot(aes(Time)) + #Hours
+    geom_freqpoly(binwidth = 1) +
+    ggtitle("Number of images w/ OpState problems over 24 cycle \n(1hr Rule)")
+  eoe_probtimes_21s
+  ggsave("./Outputs/Figures/eoe_probtimes_21s_1hr.png", eoe_probtimes_21s, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
   
 
   #'  Pull out problem dates based on images when camera is obscured/misdirected
