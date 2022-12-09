@@ -617,7 +617,7 @@
   ####  Flag gaps in camera data  ####
   #'  ----------------------------
   #'  Calculate length of gaps in data due to NO pictures being taken
-  no_pix <- function(dat) {
+  no_pix <- function(dat, ntime) {
     gaps <- dat %>%
       dplyr::select(NewLocationID, Lat, Long, Date, Time, posix_date_time, OpState) %>%
       arrange(NewLocationID, posix_date_time) %>%
@@ -629,17 +629,71 @@
       ungroup() %>%
       #'  Report in hours and days
       mutate(nhrs = round(nmin/60, 2),
-             ndays = round(nhrs/24, 2))
+             ndays = round(nhrs/24, 2),
+             #'  Flag images where there's a gap in the data
+             prob_gap = ifelse(nhrs >= ntime, "Gap", NA)) #%>%
+      #' #'  Remove observations with known problems - I get to that next
+      #' filter(OpState != "severely misdirected" & OpState != "completely obscured" & 
+      #'          OpState != "malfunction" & OpState != "nightbad__dayok")
     return(gaps)
   }
-  eoe_nopix_20s <- no_pix(eoe20s_allT)
-  eoe_nopix_20w <- no_pix(eoe20w_allT)
-  eoe_nopix_21s <- no_pix(eoe21s_allT)
+  eoe_nopix_20s <- no_pix(eoe20s_allT, ntime = 72)
+  eoe_nopix_20w <- no_pix(eoe20w_allT, ntime = 72)
+  eoe_nopix_21s <- no_pix(eoe21s_allT, ntime = 72)
   
+  wolf_nopix_19s <- no_pix(wolf19s_allT, ntime = 72)
+  wolf_nopix_20s <- no_pix(wolf20s_allT, ntime = 72)
+  wolf_nopix_21s <- no_pix(wolf21s_allT, ntime = 72)
   
-  ########## FROM HERE integrate into functions below? Get start/end date based on 1, 6, 12 hr rule and incorporate into problem cams
+  #'  Pull out problem dates based on last image before gap in data and first image
+  #'  after gap in data
+  missing_days <- function(dat) {
+    missing_dates <- dat %>%
+      arrange(NewLocationID, posix_date_time) %>%
+      dplyr::select(c(NewLocationID, Date, OpState)) %>%
+      distinct() %>%
+      mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
+      #'  Label sequential dates from same camera as a single burst
+      #'  If there's a break in the dates, images are labeled as a new burst
+      group_by(NewLocationID) %>%
+      mutate(Burst = cumsum(c(1, diff(Date) > 1))) %>%
+      ungroup() %>%
+      #'  filter to just the start and end date of each burst
+      group_by(NewLocationID, Burst) %>%
+      mutate(StartEnd = ifelse(Date == min(Date), "First", NA),
+             StartEnd = ifelse(Date == max(Date), "Last", StartEnd)) %>%
+      filter(!is.na(StartEnd)) %>%
+      # filter(Date == min(Date) | Date == max(Date)) %>%
+      ungroup() %>%
+      #'  Identify when the start and end of gaps in data occur based on when
+      #'  bursts of images change for each camera
+      group_by(NewLocationID) %>%
+      #'  if current value is x and the previous value (lag) is y, then z
+      #'  if current value is x and the next value (lead) is y, then z
+      mutate(StartEnd = ifelse((Burst == 2 & lag(Burst == 1)), "Last", NA),
+             StartEnd = ifelse((Burst == 3 & lag(Burst == 2)), "Last", StartEnd),
+             StartEnd = ifelse((Burst == 1 & lead(Burst == 2)), "First", StartEnd),
+             StartEnd = ifelse((Burst == 2 & lead(Burst == 3)), "First", StartEnd),
+             #'  Calculate number of missing days
+             ndays = as.numeric(difftime(Date, lag(Date), units = "days"))) %>%
+             #'  Add 1 to each count so 1 day problems = 1, not 0, and start day
+             #'  of each problem is included in the count
+             #ndays = ndays + 1) %>%
+      ungroup() %>%
+      filter(!is.na(StartEnd))
+    return(missing_dates)
+  }
+  eoe_gap_dates_20s <- missing_days(eoe_nopix_20s) %>%
+    #'  Remove this obvious camera malfunction
+    filter(Date != "2025-05-17")
+  eoe_gap_dates_20w <- missing_days(eoe_nopix_20w)
+  eoe_gap_dates_21s <- missing_days(eoe_nopix_21s)
   
- 
+  wolf_gap_dates_19s <- missing_days(wolf_nopix_19s)
+  wolf_gap_dates_20s <- missing_days(wolf_nopix_20s)
+  wolf_gap_dates_21s <- missing_days(wolf_nopix_21s)
+  
+
   ####  Cameras with known operational issues  ####
   #'  -----------------------------------------
   #'  Pull out any images from cameras with a noted misdirected/obscured viewshed
@@ -707,25 +761,25 @@
   }
   #'  Flag problematic images from each full time-trigger data set
   #'  ntime: 6 = 1 hr, 36 = 6 hrs, 72 = 12 hrs
-  eoe_1hr_20s <- lapply(eoe20s_probs, sequential_probs, ntime = 6) %>% 
+  eoe_1hr_20s <- lapply(eoe20s_probs, sequential_probs, ntime = 72) %>% 
     #'  Merge motion & time trigger data sets into one dataframe - important for next step
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  eoe_1hr_20w <- lapply(eoe20w_probs, sequential_probs, ntime = 6) %>%
+  eoe_1hr_20w <- lapply(eoe20w_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  eoe_1hr_21s <- lapply(eoe21s_probs, sequential_probs, ntime = 6) %>%
+  eoe_1hr_21s <- lapply(eoe21s_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
   
-  wolf_1hr_19s <- lapply(wolf19s_probs, sequential_probs, ntime = 6) %>%
+  wolf_1hr_19s <- lapply(wolf19s_probs, sequential_probs, ntime = 72) %>%
     #'  Merge motion & time trigger data sets into one dataframe
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  wolf_1hr_20s <- lapply(wolf20s_probs, sequential_probs, ntime = 6) %>%
+  wolf_1hr_20s <- lapply(wolf20s_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  wolf_1hr_21s <- lapply(wolf21s_probs, sequential_probs, ntime = 6) %>%
+  wolf_1hr_21s <- lapply(wolf21s_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
   
@@ -763,7 +817,7 @@
   
 
   #'  Pull out problem dates based on images when camera is obscured/misdirected
-  #'  for 1+ hour on a given day
+  #'  for 1+, 6+ or 12+ hour on a given day
   prob_days <- function(dat) {
     prob_dates <- dat %>%
       arrange(NewLocationID, posix_date_time) %>%
@@ -809,14 +863,15 @@
     arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop this one observation - same camera labeled w/ 2 problems on same day 
     filter(NewLocationID != "GMU10A_U_67" | OpState != "completely obscured") %>%
+    filter(NewLocationID != "GMU6_P_84") %>% # This one is all kinds of messed up and needs to be excluded completely
     filter(NewLocationID != "GMU6_U_123" | OpState != "completely obscured") %>%
-    filter(NewLocationID != "GMU6_U_99" | OpState != "completely obscured") %>% # STOP HERE if ntime > 6
-    filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-11") %>%
-    filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-14") %>%
-    filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-16") %>%
-    filter(NewLocationID != "GMU10A_P_110" | OpState != "severely misdirected" | Date != "2020-10-16" | StartEnd != "First") %>%
-    mutate(ndays = ifelse(NewLocationID == "GMU10A_P_110" & OpState == "severely misdirected" & Date == "2020-10-16" & StartEnd == "Last", 3, ndays)) %>%
-    filter(NewLocationID != "GMU10A_U_37" | OpState != "severely misdirected")
+    filter(NewLocationID != "GMU6_U_99" | OpState != "completely obscured") #%>% # STOP HERE if ntime > 6
+    # filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-11") %>%
+    # filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-14") %>%
+    # filter(NewLocationID != "GMU10A_P_110" | OpState != "completely obscured" | Date != "2020-10-16") %>%
+    # filter(NewLocationID != "GMU10A_P_110" | OpState != "severely misdirected" | Date != "2020-10-16" | StartEnd != "First") %>%
+    # mutate(ndays = ifelse(NewLocationID == "GMU10A_P_110" & OpState == "severely misdirected" & Date == "2020-10-16" & StartEnd == "Last", 3, ndays)) %>%
+    # filter(NewLocationID != "GMU10A_U_37" | OpState != "severely misdirected")
   eoe_prob_dates_20w <- prob_days(eoe_1hr_20w) %>%
     arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop these observation - same camera labeled w/ 2 problems on same day
@@ -860,14 +915,63 @@
     filter(NewLocationID != "GMU10A_A_750" | OpState != "completely obscured")
   wolf_prob_dates_21s <- add_row1(wolf_prob_dates_21s)
 
-  #'  Save dates of first/last image and problem dates for all cameras
-  write.csv(eoe_prob_dates_20s, "./Data/IDFG camera data/Problem cams/eoe20s_OpState_probs.csv")
-  write.csv(eoe_prob_dates_20w, "./Data/IDFG camera data/Problem cams/eoe20w_OpState_probs.csv")
-  write.csv(eoe_prob_dates_21s, "./Data/IDFG camera data/Problem cams/eoe21s_OpState_probs.csv")
   
-  write.csv(wolf_prob_dates_19s, "./Data/IDFG camera data/Problem cams/wolf19s_OpState_probs.csv")
-  write.csv(wolf_prob_dates_20s, "./Data/IDFG camera data/Problem cams/wolf20s_OpState_probs.csv")
-  write.csv(wolf_prob_dates_21s, "./Data/IDFG camera data/Problem cams/wolf21s_OpState_probs.csv")
+  #'  Merge cameras with gaps in data with cameras with OpState problems
+  eoe_problems_20s <- rbind(eoe_gap_dates_20s, eoe_prob_dates_20s) %>%
+    arrange(NewLocationID, Date) %>%
+    #'  Extra clean up to remove duplicate dates that had multiple problems
+    filter(NewLocationID != "GMU10A_U_103" | Date != "2020-11-03" | StartEnd != "First" | is.na(ndays)) %>%
+    filter(NewLocationID != "GMU6_U_29" | Date != "2020-05-07" | OpState != "normal") %>%
+    filter(NewLocationID != "GMU6_U_29" | Date != "2020-05-07" | OpState != "completely obscured" | StartEnd != "Last") %>%
+    filter(NewLocationID != "GMU6_U_27" | Date != "2020-04-25" | StartEnd != "Last") %>%
+    filter(NewLocationID != "GMU10A_U_32"  | Date != "2020-05-20") %>%
+    filter(NewLocationID != "GMU6_U_99" | Date != "2020-05-20") %>%
+    mutate(ndays = ifelse(NewLocationID == "GMU10A_U_67" & Date == "2020-06-02", NA, ndays),
+           ndays = ifelse(NewLocationID == "GMU10A_U_32" & Date == "2020-10-23", ndays + 10, ndays),
+           ndays = ifelse(NewLocationID == "GMU6_U_99" & Date == "2020-10-06", ndays + 23, ndays),
+           StartEnd = ifelse(NewLocationID == "GMU6_P_84" & Date == "2020-12-30", "Last", StartEnd),
+           Burst = ifelse(NewLocationID == "GMU6_U_92" & Burst == 2, 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU6_U_27" & Date == "2020-05-20" & Burst == 2, 1, Burst), 
+           #'  Change burst number when dealing with gaps in the data that were 
+           #'  identified by changes in the burst (need the burst number to be the
+           #'  same later down when spreading data to wide format)
+           Burst = ifelse((NewLocationID == lag(NewLocationID)) & (Burst != lag(Burst)) & StartEnd == "Last", 1, Burst)) %>%
+           # Burst = ifelse(NewLocationID == "GMU10A_P_104" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU10A_P_110" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU10A_U_12" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU10A_U_129" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU10A_U_86" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU6_P_1" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU6_P_84" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU6_P_92" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU6_U_100" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU6_U_107" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU6_U_22" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU6_U_29" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU6_U_34" & Burst == 2, 1, Burst),
+           # Burst = ifelse(NewLocationID == "GMU6_U_45" & Burst == 2, 1, Burst)) %>%
+    unique() # Remove one of the GMU6_U_27 NAs
+  eoe_problems_20w <- rbind(eoe_gap_dates_20s, eoe_prob_dates_20s) %>%
+    arrange(NewLocationID, Date)
+  eoe_problems_21s <- rbind(eoe_gap_dates_20s, eoe_prob_dates_20s) %>%
+    arrange(NewLocationID, Date)
+  
+  wolf_problems_19s <- rbind(wolf_gap_dates_19s, wolf_prob_dates_19s) %>%
+    arrange(NewLocationID, Date)
+  wolf_problems_20s <- rbind(wolf_gap_dates_20s, wolf_prob_dates_20s) %>%
+    arrange(NewLocationID, Date)
+  wolf_problems_21s <- rbind(wolf_gap_dates_21s, wolf_prob_dates_21s) %>%
+    arrange(NewLocationID, Date)
+  
+  
+  #'  Save dates of first/last image and problem dates for all cameras
+  write.csv(eoe_problems_20s, "./Data/IDFG camera data/Problem cams/eoe20s_OpState_probs.csv")
+  write.csv(eoe_problems_20w, "./Data/IDFG camera data/Problem cams/eoe20w_OpState_probs.csv")
+  write.csv(eoe_problems_21s, "./Data/IDFG camera data/Problem cams/eoe21s_OpState_probs.csv")
+  
+  write.csv(wolf_problems_19s, "./Data/IDFG camera data/Problem cams/wolf19s_OpState_probs.csv")
+  write.csv(wolf_problems_20s, "./Data/IDFG camera data/Problem cams/wolf20s_OpState_probs.csv")
+  write.csv(wolf_problems_21s, "./Data/IDFG camera data/Problem cams/wolf21s_OpState_probs.csv")
   
    
   #'  Create wide data frame based on each burst per camera
@@ -879,21 +983,21 @@
       dplyr::select(-c(OpState, Burst, StartEnd, ndays)) %>%
       #'  Spread dataframe so problem dates are in a wide format (necessary if 
       #'  using camtrapR to create detection histories)
-      spread(Problem, Date) %>%
-      #'  Make sure problem columns are sequential
-      relocate(c(`Problem1_from`, `Problem1_to`, `Problem2_from`, `Problem2_to`, `Problem3_from`, `Problem3_to`, 
-                 `Problem4_from`, `Problem4_to`, `Problem5_from`, `Problem5_to`, `Problem6_from`, `Problem6_to`, 
-                 `Problem7_from`, `Problem7_to`, `Problem8_from`, `Problem8_to`, `Problem9_from`, `Problem9_to`), .after = `NewLocationID`)
+      spread(Problem, Date) #%>%
+      #' #'  Make sure problem columns are sequential
+      #' relocate(c(`Problem1_from`, `Problem1_to`, `Problem2_from`, `Problem2_to`, `Problem3_from`, `Problem3_to`, 
+      #'            `Problem4_from`, `Problem4_to`, `Problem5_from`, `Problem5_to`, `Problem6_from`, `Problem6_to`, 
+      #'            `Problem7_from`, `Problem7_to`, `Problem8_from`, `Problem8_to`, `Problem9_from`, `Problem9_to`), .after = `NewLocationID`)
     
     return(wide_format)
   }
-  eoe_wide_probs_20s <- problem_df(eoe_prob_dates_20s)   
-  eoe_wide_probs_20w <- problem_df(eoe_prob_dates_20w)  
-  eoe_wide_probs_21s <- problem_df(eoe_prob_dates_21s) 
+  eoe_wide_probs_20s <- problem_df(eoe_problems_20s)   
+  eoe_wide_probs_20w <- problem_df(eoe_problems_20w)  
+  eoe_wide_probs_21s <- problem_df(eoe_problems_21s) 
   
-  wolf_wide_probs_19s <- problem_df(wolf_prob_dates_19s) 
-  wolf_wide_probs_20s <- problem_df(wolf_prob_dates_20s) 
-  wolf_wide_probs_21s <- problem_df(wolf_prob_dates_21s) 
+  wolf_wide_probs_19s <- problem_df(wolf_problems_19s) 
+  wolf_wide_probs_20s <- problem_df(wolf_problems_20s) 
+  wolf_wide_probs_21s <- problem_df(wolf_problems_21s) 
   
   
   #'  Extract dates of first and last images taken by camera per season
