@@ -631,10 +631,7 @@
       mutate(nhrs = round(nmin/60, 2),
              ndays = round(nhrs/24, 2),
              #'  Flag images where there's a gap in the data
-             prob_gap = ifelse(nhrs >= ntime, "Gap", NA)) #%>%
-      #' #'  Remove observations with known problems - I get to that next
-      #' filter(OpState != "severely misdirected" & OpState != "completely obscured" & 
-      #'          OpState != "malfunction" & OpState != "nightbad__dayok")
+             prob_gap = ifelse(nhrs >= ntime, "Gap", NA))
     return(gaps)
   }
   eoe_nopix_20s <- no_pix(eoe20s_allT, ntime = 72)
@@ -676,9 +673,6 @@
              StartEnd = ifelse((Burst == 2 & lead(Burst == 3)), "First", StartEnd),
              #'  Calculate number of missing days
              ndays = as.numeric(difftime(Date, lag(Date), units = "days"))) %>%
-             #'  Add 1 to each count so 1 day problems = 1, not 0, and start day
-             #'  of each problem is included in the count
-             #ndays = ndays + 1) %>%
       ungroup() %>%
       filter(!is.na(StartEnd))
     return(missing_dates)
@@ -936,20 +930,6 @@
            #'  identified by changes in the burst (need the burst number to be the
            #'  same later down when spreading data to wide format)
            Burst = ifelse((NewLocationID == lag(NewLocationID)) & (Burst != lag(Burst)) & StartEnd == "Last", 1, Burst)) %>%
-           # Burst = ifelse(NewLocationID == "GMU10A_P_104" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU10A_P_110" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU10A_U_12" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU10A_U_129" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU10A_U_86" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU6_P_1" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU6_P_84" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU6_P_92" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU6_U_100" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU6_U_107" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU6_U_22" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU6_U_29" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU6_U_34" & Burst == 2, 1, Burst),
-           # Burst = ifelse(NewLocationID == "GMU6_U_45" & Burst == 2, 1, Burst)) %>%
     unique() # Remove one of the GMU6_U_27 NAs
   eoe_problems_20w <- rbind(eoe_gap_dates_20s, eoe_prob_dates_20s) %>%
     arrange(NewLocationID, Date)
