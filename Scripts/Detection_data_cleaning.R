@@ -667,12 +667,16 @@
       group_by(NewLocationID) %>%
       #'  if current value is x and the previous value (lag) is y, then z
       #'  if current value is x and the next value (lead) is y, then z
-      mutate(StartEnd = ifelse((Burst == 2 & lag(Burst == 1)), "Last", NA),
-             StartEnd = ifelse((Burst == 3 & lag(Burst == 2)), "Last", StartEnd),
-             StartEnd = ifelse((Burst == 1 & lead(Burst == 2)), "First", StartEnd),
-             StartEnd = ifelse((Burst == 2 & lead(Burst == 3)), "First", StartEnd),
+      mutate(StartEnd = NA,
+             StartEnd = ifelse((Burst > lag(Burst)), "Last", StartEnd),
+             StartEnd = ifelse((Burst < lead(Burst)), "First", StartEnd),
+             # StartEnd = ifelse((Burst == 2 & lag(Burst == 1)), "Last", NA),
+             # StartEnd = ifelse((Burst == 3 & lag(Burst == 2)), "Last", StartEnd),
+             # StartEnd = ifelse((Burst == 1 & lead(Burst == 2)), "First", StartEnd),
+             # StartEnd = ifelse((Burst == 2 & lead(Burst == 3)), "First", StartEnd),
              #'  Calculate number of missing days
-             ndays = as.numeric(difftime(Date, lag(Date), units = "days"))) %>%
+             ndays = ifelse(StartEnd == "Last", as.numeric(difftime(Date, lag(Date), units = "days")), NA)) %>%
+             # ndays = as.numeric(difftime(Date, lag(Date), units = "days"))) %>%
       ungroup() %>%
       filter(!is.na(StartEnd))
     return(missing_dates)
@@ -877,12 +881,12 @@
     filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2021-01-02") %>%
     filter(NewLocationID != "GMU6_P_67" | OpState != "nightbad__dayok" | Date != "2021-01-02" | StartEnd != "Last") %>%
     mutate(StartEnd = ifelse(NewLocationID == "GMU6_P_67" & OpState == "nightbad__dayok" & Date == "2021-01-02", "Last", StartEnd)) %>%
-    filter(NewLocationID != "GMU6_U_7" | OpState != "completely obscured") #%>%  # STOP HERE if ntime = 6, DON'T DO if ntime = 72
+    # filter(NewLocationID != "GMU6_U_7" | OpState != "completely obscured") #%>%  # STOP HERE if ntime = 6, DON'T DO if ntime = 72
     # filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-02") # Needed for ntime = 36 only
-    # filter(NewLocationID != "GMU6_P_34" | Date != "2021-03-22" | StartEnd != "Last") %>% # Needed for ntime = 72
-    # mutate(StartEnd = ifelse(NewLocationID == "GMU6_P_34" & Date == "2021-03-22", "Last", StartEnd)) %>% # Needed for ntime = 72
-    # filter(NewLocationID != "GMU10A_U_78" | Date != "2021-02-06" | StartEnd != "Last") %>% # Needed for ntime = 72
-    # mutate(StartEnd = ifelse(NewLocationID == "GMU10A_U_78" & Date == "2021-02-06", "Last", StartEnd)) # Needed for ntime = 72
+    filter(NewLocationID != "GMU6_P_34" | Date != "2021-03-22" | StartEnd != "Last") %>% # Needed for ntime = 72
+    mutate(StartEnd = ifelse(NewLocationID == "GMU6_P_34" & Date == "2021-03-22", "Last", StartEnd)) %>% # Needed for ntime = 72
+    filter(NewLocationID != "GMU10A_U_78" | Date != "2021-02-06" | StartEnd != "Last") %>% # Needed for ntime = 72
+    mutate(StartEnd = ifelse(NewLocationID == "GMU10A_U_78" & Date == "2021-02-06", "Last", StartEnd)) # Needed for ntime = 72
   eoe_prob_dates_21s <- prob_days(eoe_1hr_21s) %>%
     arrange(NewLocationID, Date, StartEnd)
   
@@ -931,9 +935,54 @@
            #'  same later down when spreading data to wide format)
            Burst = ifelse((NewLocationID == lag(NewLocationID)) & (Burst != lag(Burst)) & StartEnd == "Last", 1, Burst)) %>%
     unique() # Remove one of the GMU6_U_27 NAs
-  eoe_problems_20w <- rbind(eoe_gap_dates_20s, eoe_prob_dates_20s) %>%
-    arrange(NewLocationID, Date)
-  eoe_problems_21s <- rbind(eoe_gap_dates_20s, eoe_prob_dates_20s) %>%
+  eoe_problems_20w <- rbind(eoe_gap_dates_20w, eoe_prob_dates_20w) %>%
+    arrange(NewLocationID, Date) %>%
+    filter(NewLocationID != "GMU10A_P_26" | Date != "2021-03-31" | StartEnd != "First") %>%
+    filter(NewLocationID != "GMU10A_P_50" | Date != "2021-02-23" | OpState != "completely obscured") %>%
+    filter(NewLocationID != "GMU10A_P_50" | Date != "2021-03-01" | Burst != 8) %>%
+    filter(NewLocationID != "GMU10A_P_50" | Date != "2021-02-05" | StartEnd != "Last") %>%
+    filter(NewLocationID != "GMU10A_P_50" | Date != "2021-02-06") %>%
+    filter(NewLocationID != "GMU10A_U_122" | Date != "2021-06-29") %>%
+    filter(NewLocationID != "GMU10A_U_172" | Date != "2021-02-04") %>%
+    filter(NewLocationID != "GMU10A_U_43" | Date != "2021-02-22") %>%
+    filter(NewLocationID != "GMU10A_U_43" | Date != "2021-02-23") %>%
+    filter(NewLocationID != "GMU10A_U_47" | Date != "2020-12-15") %>%
+    filter(NewLocationID != "GMU6_P_69" | Date != "2020-12-15") %>%
+    filter(NewLocationID != "GMU6_P_69" | Date != "2021-02-02") %>%
+    filter(NewLocationID != "GMU6_P_69" | Date != "2021-02-08") %>%
+    filter(NewLocationID != "GMU6_P_69" | Burst != 16) %>%
+    filter(NewLocationID != "GMU6_P_69" | Burst != 17) %>%
+    #'  Change burst number when dealing with gaps so that the first and last
+    #'  dates of each gap have the same burst number
+    mutate(Burst = ifelse((NewLocationID == lag(NewLocationID)) & (Burst != lag(Burst)) & StartEnd == "Last", lag(Burst), Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_P_37" & OpState == "normal", 5, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_P_43" & Date > "2021-02-10", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_P_47" & Date > "2021-01-01", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_P_50" & Date > "2020-12-28" & Date < "2021-02-05", 5, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_P_50" & Date > "2021-01-13", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_P_50" & Date > "2020-11-11", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_101" & Date > "2021-02-17", Burst + 2, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_103" & Date > "2020-12-23", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_109" & Date > "2020-11-15", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_122" & Date > "2021-03-01", Burst + 8, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_153" & Date > "2021-01-18", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_172" & Date > "2020-11-15", Burst + 1, Burst), 
+           Burst = ifelse(NewLocationID == "GMU10A_U_172" & Date > "2020-12-26", Burst + 2, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_25" & Date > "2020-11-01", Burst + 1, Burst), 
+           ndays = ifelse(NewLocationID == "GMU10A_U_43" & Date == "2021-03-01", ndays + 20, ndays), 
+           Burst = ifelse(NewLocationID == "GMU10A_U_43" & Date > "2021-03-01" & Date < "2021-03-21", 5, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_43" & Date > "2021-03-01", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_47" & Date > "2020-11-16" & Date < "2020-12-30", Burst + 1, Burst),
+           ndays = ifelse(NewLocationID == "GMU10A_U_47" & Date == "2020-12-18", ndays + 2, ndays),
+           Burst = ifelse(NewLocationID == "GMU10A_U_6" & Date > "2020-12-24" & Date < "2020-12-27", 4, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_6" & Date > "2020-12-26", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_67" & Date > "2020-11-15", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU10A_U_97" & Date > "2020-12-02", Burst + 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU6_P_104" & Date > "2021-02-19", Burst + 1, Burst), 
+           Burst = ifelse(NewLocationID == "GMU6_P_69" & Date > "2020-12-02", Burst - 1, Burst),
+           Burst = ifelse(NewLocationID == "GMU6_P_69" & Date > "2021-01-19", Burst + 13, Burst))
+    
+  eoe_problems_21s <- rbind(eoe_gap_dates_21s, eoe_prob_dates_21s) %>%
     arrange(NewLocationID, Date)
   
   wolf_problems_19s <- rbind(wolf_gap_dates_19s, wolf_prob_dates_19s) %>%
