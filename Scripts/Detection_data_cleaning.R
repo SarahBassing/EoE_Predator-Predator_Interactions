@@ -253,14 +253,14 @@
     return(dat)
   }
   #'  Set time zone on keeper data sets
-  load("./Data/IDFG camera data/Split datasets/eoe_motion_skinny_NewLocationID.RData")
-  eoe_motion_list <- lapply(eoe_motion_list, set_tzone)
-  load("./Data/IDFG camera data/Split datasets/eoe_time_skinny_NewLocationID.RData")
-  eoe_noon_list <- lapply(eoe_time_list, set_tzone)
-  load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny_NewLocationID.RData")
-  wolf_motion_list <- lapply(wolf_motion_list, set_tzone)
-  load("./Data/IDFG camera data/Split datasets/wolf_time_skinny_NewLocationID.RData")
-  wolf_noon_list <- lapply(wolf_time_list, set_tzone)
+  # load("./Data/IDFG camera data/Split datasets/eoe_motion_skinny_NewLocationID.RData")
+  # eoe_motion_list <- lapply(eoe_motion_list, set_tzone)
+  # load("./Data/IDFG camera data/Split datasets/eoe_time_skinny_NewLocationID.RData")
+  # eoe_noon_list <- lapply(eoe_time_list, set_tzone)
+  # load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny_NewLocationID.RData")
+  # wolf_motion_list <- lapply(wolf_motion_list, set_tzone)
+  # load("./Data/IDFG camera data/Split datasets/wolf_time_skinny_NewLocationID.RData")
+  # wolf_noon_list <- lapply(wolf_time_list, set_tzone)
   
   #'  Set time zone on full data sets
   load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
@@ -270,7 +270,9 @@
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
   eoe21s_allM <- set_tzone(eoe21s_allM) %>%
     mutate(Setup = "U or P whatever") %>%
-    relocate(Setup, .after = NewLocationID)
+    relocate(Setup, .after = NewLocationID) %>%
+    #'  remove 2 random images from GMU10A_U_73 - bad programming at deployment?
+    filter(Date != "29-Sep-2020")
   
   load("./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
   eoe20s_allT <- set_tzone(eoe20s_allT)
@@ -665,17 +667,17 @@
       #'  Identify when the start and end of gaps in data occur based on when
       #'  bursts of images change for each camera
       group_by(NewLocationID) %>%
-      #'  if current value is x and the previous value (lag) is y, then z
-      #'  if current value is x and the next value (lead) is y, then z
+      #'  if current value is x is > the previous value (lag), then z
+      #'  if current value is x is < the next value (lead), then z
       mutate(StartEnd = NA,
-             StartEnd = ifelse((Burst > lag(Burst)), "Last", StartEnd),
              StartEnd = ifelse((Burst < lead(Burst)), "First", StartEnd),
+             StartEnd = ifelse((Burst > lag(Burst)), "Last", StartEnd)) %>%#,
              # StartEnd = ifelse((Burst == 2 & lag(Burst == 1)), "Last", NA),
              # StartEnd = ifelse((Burst == 3 & lag(Burst == 2)), "Last", StartEnd),
              # StartEnd = ifelse((Burst == 1 & lead(Burst == 2)), "First", StartEnd),
              # StartEnd = ifelse((Burst == 2 & lead(Burst == 3)), "First", StartEnd),
              #'  Calculate number of missing days
-             ndays = ifelse(StartEnd == "Last", as.numeric(difftime(Date, lag(Date), units = "days")), NA)) %>%
+             # ndays = ifelse(StartEnd == "Last", as.numeric(difftime(Date, lag(Date), units = "days")), NA)) %>%
              # ndays = as.numeric(difftime(Date, lag(Date), units = "days"))) %>%
       ungroup() %>%
       filter(!is.na(StartEnd))
@@ -715,11 +717,11 @@
     print(length(unique(prob_pix$NewLocationID)))
     return(prob_pix)
   }
-  #'  Run keeper data sets through to help flag potentially problematic cameras
-  eoe_m_probs <- lapply(eoe_motion_list, problem_children)
-  eoe_t_probs <- lapply(eoe_noon_list, problem_children)   
-  wolf_m_probs <- lapply(wolf_motion_list, problem_children)
-  wolf_t_probs <- lapply(wolf_noon_list, problem_children)   
+  #' #'  Run keeper data sets through to help flag potentially problematic cameras
+  #' eoe_m_probs <- lapply(eoe_motion_list, problem_children)
+  #' eoe_t_probs <- lapply(eoe_noon_list, problem_children)   
+  #' wolf_m_probs <- lapply(wolf_motion_list, problem_children)
+  #' wolf_t_probs <- lapply(wolf_noon_list, problem_children)   
   
   #'  Focus on the full time trigger data sets - these provide a lot more information
   #'  about whether visual obstructions and misalignment are a long-term problem
@@ -984,6 +986,7 @@
     
   eoe_problems_21s <- rbind(eoe_gap_dates_21s, eoe_prob_dates_21s) %>%
     arrange(NewLocationID, Date)
+  eoe_problems_21s <- eoe_prob_dates_21s
   
   wolf_problems_19s <- rbind(wolf_gap_dates_19s, wolf_prob_dates_19s) %>%
     arrange(NewLocationID, Date)
@@ -1005,7 +1008,7 @@
    
   #'  Create wide data frame based on each burst per camera
   #'  Start and end dates will be listed horizontally by camera burst
-  problem_df <- function(dat) {
+  problem_df_wide <- function(dat) {
     wide_format <- dat %>% 
       mutate(Problem = ifelse(StartEnd == "First", paste0("Problem", Burst, "_from"), paste0("Problem", Burst, "_to"))) %>% 
              # Problem = paste0(Burst, "_", StartEnd)) %>%
@@ -1020,13 +1023,13 @@
     
     return(wide_format)
   }
-  eoe_wide_probs_20s <- problem_df(eoe_problems_20s)   
-  eoe_wide_probs_20w <- problem_df(eoe_problems_20w)  
-  eoe_wide_probs_21s <- problem_df(eoe_problems_21s) 
+  eoe_wide_probs_20s <- problem_df_wide(eoe_problems_20s)   
+  eoe_wide_probs_20w <- problem_df_wide(eoe_problems_20w)  
+  eoe_wide_probs_21s <- problem_df_wide(eoe_problems_21s) 
   
-  wolf_wide_probs_19s <- problem_df(wolf_problems_19s) 
-  wolf_wide_probs_20s <- problem_df(wolf_problems_20s) 
-  wolf_wide_probs_21s <- problem_df(wolf_problems_21s) 
+  wolf_wide_probs_19s <- problem_df_wide(wolf_problems_19s) 
+  wolf_wide_probs_20s <- problem_df_wide(wolf_problems_20s) 
+  wolf_wide_probs_21s <- problem_df_wide(wolf_problems_21s) 
   
   
   #'  Extract dates of first and last images taken by camera per season
