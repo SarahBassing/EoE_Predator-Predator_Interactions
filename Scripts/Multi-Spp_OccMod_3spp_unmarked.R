@@ -61,6 +61,7 @@
   #'  Detection formulas
   detFormulas_trail <- c("~CameraFacing", "~CameraFacing", "~CameraFacing")
   detFormulas_setup <- c("~Setup", "~Setup", "~Setup") 
+  detFormulas_wolfact <- c("~wolf_activity", "~wolf_activity", "~1") 
   
   ####  OCCUPANCY SUBMODEL  ####
   #'  Question 1: Is co-occurrence dependent?
@@ -81,13 +82,18 @@
                         "~perc_forest", "~perc_forest", "~perc_forest", "~1")
   occFormulas_hab3 <- c("~perc_forest", "~perc_forest", "~perc_forest",
                         "~perc_forest", "~perc_forest", "~perc_forest", "~perc_forest")
+  occFormulas_group <- c("~1", "~1", "~1",
+                         "~min_group_size", "~min_group_size", "~min_group_size", "~1")
+  occFormulas_habgroup <- c("~perc_forest", "~perc_forest", "~perc_forest",
+                        "~min_group_size", "~min_group_size", "~min_group_size", "~1")
 
   
   ####  Apex Predator Smr21  ####
   (apex_trail <- occuMulti(detFormulas_trail, occFormulas_null1, apex_smr21_UMF, silent = TRUE))
   (apex_setup <- occuMulti(detFormulas_setup, occFormulas_null1, apex_smr21_UMF, silent = TRUE))
+  (apex_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, apex_smr21_UMF, silent = TRUE))
   #' List of fitted models
-  apex_det_fld <- fitList(apex_trail, apex_setup)
+  apex_det_fld <- fitList(apex_trail, apex_setup, apex_wolfact)
   #' Model selection
   modSel(apex_det_fld)
   
@@ -100,6 +106,8 @@
   # (apex_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, apex_smr21_UMF, silent = TRUE))
   (apex_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, apex_smr21_UMF, silent = TRUE))
   (apex_hab3 <- occuMulti(detFormulas_setup, occFormulas_hab3, apex_smr21_UMF, silent = TRUE))
+  # (apex_group <- occuMulti(detFormulas_setup, occFormulas_group, apex_smr21_UMF, silent = TRUE))
+  # (apex_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, apex_smr21_UMF, silent = TRUE))
   
   apex_occ_fld <- fitList(apex_null1, apex_null2, apex_gmu1, apex_hab2, apex_hab3)
   #' Model selection
@@ -110,8 +118,9 @@
   ####  COY-LION-WOLF UMF  ####
   (clw_trail <- occuMulti(detFormulas_trail, occFormulas_null1, coy_lion_wolf_UMF, silent = TRUE))
   (clw_setup <- occuMulti(detFormulas_setup, occFormulas_null1, coy_lion_wolf_UMF, silent = TRUE))
+  (clw_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, coy_lion_wolf_UMF, silent = TRUE))
   #' List of fitted models
-  clw_det_fld <- fitList(clw_trail, clw_setup)
+  clw_det_fld <- fitList(clw_trail, clw_setup, clw_wolfact)
   #' Model selection
   modSel(clw_det_fld)
   
@@ -124,6 +133,7 @@
   # (clw_hab1 <- occuMulti(detFormulas_trail, occFormulas_hab1, coy_lion_wolf_UMF, silent = TRUE))
   # (clw_hab2 <- occuMulti(detFormulas_trail, occFormulas_hab2, coy_lion_wolf_UMF, silent = TRUE))
   # (clw_hab3 <- occuMulti(detFormulas_trail, occFormulas_hab3, coy_lion_wolf_UMF, silent = TRUE))
+  # (clw_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, coy_lion_wolf_UMF, silent = TRUE))
   clw_occ_fld <- fitList(clw_null1, clw_null2)
   #' Model selection
   modSel(clw_occ_fld)
@@ -133,8 +143,9 @@
   ####  BOB-LION-WOLF UMF  ####
   (blw_trail <- occuMulti(detFormulas_trail, occFormulas_null1, bob_lion_wolf_UMF, silent = TRUE))
   (blw_setup <- occuMulti(detFormulas_setup, occFormulas_null1, bob_lion_wolf_UMF, silent = TRUE))
+  (blw_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, bob_lion_wolf_UMF, silent = TRUE))
   #' List of fitted models
-  blw_det_fld <- fitList(blw_trail, blw_setup)
+  blw_det_fld <- fitList(blw_trail, blw_setup, blw_wolfact)
   #' Model selection
   modSel(blw_det_fld)
   
