@@ -78,6 +78,8 @@
   occFormulas_group1 <- c("~min_group_size", "~min_group_size", "~1")
   occFormulas_group2 <- c("~min_group_size", "~min_group_size", "~min_group_size")
   
+  occFormulas_habgroup <- c("~perc_forest", "~perc_forest", "~min_group_size")
+  
   
   ####  Bear-Lion Smr21  ####
   (bl_trail <- occuMulti(detFormulas_trail, occFormulas_null1, bear_lion_smr21_UMF, silent = TRUE))
@@ -96,6 +98,7 @@
   (bl_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, bear_lion_smr21_UMF, silent = TRUE))
   (bl_group1 <- occuMulti(detFormulas_setup, occFormulas_group1, bear_lion_smr21_UMF, silent = TRUE))
   (bl_group2 <- occuMulti(detFormulas_setup, occFormulas_group2, bear_lion_smr21_UMF, silent = TRUE))
+  (bl_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, bear_lion_smr21_UMF, silent = TRUE))
   
   bl_occ_fld <- fitList(bl_null1, bl_null2, bl_gmu1, bl_hab1, bl_hab2, bl_group1, bl_group2)
   #' Model selection
