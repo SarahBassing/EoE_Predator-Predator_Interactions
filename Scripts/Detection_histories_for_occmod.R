@@ -23,9 +23,15 @@
   #'  ----------------
   #'  Problem cameras
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
+  #'  Fix a couple of capitalization issues in the GMU part of NewLocationID
+  eoe_probcams_21s <- eoe_probcams_21s %>%
+    mutate(NewLocationID = toupper(NewLocationID))
   
   #'  Detection data (motion trigger observations only)
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
+  #'  Fix a couple of capitalization issues in the GMU part of NewLocationID
+  eoe21s_allM <- eoe21s_allM %>%
+    mutate(NewLocationID = toupper(NewLocationID))
   
   #'  Filter detection data to focal species and time period of interest
   detections <- function(dets, start_date, end_date) {
@@ -97,7 +103,8 @@
     same_startend <- mutate(same_startend, Problem1_to = as.Date(Problem1_to) +1)
     cams[match(same_startend$NewLocationID, cams$NewLocationID),] <- same_startend
     
-    
+    #'  Make sure camera data are organized by NewLocationID
+    cams <- arrange(cams, NewLocationID)
     
     #'  Create camera operation table
     camop_problem <- cameraOperation(CTtable = cams,
@@ -108,7 +115,7 @@
                                      dateFormat = "%Y-%m-%d", 
                                      writecsv = FALSE) 
     
-    # 2021-07-01probs <- as.data.frame(camop_problem)
+    # probs <- as.data.frame(camop_problem)
     return(camop_problem)
   }
   eoe21s_probs <- camera_operation_tbl(eoe_probcams_21s)
@@ -157,7 +164,7 @@
   #'   
   #'   FYI: July 1 - Sept 15, 2021 = 11 1-wk sampling periods
 
-  DH <- function(dets, cam_probs, spp, start_date) {
+  DH <- function(dets, cam_probs, spp, start_date, y, oc) {
     det_hist <- detectionHistory(recordTable = dets,
                                  camOp = cam_probs,
                                  stationCol = "NewLocationID",
@@ -170,29 +177,79 @@
                                  datesAsOccasionNames = TRUE,
                                  # occasionStartTime = 12, # starts at noon
                                  timeZone = "America/Edmonton",
-                                 output = "binary",
+                                 output = y,
                                  includeEffort = TRUE,
                                  scaleEffort = FALSE,
                                  # writecsv = TRUE,
                                  outDir = "./Data/Detection_Histories")
     
-    return(det_hist)
+    #'  Reduce detection histories to sampling occasions of interest (drop extra
+    #'  occasions after focal period of interest)
+    #'  This will vary depending on length of primary period and sampling occasions!
+    short_dh <- det_hist[[1]][,1:oc]
+    short_effort <- det_hist[[2]][,1:oc]
+    
+    short_dh <- short_dh[-c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682),]
+    short_effort <- short_effort[-c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682),]
+    
+    dh_list <- list(short_dh, short_effort)
+    
+    return(dh_list)
   }
   #'  Create species and season-specific detection histories
   spp <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf")
-  DH_eoe21s_predators <- lapply(spp, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01")
+  DH_eoe21s_predators <- lapply(spp, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "binary", oc = 11)
+    
+  # save(DH_eoe21s_predators, file = "./Data/Detection_Histories/DH_eoe21s_predators.RData")
   
-  save(DH_eoe21s_predators, file = "./Data/Detection_Histories/DH_eoe21s_predators.RData")
+  
+  #'  Count number of wolf detections per sampling occasion
+  count_eoe21s_wolf <- DH(spp = "wolf", dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "count", oc = 11)
+  
+  # save(count_eoe21s_wolf, file = "./Data/Wolf count data/count_eoe21s_wolf.RData")
   
  
+  ####  NEED A BETTER WAY OF DUMPING ROWS WHERE CAMERA WAS COMPLETELY INOPERABLE  ####
+  #'  These are problem cameras for eoe smr21
+  #'  c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
     
   
   
+  #'  -----------------------
+  ####  Max Count of Wolves  ####
+  #'  -----------------------
+  #'  Count maximum number of wolves detected in a single image per detection event
+  #'  at each camera, then find the average to represent the average minimum group
+  #'  size detected at each camera
+  avg_min_group_size <- function(dets, stations, elapsed_time) {
+    min_group_size <- dets %>%
+      filter(Species == "wolf") %>%
+      arrange(NewLocationID, posix_date_time) %>%
+      #'  Identify unique detection events based on elapsed amount of time
+      group_by(NewLocationID) %>%
+      mutate(det_events = cumsum(c(1, diff(posix_date_time) > elapsed_time))) %>% # units in seconds! 
+      ungroup() %>%
+      #'  Find the maximum number of individuals detected in a single image per
+      #'  detection event --> this is the minimum group size per detection
+      group_by(NewLocationID, det_events) %>%
+      summarise(max_count = max(Count)) %>%
+      ungroup() %>%
+      #'  Take the average of the minimum group size for each camera station
+      group_by(NewLocationID) %>%
+      summarise(avg_min_group_size = mean(max_count)) %>%
+      ungroup() %>%
+      mutate(avg_min_group_size = round(avg_min_group_size, 3)) %>%
+      #'  Join with camera stations - fills in NAs where no wolves were detected
+      full_join(stations, by = "NewLocationID") %>%
+      dplyr::select(c("NewLocationID", "Lat", "Long", "avg_min_group_size")) %>%
+      arrange(NewLocationID)
+    
+    return(min_group_size)
+  }
+  min_group_size_eoe21s <- avg_min_group_size(eoe21s_dets, stations = eoe_probcams_21s, elapsed_time = 300)
   
-  
-  
-  
-  
+  #'  Save
+  save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
   
   
   
