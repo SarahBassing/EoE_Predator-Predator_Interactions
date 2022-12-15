@@ -1,6 +1,6 @@
   #'  ---------------------------------
   #'  Cleaning raw camera data
-  #'  ICFWRU PredXPred Project
+  #'  ID CRU - Predator Interactions
   #'  Sarah B. Bassing
   #'  September 2022
   #'  ---------------------------------
