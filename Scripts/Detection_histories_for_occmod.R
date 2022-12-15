@@ -1,6 +1,6 @@
   #'  -------------------------------
   #'  Camera trap detection histories
-  #'  IDCFWRU - Predator Interactions
+  #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  December 2022
   #'  -------------------------------
@@ -242,14 +242,17 @@
       #'  Join with camera stations - fills in NAs where no wolves were detected
       full_join(stations, by = "NewLocationID") %>%
       dplyr::select(c("NewLocationID", "Lat", "Long", "avg_min_group_size")) %>%
-      arrange(NewLocationID)
+      arrange(NewLocationID) %>%
+      #'  Replace NAs with 0s - no wolves detected at these sizes so average minimum
+      #'  group size is 0 (to the best of our knowledge)
+      mutate(avg_min_group_size = ifelse(is.na(avg_min_group_size), 0, avg_min_group_size))
     
     return(min_group_size)
   }
   min_group_size_eoe21s <- avg_min_group_size(eoe21s_dets, stations = eoe_probcams_21s, elapsed_time = 300)
   
   #'  Save
-  save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
+  # save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
   
   
   
