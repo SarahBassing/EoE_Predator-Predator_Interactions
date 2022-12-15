@@ -62,7 +62,8 @@
                            CameraFacing = as.factor(CameraFacing),
                            Setup = as.factor(Setup),
                            Target = as.factor(Target),
-                           perc_forest = scale(perc_forest)
+                           perc_forest = scale(perc_forest),
+                           min_group_size = scale(avg_min_group_size)
     ) %>%
       arrange(NewLocationID) #NECESSARY TO MATCH DH's CAMERALOCATION ORDER
     
@@ -96,7 +97,31 @@
   
   
   ####  EVENTUALLY CHECK FOR COLLINEARITY WITH MORE CONTINUOUS VARIABLES  ####
+  cor(stations_eoe21s$perc_forest, stations_eoe21s$min_group_size, use = "complete.obs")
   
+  
+  #'  ---------------------------
+  ####  Survey-level covariates  ####
+  #'  ---------------------------
+  #'  Load survey-level data
+  load("Data/Wolf count data/count_eoe21s_wolf.RData")
+  
+  #'  Scale survey-level covariates
+  scale_srvy_cov <- function(time_covs) {
+    #'  Find mean & standard deviation of covariates across all sites & occasions
+    mu <- mean(as.matrix(time_covs), na.rm = TRUE)
+    sd <- sd(as.matrix(time_covs), na.rm = TRUE)
+    
+    #'  Z-transform (center observations around mean & scale by 1 SD)
+    scaled <- ((time_covs - mu) / sd)
+    scaled <- round(scaled, 3)
+    
+    return(scaled)
+  }
+  wolf_activity <- scale_srvy_cov(count_eoe21s_wolf[[1]])
+  
+  #'  Create list of survey level covariates
+  srvy_covs <- list(wolf_activity = wolf_activity)
   
   
   #'  ---------------------------
@@ -114,7 +139,7 @@
   apex_smr21_DH <- list(bear = DH_eoe21s_predators[[1]][[1]], lion = DH_eoe21s_predators[[4]][[1]], wolf = DH_eoe21s_predators[[5]][[1]])
   apex_smr21_UMF <- unmarkedFrameOccuMulti(y = apex_smr21_DH,
                                            siteCovs = stations_eoe21s,
-                                           obsCovs = NULL,
+                                           obsCovs = srvy_covs,
                                            maxOrder = 3)
   #'  Visualize detection/non-detection data
   plot(apex_smr21_UMF)
@@ -128,7 +153,7 @@
   coy_lion_wolf_smr21_DH <- list(coy = DH_eoe21s_predators[[3]][[1]], lion = DH_eoe21s_predators[[4]][[1]], wolf = DH_eoe21s_predators[[5]][[1]])
   coy_lion_wolf_UMF <- unmarkedFrameOccuMulti(y = coy_lion_wolf_smr21_DH,
                                            siteCovs = stations_eoe21s,
-                                           obsCovs = NULL,
+                                           obsCovs = srvy_covs,
                                            maxOrder = 3)
   #'  Visualize detection/non-detection data
   plot(coy_lion_wolf_UMF)
@@ -140,7 +165,7 @@
   bob_lion_wolf_smr21_DH <- list(bob = DH_eoe21s_predators[[2]][[1]], lion = DH_eoe21s_predators[[4]][[1]], wolf = DH_eoe21s_predators[[5]][[1]])
   bob_lion_wolf_UMF <- unmarkedFrameOccuMulti(y = bob_lion_wolf_smr21_DH,
                                               siteCovs = stations_eoe21s,
-                                              obsCovs = NULL,
+                                              obsCovs = srvy_covs,
                                               maxOrder = 3)
   #'  Visualize detection/non-detection data
   plot(bob_lion_wolf_UMF)
