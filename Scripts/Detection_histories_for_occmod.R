@@ -5,8 +5,10 @@
   #'  December 2022
   #'  -------------------------------
   #'  Script to combine species detection data with camera operational data using
-  #'  camtrapR package to generate species-specific encounter histoies and sampling
+  #'  camtrapR package to generate species-specific encounter histories & sampling
   #'  effort data to be used in occupancy models.
+  #'  
+  #'  Camera operations table generated in Detection_data_cleaning.R
   #'  -------------------------------
   
   #'  Clean workspace
@@ -22,20 +24,23 @@
   ####  Read in data  ####
   #'  ----------------
   #'  Problem cameras
+  load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
-  #'  Fix a couple of capitalization issues in the GMU part of NewLocationID
-  eoe_probcams_21s <- eoe_probcams_21s %>%
-    mutate(NewLocationID = toupper(NewLocationID))
+  #' #'  Fix a couple of capitalization issues in the GMU part of NewLocationID
+  #' eoe_probcams_21s <- eoe_probcams_21s %>%
+  #'   mutate(NewLocationID = toupper(NewLocationID))
+  #' eoe_probcams_20s <- mutate(eoe_probcams_20s, NewLocationID = paste0(NewLocationID, "_Smr20"))
   
   #'  Detection data (motion trigger observations only)
+  load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
-  #'  Fix a couple of capitalization issues in the GMU part of NewLocationID
-  eoe21s_allM <- eoe21s_allM %>%
-    mutate(NewLocationID = toupper(NewLocationID))
+  #' #'  Fix a couple of capitalization issues in the GMU part of NewLocationID
+  #' eoe21s_allM <- eoe21s_allM %>%
+  #'   mutate(NewLocationID = toupper(NewLocationID))
   
   #'  Filter detection data to focal species and time period of interest
   detections <- function(dets, start_date, end_date) {
-    dets <- eoe21s_allM %>%
+    dets <- dets %>%
       dplyr::select("NewLocationID", "CamID", "Date", "Time", "posix_date_time", "TriggerMode",
                     "OpState", "Species", "Count") %>%
       # filter(Species == "bear_black" | Species == "bear_grizzly" | Species == "bobcat" | 
@@ -50,6 +55,7 @@
       filter(!is.na(NewLocationID))
     return(dets)
   }
+  eoe20s_dets <- detections(eoe20s_allM, start_date = "2020-07-01", end_date = "2020-09-15")
   eoe21s_dets <- detections(eoe21s_allM, start_date = "2021-07-01", end_date = "2021-09-15")
   
   
@@ -74,19 +80,8 @@
       ungroup()
     
     return(det_events)
-    
-    #' #'  Filter by focal species
-    #' bear <- det_events[det_events$Species == "bear_black",]
-    #' bob <- det_events[det_events$Species == "bobcat",]
-    #' coy <- det_events[det_events$Species == "coyote",]
-    #' lion <- det_events[det_events$Species == "mountain_lion",]
-    #' wolf <- det_events[det_events$Species == "wolf",]
-    #' 
-    #' #'  List unique predator detection events
-    #' pred_list <- list(bear, bob, coy, lion, wolf)
-    #' 
-    #' return(pred_list)
   }
+  eoe20s_det_events <- unique_detections(eoe20s_dets, elapsed_time = 300)
   eoe21s_det_events <- unique_detections(eoe21s_dets, elapsed_time = 300)
   
   
@@ -118,6 +113,7 @@
     # probs <- as.data.frame(camop_problem)
     return(camop_problem)
   }
+  eoe20s_probs <- camera_operation_tbl(eoe_probcams_20s) 
   eoe21s_probs <- camera_operation_tbl(eoe_probcams_21s)
   
   
@@ -135,6 +131,7 @@
     return(match_cams)
   } 
   #'  NAs in Source1 column are OK, NAs in Source2 column are a problem
+  eoe20s_match_cams <- match_datsets(det_events = eoe20s_det_events, stations = eoe20s_probs)
   eoe21s_match_cams <- match_datsets(det_events = eoe21s_det_events, stations = eoe21s_probs)
 
   
@@ -164,7 +161,7 @@
   #'   
   #'   FYI: July 1 - Sept 15, 2021 = 11 1-wk sampling periods
 
-  DH <- function(dets, cam_probs, spp, start_date, y, oc) {
+  DH <- function(dets, cam_probs, spp, start_date, y, rm_rows, oc) {
     det_hist <- detectionHistory(recordTable = dets,
                                  camOp = cam_probs,
                                  stationCol = "NewLocationID",
@@ -189,8 +186,11 @@
     short_dh <- det_hist[[1]][,1:oc]
     short_effort <- det_hist[[2]][,1:oc]
     
-    short_dh <- short_dh[-c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682),]
-    short_effort <- short_effort[-c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682),]
+    short_dh <- short_dh[-rm_rows,]
+    short_effort <- short_effort[-rm_rows,]
+    
+    # short_dh <- short_dh[-c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682),]
+    # short_effort <- short_effort[-c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682),]
     
     dh_list <- list(short_dh, short_effort)
     
@@ -198,21 +198,21 @@
   }
   #'  Create species and season-specific detection histories
   spp <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf")
-  DH_eoe21s_predators <- lapply(spp, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "binary", oc = 11)
-    
+  rm_rows_eoe20s <- c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 346, 361, 371, 379, 380, 385, 433, 437, 439, 458, 493)
+  DH_eoe20s_predators <- lapply(spp, DH, dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-07-01", y = "binary", rm_rows = rm_rows_eoe20s, oc = 11) 
+  # save(DH_eoe20s_predators, file = "./Data/Detection_Histories/DH_eoe20s_predators.RData")
+  
+  rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
+  DH_eoe21s_predators <- lapply(spp, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_eoe21s, oc = 11)
   # save(DH_eoe21s_predators, file = "./Data/Detection_Histories/DH_eoe21s_predators.RData")
   
   
   #'  Count number of wolf detections per sampling occasion
-  count_eoe21s_wolf <- DH(spp = "wolf", dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "count", oc = 11)
+  count_eoe20s_wolf <- DH(spp = "wolf", dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-07-01", y = "count", rm_rows = rm_rows_eoe20s,oc = 11)  
+  count_eoe21s_wolf <- DH(spp = "wolf", dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "count", rm_rows = rm_rows_eoe21s, oc = 11)
   
+  # save(count_eoe20s_wolf, file = "./Data/Wolf count data/count_eoe20s_wolf.RData")
   # save(count_eoe21s_wolf, file = "./Data/Wolf count data/count_eoe21s_wolf.RData")
-  
- 
-  ####  NEED A BETTER WAY OF DUMPING ROWS WHERE CAMERA WAS COMPLETELY INOPERABLE  ####
-  #'  These are problem cameras for eoe smr21
-  #'  c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
-    
   
   
   #'  -----------------------
@@ -249,9 +249,11 @@
     
     return(min_group_size)
   }
+  min_group_size_eoe20s <- avg_min_group_size(eoe20s_dets, stations = eoe_probcams_20s, elapsed_time = 300)
   min_group_size_eoe21s <- avg_min_group_size(eoe21s_dets, stations = eoe_probcams_21s, elapsed_time = 300)
   
   #'  Save
+  # save(min_group_size_eoe20s, file = "./Data/Wolf count data/min_group_size_eoe20s.RData")
   # save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
   
   
