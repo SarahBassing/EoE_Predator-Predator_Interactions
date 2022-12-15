@@ -65,6 +65,9 @@
   
   #'  Filter HUGE data set into smaller chunks 
   filter_dets <- function(dets, prefixname) {
+    #'  Make sure GMUs with "A"s are always uppercase
+    dets <- mutate(dets, Gmu = toupper(Gmu))
+    
     #'  Motion triggered detections
     allM <- dets[dets$TriggerMode == "M",]
     wildM <- allM[allM$Wildlife != FALSE,]
@@ -138,6 +141,7 @@
   load("./Data/IDFG camera data/Split datasets/wolf19s_allT.RData")
   load("./Data/IDFG camera data/Split datasets/wolf20s_allT.RData")
   load("./Data/IDFG camera data/Split datasets/wolf21s_allT.RData")
+  
   
   #'  Filter down to "Keepers"
   keepers <- function(dets) {
