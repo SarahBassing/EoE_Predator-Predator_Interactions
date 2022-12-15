@@ -29,6 +29,9 @@
   cams_wolf_long <- read.csv("./Data/IDFG camera data/cams_wolf_long.csv") %>%
     dplyr::select(-X)
   
+  #'  ---------------------------------------------
+  ####  INITIAL FORMATTING - SKIP AFTER DONE ONCE  ####
+  #'  ---------------------------------------------
   #' #'  Full detection data sets - MASSIVE so only load 1-2 at a time
   #' #'  Motion triggered images
   #' load("./Data/IDFG camera data/Split datasets/eoe20s_allM.RData")
@@ -47,62 +50,62 @@
   #' load("./Data/IDFG camera data/Split datasets/wolf19s_allT.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf20s_allT.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf21s_allT.RData")
-  
-  #'  Keeper data sets (all animal/human/vehicle images & noon timelapse images)
-  #'  Much easier to manage...
-  load("./Data/IDFG camera data/Split datasets/eoe_motion_skinny.RData")
-  load("./Data/IDFG camera data/Split datasets/eoe_time_skinny.RData")
-  load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny.RData")
-  load("./Data/IDFG camera data/Split datasets/wolf_time_skinny.RData")
-  
-  #'  Add camera setup info (P/U/O/A) and consistent naming structure to match 
-  #'  camera location data
-  #'  EoE cameras
-  eoe_deploy_info <- function(dets, season, pred) { 
-    #'  Filter to specific season and predator setup cameras
-    sub_cams <- cams_eoe_long %>%
-      filter(Season == season) %>%
-      filter(Setup == pred)
-    #'  Identify which observations came from predator setup cameras (TRUE)
-    pcams <- dets$CamID %in% sub_cams$CamID
-    #'  Add column to detection data
-    dets$pcams <- pcams
-    #'  Create new camera location name that matches camera deployment data
-    dets <- dets %>%
-      mutate(Setup = ifelse(pcams == "TRUE", "P", "U"),
-             Gmu = toupper(Gmu),
-             NewLocationID = paste0("GMU", Gmu, "_", Setup, "_", LocationID)) %>%
-      dplyr::select(-pcams) %>%
-      relocate(NewLocationID, .before = File) %>%
-      relocate(Setup, .after = NewLocationID)
-    return(dets)
-  }
-  #'  Run keeper eoe data sets through function
-  eoe_seasons <- list("Smr20", "Wtr20", "Smr21")
-  eoe_motion_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_motion_skinny, pred = "predator", SIMPLIFY = FALSE) 
-  #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
-  #'  original data set so unnecessary info gets added in this function - need to
-  #'  revert back to original information
-  eoe_motion_list[[3]] <- dplyr::select(eoe_motion_list[[3]], -c(NewLocationID)) %>%
-    mutate(NewLocationID = LocationID) %>%
-    relocate(NewLocationID, .after = LocationID)
-  #'  Save for later use
-  # save(eoe_motion_list, file = "./Data/IDFG camera data/Split datasets/eoe_motion_skinny_NewLocationID.RData")
-  
-  eoe_noon_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_time_skinny, pred = "predator", SIMPLIFY = FALSE)  
-  #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
-  #'  original data set so unnecessary info gets added in this function - need to
-  #'  revert back to original information
-  eoe_noon_list[[3]] <- dplyr::select(eoe_noon_list[[3]], -c(NewLocationID)) %>%
-    mutate(NewLocationID = LocationID) %>%
-    relocate(NewLocationID, .after = LocationID)
-  #'  Save for later use
-  eoe_time_list <- eoe_noon_list
-  # save(eoe_time_list, file = "./Data/IDFG camera data/Split datasets/eoe_time_skinny_NewLocationID.RData")
-  
-  #'  Double check it worked
-  eoe21s_noon <- eoe_noon_list[[3]]
-  
+  #' 
+  #' #'  Keeper data sets (all animal/human/vehicle images & noon timelapse images)
+  #' #'  Much easier to manage...
+  #' load("./Data/IDFG camera data/Split datasets/eoe_motion_skinny.RData")
+  #' load("./Data/IDFG camera data/Split datasets/eoe_time_skinny.RData")
+  #' load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny.RData")
+  #' load("./Data/IDFG camera data/Split datasets/wolf_time_skinny.RData")
+  #' 
+  #' #'  Add camera setup info (P/U/O/A) and consistent naming structure to match 
+  #' #'  camera location data
+  #' #'  EoE cameras
+  #' eoe_deploy_info <- function(dets, season, pred) { 
+  #'   #'  Filter to specific season and predator setup cameras
+  #'   sub_cams <- cams_eoe_long %>%
+  #'     filter(Season == season) %>%
+  #'     filter(Setup == pred)
+  #'   #'  Identify which observations came from predator setup cameras (TRUE)
+  #'   pcams <- dets$CamID %in% sub_cams$CamID
+  #'   #'  Add column to detection data
+  #'   dets$pcams <- pcams
+  #'   #'  Create new camera location name that matches camera deployment data
+  #'   dets <- dets %>%
+  #'     mutate(Setup = ifelse(pcams == "TRUE", "P", "U"),
+  #'            Gmu = toupper(Gmu),
+  #'            NewLocationID = paste0("GMU", Gmu, "_", Setup, "_", LocationID)) %>%
+  #'     dplyr::select(-pcams) %>%
+  #'     relocate(NewLocationID, .before = File) %>%
+  #'     relocate(Setup, .after = NewLocationID)
+  #'   return(dets)
+  #' }
+  #' #'  Run keeper eoe data sets through function
+  #' eoe_seasons <- list("Smr20", "Wtr20", "Smr21")
+  #' eoe_motion_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_motion_skinny, pred = "predator", SIMPLIFY = FALSE) 
+  #' #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
+  #' #'  original data set so unnecessary info gets added in this function - need to
+  #' #'  revert back to original information
+  #' eoe_motion_list[[3]] <- dplyr::select(eoe_motion_list[[3]], -c(NewLocationID)) %>%
+  #'   mutate(NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' #'  Save for later use
+  #' # save(eoe_motion_list, file = "./Data/IDFG camera data/Split datasets/eoe_motion_skinny_NewLocationID.RData")
+  #' 
+  #' eoe_noon_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_time_skinny, pred = "predator", SIMPLIFY = FALSE)  
+  #' #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
+  #' #'  original data set so unnecessary info gets added in this function - need to
+  #' #'  revert back to original information
+  #' eoe_noon_list[[3]] <- dplyr::select(eoe_noon_list[[3]], -c(NewLocationID)) %>%
+  #'   mutate(NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' #'  Save for later use
+  #' eoe_time_list <- eoe_noon_list
+  #' # save(eoe_time_list, file = "./Data/IDFG camera data/Split datasets/eoe_time_skinny_NewLocationID.RData")
+  #' 
+  #' #'  Double check it worked
+  #' eoe21s_noon <- eoe_noon_list[[3]]
+  #' 
   #'  Run full eoe motion trigger data sets through function
   #' eoe_motion_smr20 <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator")
   #' eoe_motion_wtr20 <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
@@ -119,7 +122,7 @@
   #' save(eoe20s_allM, file = "./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
   #' save(eoe20w_allM, file = "./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   #' save(eoe21s_allM, file = "./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
-  
+  #' 
   #' #'  Run full eoe timelapse data sets through function
   #' eoe_time_smr20 <- eoe_deploy_info(dets = eoe20s_allT, season = "Smr20", pred = "predator")
   #' eoe_time_wtr20 <- eoe_deploy_info(dets = eoe20w_allT, season = "Wtr20", pred = "predator")
@@ -136,73 +139,73 @@
   #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
   #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
   #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
-  
-  
-  #'  Wolf cameras
-  wolf_deploy_info <- function(dets, season, abund, abund_occu) { 
-    #'  Filter to specific season and Abundance cameras
-    sub_abund_cams <- cams_wolf_long %>%
-      filter(Season == season) %>%
-      filter(Target == abund)
-    #'  Identify which observations came from Abundance cameras (TRUE)
-    acams <- dets$CamID %in% sub_abund_cams$CamID
-    #'  Add column to detection data
-    dets$acams <- acams
-    #'  Filter to specific season and Abund_Occu cameras
-    sub_abundoccu_cams <- cams_wolf_long %>%
-      filter(Season == season) %>%
-      filter(Target == abund_occu)
-    #'  Identify which observations came from Abund_Occu cameras (TRUE)
-    aocams <- dets$CamID %in% sub_abundoccu_cams$CamID
-    #'  Add column to detection data
-    dets$aocams <- aocams
-    #'  Create new camera location name that matches camera deployment data
-    dets <- dets %>%
-      mutate(Setup = ifelse(acams == "TRUE", "A", "O"),
-             Setup = ifelse(aocams == "TRUE", "B", Setup),
-             Gmu = toupper(Gmu),
-             NewLocationID = paste0(Gmu, "_", Setup, "_", LocationID)) %>%
-      dplyr::select(-c(acams, aocams)) %>%
-      relocate(NewLocationID, .before = File) %>%
-      relocate(Setup, .after = NewLocationID)
-    return(dets)
-  }
-  #'  Run keeper wolf data sets through function
-  wolf_seasons <- list("Smr19", "Smr20", "Smr21")
-  wolf_motion_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_motion_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)
-  #'  Fix NewLocationID info- this was recorded differently for Smr20 & Smr21 
-  #'  images in original data set so unnecessary info gets added in this function - 
-  #'  need to revert back to original information
-  wolf_motion_list[[2]] <- mutate(wolf_motion_list[[2]], NewLocationID = paste0("GMU", NewLocationID))
-  wolf_motion_list[[3]] <- dplyr::select(wolf_motion_list[[3]], -c(NewLocationID)) %>%
-    mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
-           NewLocationID = LocationID) %>%
-    relocate(NewLocationID, .after = LocationID)
-  #'  Save for later use
-  # save(wolf_motion_list, file = "./Data/IDFG camera data/Split datasets/wolf_motion_skinny_NewLocationID.RData")
-  
-  wolf_noon_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_time_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)  
-  wolf_noon_list[[2]] <- mutate(wolf_noon_list[[2]], NewLocationID = paste0("GMU", NewLocationID))
-  wolf_noon_list[[3]] <- dplyr::select(wolf_noon_list[[3]], -c(NewLocationID)) %>%
-    mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
-           NewLocationID = LocationID) %>%
-    relocate(NewLocationID, .after = LocationID)
-  #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
-  #'  original data set so unnecessary info gets added in this function - need to
-  #'  revert back to original information
-  wolf_motion_list[[3]] <- dplyr::select(wolf_motion_list[[3]], -c(NewLocationID)) %>%
-    mutate(NewLocationID = LocationID) %>%
-    relocate(NewLocationID, .after = LocationID)
-  wolf_noon_list[[3]] <- dplyr::select(wolf_noon_list[[3]], -c(NewLocationID)) %>%
-    mutate(NewLocationID = LocationID) %>%
-    relocate(NewLocationID, .after = LocationID)
-  #'  Save for later use
-  wolf_time_list <- wolf_noon_list
-  # save(wolf_time_list, file = "./Data/IDFG camera data/Split datasets/wolf_time_skinny_NewLocationID.RData")
-  
-  #'  Double check it worked
-  wolf21s_noon <- wolf_noon_list[[3]]
-  
+  #' 
+  #' 
+  #' #'  Wolf cameras
+  #' wolf_deploy_info <- function(dets, season, abund, abund_occu) { 
+  #'   #'  Filter to specific season and Abundance cameras
+  #'   sub_abund_cams <- cams_wolf_long %>%
+  #'     filter(Season == season) %>%
+  #'     filter(Target == abund)
+  #'   #'  Identify which observations came from Abundance cameras (TRUE)
+  #'   acams <- dets$CamID %in% sub_abund_cams$CamID
+  #'   #'  Add column to detection data
+  #'   dets$acams <- acams
+  #'   #'  Filter to specific season and Abund_Occu cameras
+  #'   sub_abundoccu_cams <- cams_wolf_long %>%
+  #'     filter(Season == season) %>%
+  #'     filter(Target == abund_occu)
+  #'   #'  Identify which observations came from Abund_Occu cameras (TRUE)
+  #'   aocams <- dets$CamID %in% sub_abundoccu_cams$CamID
+  #'   #'  Add column to detection data
+  #'   dets$aocams <- aocams
+  #'   #'  Create new camera location name that matches camera deployment data
+  #'   dets <- dets %>%
+  #'     mutate(Setup = ifelse(acams == "TRUE", "A", "O"),
+  #'            Setup = ifelse(aocams == "TRUE", "B", Setup),
+  #'            Gmu = toupper(Gmu),
+  #'            NewLocationID = paste0(Gmu, "_", Setup, "_", LocationID)) %>%
+  #'     dplyr::select(-c(acams, aocams)) %>%
+  #'     relocate(NewLocationID, .before = File) %>%
+  #'     relocate(Setup, .after = NewLocationID)
+  #'   return(dets)
+  #' }
+  #' #'  Run keeper wolf data sets through function
+  #' wolf_seasons <- list("Smr19", "Smr20", "Smr21")
+  #' wolf_motion_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_motion_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)
+  #' #'  Fix NewLocationID info- this was recorded differently for Smr20 & Smr21 
+  #' #'  images in original data set so unnecessary info gets added in this function - 
+  #' #'  need to revert back to original information
+  #' wolf_motion_list[[2]] <- mutate(wolf_motion_list[[2]], NewLocationID = paste0("GMU", NewLocationID))
+  #' wolf_motion_list[[3]] <- dplyr::select(wolf_motion_list[[3]], -c(NewLocationID)) %>%
+  #'   mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
+  #'          NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' #'  Save for later use
+  #' # save(wolf_motion_list, file = "./Data/IDFG camera data/Split datasets/wolf_motion_skinny_NewLocationID.RData")
+  #' 
+  #' wolf_noon_list <- mapply(wolf_deploy_info, season = wolf_seasons, dets = wolf_time_skinny, abund = "Abundance", abund_occu = "Abund_Occu", SIMPLIFY = FALSE)  
+  #' wolf_noon_list[[2]] <- mutate(wolf_noon_list[[2]], NewLocationID = paste0("GMU", NewLocationID))
+  #' wolf_noon_list[[3]] <- dplyr::select(wolf_noon_list[[3]], -c(NewLocationID)) %>%
+  #'   mutate(LocationID = paste0("GMU", Gmu, "_", LocationID),
+  #'          NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
+  #' #'  original data set so unnecessary info gets added in this function - need to
+  #' #'  revert back to original information
+  #' wolf_motion_list[[3]] <- dplyr::select(wolf_motion_list[[3]], -c(NewLocationID)) %>%
+  #'   mutate(NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' wolf_noon_list[[3]] <- dplyr::select(wolf_noon_list[[3]], -c(NewLocationID)) %>%
+  #'   mutate(NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' #'  Save for later use
+  #' wolf_time_list <- wolf_noon_list
+  #' # save(wolf_time_list, file = "./Data/IDFG camera data/Split datasets/wolf_time_skinny_NewLocationID.RData")
+  #' 
+  #' #'  Double check it worked
+  #' wolf21s_noon <- wolf_noon_list[[3]]
+  #' 
   #' #'  Run full wolf timelapse data sets through function
   #' wolf_motion_smr20 <- wolf_deploy_info(dets = wolf19s_allM, season = "Smr19", abund = "Abundance", abund_occu = "Abund_Occu")
   #' wolf_motion_wtr20 <- wolf_deploy_info(dets = wolf20s_allM, season = "Smr20", abund = "Abundance", abund_occu = "Abund_Occu") %>%
@@ -223,7 +226,7 @@
   #' save(wolf19s_allM, file = "./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
   #' save(wolf20s_allM, file = "./Data/IDFG camera data/Split datasets/wolf20s_allM_NewLocationID.RData")
   #' save(wolf21s_allM, file = "./Data/IDFG camera data/Split datasets/wolf21s_allM_NewLocationID.RData")
-  
+  #'
   #' #'  Run full wolf timelapse data sets through function
   #' wolf_time_smr20 <- wolf_deploy_info(dets = wolf19s_allT, season = "Smr19", abund = "Abundance", abund_occu = "Abund_Occu")
   #' wolf_time_wtr20 <- wolf_deploy_info(dets = wolf20s_allT, season = "Smr20", abund = "Abundance", abund_occu = "Abund_Occu") %>%
@@ -246,8 +249,9 @@
   #' save(wolf21s_allT, file = "./Data/IDFG camera data/Split datasets/wolf21s_allT_NewLocationID.RData")
   
   
+  #'  -----------------
   ####  Set time zone  ####
-  #'  ------------------
+  #'  -----------------
   #'  Detection data was recorded in MST (America/Edmonton (UTC-07:00); tz="America/Edmonton")
   set_tzone <- function(dat) {
     tz(dat$posix_date_time) <- "America/Edmonton"
@@ -267,40 +271,54 @@
   # wolf_noon_list <- lapply(wolf_time_list, set_tzone)
   
   #'  Set time zone on full data sets
+  #'  EoE Summer 2020
   load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
-  eoe20s_allM <- set_tzone(eoe20s_allM)
+  load("./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
+  eoe20s_allM <- set_tzone(eoe20s_allM) %>%
+    #'  Remove images taken prior to official camera deployment date
+    filter(NewLocationID != "GMU6_P_27" | Date != "25-Apr-2020") %>%
+    filter(NewLocationID != "GMU6_P_63" | Date != "14-May-2020") %>%
+    filter(NewLocationID != "GMU6_U_36" | Date != "21-Apr-2020")
+  eoe20s_allT <- set_tzone(eoe20s_allT) %>%
+    #'  Remove images from GMU6_P_84 with dates in the future
+    filter(NewLocationID != "GMU6_P_84" | Date != "17-May-2025")
+  
+  #'  EOE Winter 2020-2021
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
   eoe20w_allM <- set_tzone(eoe20w_allM)
+  eoe20w_allT <- set_tzone(eoe20w_allT)
+  
+  #'  EOE Summer 2021
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
   eoe21s_allM <- set_tzone(eoe21s_allM) %>%
-    #'  Fix a couple of capitalization issues and add a column for camera setup type
-    mutate(NewLocationID = toupper(NewLocationID),
-           Setup = "U or P whatever") %>% #GMU10a_U_134, GMU10a_U_9!!!!
-    relocate(Setup, .after = NewLocationID) %>%
+    #' #'  Fix a couple of capitalization issues and add a column for camera setup type
+    #' mutate(NewLocationID = toupper(NewLocationID),
+    #'        Setup = "U or P whatever") %>% #GMU10a_U_134, GMU10a_U_9!!!!
+    #' relocate(Setup, .after = NewLocationID) %>%
     #'  remove 2 random images from GMU10A_U_73 - bad programming at deployment?
     filter(Date != "29-Sep-2020")
-  
-  load("./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
-  eoe20s_allT <- set_tzone(eoe20s_allT)
-  load("./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
-  eoe20w_allT <- set_tzone(eoe20w_allT)
-  load("./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
   eoe21s_allT <- set_tzone(eoe21s_allT) %>%
-    #'  Fix a couple of capitalization issues and add a column for camera setup type
-    mutate(NewLocationID = toupper(NewLocationID))
+    #' #'  Fix a couple of capitalization issues and add a column for camera setup type
+    #' mutate(NewLocationID = toupper(NewLocationID))
   
+  #'  Wolf Summer 2019
   load("./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
-  wolf19s_allM <- set_tzone(wolf19s_allM)
-  load("./Data/IDFG camera data/Split datasets/wolf20s_allM_NewLocationID.RData")
-  wolf20s_allM <- set_tzone(wolf20s_allM)
-  load("./Data/IDFG camera data/Split datasets/wolf21s_allM_NewLocationID.RData")
-  wolf21s_allM <- set_tzone(wolf21s_allM)
-  
   load("./Data/IDFG camera data/Split datasets/wolf19s_allT_NewLocationID.RData")
+  wolf19s_allM <- set_tzone(wolf19s_allM)
   wolf19s_allT <- set_tzone(wolf19s_allT)
+  
+  #'  Wolf Summer 2020
+  load("./Data/IDFG camera data/Split datasets/wolf20s_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/wolf20s_allT_NewLocationID.RData")
+  wolf20s_allM <- set_tzone(wolf20s_allM)
   wolf20s_allT <- set_tzone(wolf20s_allT)
+  
+  #'  Wolf Summer 2021
+  load("./Data/IDFG camera data/Split datasets/wolf21s_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/wolf21s_allT_NewLocationID.RData")
+  wolf21s_allM <- set_tzone(wolf21s_allM)
   wolf21s_allT <- set_tzone(wolf21s_allT)
   
   
@@ -925,6 +943,7 @@
 
   
   #'  Merge cameras with gaps in data with cameras with OpState problems
+  eoe_problems_20s <- eoe_prob_dates_20s
   eoe_problems_20s <- rbind(eoe_gap_dates_20s, eoe_prob_dates_20s) %>%
     arrange(NewLocationID, Date) %>%
     #'  Extra clean up to remove duplicate dates that had multiple problems
