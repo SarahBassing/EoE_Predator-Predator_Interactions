@@ -70,6 +70,7 @@
     #'  Create new camera location name that matches camera deployment data
     dets <- dets %>%
       mutate(Setup = ifelse(pcams == "TRUE", "P", "U"),
+             Gmu = toupper(Gmu),
              NewLocationID = paste0("GMU", Gmu, "_", Setup, "_", LocationID)) %>%
       dplyr::select(-pcams) %>%
       relocate(NewLocationID, .before = File) %>%
@@ -107,7 +108,8 @@
   #' eoe_motion_wtr20 <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
   #' eoe_motion_smr21 <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator") %>%
   #'   dplyr::select(-c(NewLocationID)) %>%
-  #'   mutate(NewLocationID = LocationID) %>%
+  #'   mutate(LocationID = toupper(LocationID),
+  #'   NewLocationID = LocationID) %>%
   #'   relocate(NewLocationID, .after = LocationID)
   #' eoe20s_allM <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator")
   #' eoe20w_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
@@ -123,7 +125,8 @@
   #' eoe_time_wtr20 <- eoe_deploy_info(dets = eoe20w_allT, season = "Wtr20", pred = "predator")
   #' eoe_time_smr21 <- eoe_deploy_info(dets = eoe21s_allT, season = "Smr21", pred = "predator") %>%
   #'   dplyr::select(-c(NewLocationID)) %>%
-  #'   mutate(NewLocationID = LocationID) %>%
+  #'   mutate(LocationID = toupper(LocationID),
+  #'   NewLocationID = LocationID) %>%
   #'   relocate(NewLocationID, .after = LocationID)
   #' eoe20s_allT <- eoe_deploy_info(season = "Smr20", dets = eoe20s_allT, pred = "predator")
   #' eoe20w_allT <- eoe_deploy_info(season = "Wtr20", dets = eoe20w_allT, pred = "predator")
@@ -157,6 +160,7 @@
     dets <- dets %>%
       mutate(Setup = ifelse(acams == "TRUE", "A", "O"),
              Setup = ifelse(aocams == "TRUE", "B", Setup),
+             Gmu = toupper(Gmu),
              NewLocationID = paste0(Gmu, "_", Setup, "_", LocationID)) %>%
       dplyr::select(-c(acams, aocams)) %>%
       relocate(NewLocationID, .before = File) %>%
@@ -269,7 +273,9 @@
   eoe20w_allM <- set_tzone(eoe20w_allM)
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
   eoe21s_allM <- set_tzone(eoe21s_allM) %>%
-    mutate(Setup = "U or P whatever") %>%
+    #'  Fix a couple of capitalization issues and add a column for camera setup type
+    mutate(NewLocationID = toupper(NewLocationID),
+           Setup = "U or P whatever") %>% #GMU10a_U_134, GMU10a_U_9!!!!
     relocate(Setup, .after = NewLocationID) %>%
     #'  remove 2 random images from GMU10A_U_73 - bad programming at deployment?
     filter(Date != "29-Sep-2020")
@@ -279,7 +285,9 @@
   load("./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
   eoe20w_allT <- set_tzone(eoe20w_allT)
   load("./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
-  eoe21s_allT <- set_tzone(eoe21s_allT)
+  eoe21s_allT <- set_tzone(eoe21s_allT) %>%
+    #'  Fix a couple of capitalization issues and add a column for camera setup type
+    mutate(NewLocationID = toupper(NewLocationID))
   
   load("./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
   wolf19s_allM <- set_tzone(wolf19s_allM)
