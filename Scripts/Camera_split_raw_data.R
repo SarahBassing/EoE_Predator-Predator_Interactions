@@ -1,14 +1,14 @@
-  #'  ========================
+  #'  ------------------------------
   #'  Split raw data
-  #'  ICFWRU PredXPred Project
+  #'  ID CRU - Predator Interactions
   #'  Sarah B. Bassing
   #'  September 2022
-  #'  ========================
+  #'  ------------------------------
   #'  Pull out, rename, and filter massive camera trap data sets into more 
   #'  manageable chunks and save for future analyses. Each data set is huge, 
   #'  especially the wolf ones. Likely need to load each data set and run script 
   #'  separately because data sets are so large.
-  #'  ========================
+  #'  ------------------------------
   
   #'  Clean workspace
   rm(list = ls())  
@@ -17,9 +17,9 @@
   library(tidyverse)
   library(stringr)
   
-  #'  =======================================================
+  #'  ------------------------------------------------------
   ####  Save deployment & detection data as separate files  ####
-  #'  =======================================================
+  #'  ------------------------------------------------------
   #'  EoE 2020 summer
   load("./Data/IDFG camera data/eoe2020s_all_final.RData")
   cams_s20_eoe <- dep_dat_done; save(cams_s20_eoe, file = "./Data/IDFG camera data/eoe2020s_cameras.RData")
@@ -51,9 +51,9 @@
   dets_s21_wolf <- pic_dat; save(dets_s21_wolf, file = "./Data/IDFG camera data/wolf2021s_detections.RData")
   
   
-  #'  ======================================================
+  #'  -----------------------------------------------------
   #####  Filter to more manageable data sets to work with  ####
-  #'  ======================================================
+  #'  -----------------------------------------------------
   #'  Detection data
   load("./Data/IDFG camera data/eoe2020s_detections.RData")
   load("./Data/IDFG camera data/eoe2020w_detections.RData")
@@ -117,9 +117,9 @@
   save_Rdata(wolf21s_dets)
   
   
-  #'  =====================================================================
+  #'  ---------------------------------------------------------------------
   ####  Reduce data sets even further to just images flagged as "Keepers"  ####
-  #'  =====================================================================
+  #'  ---------------------------------------------------------------------
   #'  Keepers: flagged by S. Thompson as images with animals, some maintenance 
   #'  images, all images taken at noon, and a smattering of setup-retrieval day 
   #'  pics to help in case of ID errors.
