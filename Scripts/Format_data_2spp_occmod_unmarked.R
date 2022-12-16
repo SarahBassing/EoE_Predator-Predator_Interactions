@@ -32,7 +32,7 @@
   cams_eoe_long <- read.csv("./Data/IDFG camera data/cams_eoe_long.csv") %>%
     dplyr::select(c("NewLocationID", "Gmu", "Setup", "Target", "Season", "CameraHeight_M", "CameraFacing")) %>%
     filter(NewLocationID != "GMU6_U_160" | CameraHeight_M != 1.2) %>% #' Remove duplicate camera where height changed slightly in Smr20
-    filter(Season == "Smr20")
+    filter(Season == "Smr21")
   
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
@@ -75,7 +75,15 @@
                            Setup = as.factor(Setup),
                            Target = as.factor(Target),
                            perc_forest = scale(perc_forest), 
-                           min_group_size = scale(avg_min_group_size)
+                           min_group_size = scale(avg_min_group_size), 
+                           Bear_mort_n = scale(Bear_mort_n), 
+                           Bear_mort_km2 = scale(Bear_mort_km2),
+                           Bob_mort_n = scale(Bob_mort_n), 
+                           Bob_mort_km2 = scale(Bob_mort_km2),
+                           Lion_mort_n = scale(Lion_mort_n), 
+                           Lion_mort_km2 = scale(Lion_mort_km2),
+                           Wolf_mort_n = scale(Wolf_mort_n), 
+                           Wolf_mort_km2 = scale(Wolf_mort_km2)
     ) %>%
       arrange(NewLocationID) #NECESSARY TO MATCH DH's CAMERALOCATION ORDER
     
@@ -99,9 +107,11 @@
     
     return(formatted)
   }
-  stations_eoe20s <- format_covs(cams_eoe20s, covs = eoe_covs_20s)
+  stations_eoe20s <- format_covs(cams_eoe20s, covs = eoe_covs_20s) %>%
+    mutate(Lion_mort_km2 = 1)
   stations_eoe20s <- stations_eoe20s[-c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 346, 361, 371, 379, 380, 385, 433, 437, 439, 458, 493),]
-  stations_eoe21s <- format_covs(cams_eoe21s, covs = eoe_covs_21s)
+  stations_eoe21s <- format_covs(cams_eoe21s, covs = eoe_covs_21s) %>%
+    mutate(Lion_mort_km2 = 1)
   #'  Remove rows when camera was inoperable the entire season
   stations_eoe21s <- stations_eoe21s[-c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682),]
   
@@ -112,6 +122,11 @@
   
   ####  EVENTUALLY CHECK FOR COLLINEARITY WITH MORE CONTINUOUS VARIABLES  ####
   cor(stations_eoe20s$perc_forest, stations_eoe20s$min_group_size, use = "complete.obs")
+  cor(stations_eoe20s$perc_forest, stations_eoe20s$Bear_mort_km2, use = "complete.obs")
+  cor(stations_eoe20s$min_group_size, stations_eoe20s$Bear_mort_km2, use = "complete.obs")
+  cor(stations_eoe20s$Bear_mort_km2, stations_eoe20s$Wolf_mort_km2, use = "complete.obs") # highly correlated
+  cor(stations_eoe20s$Bear_mort_km2, stations_eoe20s$Lion_mort_km2, use = "complete.obs")
+  cor(stations_eoe20s$Bear_mort_km2, stations_eoe20s$Bob_mort_km2, use = "complete.obs") # highly correlated
   
   
   #'  ---------------------------
@@ -165,17 +180,17 @@
   bear_lion_smr20_UMF@fDesign
   
   
-  #' bear_lion_smr21_DH <- list(bear = DH_eoe21s_predators[[1]][[1]], lion = DH_eoe21s_predators[[4]][[1]])
-  #' bear_lion_smr21_UMF <- unmarkedFrameOccuMulti(y = bear_lion_smr21_DH,
-  #'                                          siteCovs = stations_eoe21s,
-  #'                                          obsCovs = srvy_covs_eoe21s,
-  #'                                          maxOrder = 2)
-  #' #'  Visualize detection/non-detection data
-  #' plot(bear_lion_smr21_UMF)
-  #' #'  Review covariates
-  #' summary(bear_lion_smr21_UMF)
-  #' #'  Look at natural parameters f design matrix
-  #' bear_lion_smr21_UMF@fDesign
+  bear_lion_smr21_DH <- list(bear = DH_eoe21s_predators[[1]][[1]], lion = DH_eoe21s_predators[[4]][[1]])
+  bear_lion_smr21_UMF <- unmarkedFrameOccuMulti(y = bear_lion_smr21_DH,
+                                           siteCovs = stations_eoe21s,
+                                           obsCovs = srvy_covs_eoe21s,
+                                           maxOrder = 2)
+  #'  Visualize detection/non-detection data
+  plot(bear_lion_smr21_UMF)
+  #'  Review covariates
+  summary(bear_lion_smr21_UMF)
+  #'  Look at natural parameters f design matrix
+  bear_lion_smr21_UMF@fDesign
   
   
   ####  COY-LION UMF  ####
@@ -189,16 +204,16 @@
   #'  Review covariates
   summary(coy_lion_smr20_UMF)
   
-  #' coy_lion_smr21_DH <- list(coy = DH_eoe21s_predators[[3]][[1]], lion = DH_eoe21s_predators[[4]][[1]])
-  #' coy_lion_smr21_UMF <- unmarkedFrameOccuMulti(y = coy_lion_smr21_DH,
-  #'                                             siteCovs = stations_eoe21s,
-  #'                                             obsCovs = srvy_covs_eoe21s,
-  #'                                             maxOrder = 2)
-  #' #'  Visualize detection/non-detection data
-  #' plot(coy_lion_smr21_UMF)
-  #' #'  Review covariates
-  #' summary(coy_lion_smr21_UMF)
-  
+  coy_lion_smr21_DH <- list(coy = DH_eoe21s_predators[[3]][[1]], lion = DH_eoe21s_predators[[4]][[1]])
+  coy_lion_smr21_UMF <- unmarkedFrameOccuMulti(y = coy_lion_smr21_DH,
+                                              siteCovs = stations_eoe21s,
+                                              obsCovs = srvy_covs_eoe21s,
+                                              maxOrder = 2)
+  #'  Visualize detection/non-detection data
+  plot(coy_lion_smr21_UMF)
+  #'  Review covariates
+  summary(coy_lion_smr21_UMF)
+
   
   ####  BOB-LION UMF  ####
   bob_lion_smr20_DH <- list(bob = DH_eoe20s_predators[[2]][[1]], lion = DH_eoe20s_predators[[4]][[1]])
@@ -211,15 +226,15 @@
   #'  Review covariates
   summary(bob_lion_smr20_UMF)
   
-  #' bob_lion_smr21_DH <- list(bob = DH_eoe21s_predators[[2]][[1]], lion = DH_eoe21s_predators[[4]][[1]])
-  #' bob_lion_smr21_UMF <- unmarkedFrameOccuMulti(y = bob_lion_smr21_DH,
-  #'                                              siteCovs = stations_eoe21s,
-  #'                                              obsCovs = srvy_covs_eoe21s,
-  #'                                              maxOrder = 2)
-  #' #'  Visualize detection/non-detection data
-  #' plot(bob_lion_smr21_UMF)
-  #' #'  Review covariates
-  #' summary(bob_lion_smr21_UMF)
-  #' 
+  bob_lion_smr21_DH <- list(bob = DH_eoe21s_predators[[2]][[1]], lion = DH_eoe21s_predators[[4]][[1]])
+  bob_lion_smr21_UMF <- unmarkedFrameOccuMulti(y = bob_lion_smr21_DH,
+                                               siteCovs = stations_eoe21s,
+                                               obsCovs = srvy_covs_eoe21s,
+                                               maxOrder = 2)
+  #'  Visualize detection/non-detection data
+  plot(bob_lion_smr21_UMF)
+  #'  Review covariates
+  summary(bob_lion_smr21_UMF)
+
   
   
