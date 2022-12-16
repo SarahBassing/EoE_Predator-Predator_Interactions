@@ -74,18 +74,49 @@
   load("./Data/Wolf count data/min_group_size_eoe20s.RData") 
   
   load("./Data/Wolf count data/count_eoe21s_wolf.RData")
-  load("./Data/Wolf count data/min_group_size_eoe21s.RData") 
+  load("./Data/Wolf count data/min_group_size_eoe21s.RData")
   
+  #'  Mortality data provided by IDFG
+  load("./Data/IDFG BGMR data/mort_preSmr20.RData")
+  load("./Data/IDFG BGMR data/mort_preSmr21.RData")
+  
+  reformat_mort_dat <- function(mort) {
+    #'  Split predator mortality data by species
+    mort <- dplyr::select(mort, -gmu_area)
+    mort_bear <- filter(mort, Species == "Black Bear") %>%
+      rename(Bear_mort_n = total_mortalities,
+             Bear_mort_km2 = mortality_km2) %>%
+      dplyr::select(-Species)
+    mort_bob <- filter(mort, Species == "Bobcat") %>%
+      rename(Bob_mort_n = total_mortalities,
+             Bob_mort_km2 = mortality_km2) %>%
+      dplyr::select(-c(Species, GMU))
+    mort_lion <- filter(mort, Species == "Mountain Lion") %>%
+      rename(Lion_mort_n = total_mortalities,
+             Lion_mort_km2 = mortality_km2) %>%
+      dplyr::select(-c(Species, GMU))
+    mort_wolf <- filter(mort, Species == "Wolf") %>%
+      rename(Wolf_mort_n = total_mortalities,
+             Wolf_mort_km2 = mortality_km2) %>%
+      dplyr::select(-c(Species, GMU))
+    mort_df <- as.data.frame(cbind(mort_bear, mort_bob, mort_lion, mort_wolf))
+    return(mort_df)
+  }
+  mort_Smr20_df <- reformat_mort_dat(mort_preSmr20) %>%
+    filter(GMU != "GMU1")
+  mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
   
   #'  ----------------------------------
   ####  COVARIATE EXTRACTION & MERGING  ####
   #'  ----------------------------------
-  cov_extract <- function(locs, min_group_size) {
+  cov_extract <- function(locs, min_group_size, mort) {
+    
     #'  Extract covariate data for each camera site from spatial layers
     perc_forest <- terra::extract(pforest, vect(locs)) %>%
       transmute(ID = ID, perc_forest = focal_sum) %>%
       mutate(perc_forest = round(perc_forest,3))
     landcover <- terra::extract(nlcd, vect(locs))
+    
     #'  Join each extracted covariate to the unique camera location data
     covs <- as.data.frame(locs) %>%
       mutate(ID = seq(1:nrow(.))) %>%
@@ -93,11 +124,15 @@
       full_join(landcover, by = "ID") %>%
       #'  Join with additional data sets already formatted for each camera site
       full_join(min_group_size, by = "NewLocationID") %>%
+      mutate(GMU = sub("_.*", "", NewLocationID)) %>%
+      relocate(GMU, .after = NewLocationID) %>%
+      full_join(mort, by = "GMU") %>%
       dplyr::select(-c(geometry, ID, Lat, Long))
-    return(covs)
+    
+     return(covs)
   }
-  eoe_covs_20s <- cov_extract(cams_aea_eoe20s, min_group_size = min_group_size_eoe20s)
-  eoe_covs_21s <- cov_extract(cams_aea_eoe21s, min_group_size = min_group_size_eoe21s)
+  eoe_covs_20s <- cov_extract(cams_aea_eoe20s, min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df)
+  eoe_covs_21s <- cov_extract(cams_aea_eoe21s, min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df)
   
   
   #'  Save
