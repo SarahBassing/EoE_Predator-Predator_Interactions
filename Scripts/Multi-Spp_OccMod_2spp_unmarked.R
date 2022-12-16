@@ -80,30 +80,40 @@
   
   occFormulas_habgroup <- c("~perc_forest", "~perc_forest", "~min_group_size")
   
+  occFormula_bblmort1 <- c("~Bear_mort_km2", "~Lion_mort_n", "~1")
+  occFormula_bblmort2 <- c("~Bear_mort_km2", "~Lion_mort_n", "~Lion_mort_n")
+  occFormula_blmort1 <- c("~Bob_mort_km2", "~Lion_mort_n", "~1")
+  occFormula_blmort2 <- c("~Bob_mort_km2", "~Lion_mort_n", "~Lion_mort_n")
+  occFormula_clmort1 <- c("~1", "~Lion_mort_n", "~1")
+  occFormula_clmort2 <- c("~1", "~Lion_mort_n", "~Lion_mort_n")
+  occFormula_wolfmort <- c("~1", "~1", "~Wolf_mort_km2")
+  
   
   ####  Bear-Lion Smr21  ####
-  (bl_trail <- occuMulti(detFormulas_trail, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
-  (bl_setup <- occuMulti(detFormulas_setup, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
-  (bl_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_trail <- occuMulti(detFormulas_trail, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_setup <- occuMulti(detFormulas_setup, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
   #' List of fitted models
-  bl_det_fld <- fitList(bl_trail, bl_setup, bl_wolfact)
+  bbl_det_fld <- fitList(bbl_trail, bbl_setup, bbl_wolfact)
   #' Model selection
-  modSel(bl_det_fld)
+  modSel(bbl_det_fld)
   
-  (bl_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
-  (bl_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, bear_lion_smr20_UMF, silent = TRUE))
-  (bl_gmu1 <- occuMulti(detFormulas_setup, occFormulas_gmu1, bear_lion_smr20_UMF, silent = TRUE))
-  # (bl_gmu2 <- occuMulti(detFormulas_setup, occFormulas_gmu2, bear_lion_smr20_UMF, silent = TRUE))
-  (bl_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, bear_lion_smr20_UMF, silent = TRUE))
-  (bl_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, bear_lion_smr20_UMF, silent = TRUE))
-  (bl_group1 <- occuMulti(detFormulas_setup, occFormulas_group1, bear_lion_smr20_UMF, silent = TRUE))
-  (bl_group2 <- occuMulti(detFormulas_setup, occFormulas_group2, bear_lion_smr20_UMF, silent = TRUE))
-  (bl_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, bear_lion_smr20_UMF, silent = TRUE))
-  
-  bl_occ_fld <- fitList(bl_null1, bl_null2, bl_gmu1, bl_hab1, bl_hab2, bl_group1, bl_group2, bl_habgroup)
+  (bbl_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_gmu1 <- occuMulti(detFormulas_setup, occFormulas_gmu1, bear_lion_smr20_UMF, silent = TRUE))
+  # (bbl_gmu2 <- occuMulti(detFormulas_setup, occFormulas_gmu2, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_group1 <- occuMulti(detFormulas_setup, occFormulas_group1, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_group2 <- occuMulti(detFormulas_setup, occFormulas_group2, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_mort1 <- occuMulti(detFormulas_setup, occFormula_bblmort1, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_mort2 <- occuMulti(detFormulas_setup, occFormula_bblmort2, bear_lion_smr20_UMF, silent = TRUE))
+  (bbl_mort3 <- occuMulti(detFormulas_setup, occFormula_wolfmort, bear_lion_smr20_UMF, silent = TRUE))
+  bbl_occ_fld <- fitList(bbl_null1, bbl_null2, bbl_gmu1, bbl_hab1, bbl_hab2, bbl_group1, bbl_group2, bbl_habgroup, bbl_mort1, bbl_mort2, bbl_mort3)
   #' Model selection
-  modSel(bl_occ_fld)
-  summary(bl_habgroup)
+  modSel(bbl_occ_fld)
+  summary(bbl_habgroup)
   
   
   ####  COY-LION-WOLF UMF  ####
@@ -124,7 +134,10 @@
   # (cl_group1 <- occuMulti(detFormulas_trail, occFormulas_group1, coy_lion_smr20_UMF, silent = TRUE))
   # (cl_group2 <- occuMulti(detFormulas_trail, occFormulas_group2, coy_lion_smr20_UMF, silent = TRUE))
   (cl_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, coy_lion_smr20_UMF, silent = TRUE))
-  cl_occ_fld <- fitList(cl_null1, cl_null2, cl_gmu1, cl_gmu2, cl_hab1, cl_hab2, cl_habgroup)
+  (cl_mort1 <- occuMulti(detFormulas_setup, occFormula_clmort1, coy_lion_smr20_UMF, silent = TRUE))
+  # (cl_mort2 <- occuMulti(detFormulas_setup, occFormula_clmort2, coy_lion_smr20_UMF, silent = TRUE))
+  (cl_mort3 <- occuMulti(detFormulas_setup, occFormula_wolfmort, coy_lion_smr20_UMF, silent = TRUE))
+  cl_occ_fld <- fitList(cl_null1, cl_null2, cl_gmu1, cl_gmu2, cl_hab1, cl_hab2, cl_habgroup, cl_mort1, cl_mort3)
   #' Model selection
   modSel(cl_occ_fld)
   summary(cl_habgroup)
@@ -148,7 +161,10 @@
   (bl_group1 <- occuMulti(detFormulas_setup, occFormulas_group1, bob_lion_smr20_UMF, silent = TRUE))
   (bl_group2 <- occuMulti(detFormulas_setup, occFormulas_group2, bob_lion_smr20_UMF, silent = TRUE))
   (bl_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, bob_lion_smr20_UMF, silent = TRUE))
-  bl_occ_fld <- fitList(bl_null1, bl_null2, bl_gmu1, bl_gmu2, bl_hab1, bl_hab2, bl_group1, bl_group2, bl_habgroup)
+  (bl_mort1 <- occuMulti(detFormulas_setup, occFormula_blmort1, bob_lion_smr20_UMF, silent = TRUE))
+  (bl_mort2 <- occuMulti(detFormulas_setup, occFormula_blmort2, bob_lion_smr20_UMF, silent = TRUE))
+  (bl_mort3 <- occuMulti(detFormulas_setup, occFormula_wolfmort, bob_lion_smr20_UMF, silent = TRUE))
+  bl_occ_fld <- fitList(bl_null1, bl_null2, bl_gmu1, bl_gmu2, bl_hab1, bl_hab2, bl_group1, bl_group2, bl_habgroup, bl_mort1, bl_mort2, bl_mort3)
   #' Model selection
   modSel(bl_occ_fld)
   summary(bl_group2)
