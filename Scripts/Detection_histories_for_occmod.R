@@ -84,6 +84,10 @@
   eoe20s_det_events <- unique_detections(eoe20s_dets, elapsed_time = 300)
   eoe21s_det_events <- unique_detections(eoe21s_dets, elapsed_time = 300)
   
+  #'  Save for making summary tables
+  save(eoe20s_det_events, file = "./Data/Detection_Histories/eoe20s_det_events.RData")
+  save(eoe21s_det_events, file = "./Data/Detection_Histories/eoe21s_det_events.RData")
+  
   
   #'  --------------------------
   ####  Camera Operation Table  ####
