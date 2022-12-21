@@ -673,40 +673,62 @@
   #'  Pull out problem dates based on last image before gap in data and first image
   #'  after gap in data
   missing_days <- function(dat) {
-    missing_dates <- dat %>%
+    #'  Label sequential dates from same camera as a single burst
+    #'  If there's a break in the dates, images are labeled as a new burst 
+    bursts <- dat %>%
       arrange(NewLocationID, posix_date_time) %>%
       dplyr::select(c(NewLocationID, Date, OpState)) %>%
       distinct() %>%
       mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
-      #'  Label sequential dates from same camera as a single burst
-      #'  If there's a break in the dates, images are labeled as a new burst
       group_by(NewLocationID) %>%
       mutate(Burst = cumsum(c(1, diff(Date) > 1))) %>%
-      ungroup() %>%
-      #'  filter to just the start and end date of each burst
-      group_by(NewLocationID, Burst) %>%
-      mutate(StartEnd = ifelse(Date == min(Date), "First", NA),
-             StartEnd = ifelse(Date == max(Date), "Last", StartEnd)) %>%
-      filter(!is.na(StartEnd)) %>%
-      # filter(Date == min(Date) | Date == max(Date)) %>%
-      ungroup() %>%
-      #'  Identify when the start and end of gaps in data occur based on when
-      #'  bursts of images change for each camera
+      ungroup() 
+    #'  Flag last image of a distinct burst if there's a gap in data following image
+    first_dates <- bursts %>%
       group_by(NewLocationID) %>%
-      #'  if current value is x is > the previous value (lag), then z
-      #'  if current value is x is < the next value (lead), then z
-      mutate(StartEnd = NA,
-             StartEnd = ifelse((Burst < lead(Burst)), "First", StartEnd),
-             StartEnd = ifelse((Burst > lag(Burst)), "Last", StartEnd)) %>%#,
-             # StartEnd = ifelse((Burst == 2 & lag(Burst == 1)), "Last", NA),
-             # StartEnd = ifelse((Burst == 3 & lag(Burst == 2)), "Last", StartEnd),
-             # StartEnd = ifelse((Burst == 1 & lead(Burst == 2)), "First", StartEnd),
-             # StartEnd = ifelse((Burst == 2 & lead(Burst == 3)), "First", StartEnd),
-             #'  Calculate number of missing days
-             # ndays = ifelse(StartEnd == "Last", as.numeric(difftime(Date, lag(Date), units = "days")), NA)) %>%
-             # ndays = as.numeric(difftime(Date, lag(Date), units = "days"))) %>%
+      mutate(Burst = cumsum(c(1, diff(Date) > 1)),
+             #'  if current value is x is < the next value (lead), then z
+             StartEnd = ifelse((Burst < lead(Burst)), "First", NA)) %>%
       ungroup() %>%
       filter(!is.na(StartEnd))
+    #'  Flag first image of a distinct burst if there was a gap in data prior to image
+    last_dates <- bursts %>%
+      group_by(NewLocationID) %>%
+      mutate(Burst = cumsum(c(1, diff(Date) > 1)),
+             #'  if current value is x is > the previous value (lag), then z
+             StartEnd = ifelse((Burst > lag(Burst)), "Last", NA)) %>%
+      ungroup() %>%
+      filter(!is.na(StartEnd))
+    #'  Combine firt and last images that bookend gaps in iamge data
+    missing_dates <- rbind(first_dates, last_dates) %>%
+      arrange(NewLocationID, Date) %>%
+      mutate(Issue = "Gap")
+      #' #'  filter to just the start and end date of each burst
+      #' group_by(NewLocationID, Burst) %>%
+      #' mutate(StartEnd = ifelse(Date == min(Date), "First", NA),
+      #'        StartEnd = ifelse(Date == max(Date), "Last", StartEnd)) %>%
+      #' filter(!is.na(StartEnd)) %>%
+      #' # filter(Date == min(Date) | Date == max(Date)) %>%
+      #' ungroup() %>%
+      #'  Identify when the start and end of gaps in data occur based on when
+      #'  bursts of images change for each camera
+      #' group_by(NewLocationID) %>%
+      #' #'  if current value is x is < the next value (lead), then z
+      #' #'  if current value is x is > the previous value (lag), then z
+      #' mutate(newStartEnd = NA,
+      #'        newStartEnd = ifelse((Burst < lead(Burst)), "First", newStartEnd),
+      #'        newStartEnd = ifelse((Burst > lag(Burst)), "Last", StartEnd),
+      #'        Issue = "Gap") %>%#,
+      #'        # StartEnd = ifelse((Burst == 2 & lag(Burst == 1)), "Last", NA),
+      #'        # StartEnd = ifelse((Burst == 3 & lag(Burst == 2)), "Last", StartEnd),
+      #'        # StartEnd = ifelse((Burst == 1 & lead(Burst == 2)), "First", StartEnd),
+      #'        # StartEnd = ifelse((Burst == 2 & lead(Burst == 3)), "First", StartEnd),
+      #'        #'  Calculate number of missing days
+      #'        # ndays = ifelse(StartEnd == "Last", as.numeric(difftime(Date, lag(Date), units = "days")), NA)) %>%
+      #'        # ndays = as.numeric(difftime(Date, lag(Date), units = "days"))) %>%
+      #' ungroup() %>%
+      # filter(!is.na(StartEnd)) %>%
+      # mutate(Issue = "Gap")
     return(missing_dates)
   }
   eoe_gap_dates_20s <- missing_days(eoe_nopix_20s) %>%
@@ -881,7 +903,8 @@
       mutate(ndays = as.numeric(difftime(Date, lag(Date), units = "days")),
              #'  Add 1 to each count so 1 day problems = 1, not 0, and start day
              #'  of each problem is included in the count
-             ndays = ndays + 1) %>%   
+             ndays = ndays + 1,
+             Issue = "OpState") %>%   
       ungroup()
     return(prob_dates)
   }
