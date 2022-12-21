@@ -699,6 +699,7 @@
       filter(!is.na(StartEnd))
     #'  Combine first and last images that bookend gaps in image data
     missing_dates <- rbind(first_dates, last_dates) %>%
+      arrange(NewLocationID, Date) %>%
       group_by(NewLocationID) %>%
       #'  Calculate number of missing days and change burst values
       mutate(ndays = as.numeric(difftime(Date, lag(Date), units = "days")),
@@ -716,10 +717,8 @@
 
     return(missing_dates)
   }
-  eoe_gap_dates_20s <- missing_days(eoe_nopix_20s) #%>%
-    #' #'  Remove this obvious camera malfunction
-    #' filter(Date != "2025-05-17")
-  eoe_gap_dates_20w <- missing_days(eoe_nopix_20w)
+  eoe_gap_dates_20s <- missing_days(eoe_nopix_20s) 
+  eoe_gap_dates_20w <- missing_days(eoe_nopix_20w) # ndays is wonky but gets redone later down
   eoe_gap_dates_21s <- missing_days(eoe_nopix_21s)
   
   wolf_gap_dates_19s <- missing_days(wolf_nopix_19s)
@@ -950,10 +949,10 @@
   wolf_prob_dates_21s <- add_row1(wolf_prob_dates_21s)
 
   
-  #'  -----------------------------------
   ####  Merge Gap and OpState problems  ####
   #'  -----------------------------------
   #'  EoE Summer 2020 problems
+  #'  ------------------------
   eoe_problems_20s <- rbind(eoe_gap_dates_20s, eoe_prob_dates_20s) %>%
     arrange(NewLocationID, Date) 
   #'  Remove specific observations if they are essentially duplicates or date
@@ -970,6 +969,7 @@
              NewLocationID != "GMU6_U_27" & NewLocationID != "GMU6_U_29" & 
              NewLocationID != "GMU6_U_99") %>%
     rbind(GMU10A_U_32, GMU10A_U_103, GMU6_U_27, GMU6_U_29, GMU6_U_99) %>%
+    arrange(NewLocationID, Date)
     #'  Recalculate number of days per Gap or OpState problem
     group_by(NewLocationID, Burst) %>%
     mutate(ndays = as.numeric(difftime(Date, lag(Date), units = "days")),
@@ -977,47 +977,85 @@
            ndays = ifelse(ndays == 0, 1, ndays)) %>%
     ungroup()
 
-  #' eoe_problems_20s <- rbind(eoe_gap_dates_20s, eoe_prob_dates_20s) %>%
-  #'   arrange(NewLocationID, Date) %>% 
-  #'   #' flag first OpState and last Gap as a single issue # e.g., GMU10A_U_103
-  #'   #' new burst numbers to Gap and OpState dates that have same burst number # e.g., GMU10A_U_32
-  #'   #' combine Gap and OpState dates if end of Gap date is start of OpState # e.g., GMU10A_U_32, GMU6_U_99
-  #'   #' drop OpState dates if fit within Gap dates # e.g., GMU6_U_27, GMU6_U_29
-  #'   #'  Extra clean up to remove duplicate dates that had multiple problems
-  #'   filter(NewLocationID != "GMU10A_U_103" | Date != "2020-11-03") %>%
-  #'   filter(NewLocationID != "GMU6_U_29" | Date != "2020-05-07" | OpState != "normal") %>%
-  #'   filter(NewLocationID != "GMU6_U_29" | Date != "2020-05-07" | OpState != "completely obscured" | StartEnd != "Last") %>%
-  #'   filter(NewLocationID != "GMU6_U_27" | Date != "2020-04-25" | StartEnd != "Last") %>%
-  #'   filter(NewLocationID != "GMU10A_U_32"  | Date != "2020-05-20") %>%
-  #'   filter(NewLocationID != "GMU6_U_99" | Date != "2020-05-20") #%>%
-  #'   mutate(ndays = ifelse(NewLocationID == "GMU10A_U_67" & Date == "2020-06-02", NA, ndays),
-  #'          ndays = ifelse(NewLocationID == "GMU10A_U_32" & Date == "2020-10-23", ndays + 10, ndays),
-  #'          ndays = ifelse(NewLocationID == "GMU6_U_99" & Date == "2020-10-06", ndays + 23, ndays),
-  #'          StartEnd = ifelse(NewLocationID == "GMU6_P_84" & Date == "2020-12-30", "Last", StartEnd),
-  #'          Burst = ifelse(NewLocationID == "GMU6_U_92" & Burst == 2, 1, Burst),
-  #'          Burst = ifelse(NewLocationID == "GMU6_U_27" & Date == "2020-05-20" & Burst == 2, 1, Burst),
-  #'          #'  Change burst number when dealing with gaps in the data that were
-  #'          #'  identified by changes in the burst (need the burst number to be the
-  #'          #'  same later down when spreading data to wide format)
-  #'          Burst = ifelse((NewLocationID == lag(NewLocationID)) & (Burst != lag(Burst)) & StartEnd == "Last", 1, Burst)) %>%
-  #'   unique() # Remove one of the GMU6_U_27 NAs
+  #'  EoE Winter 2020-2021 problems
+  #'  -----------------------------
   eoe_problems_20w <- rbind(eoe_gap_dates_20w, eoe_prob_dates_20w) %>%
-    arrange(NewLocationID, Date) %>%
-    filter(NewLocationID != "GMU10A_P_26" | Date != "2021-03-31" | StartEnd != "First") %>%
-    filter(NewLocationID != "GMU10A_P_50" | Date != "2021-02-23" | OpState != "completely obscured") %>%
-    filter(NewLocationID != "GMU10A_P_50" | Date != "2021-03-01" | Burst != 8) %>%
-    filter(NewLocationID != "GMU10A_P_50" | Date != "2021-02-05" | StartEnd != "Last") %>%
-    filter(NewLocationID != "GMU10A_P_50" | Date != "2021-02-06") %>%
-    filter(NewLocationID != "GMU10A_U_122" | Date != "2021-06-29") %>%
-    filter(NewLocationID != "GMU10A_U_172" | Date != "2021-02-04") %>%
-    filter(NewLocationID != "GMU10A_U_43" | Date != "2021-02-22") %>%
-    filter(NewLocationID != "GMU10A_U_43" | Date != "2021-02-23") %>%
-    filter(NewLocationID != "GMU10A_U_47" | Date != "2020-12-15") %>%
-    filter(NewLocationID != "GMU6_P_69" | Date != "2020-12-15") %>%
-    filter(NewLocationID != "GMU6_P_69" | Date != "2021-02-02") %>%
-    filter(NewLocationID != "GMU6_P_69" | Date != "2021-02-08") %>%
-    filter(NewLocationID != "GMU6_P_69" | Burst != 16) %>%
-    filter(NewLocationID != "GMU6_P_69" | Burst != 17) #%>%
+    arrange(NewLocationID, Date) 
+  #'  Remove specific observations if they are essentially duplicates or date
+  #'  range of problem type falls within date range of the other problem type
+  GMU10A_P_26 <- eoe_problems_20w %>% filter(NewLocationID == "GMU10A_P_26") %>% slice(c(1,n()))
+  # GMU10A_P_37 <- eoe_problems_20w %>% filter(NewLocationID == "GMU10A_P_37") # just needs new burst ordering
+  # GMU10A_P_43 <- eoe_problems_20w %>% filter(NewLocationID == "GMU10A_P_43") 
+  # GMU10A_P_47 <- eoe_problems_20w %>% filter(NewLocationID == "GMU10A_P_47")
+  GMU10A_P_50 <- eoe_problems_20w %>% filter(NewLocationID == "GMU10A_P_50") %>%
+    filter(Date != "2021-02-05" | StartEnd != "Last") %>% filter(Date != "2021-02-06") %>%
+    filter(Date != "2021-02-23") %>% filter(Date != "2021-03-01" | Issue != "OpState")
+  # GMU10A_U_101
+  # GMU10A_U_103
+  # GMU10A_U_109
+  # GMU10A_U_122
+  # GMU10A_U_153
+  GMU10A_U_172 <- eoe_problems_20w %>% filter(NewLocationID == "GMU10A_U_172") %>% filter(Date != "2021-02-04") # might create a burst issue
+  # GMU10A_U_25
+  GMU10A_U_43 <- eoe_problems_20w %>% filter(NewLocationID == "GMU10A_U_43") %>% 
+    filter(Date != "2021-02-23") %>% filter(Date != "2021-03-01")
+  GMU10A_U_47 <- eoe_problems_20w %>% filter(NewLocationID == "GMU10A_U_47") %>% filter(Date != "2020-12-15")
+  # GMU10A_U_6
+  # GMU10A_U_67
+  GMU10A_U_97 <- eoe_problems_20w %>% filter(NewLocationID == "GMU10A_U_97") %>% filter(Date != "2021-03-12")
+  # GMU6_P_104
+  GMU6_P_69 <- eoe_problems_20w %>% filter(NewLocationID == "GMU6_P_69") %>% 
+    filter(Date < "2020-12-19" | Date >= "2020-12-27" ) %>% filter(Date != "2021-02-08") %>%
+    filter(Date < "2021-02-16" | Date >= "2021-04-04")
+  GMU6_P_79 <- eoe_problems_20w %>% filter(NewLocationID == "GMU6_P_79") %>% filter(Date != "2021-02-13")
+  # GMU6_U_102
+  # GMU6_U_125
+  GMU6_U_153 <- eoe_problems_20w %>% filter(NewLocationID == "GMU6_U_153") %>% 
+    filter(Date < "2021-03-01" | Date >= "2021-03-06" ) 
+  GMU6_U_164 <- eoe_problems_20w %>% filter(NewLocationID == "GMU6_U_164") %>% filter(Date != "2021-05-01")
+  # GMU6_U_17
+  # GMU6_U_70
+  GMU6_U_79 <- eoe_problems_20w %>% filter(NewLocationID == "GMU6_U_79") %>% filter(Date != "2021-02-19") %>%
+    filter(Date != "2021-03-04" | Issue != "OpState")
+  GMU6_U_9 <- eoe_problems_20w %>% filter(NewLocationID == "GMU6_U_9") %>% slice(c(1,n()))
+  # GMU6_U_90
+  #'  Remove duplicate observations from main dataset and replaced with thinned versions
+  eoe_problems_20w <- eoe_problems_20w %>%
+    filter(NewLocationID != "GMU10A_P_26" | NewLocationID != "GMU10A_P_50" | NewLocationID != "GMU10A_U_172" | 
+             NewLocationID != "GMU10A_U_43" | NewLocationID != "GMU10A_U_47" | NewLocationID != "GMU10A_U_97" | 
+             NewLocationID != "GMU6_P_69" | NewLocationID != "GMU6_P_79" | NewLocationID != "GMU6_U_153" | 
+             NewLocationID != "GMU6_U_164" | NewLocationID != "GMU6_U_79" | NewLocationID != "GMU6_U_9") %>%
+    rbind(GMU10A_P_26, GMU10A_P_50, GMU10A_U_172, GMU10A_U_43, GMU10A_U_47, GMU10A_U_97, 
+          GMU6_P_69, GMU6_P_79, GMU6_U_153, GMU6_U_164, GMU6_U_79, GMU6_U_9) %>%
+    arrange(NewLocationID, Date)
+  
+  #### NEED TO FIX THE BURSTS IN HERE NOW... SOMEHOW...  ####
+  #then do the last bit below
+  
+  
+    #'  Recalculate number of days per Gap or OpState problem
+    group_by(NewLocationID, Burst) %>%
+    mutate(ndays = as.numeric(difftime(Date, lag(Date), units = "days")),
+           #'  Force ndays to 1 when problem starts and ends on same day
+           ndays = ifelse(ndays == 0, 1, ndays)) %>%
+    ungroup()
+  
+  # %>%
+  #   filter(NewLocationID != "GMU10A_P_26" | Date != "2021-03-31" | StartEnd != "First") %>%
+  #   filter(NewLocationID != "GMU10A_P_50" | Date != "2021-02-23" | OpState != "completely obscured") %>%
+  #   filter(NewLocationID != "GMU10A_P_50" | Date != "2021-03-01" | Burst != 8) %>%
+  #   filter(NewLocationID != "GMU10A_P_50" | Date != "2021-02-05" | StartEnd != "Last") %>%
+  #   filter(NewLocationID != "GMU10A_P_50" | Date != "2021-02-06") %>%
+  #   filter(NewLocationID != "GMU10A_U_122" | Date != "2021-06-29") %>%
+  #   filter(NewLocationID != "GMU10A_U_172" | Date != "2021-02-04") %>%
+  #   filter(NewLocationID != "GMU10A_U_43" | Date != "2021-02-22") %>%
+  #   filter(NewLocationID != "GMU10A_U_43" | Date != "2021-02-23") %>%
+  #   filter(NewLocationID != "GMU10A_U_47" | Date != "2020-12-15") %>%
+  #   filter(NewLocationID != "GMU6_P_69" | Date != "2020-12-15") %>%
+  #   filter(NewLocationID != "GMU6_P_69" | Date != "2021-02-02") %>%
+  #   filter(NewLocationID != "GMU6_P_69" | Date != "2021-02-08") %>%
+  #   filter(NewLocationID != "GMU6_P_69" | Burst != 16) %>%
+  #   filter(NewLocationID != "GMU6_P_69" | Burst != 17) #%>%
     #' #'  Change burst number when dealing with gaps so that the first and last
     #' #'  dates of each gap have the same burst number
     #' mutate(Burst = ifelse((NewLocationID == lag(NewLocationID)) & (Burst != lag(Burst)) & StartEnd == "Last", lag(Burst), Burst),
