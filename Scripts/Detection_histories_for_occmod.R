@@ -26,17 +26,10 @@
   #'  Problem cameras
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
-  #' #'  Fix a couple of capitalization issues in the GMU part of NewLocationID
-  #' eoe_probcams_21s <- eoe_probcams_21s %>%
-  #'   mutate(NewLocationID = toupper(NewLocationID))
-  #' eoe_probcams_20s <- mutate(eoe_probcams_20s, NewLocationID = paste0(NewLocationID, "_Smr20"))
   
   #'  Detection data (motion trigger observations only)
   load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
-  #' #'  Fix a couple of capitalization issues in the GMU part of NewLocationID
-  #' eoe21s_allM <- eoe21s_allM %>%
-  #'   mutate(NewLocationID = toupper(NewLocationID))
   
   #'  Filter detection data to focal species and time period of interest
   detections <- function(dets, start_date, end_date) {
