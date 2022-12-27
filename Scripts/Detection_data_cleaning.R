@@ -914,7 +914,8 @@
   wolf_prob_dates_20s <- prob_days(wolf_1hr_20s) %>%
     arrange(NewLocationID, Date, StartEnd)
   wolf_prob_dates_21s <- prob_days(wolf_1hr_21s) %>%
-    arrange(NewLocationID, Date, StartEnd)
+    arrange(NewLocationID, Date, StartEnd) %>%
+    filter(NewLocationID != "GMU39_A_3056" | OpState != "completely obscured")
   
   #'  Add a "First" row to start of dataframe - necessary for wolf data sets
   #'  where first camera had only 1 problem day and lag in function above can't 
@@ -1056,7 +1057,21 @@
   #'  Wolf Summer 2021 problems
   #'  -------------------------
   wolf_problems_21s <- rbind(wolf_gap_dates_21s, wolf_prob_dates_21s) %>%
-    arrange(NewLocationID, Date)
+    arrange(NewLocationID, Date) %>%
+    group_by(NewLocationID) %>%
+    #'  Reformat burst data using newburst
+    group_modify(~newburst(.)) %>%
+    ungroup() %>%
+    dplyr::select(-Burst) %>%
+    rename(Burst = newBurst) %>%
+    relocate(Burst, .after = OpState) %>%
+    #'  Reformat start and end label of each burst
+    mutate(StartEnd = rep(c("First", "Last"), length.out = n()),
+           #'  Recalculate number of days per Gap or OpState problem
+           ndays = as.numeric(difftime(Date, lag(Date), units = "days")),
+           #'  Force ndays to 1 when problem starts and ends on same day
+           ndays = ifelse(ndays == 0, 1, ndays)) %>%
+    ungroup()
   
   
   #'  Save dates of first/last image and problem dates for all cameras
@@ -1082,6 +1097,7 @@
   }
   eoe_wide_probs_20s <- problem_df_wide(eoe_problems_20s)   
   eoe_wide_probs_21s <- problem_df_wide(eoe_problems_21s) 
+  wolf_wide_probs_21s <- problem_df_wide(wolf_problems_21s) 
   
   #'  Same function as above but also rearranges columns when >9 problems at a 
   #'  camera site
@@ -1101,7 +1117,6 @@
   eoe_wide_probs_20w <- problem_df_wide_rearrange(eoe_problems_20w) 
   wolf_wide_probs_19s <- problem_df_wide_rearrange(wolf_problems_19s) 
   wolf_wide_probs_20s <- problem_df_wide_rearrange(wolf_problems_20s)
-  wolf_wide_probs_21s <- problem_df_wide_rearrange(wolf_problems_21s) 
   
   
   ####  Combine problem dates with setup/retrieval dates  ####
