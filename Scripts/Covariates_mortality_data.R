@@ -20,6 +20,7 @@
   
   #'  Load camera locations
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
+  load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
   
   #'  Load mortality data
@@ -60,14 +61,17 @@
   
   #'  Filter data to specific date range - focus on mortality that occurred one
   #'  year prior to each sampling period (e.g., fall 2019 - spring 2020 for Smr20 
-  #'  data; fall 2020 - spring 2021 for Smr21 data)
+  #'  data; winter 2020 - fall 2020 for Wrt20; fall 2020 - spring 2021 for Smr21 data)
   annual_mortality <- function(mort, start_date, end_date) {
     mort <- mort %>%
-      mutate(Kill.Date = as.Date(Kill.Date, format = "%m/%d/%Y")) %>%
+      mutate(Kill.Date = gsub(" ", "", Kill.Date), # get rid of white spaces in date
+             Kill.Date = as.Date(Kill.Date, format = "%m/%d/%Y")) %>%
       filter(Kill.Date >= start_date) %>%
       filter(Kill.Date <= end_date)
+    return(mort)
   }
   mort_pre_Smr20 <- lapply(mort_predators_legal, annual_mortality, start_date = "2019-09-01", end_date = "2020-06-30")
+  mort_pre_Wtr20 <- lapply(mort_predators_legal, annual_mortality, start_date = "2020-02-01", end_date = "2020-11-30")
   mort_pre_Smr21 <- lapply(mort_predators_legal, annual_mortality, start_date = "2020-09-01", end_date = "2021-06-30")
   
   
@@ -90,6 +94,8 @@
     return(count_dead)
   }
   mort_preSmr20_n <- lapply(mort_pre_Smr20, total_morts) %>%
+    do.call(rbind, .)
+  mort_preWtr20_n <- lapply(mort_pre_Wtr20, total_morts) %>%
     do.call(rbind, .)
   mort_preSmr21_n <- lapply(mort_pre_Smr21, total_morts) %>%
     do.call(rbind, .)
@@ -116,12 +122,15 @@
     
     return(km2_morts)
   }
-  mort_preSmr20 <- morts_per_area(mort_pre_Smr20_n, gmu_area = eoe_area) 
-  mort_preSmr21 <- morts_per_area(mort_pre_Smr21_n, gmu_area = eoe_area) 
+  mort_preSmr20 <- morts_per_area(mort_preSmr20_n, gmu_area = eoe_area) 
+  mort_preWtr20 <- morts_per_area(mort_preWtr20_n, gmu_area = eoe_area)
+  mort_preSmr21 <- morts_per_area(mort_preSmr21_n, gmu_area = eoe_area) 
   
   #'  Save
   # save(mort_preSmr20, file = "./Data/IDFG BGMR data/mort_preSmr20.RData")
   # write.csv(mort_preSmr20, "./Data/IDFG BGMR data/mort_preSmr20.csv")
+  # save(mort_preWtr20, file = "./Data/IDFG BGMR data/mort_preWtr20.RData")
+  # write.csv(mort_preWtr20, "./Data/IDFG BGMR data/mort_preWtr20.csv")
   # save(mort_preSmr21, file = "./Data/IDFG BGMR data/mort_preSmr21.RData")
   # write.csv(mort_preSmr21, "./Data/IDFG BGMR data/mort_preSmr21.csv")
   
