@@ -1,6 +1,6 @@
   #'  ---------------------------------
   #'  Cleaning raw detection data
-  #'  ICFWRU PredXPred Project
+  #'  ID CRU - Predator Interactions
   #'  Sarah B. Bassing
   #'  September 2022
   #'  ---------------------------------
@@ -276,9 +276,16 @@
   #'  EOE Winter 2020-2021
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
-  eoe20w_allM <- set_tzone(eoe20w_allM)
-  eoe20w_allT <- set_tzone(eoe20w_allT)
-  
+  eoe20w_allM <- set_tzone(eoe20w_allM) #%>%
+    #' #'  Remove images taken prior to official camera deployment date on 2021-03-14
+    #' mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
+    #' filter(NewLocationID != "GMU10A_P_26" | Date <= "2021-03-14") %>% # 3/31?
+    #' filter(NewLocationID != "GMU6_P_46" | Date <= "2021-03-14") %>% # 6/16?
+    #' filter(NewLocationID != "GMU6_U_46" | Date <= "2021-03-14") %>%
+    #' filter(NewLocationID != "GMU6_U_56" | Date <= "2021-03-14")
+  eoe20w_allT <- set_tzone(eoe20w_allT) #%>%
+    #mutate(Date = as.Date(Date, format = "%d-%b-%Y"))
+ 
   #'  EOE Summer 2021
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
@@ -888,7 +895,7 @@
   eoe_prob_dates_20w <- prob_days(eoe_1hr_20w) %>%
     arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop these observation - same camera labeled w/ 2 problems on same day
-    filter(NewLocationID != "GMU10A_U_23" | OpState != "completely obscured") %>%
+    # filter(NewLocationID != "GMU10A_U_23" | OpState != "completely obscured") %>% # KEEP if ntime = 72
     filter(NewLocationID != "GMU6_P_34" | OpState != "nightbad__dayok" | Date != "2020-12-15") %>%
     filter(NewLocationID != "GMU6_P_92" | OpState != "nightbad__dayok") %>%
     filter(NewLocationID != "GMU6_P_67" | OpState != "completely obscured" | Date != "2020-11-01") %>%
@@ -967,7 +974,7 @@
            ndays = ifelse(ndays == 0, 1, ndays)) %>%
     ungroup()
 
-  #'  EoE Winter 2020-2021 problems
+  #'  EoE Winter 2020-2021 problems   
   #'  -----------------------------
   #'  Merge gap and OpState problems
   eoe_problems_20w <- rbind(eoe_gap_dates_20w, eoe_prob_dates_20w) %>%
@@ -1124,6 +1131,9 @@
   #'  Extract dates of first and last images taken by camera per season
   start_stop_dates <- function(dat) {
     startend <- dat %>%
+      #'  Drop the few images where date-time data are NA - undercuts the retrieval
+      #'  date otherwise
+      filter(!is.na(posix_date_time)) %>%
       #'  Group by each camera site
       group_by(NewLocationID) %>%
       #'  Arrange by date and time
@@ -1153,14 +1163,14 @@
   eoe_probcams_20s <- start_stop_dates(eoe20s_allT) %>%
     arrange(NewLocationID) %>% 
     full_join(eoe_wide_probs_20s, by = "NewLocationID")
-  eoe_probcams_20w <- start_stop_dates(eoe20w_allT) %>%
+  eoe_probcams_20w <- start_stop_dates(eoe20w_allT) %>%  
     arrange(NewLocationID) %>% 
     full_join(eoe_wide_probs_20w, by = "NewLocationID")
   eoe_probcams_21s <- start_stop_dates(eoe21s_allT) %>%
     arrange(NewLocationID) %>% 
     full_join(eoe_wide_probs_21s, by = "NewLocationID")
-  
-  
+
+
   #'  Wolf Cameras
   #'  ------------
   #'  Reduce setup and retrieval dates to a single date range for wolf data
@@ -1204,19 +1214,7 @@
     full_join(wolf_wide_probs_21s, by = "NewLocationID") %>%
     #'  Remove unnamed camera with no coordinate information
     filter(NewLocationID != "GMUNA_NA")
-  
-  #' #'  Using both motion & time trigger data sets for wolf cameras b/c not all 
-  #' #'  cameras were taking both types of images  
-  #' wolf_probcams_19s <- lapply(wolf19s_all, start_stop_dates) %>% 
-  #'   do.call(rbind.data.frame, .) %>%
-  #'   arrange(NewLocationID) 
-  #' wolf_probcams_20s <- lapply(wolf20s_all, start_stop_dates) %>% 
-  #'   do.call(rbind.data.frame, .) %>%
-  #'   arrange(NewLocationID) 
-  #' wolf_probcams_21s <- lapply(wolf21s_all, start_stop_dates) %>% 
-  #'   do.call(rbind.data.frame, .) %>%
-  #'   arrange(NewLocationID) 
-  
+
     
   #'  Save dates of first/last image and problem dates for all cameras
   save(eoe_probcams_20s, file = "./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
