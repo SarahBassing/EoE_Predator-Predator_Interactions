@@ -27,9 +27,13 @@
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
   
+  load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
+  
   #'  Detection data (motion trigger observations only)
   load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
+  
+  load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   
   #'  Filter detection data to focal species and time period of interest
   detections <- function(dets, start_date, end_date) {
@@ -50,6 +54,8 @@
   }
   eoe20s_dets <- detections(eoe20s_allM, start_date = "2020-07-01", end_date = "2020-09-15")
   eoe21s_dets <- detections(eoe21s_allM, start_date = "2021-07-01", end_date = "2021-09-15")
+  
+  eoe20w_dets <- detections(eoe20s_allM, start_date = "2020-12-01", end_date = "2021-02-15")
   
   
   #'  ----------------------------------------
@@ -77,9 +83,13 @@
   eoe20s_det_events <- unique_detections(eoe20s_dets, elapsed_time = 300)
   eoe21s_det_events <- unique_detections(eoe21s_dets, elapsed_time = 300)
   
+  eoe20w_det_events <- unique_detections(eoe20w_dets, elapsed_time = 300)
+  
   #'  Save for making summary tables
   save(eoe20s_det_events, file = "./Data/Detection_Histories/eoe20s_det_events.RData")
   save(eoe21s_det_events, file = "./Data/Detection_Histories/eoe21s_det_events.RData")
+  
+  save(eoe20w_det_events, file = "./Data/Detection_Histories/eoe20w_det_events.RData")
   
   
   #'  --------------------------
@@ -113,6 +123,8 @@
   eoe20s_probs <- camera_operation_tbl(eoe_probcams_20s) 
   eoe21s_probs <- camera_operation_tbl(eoe_probcams_21s)
   
+  eoe20w_probs <- camera_operation_tbl(eoe_probcams_20w) 
+  
   
   #'  Make sure two data streams match up
   #'  OK to have cameras in camera setup data that aren't ind detection data but 
@@ -131,6 +143,8 @@
   eoe20s_match_cams <- match_datsets(det_events = eoe20s_det_events, stations = eoe20s_probs)
   eoe21s_match_cams <- match_datsets(det_events = eoe21s_det_events, stations = eoe21s_probs)
 
+  eoe20w_match_cams <- match_datsets(det_events = eoe20w_det_events, stations = eoe20w_probs)
+  
   
   #'  -----------------------
   ####  Detection Histories  ####
