@@ -7,16 +7,17 @@
   #'  Script to create unmarked dataframes and format covariate data for multi-
   #'  species occupancy models with EoE data. Focusing on black bear, bobcat,
   #'  coyote, mountain lion, and wolf interactions. Cameras ran summer 2020, winter
-  #'  2020-2021, and winter 2021. Co-occurrence models test whether predator
+  #'  2020-2021, and summer 2021. Co-occurrence models test whether predator
   #'  co-occurrence is non-independent and whether their occurrence, co-occurrence,
   #'  and detection are influenced by other variables of interest.
   #'  
-  #'  Summer primary period is considered July 1 - Spet. 15, equating to 11 1-wk 
+  #'  Summer primary period is considered July 1 - Sept 15, equating to 11 1-wk 
   #'  sampling periods. 
-  #'  Winter primary period is considered ....
+  #'  Winter primary period is considered Dec 1 - Feb 1, equating to 9 1-wk sampling periods
   #'   
   #'  
   #'  Encounter histories are generated with the Detection_histories_for_occmod.R
+  #'  Covariate data were extracted and formatted with Covariate_Extract.R
   #'  --------------------------------------------
   
   #'  Load libraries
