@@ -4,7 +4,13 @@
   #'  Sarah Bassing
   #'  December 2022
   #'  --------------------------------------
-  #'  Read in spatial data and extract covariate values at camera locations
+  #'  Read in spatial data and extract covariate values at camera locations.
+  #'  
+  #'  Requires:
+  #'  Problem camera data frames from Detection_data_cleaning.R
+  #'  Wolf detection and minimum group count data from Detection_histories_for_occmod.R
+  #'  Reported mortality data from Covariates_NLCD_manipulations.R
+  #'  And spatial layers
   #'  --------------------------------------
   
   #'  Load libraries
@@ -43,10 +49,8 @@
   #'  ---------------
   #'  Load camera location data and format
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
+  load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
-  #' #'  Fix a couple of capitalization issues in the GMU part of NewLocationID
-  #' eoe_probcams_21s <- eoe_probcams_21s %>%
-  #'   mutate(NewLocationID = toupper(NewLocationID))
   
   #'  Make camera location data spatial sf objects
   spatial_locs <- function(locs, proj) {
@@ -58,6 +62,7 @@
     return(sf_locs)
   }
   cams_aea_eoe20s <- spatial_locs(eoe_probcams_20s, proj = aea)
+  cams_aea_eoe20w <- spatial_locs(eoe_probcams_20w, proj = aea)
   cams_aea_eoe21s <- spatial_locs(eoe_probcams_21s, proj = aea)
   
   #'  Double check these are plotting correctly
@@ -73,11 +78,15 @@
   load("./Data/Wolf count data/count_eoe20s_wolf.RData")
   load("./Data/Wolf count data/min_group_size_eoe20s.RData") 
   
+  load("./Data/Wolf count data/count_eoe20w_wolf.RData")
+  load("./Data/Wolf count data/min_group_size_eoe20w.RData") 
+  
   load("./Data/Wolf count data/count_eoe21s_wolf.RData")
   load("./Data/Wolf count data/min_group_size_eoe21s.RData")
   
   #'  Mortality data provided by IDFG
   load("./Data/IDFG BGMR data/mort_preSmr20.RData")
+  load("./Data/IDFG BGMR data/mort_preWtr20.RData")
   load("./Data/IDFG BGMR data/mort_preSmr21.RData")
   
   reformat_mort_dat <- function(mort) {
@@ -103,6 +112,8 @@
     return(mort_df)
   }
   mort_Smr20_df <- reformat_mort_dat(mort_preSmr20) %>%
+    filter(GMU != "GMU1")
+  mort_Wtr20_df <- reformat_mort_dat(mort_preWtr20) %>%
     filter(GMU != "GMU1")
   mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
   
@@ -132,12 +143,16 @@
      return(covs)
   }
   eoe_covs_20s <- cov_extract(cams_aea_eoe20s, min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df)
+  eoe_covs_20w <- cov_extract(cams_aea_eoe20w, min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df)
   eoe_covs_21s <- cov_extract(cams_aea_eoe21s, min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df)
   
   
   #'  Save
   write.csv(eoe_covs_20s, file = "./Data/Covariates_EoE_Smr20.csv")
   save(eoe_covs_20s, file = "./Data/Covariates_EoE_Smr20.RData")
+  
+  write.csv(eoe_covs_20w, file = "./Data/Covariates_EoE_Wtr20.csv")
+  save(eoe_covs_20w, file = "./Data/Covariates_EoE_Wtr20.RData")
   
   write.csv(eoe_covs_21s, file = "./Data/Covariates_EoE_Smr21.csv")
   save(eoe_covs_21s, file = "./Data/Covariates_EoE_Smr21.RData")
