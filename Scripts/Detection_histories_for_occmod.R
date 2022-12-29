@@ -25,42 +25,43 @@
   #'  ----------------
   #'  Problem cameras
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
-  load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
-  
   load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
+  load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
   
   #'  Detection data (motion trigger observations only)
   load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
   
-  load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
-  
+    
+  #'  ------------------------
+  ###  Filter detection data  ####
+  #'  ------------------------
   #'  Filter detection data to focal species and time period of interest
+  #'  Time periods of interest determined by IDFG and plotting histograms of when 
+  #'  most cameras were active each season (Detection_data_cleaning.R script)
   detections <- function(dets, start_date, end_date) {
     dets <- dets %>%
       dplyr::select("NewLocationID", "CamID", "Date", "Time", "posix_date_time", "TriggerMode",
                     "OpState", "Species", "Count") %>%
-      # filter(Species == "bear_black" | Species == "bear_grizzly" | Species == "bobcat" | 
-      #          Species == "coyote" | Species == "mountain_lion" | Species == "wolf") %>%
       mutate(
         Date = as.Date(Date, format = "%d-%b-%Y"),
         Time = chron(times = Time)
       ) %>%
-      #'  Filter to images between July 1 and Sept 15
+      #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
       #'  Remove observations that can't be linked to a camera with coordinates
       filter(!is.na(NewLocationID))
     return(dets)
   }
   eoe20s_dets <- detections(eoe20s_allM, start_date = "2020-07-01", end_date = "2020-09-15")
+  eoe20w_dets <- detections(eoe20w_allM, start_date = "2020-12-01", end_date = "2021-02-01")
   eoe21s_dets <- detections(eoe21s_allM, start_date = "2021-07-01", end_date = "2021-09-15")
+
   
-  eoe20w_dets <- detections(eoe20s_allM, start_date = "2020-12-01", end_date = "2021-02-15")
-  
-  
-  #'  ----------------------------------------
-  ####  Extract independent detection events  ####
-  #'  ----------------------------------------
+  #'  -----------------------------------------
+  ####  Generate independent detection events  ####
+  #'  -----------------------------------------
   #'  Create a column grouping images into "independent" detection events based 
   #'  on defined amount of time that must elapse between images of the same species 
   #'  at the same camera site. Filter to the first image of each event and then
@@ -70,6 +71,8 @@
   unique_detections <- function(dets, elapsed_time) {
     det_events <- dets %>%
       arrange(NewLocationID, posix_date_time) %>%
+      #'  Flag images of same species at same camera as being a different detection event
+      #'  when time since last image of that species is greater than defined time interval
       group_by(NewLocationID, Species) %>%
       mutate(det_events = cumsum(c(1, diff(posix_date_time) > elapsed_time))) %>% # units in seconds! 
       ungroup() %>%
@@ -81,15 +84,13 @@
     return(det_events)
   }
   eoe20s_det_events <- unique_detections(eoe20s_dets, elapsed_time = 300)
-  eoe21s_det_events <- unique_detections(eoe21s_dets, elapsed_time = 300)
-  
   eoe20w_det_events <- unique_detections(eoe20w_dets, elapsed_time = 300)
-  
+  eoe21s_det_events <- unique_detections(eoe21s_dets, elapsed_time = 300)
+    
   #'  Save for making summary tables
   save(eoe20s_det_events, file = "./Data/Detection_Histories/eoe20s_det_events.RData")
-  save(eoe21s_det_events, file = "./Data/Detection_Histories/eoe21s_det_events.RData")
-  
   save(eoe20w_det_events, file = "./Data/Detection_Histories/eoe20w_det_events.RData")
+  save(eoe21s_det_events, file = "./Data/Detection_Histories/eoe21s_det_events.RData")
   
   
   #'  --------------------------
@@ -117,17 +118,14 @@
                                      dateFormat = "%Y-%m-%d", 
                                      writecsv = FALSE) 
     
-    # probs <- as.data.frame(camop_problem)
     return(camop_problem)
   }
   eoe20s_probs <- camera_operation_tbl(eoe_probcams_20s) 
+  eoe20w_probs <- camera_operation_tbl(eoe_probcams_20w) 
   eoe21s_probs <- camera_operation_tbl(eoe_probcams_21s)
   
-  eoe20w_probs <- camera_operation_tbl(eoe_probcams_20w) 
-  
-  
   #'  Make sure two data streams match up
-  #'  OK to have cameras in camera setup data that aren't ind detection data but 
+  #'  OK to have cameras in camera setup data that aren't in detection data but 
   #'  can't have cameras in detection data that aren't in camera operation table
   match_datsets <- function(det_events, stations) {
     det_cams <- as.data.frame(unique(det_events$NewLocationID))
@@ -141,10 +139,9 @@
   } 
   #'  NAs in Source1 column are OK, NAs in Source2 column are a problem
   eoe20s_match_cams <- match_datsets(det_events = eoe20s_det_events, stations = eoe20s_probs)
+  eoe20w_match_cams <- match_datsets(det_events = eoe20w_det_events, stations = eoe20w_probs)
   eoe21s_match_cams <- match_datsets(det_events = eoe21s_det_events, stations = eoe21s_probs)
 
-  eoe20w_match_cams <- match_datsets(det_events = eoe20w_det_events, stations = eoe20w_probs)
-  
   
   #'  -----------------------
   ####  Detection Histories  ####
@@ -170,7 +167,8 @@
   #'  -unmarkedMultFrameInput: create input for multi-season occmod in unmarked
   #'   ONLY use if running multi-season models & need to add more info to camop
   #'   
-  #'   FYI: July 1 - Sept 15, 2021 = 11 1-wk sampling periods
+  #'   FYI: July 1 - Sept 15 = 11 1-wk sampling periods
+  #'        Dec 1 - Feb 1 = 9 1-wk sampling periods
 
   DH <- function(dets, cam_probs, spp, start_date, y, rm_rows, oc) {
     det_hist <- detectionHistory(recordTable = dets,
@@ -200,29 +198,34 @@
     short_dh <- short_dh[-rm_rows,]
     short_effort <- short_effort[-rm_rows,]
     
-    # short_dh <- short_dh[-c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682),]
-    # short_effort <- short_effort[-c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682),]
-    
     dh_list <- list(short_dh, short_effort)
     
     return(dh_list)
   }
-  #'  Create species and season-specific detection histories
-  spp <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf")
-  rm_rows_eoe20s <- c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 346, 361, 371, 379, 380, 385, 433, 437, 439, 458, 493)
-  DH_eoe20s_predators <- lapply(spp, DH, dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-07-01", y = "binary", rm_rows = rm_rows_eoe20s, oc = 11) 
+  #'  Create season-specific detection histories for species listed below
+  spp_smr <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf")
+  spp_wtr <- list("bobcat", "coyote", "mountain_lion", "wolf")
+  
+  rm_rows_eoe20s <- c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 334, 346, 361, 371, 379, 380, 385, 433, 437, 439, 458, 493)
+  DH_eoe20s_predators <- lapply(spp_smr, DH, dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-07-01", y = "binary", rm_rows = rm_rows_eoe20s, oc = 11) 
   # save(DH_eoe20s_predators, file = "./Data/Detection_Histories/DH_eoe20s_predators.RData")
   
-  rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
-  DH_eoe21s_predators <- lapply(spp, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_eoe21s, oc = 11)
+  rm_rows_eoe20w <- c(7, 16, 32, 43, 123, 138, 195, 215, 227, 242, 252, 268) 
+  DH_eoe20w_predators <- lapply(spp_wtr, DH, dets = eoe20w_det_events, cam_probs = eoe20w_probs, start_date = "2020-12-01", y = "binary", rm_rows = rm_rows_eoe20w, oc = 9) 
+  # save(DH_eoe20w_predators, file = "./Data/Detection_Histories/DH_eoe20w_predators.RData")
+  
+  rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 147, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
+  DH_eoe21s_predators <- lapply(spp_smr, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_eoe21s, oc = 11)
   # save(DH_eoe21s_predators, file = "./Data/Detection_Histories/DH_eoe21s_predators.RData")
   
-  
+
   #'  Count number of wolf detections per sampling occasion
   count_eoe20s_wolf <- DH(spp = "wolf", dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-07-01", y = "count", rm_rows = rm_rows_eoe20s,oc = 11)  
+  count_eoe20w_wolf <- DH(spp = "wolf", dets = eoe20w_det_events, cam_probs = eoe20w_probs, start_date = "2020-12-01", y = "count", rm_rows = rm_rows_eoe20w,oc = 9)  
   count_eoe21s_wolf <- DH(spp = "wolf", dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "count", rm_rows = rm_rows_eoe21s, oc = 11)
   
   # save(count_eoe20s_wolf, file = "./Data/Wolf count data/count_eoe20s_wolf.RData")
+  # save(count_eoe20w_wolf, file = "./Data/Wolf count data/count_eoe20w_wolf.RData")
   # save(count_eoe21s_wolf, file = "./Data/Wolf count data/count_eoe21s_wolf.RData")
   
   
@@ -261,10 +264,12 @@
     return(min_group_size)
   }
   min_group_size_eoe20s <- avg_min_group_size(eoe20s_dets, stations = eoe_probcams_20s, elapsed_time = 300)
+  min_group_size_eoe20w <- avg_min_group_size(eoe20w_dets, stations = eoe_probcams_20w, elapsed_time = 300)
   min_group_size_eoe21s <- avg_min_group_size(eoe21s_dets, stations = eoe_probcams_21s, elapsed_time = 300)
   
   #'  Save
   # save(min_group_size_eoe20s, file = "./Data/Wolf count data/min_group_size_eoe20s.RData")
+  # save(min_group_size_eoe20w, file = "./Data/Wolf count data/min_group_size_eoe20w.RData")
   # save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
   
   
