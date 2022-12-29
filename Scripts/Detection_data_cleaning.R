@@ -276,15 +276,8 @@
   #'  EOE Winter 2020-2021
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
-  eoe20w_allM <- set_tzone(eoe20w_allM) #%>%
-    #' #'  Remove images taken prior to official camera deployment date on 2021-03-14
-    #' mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
-    #' filter(NewLocationID != "GMU10A_P_26" | Date <= "2021-03-14") %>% # 3/31?
-    #' filter(NewLocationID != "GMU6_P_46" | Date <= "2021-03-14") %>% # 6/16?
-    #' filter(NewLocationID != "GMU6_U_46" | Date <= "2021-03-14") %>%
-    #' filter(NewLocationID != "GMU6_U_56" | Date <= "2021-03-14")
-  eoe20w_allT <- set_tzone(eoe20w_allT) #%>%
-    #mutate(Date = as.Date(Date, format = "%d-%b-%Y"))
+  eoe20w_allM <- set_tzone(eoe20w_allM)  
+  eoe20w_allT <- set_tzone(eoe20w_allT) 
  
   #'  EOE Summer 2021
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
@@ -294,8 +287,8 @@
     filter(Date != "29-Sep-2020") %>%
     #'  Add dummy Setup column because missing for some reason
     mutate(Setup = "U or P") %>%
-    relocate(Setup, .after = "NewLocationID")
-  eoe21s_allT <- set_tzone(eoe21s_allT)
+    relocate(Setup, .after = "NewLocationID") %>% mutate(NewLocationID = toupper(NewLocationID))
+  eoe21s_allT <- set_tzone(eoe21s_allT) %>% mutate(NewLocationID = toupper(NewLocationID))
   
   #'  Wolf Summer 2019
   load("./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
