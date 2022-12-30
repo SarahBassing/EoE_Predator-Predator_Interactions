@@ -159,8 +159,23 @@
     arrange(Species, Season)
   
   #'  Save tables
-  write.csv(indi_definition_tbl, "./Outputs/Tables/Independence_definition_ndets.csv")
+  # write.csv(indi_definition_tbl, "./Outputs/Tables/Independence_definition_ndets.csv")
   
+  
+  
+  #'  Temporal autocorrelation
+  bear <- eoe20s_allM[eoe20s_allM$Species == "bear_black",]
+  tst <- bear %>%
+    dplyr::select(c(NewLocationID, posix_date_time)) %>%
+    group_by(NewLocationID) %>%
+    acf(posix_date_time, lag.max = 1, plot = FALSE) %>%
+    ungroup()
+  
+  library(timetk)
+  tst <- bear %>%
+    group_by(NewLocationID) %>%
+    nest() %>% 
+    mutate(data = map(data, ~acf(posix_date_time, lag.max=1, type="correlation", plot=F)))
   
   
   
