@@ -88,9 +88,9 @@
   eoe21s_det_events <- unique_detections(eoe21s_dets, elapsed_time = 300)
     
   #'  Save for making summary tables
-  save(eoe20s_det_events, file = "./Data/Detection_Histories/eoe20s_det_events.RData")
-  save(eoe20w_det_events, file = "./Data/Detection_Histories/eoe20w_det_events.RData")
-  save(eoe21s_det_events, file = "./Data/Detection_Histories/eoe21s_det_events.RData")
+  save(eoe20s_det_events, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe20s_det_events.RData")
+  save(eoe20w_det_events, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe20w_det_events.RData")
+  save(eoe21s_det_events, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe21s_det_events.RData")
   
   
   #'  --------------------------
@@ -187,7 +187,7 @@
                                  includeEffort = TRUE,
                                  scaleEffort = FALSE,
                                  # writecsv = TRUE,
-                                 outDir = "./Data/Detection_Histories")
+                                 outDir = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories")
     
     #'  Reduce detection histories to sampling occasions of interest (drop extra
     #'  occasions after focal period of interest)
@@ -208,15 +208,15 @@
   
   rm_rows_eoe20s <- c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 334, 346, 361, 371, 379, 380, 385, 433, 437, 439, 458, 493)
   DH_eoe20s_predators <- lapply(spp_smr, DH, dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-07-01", y = "binary", rm_rows = rm_rows_eoe20s, oc = 11) 
-  # save(DH_eoe20s_predators, file = "./Data/Detection_Histories/DH_eoe20s_predators.RData")
+  # save(DH_eoe20s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
   
   rm_rows_eoe20w <- c(7, 16, 32, 43, 123, 138, 195, 215, 227, 242, 252, 268) 
   DH_eoe20w_predators <- lapply(spp_wtr, DH, dets = eoe20w_det_events, cam_probs = eoe20w_probs, start_date = "2020-12-01", y = "binary", rm_rows = rm_rows_eoe20w, oc = 9) 
-  # save(DH_eoe20w_predators, file = "./Data/Detection_Histories/DH_eoe20w_predators.RData")
+  # save(DH_eoe20w_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20w_predators.RData")
   
   rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 147, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
   DH_eoe21s_predators <- lapply(spp_smr, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_eoe21s, oc = 11)
-  # save(DH_eoe21s_predators, file = "./Data/Detection_Histories/DH_eoe21s_predators.RData")
+  # save(DH_eoe21s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
   
 
   #'  Count number of wolf detections per sampling occasion
