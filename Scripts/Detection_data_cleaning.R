@@ -58,10 +58,10 @@
   #' load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf_time_skinny.RData")
   #' 
-  #' #'  Add camera setup info (P/U/O/A) and consistent naming structure to match 
-  #' #'  camera location data
-  #' #'  EoE cameras
-  #' eoe_deploy_info <- function(dets, season, pred) { 
+  #'  Add camera setup info (P/U/O/A) and consistent naming structure to match
+  #'  camera location data
+  #'  EoE cameras
+  #' eoe_deploy_info <- function(dets, season, pred) {
   #'   #'  Filter to specific season and predator setup cameras
   #'   sub_cams <- cams_eoe_long %>%
   #'     filter(Season == season) %>%
@@ -118,7 +118,8 @@
   #' eoe20w_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
   #' eoe21s_allM <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator")
   #' eoe21s_allM <- mutate(eoe21s_allM, NewLocationID = LocationID) %>%
-  #'   relocate(NewLocationID, .after = LocationID)
+  #'   relocate(NewLocationID, .after = LocationID) %>%
+  #'   mutate(NewLocationID = toupper(NewLocationID))
   #' save(eoe20s_allM, file = "./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
   #' save(eoe20w_allM, file = "./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   #' save(eoe21s_allM, file = "./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
@@ -135,7 +136,8 @@
   #' eoe20w_allT <- eoe_deploy_info(season = "Wtr20", dets = eoe20w_allT, pred = "predator")
   #' eoe21s_allT <- eoe_deploy_info(season = "Smr21", dets = eoe21s_allT, pred = "predator")
   #' eoe21s_allT <- mutate(eoe21s_allT, NewLocationID = LocationID) %>%
-  #'   relocate(NewLocationID, .after = LocationID)
+  #'   relocate(NewLocationID, .after = LocationID) %>%
+  #'   mutate(NewLocationID = toupper(NewLocationID))
   #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
   #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
   #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
@@ -287,8 +289,11 @@
     filter(Date != "29-Sep-2020") %>%
     #'  Add dummy Setup column because missing for some reason
     mutate(Setup = "U or P") %>%
-    relocate(Setup, .after = "NewLocationID") %>% mutate(NewLocationID = toupper(NewLocationID))
-  eoe21s_allT <- set_tzone(eoe21s_allT) %>% mutate(NewLocationID = toupper(NewLocationID))
+    relocate(Setup, .after = "NewLocationID") #%>% mutate(NewLocationID = toupper(NewLocationID))
+  eoe21s_allT <- set_tzone(eoe21s_allT) %>%
+    #'  Add dummy Setup column because missing for some reason
+    mutate(Setup = "U or P") %>%
+    relocate(Setup, .after = "NewLocationID") #%>% mutate(NewLocationID = toupper(NewLocationID))
   
   #'  Wolf Summer 2019
   load("./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
@@ -959,7 +964,7 @@
              NewLocationID != "GMU6_U_27" & NewLocationID != "GMU6_U_29" & 
              NewLocationID != "GMU6_U_99") %>%
     rbind(GMU10A_U_32, GMU10A_U_103, GMU6_U_27, GMU6_U_29, GMU6_U_99) %>%
-    arrange(NewLocationID, Date)
+    arrange(NewLocationID, Date) %>%
     #'  Recalculate number of days per Gap or OpState problem
     group_by(NewLocationID, Burst) %>%
     mutate(ndays = as.numeric(difftime(Date, lag(Date), units = "days")),
