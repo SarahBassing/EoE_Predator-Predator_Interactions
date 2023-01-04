@@ -33,9 +33,8 @@
   #'  Load camera station and covariate data
   cams_eoe_long <- read.csv("./Data/IDFG camera data/cams_eoe_long.csv") %>%
     dplyr::select(c("NewLocationID", "Gmu", "Setup", "Target", "Season", "CameraHeight_M", "CameraFacing")) %>%
-    filter(NewLocationID != "GMU6_U_160" | CameraHeight_M != 1.2) #' Remove duplicate camera where height changed slightly in Smr20
+    filter(NewLocationID != "GMU6_U_160" | Season != "Smr20" | CameraHeight_M != 1.2) #' Remove duplicate camera where height changed slightly in Smr20
 
-  
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
@@ -57,7 +56,7 @@
   }
   cams_eoe20s <- format_cam_station(eoe_probcams_20s, season = "Smr20")
   cams_eoe20w <- format_cam_station(eoe_probcams_20w, season = "Wtr20")
-  cams_eoe21s <- format_cam_station(eoe_probcams_21s, season = "Smr21") #GMU6_U_160 missing setup target data
+  cams_eoe21s <- format_cam_station(eoe_probcams_21s, season = "Smr21") 
 
   
   #'  Load extracted covariate data
