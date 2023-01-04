@@ -4,7 +4,7 @@
   #'  ID CRU - Predator Interactions
   #'  Dec. 2020
   #'  ---------------------------------
-  #'  Explor the duratin of time used to define a unique detection event. How much
+  #'  Explore the duration of time used to define a unique detection event. How much
   #'  does it change the number of detections for a given species?
   #'  ---------------------------------
     
