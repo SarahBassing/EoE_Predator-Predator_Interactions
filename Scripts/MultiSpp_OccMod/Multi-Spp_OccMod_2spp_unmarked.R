@@ -29,7 +29,7 @@
   library(tidyverse)
   
   #'  Source script that formats detection and covariate data for unmarked
-  source("./Scripts/Format_data_2spp_occmod_unmarked.R")
+  source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_unmarked.R")
   
   
   ####  Multi-Species Occupancy models  ####
@@ -116,7 +116,7 @@
   summary(bbl_habgroup)
   
   
-  ####  COY-LION-WOLF UMF  ####
+  ####  COY-LION  ####
   (cl_trail <- occuMulti(detFormulas_trail, occFormulas_null1, coy_lion_smr20_UMF, silent = TRUE))
   (cl_setup <- occuMulti(detFormulas_setup, occFormulas_null1, coy_lion_smr20_UMF, silent = TRUE))
   (cl_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, coy_lion_smr20_UMF, silent = TRUE))
@@ -143,7 +143,7 @@
   summary(cl_habgroup)
   
   
-  ####  BOB-LION-WOLF UMF  ####
+  ####  BOB-LION  ####
   (bl_trail <- occuMulti(detFormulas_trail, occFormulas_null1, bob_lion_smr20_UMF, silent = TRUE))
   (bl_setup <- occuMulti(detFormulas_setup, occFormulas_null1, bob_lion_smr20_UMF, silent = TRUE))
   (bl_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, bob_lion_smr20_UMF, silent = TRUE))

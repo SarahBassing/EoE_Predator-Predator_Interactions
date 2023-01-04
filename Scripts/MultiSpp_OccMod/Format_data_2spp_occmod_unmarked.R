@@ -26,9 +26,9 @@
   library(tidyverse)
   
   #'  Load detection histories
-  load("./Data/Detection_Histories/DH_eoe20s_predators.RData")
-  load("./Data/Detection_Histories/DH_eoe20w_predators.RData")
-  load("./Data/Detection_Histories/DH_eoe21s_predators.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20w_predators.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
   
   #'  Load camera station and covariate data
   cams_eoe_long <- read.csv("./Data/IDFG camera data/cams_eoe_long.csv") %>%
@@ -61,10 +61,10 @@
 
   
   #'  Load extracted covariate data
-  load("./Data/Covariates_EoE_Smr20.RData")
-  load("./Data/Covariates_EoE_Wtr20.RData")
-  load("./Data/Covariates_EoE_Smr21.RData")
-  # source("./Scripts/Covariate_Extract.R")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
+  # source("./Scripts/Data_Formatting/Covariate_Extract.R")
   
   #'  Scale and format site-level covariates
   format_covs <- function(cams, covs, rm_rows) {
