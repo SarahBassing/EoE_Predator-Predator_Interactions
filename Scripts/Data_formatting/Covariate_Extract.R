@@ -24,24 +24,38 @@
   ####  Spatial data  ####
   #'  ----------------
   #'  Load and review
-  # tree <- rast("./Shapefiles/Tree Cover/TreeCanopy_Idaho.tif")
   pforest <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForeest_500m.tif")
   nlcd <- rast("./Shapefiles/National Land Cover Database (NCLD)/NLCD19_Idaho.tif")
-  id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp") 
-  
+  id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp")
+  #'  IDFG Geodatabase with roads
+  idfg_gdb <- "./Shapefiles/IDFG spatial data/IDFG Geodatabase.gdb"
+  st_layers(idfg_gdb)
+  rds <- sf::st_read(dsn = idfg_gdb, layer = "Road_OpenStreetMap")
+  elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
+  habclass <- rast("./Shapefiles/IDFG spatial data/HabLayer_30m2.tif")
+
+  #'  Take a closer look  
   crs(pforest, describe = TRUE, proj = TRUE)
   crs(nlcd, describe = TRUE, proj = TRUE)
+  crs(elev, describe = TRUE, proj = TRUE)
+  crs(habclass, describe = TRUE, proj = TRUE)
   # projection(id)
+  projection(rds)
   
   res(pforest)
   res(nlcd)
+  res(elev)
+  res(habclass)
   
   #'  Define projections to use when reprojecting camera locations
   wgs84 <- crs("+proj=longlat +datum=WGS84 +no_defs")
   (aea <- crs(nlcd, proj = TRUE))
+  (nad83 <- crs(elev, proj = TRUE))
+  (hab_crs <- crs(habclass, proj = TRUE))
   
   #'  Reproject shapefiles
   id_aea <- st_transform(id, aea)
+  rds_aes <- st_transform(rds, aea)
 
   
   #'  ---------------
@@ -52,6 +66,9 @@
   load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
   
+  #'  List camera locations
+  cams_list <- list(eoe_probcams_20s, eoe_probcams_20w, eoe_probcams_21s)
+  
   #'  Make camera location data spatial sf objects
   spatial_locs <- function(locs, proj) {
     sf_locs <- st_as_sf(locs, coords = c("Long", "Lat"), crs = wgs84) %>%
@@ -61,14 +78,18 @@
     # print(projection(sf_locs))
     return(sf_locs)
   }
-  cams_aea_eoe20s <- spatial_locs(eoe_probcams_20s, proj = aea)
-  cams_aea_eoe20w <- spatial_locs(eoe_probcams_20w, proj = aea)
-  cams_aea_eoe21s <- spatial_locs(eoe_probcams_21s, proj = aea)
+  cams_wgs84 <- lapply(cams_list, spatial_locs, proj = wgs84)
+  cams_aea <- lapply(cams_list, spatial_locs, proj = aea)
+  cams_nad83 <- lapply(cams_list, spatial_locs, proj = nad83)
+  cams_hab_crs <- lapply(cams_list, spatial_locs, proj = hab_crs)
+  # cams_aea_eoe20s <- spatial_locs(eoe_probcams_20s, proj = aea)
+  # cams_aea_eoe20w <- spatial_locs(eoe_probcams_20w, proj = aea)
+  # cams_aea_eoe21s <- spatial_locs(eoe_probcams_21s, proj = aea)
   
   #'  Double check these are plotting correctly
   plot(pforest, main = "Camera locations over percent forested habitat, 500m radius")
   plot(id_aea[1], add = TRUE, col = NA)
-  plot(cams_aea_eoe20s, add = TRUE, col = "black", cex = 0.75)
+  plot(cams_aea[[1]], add = TRUE, col = "black", cex = 0.75)
   
   
   #'  ------------------------
@@ -120,19 +141,23 @@
   #'  ----------------------------------
   ####  COVARIATE EXTRACTION & MERGING  ####
   #'  ----------------------------------
-  cov_extract <- function(locs, min_group_size, mort) {
+  cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs, min_group_size, mort) {
     
     #'  Extract covariate data for each camera site from spatial layers
-    perc_forest <- terra::extract(pforest, vect(locs)) %>%
+    perc_forest <- terra::extract(pforest, vect(locs_aea)) %>%
       transmute(ID = ID, perc_forest = focal_sum) %>%
-      mutate(perc_forest = round(perc_forest,3))
-    landcover <- terra::extract(nlcd, vect(locs))
+      mutate(perc_forest = round(perc_forest, 3))
+    landcover <- terra::extract(nlcd, vect(locs_aea))
+    elev <- terra::extract(elev, vect(locs_nad83))
+    habitat <- terra::extract(habclass, vect(locs_hab_crs))
     
     #'  Join each extracted covariate to the unique camera location data
-    covs <- as.data.frame(locs) %>%
+    covs <- as.data.frame(locs_aea) %>%
       mutate(ID = seq(1:nrow(.))) %>%
       full_join(perc_forest, by = "ID") %>%
       full_join(landcover, by = "ID") %>%
+      full_join(elev, by = "ID") %>%
+      full_join(habitat, by = "ID") %>%
       #'  Join with additional data sets already formatted for each camera site
       full_join(min_group_size, by = "NewLocationID") %>%
       mutate(GMU = sub("_.*", "", NewLocationID)) %>%
@@ -142,9 +167,15 @@
     
      return(covs)
   }
-  eoe_covs_20s <- cov_extract(cams_aea_eoe20s, min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df)
-  eoe_covs_20w <- cov_extract(cams_aea_eoe20w, min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df)
-  eoe_covs_21s <- cov_extract(cams_aea_eoe21s, min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df)
+  eoe_covs_20s <- cov_extract(locs_aea = cams_aea[[1]], locs_nad83 = cams_nad83[[1]], locs_hab_crs = cams_hab_crs[[1]], 
+                              min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df)
+  eoe_covs_20w <- cov_extract(locs_aea = cams_aea[[2]], locs_nad83 = cams_nad83[[2]], locs_hab_crs = cams_hab_crs[[2]], 
+                              min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df)
+  eoe_covs_21s <- cov_extract(locs_aea = cams_aea[[3]], locs_nad83 = cams_nad83[[3]], locs_hab_crs = cams_hab_crs[[3]], 
+                              min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df)
+  # eoe_covs_20s <- cov_extract(cams_aea_eoe20s, min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df)
+  # eoe_covs_20w <- cov_extract(cams_aea_eoe20w, min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df)
+  # eoe_covs_21s <- cov_extract(cams_aea_eoe21s, min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df)
   
   
   #' #'  Save
