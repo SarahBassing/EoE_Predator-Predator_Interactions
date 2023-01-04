@@ -164,18 +164,53 @@
   
   
   #'  Temporal autocorrelation
-  bear <- eoe20s_allM[eoe20s_allM$Species == "bear_black",]
-  tst <- bear %>%
-    dplyr::select(c(NewLocationID, posix_date_time)) %>%
-    group_by(NewLocationID) %>%
-    acf(posix_date_time, lag.max = 1, plot = FALSE) %>%
-    ungroup()
+  bear2 <- eoe20s_dets_2min[eoe20s_dets_2min$Species == "bear_black",] %>%
+    mutate(datetime = as.Date(posix_date_time),
+           ID = as.numeric(factor(NewLocationID))) 
+  bear5 <- eoe20s_dets_5min[eoe20s_dets_5min$Species == "bear_black",] %>%
+    mutate(datetime = as.Date(posix_date_time))
+  bear10 <- eoe20s_dets_10min[eoe20s_dets_10min$Species == "bear_black",] %>%
+    mutate(datetime = as.Date(posix_date_time))
+  bear30 <- eoe20s_dets_30min[eoe20s_dets_30min$Species == "bear_black",] %>%
+    mutate(datetime = as.Date(posix_date_time))
+  bear60 <- eoe20s_dets_60min[eoe20s_dets_60min$Species == "bear_black",] %>%
+    mutate(datetime = as.Date(posix_date_time))
   
-  library(timetk)
-  tst <- bear %>%
-    group_by(NewLocationID) %>%
-    nest() %>% 
-    mutate(data = map(data, ~acf(posix_date_time, lag.max=1, type="correlation", plot=F)))
+  
+  split_tibble <- function(tibble, col = 'col') tibble %>% split(., .[, col])
+  dflist_bear2 <- split_tibble(bear2, 'NewLocationID')
+  dflist_bear5 <- split_tibble(bear5, 'NewLocationID')
+  dflist_bear10 <- split_tibble(bear10, 'NewLocationID')
+  dflist_bear30 <- split_tibble(bear30, 'NewLocationID')
+  dflist_bear60 <- split_tibble(bear60, 'NewLocationID')
+  
+  
+  acf_function <- function(dat) {
+    autocorr <- acf(dat$datetime, lag.max = 100, plot = T, ylim = c(-1, 1))
+  }
+  bear_acf_2min <- lapply(dflist_bear2, acf_function)
+  bear_acf_60min <- lapply(dflist_bear60, acf_function)
+  
+  
+  bear2a <- bear2[bear2$NewLocationID == "GMU10A_P_10",]
+  acf(bear2a$datetime, lag.max = 100)
+ 
+  ID <- bear2$ID
+  autocorr <- list()
+  for(i in 1:unique(ID)) {
+    acf(bear2$datetime[i], lag.max = 100)
+  }
+  
+ 
+  
+  
+  acf_2min <- acf(bear2$datetime, lag.max = 100)
+  acf_60min <- acf(bear60$datetime, lag.max = 100)
+  
+  
+  
+  
+  
   
   
   

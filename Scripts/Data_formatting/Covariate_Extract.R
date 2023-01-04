@@ -147,15 +147,15 @@
   eoe_covs_21s <- cov_extract(cams_aea_eoe21s, min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df)
   
   
-  #'  Save
-  write.csv(eoe_covs_20s, file = "./Data/Covariates_EoE_Smr20.csv")
-  save(eoe_covs_20s, file = "./Data/Covariates_EoE_Smr20.RData")
-  
-  write.csv(eoe_covs_20w, file = "./Data/Covariates_EoE_Wtr20.csv")
-  save(eoe_covs_20w, file = "./Data/Covariates_EoE_Wtr20.RData")
-  
-  write.csv(eoe_covs_21s, file = "./Data/Covariates_EoE_Smr21.csv")
-  save(eoe_covs_21s, file = "./Data/Covariates_EoE_Smr21.RData")
+  #' #'  Save
+  #' write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.csv")
+  #' save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
+  #' 
+  #' write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.csv")
+  #' save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
+  #' 
+  #' write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.csv")
+  #' save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
   
   
   
