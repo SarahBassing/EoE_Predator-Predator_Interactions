@@ -89,7 +89,7 @@
   occFormula_wolfmort <- c("~1", "~1", "~Wolf_mort_km2")
   
   
-  ####  Bear-Lion Smr21  ####
+  ####  Bear-Lion  ####
   (bbl_trail <- occuMulti(detFormulas_trail, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
   (bbl_setup <- occuMulti(detFormulas_setup, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
   (bbl_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
