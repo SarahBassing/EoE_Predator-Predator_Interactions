@@ -162,56 +162,94 @@
   # write.csv(indi_definition_tbl, "./Outputs/Tables/Independence_definition_ndets.csv")
   
   
+  #'  ----------------------------
+  ####  Temporal Autocorrelation  ####
+  #'  ----------------------------
+  #'  Is there temporal autocorrelation in detection data based on definition
+  #'  of "independent" detection events?
+  #'  List detection event data sets
+  det_list <- list(eoe20s_dets_2min, eoe20s_dets_5min, eoe20s_dets_10min, eoe20s_dets_30min, eoe20s_dets_60min)
   
-  #'  Temporal autocorrelation
-  bear2 <- eoe20s_dets_2min[eoe20s_dets_2min$Species == "bear_black",] %>%
-    mutate(datetime = as.Date(posix_date_time),
-           ID = as.numeric(factor(NewLocationID))) 
-  bear5 <- eoe20s_dets_5min[eoe20s_dets_5min$Species == "bear_black",] %>%
-    mutate(datetime = as.Date(posix_date_time))
-  bear10 <- eoe20s_dets_10min[eoe20s_dets_10min$Species == "bear_black",] %>%
-    mutate(datetime = as.Date(posix_date_time))
-  bear30 <- eoe20s_dets_30min[eoe20s_dets_30min$Species == "bear_black",] %>%
-    mutate(datetime = as.Date(posix_date_time))
-  bear60 <- eoe20s_dets_60min[eoe20s_dets_60min$Species == "bear_black",] %>%
-    mutate(datetime = as.Date(posix_date_time))
+  #'  Reformat POSIXct data to a numeric form (needed for acf) and filter 
+  convert_datetime <- function(dets, spp, min_obs) {
+    dets_dt <- dets %>%
+      #'  Reformat POSIXct data to a "raw" numeric form
+      mutate(datetime = unclass(posix_date_time),
+             #'  Assign each camera location a number
+             ID = as.numeric(factor(NewLocationID))) 
+    spp_dets_dt <- dets_dt %>%
+      #'  Filter to desires species
+      filter(Species == spp) 
+    nobs <- spp_dets_dt %>%
+      group_by(NewLocationID) %>%
+      summarize(nobs = n()) %>%
+      ungroup
+    spp_dets_dt <- full_join(spp_dets_dt, nobs, by = "NewLocationID") %>%
+      #'  Filter data to camera sites with very few observation (no need to worry 
+      #'  about autocorrelation at these sites)
+      filter(nobs > min_obs)
+      
+    return(spp_dets_dt)
+  }
+  bear_dets_list <- lapply(det_list, convert_datetime, spp = "bear_black", min_obs = 2)
+  bob_dets_list <- lapply(det_list, convert_datetime, spp = "bobcat", min_obs = 2)
+  coy_dets_list <- lapply(det_list, convert_datetime, spp = "coyote", min_obs = 2)
+  lion_dets_list <- lapply(det_list, convert_datetime, spp = "mountain_lion", min_obs = 2)
+  wolf_dets_list <- lapply(det_list, convert_datetime, spp = "wolf", min_obs = 2)
   
+  # elk_dets_list <- lapply(det_list, convert_datetime, spp = "elk")
+  # moose_dets_list <- lapply(det_list, convert_datetime, spp = "moose")
+  # md_dets_list <- lapply(det_list, convert_datetime, spp = "muledeer")
+  # wtd_dets_list <- lapply(det_list, convert_datetime, spp = "whitetaileddeer")
   
+  #'  Function to split dataframe into a list of dfs based on grouped data
   split_tibble <- function(tibble, col = 'col') tibble %>% split(., .[, col])
-  dflist_bear2 <- split_tibble(bear2, 'NewLocationID')
-  dflist_bear5 <- split_tibble(bear5, 'NewLocationID')
-  dflist_bear10 <- split_tibble(bear10, 'NewLocationID')
-  dflist_bear30 <- split_tibble(bear30, 'NewLocationID')
-  dflist_bear60 <- split_tibble(bear60, 'NewLocationID')
+  bear_split_list <- lapply(bear_dets_list, split_tibble, 'NewLocationID')
+  bob_split_list <- lapply(bob_dets_list, split_tibble, 'NewLocationID')
+  coy_split_list <- lapply(coy_dets_list, split_tibble, 'NewLocationID')
+  lion_split_list <- lapply(lion_dets_list, split_tibble, 'NewLocationID')
+  wolf_split_list <- lapply(wolf_dets_list, split_tibble, 'NewLocationID')
   
   
+  #'  Function to estimate and visualize temporal autocorrelation
   acf_function <- function(dat) {
-    autocorr <- acf(dat$datetime, lag.max = 100, plot = T, ylim = c(-1, 1))
+    autocorr <- acf(dat$datetime, lag.max = 100, plot = T, ylim = c(-2, 2), 
+                    main = unique(dat$NewLocationID))
   }
-  bear_acf_2min <- lapply(dflist_bear2, acf_function)
-  bear_acf_60min <- lapply(dflist_bear60, acf_function)
+  #'  Black bear
+  bear_acf_2min <- lapply(bear_split_list[[1]], acf_function)
+  bear_acf_5min <- lapply(bear_split_list[[2]], acf_function)
+  bear_acf_10min <- lapply(bear_split_list[[3]], acf_function)
+  bear_acf_30min <- lapply(bear_split_list[[4]], acf_function)
+  bear_acf_60min <- lapply(bear_split_list[[5]], acf_function)
+  #'  Bobcat
+  bob_acf_2min <- lapply(bob_split_list[[1]], acf_function)
+  bob_acf_5min <- lapply(bob_split_list[[2]], acf_function)
+  bob_acf_10min <- lapply(bob_split_list[[3]], acf_function)
+  bob_acf_30min <- lapply(bob_split_list[[4]], acf_function)
+  bob_acf_60min <- lapply(bob_split_list[[5]], acf_function)
+  #'  Coyote
+  coy_acf_2min <- lapply(coy_split_list[[1]], acf_function)
+  coy_acf_5min <- lapply(coy_split_list[[2]], acf_function)
+  coy_acf_10min <- lapply(coy_split_list[[3]], acf_function)
+  coy_acf_30min <- lapply(coy_split_list[[4]], acf_function)
+  coy_acf_60min <- lapply(coy_split_list[[5]], acf_function)
+  #'  Mountain lion
+  lion_acf_2min <- lapply(lion_split_list[[1]], acf_function)
+  lion_acf_5min <- lapply(lion_split_list[[2]], acf_function)
+  lion_acf_10min <- lapply(lion_split_list[[3]], acf_function)
+  lion_acf_30min <- lapply(lion_split_list[[4]], acf_function)
+  lion_acf_60min <- lapply(lion_split_list[[5]], acf_function)
+  #'  Wolf
+  wolf_acf_2min <- lapply(wolf_split_list[[1]], acf_function)
+  wolf_acf_5min <- lapply(wolf_split_list[[2]], acf_function)
+  wolf_acf_10min <- lapply(wolf_split_list[[3]], acf_function)
+  wolf_acf_30min <- lapply(wolf_split_list[[4]], acf_function)
+  wolf_acf_60min <- lapply(wolf_split_list[[5]], acf_function)
   
   
-  bear2a <- bear2[bear2$NewLocationID == "GMU10A_P_10",]
-  acf(bear2a$datetime, lag.max = 100)
+  
  
-  ID <- bear2$ID
-  autocorr <- list()
-  for(i in 1:unique(ID)) {
-    acf(bear2$datetime[i], lag.max = 100)
-  }
-  
- 
-  
-  
-  acf_2min <- acf(bear2$datetime, lag.max = 100)
-  acf_60min <- acf(bear60$datetime, lag.max = 100)
-  
-  
-  
-  
-  
-  
   
   
   
