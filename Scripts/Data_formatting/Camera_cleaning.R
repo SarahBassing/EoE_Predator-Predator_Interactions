@@ -169,6 +169,62 @@
   cams_s21_wolf <- mutate(cams_s21_wolf, NewLocationID = LocationID)
   cams_s21_wolf <- new_LocationID_wolf2(cams_s21_wolf)
   
+  #'  -----------------------------------------
+  ####  Fix problematic CameraHeight_M values  ####
+  #'  -----------------------------------------
+  #'  Generate average camera height for ungulate setup cams
+  avg_U_height <- dplyr::select(cams_s20_eoe, c(Setup, CameraHeight_M)) %>%
+    filter(Setup == "ungulate") %>%
+    #'  Remove suspected typo heights
+    filter(CameraHeight_M < 9) %>%
+    summarise(avg_height = mean(CameraHeight_M)) %>%
+    mutate(avg_height = round(avg_height, 2))
+  
+  #'  Generate average camera height for predator setup cams
+  avg_P_height <- dplyr::select(cams_s20_eoe, c(Setup, CameraHeight_M)) %>%
+    filter(Setup == "predator") %>%
+    #'  Remove suspected typo heights
+    filter(CameraHeight_M < 10) %>%
+    summarise(avg_height = mean(CameraHeight_M)) %>%
+    mutate(avg_height = round(avg_height, 2))
+  
+  #'  Correct suspected typo heights for Smr20 data
+  cams_s20_eoe <- cams_s20_eoe %>% 
+    #'  Replace unrealistically high cam heights with average predator or ungulate camera height
+    mutate(CameraHeight_M = ifelse(grepl("P", NewLocationID) & CameraHeight_M > 10, avg_P_height$avg_height, CameraHeight_M),
+           CameraHeight_M = ifelse(grepl("U", NewLocationID) & CameraHeight_M > 10, avg_U_height$avg_height, CameraHeight_M)) 
+  
+  #'  Correct suspected typo heights for Wtr20 data
+  cams_w20_eoe <- cams_w20_eoe %>% 
+    #'  Replace unrealistically high cam heights with average predator or ungulate camera height
+    mutate(CameraHeight_M = ifelse(grepl("P", NewLocationID) & CameraHeight_M > 10, avg_P_height$avg_height, CameraHeight_M),
+           CameraHeight_M = ifelse(grepl("U", NewLocationID) & CameraHeight_M > 10, avg_U_height$avg_height, CameraHeight_M)) 
+  
+  #'  Correct suspected typo heights for Smr21 data & fill in GMU1 NAs with avg heights
+  camheight2021 <- dplyr::select(cams_s21_eoe, c(NewLocationID, Season, CameraHeight_M)) %>%
+    #'  Replace unrealistically high cam heights with average predator or ungulate camera height
+    mutate(CameraHeight_M2 = ifelse(grepl("P", NewLocationID) & CameraHeight_M > 10, avg_P_height$avg_height, CameraHeight_M),
+           CameraHeight_M2 = ifelse(grepl("U", NewLocationID) & CameraHeight_M2 > 10, avg_U_height$avg_height, CameraHeight_M2),
+           #'  Fill in all GMU1 ungulate cameras with avg ungulate camera height
+           CameraHeight_M2 = ifelse(grepl("GMU1_U", NewLocationID) & is.na(CameraHeight_M2), avg_U_height$avg_height, CameraHeight_M2),
+           CameraHeight_M2 = ifelse(grepl("GMU1_P", NewLocationID) & is.na(CameraHeight_M2), avg_P_height$avg_height, CameraHeight_M2)) 
+  
+  #'  Fill in NAs where no data were recorded for Smr21 using Smr20 height values
+  heights20_for_21 <- cams_s20_eoe %>% dplyr::select(c(NewLocationID, Season, CameraHeight_M)) %>%
+    full_join(camheight2021, by = "NewLocationID") %>%
+    #'  If missing height measurement, fill in with Smr20 height
+    mutate(CameraHeight_M2 = ifelse(is.na(CameraHeight_M2), coalesce(CameraHeight_M2, CameraHeight_M.x), CameraHeight_M2)) %>%
+    dplyr::select(c(NewLocationID, CameraHeight_M2)) %>%
+    filter(NewLocationID != "GMU6_P_61" & NewLocationID != "GMU6_U_61") %>%
+    distinct()
+  
+  #'  Swap bad/missing CameraHeight_M data with adjusted values
+  cams_s21_eoe <- arrange(cams_s21_eoe, NewLocationID) %>%
+    full_join(heights20_for_21, by = "NewLocationID") %>%
+    relocate(CameraHeight_M2, .after = "Area_M2") %>%  ######### NOTE duplicates are introduced here for some reason!
+    dplyr::select(-CameraHeight_M) %>%
+    rename(CameraHeight_M = CameraHeight_M2)
+  
   #'  Merge all deployment data together
   eoe_cams <- rbind(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe)
   length(unique(eoe_cams$LocationID))
@@ -176,6 +232,7 @@
   wolf_cams <- rbind(cams_s19_wolf, cams_s20_wolf, cams_s21_wolf)
   length(unique(wolf_cams$LocationID))
   summary(wolf_cams)
+  
   
   ####  Explore deployment locations  ####
   #'  --------------------------------
