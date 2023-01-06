@@ -33,7 +33,7 @@
   #'  Load camera station and covariate data
   cams_eoe_long <- read.csv("./Data/IDFG camera data/cams_eoe_long.csv") %>%
     dplyr::select(c("NewLocationID", "Gmu", "Setup", "Target", "Season", "CameraHeight_M", "CameraFacing")) %>%
-    filter(NewLocationID != "GMU6_U_160" | Season != "Smr20" | CameraHeight_M != 1.2) #' Remove duplicate camera where height changed slightly in Smr20
+    filter(NewLocationID != "GMU6_U_160" | CameraHeight_M != 1.2) #' Remove duplicate camera where height changed slightly
 
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
@@ -113,7 +113,7 @@
     
     #'  Replace missing values with mean once covariates are z-transformed
     # formatted$Distance[is.na(formatted$Distance),] <- 0
-    formatted$Height[is.na(formatted$Height),] <- 0   #########THIS NEEDS TO BE FIXED! WE HAVE THE HEIGHT FOR MOST OF THESE FROM PREVIOUS YEARS
+    # formatted$Height[is.na(formatted$Height),] <- 0   
     
     return(formatted)
   }
@@ -131,8 +131,8 @@
     mutate(Lion_mort_km2 = 0)
   
   #'  Double check things are ordered correctly
-  stations_eoe20s[82:90,]
-  DH_eoe20s_predators[[1]][[1]][82:90,1:3]
+  stations_eoe21s[82:90,1:4]
+  DH_eoe21s_predators[[1]][[1]][82:90,1:3]
   
   #'  Correlation matrix to check for collinearity among continuous variables
   #'  Note: the species-specific total mortality and area-weighted mortality will 
@@ -179,98 +179,124 @@
   srvy_covs_eoe20w <- list(wolf_activity = wolf_activity_eoe20w)
   srvy_covs_eoe21s <- list(wolf_activity = wolf_activity_eoe21s)
   
+  
   #'  ---------------------------
   ####  Setup data for unmarked  ####
   #'  ---------------------------
   #'  Multi-species unmarkedDF --> unmarkedFrameOccuMulti (pg 151 of unmarked manual)
   #'  List relevant detection histories and create unmarked data frame for each 
-  #'  multi-species occupancy model. Currently running 3-species occupancy models.
+  #'  multispecies occupancy model. Currently running 2-species occupancy models.
   #'  Define maximum interaction order with maxOrder. Defaults to all possible
   #'  interactions if not defined. 
-  #'  Detection histories have to already be generated for this to work.
+  #'  Detection histories have to already be generated for this to work. 
+  #'  List order:
+  #'  Black bear [1], Bobcat [2], Coyote [3], Mountain lion [4], Wolf [5],
+  #'  Detection history [1] and sampling effort [2] listed per species
   #'  ---------------------------
+  #'  Function to create unmarked dataframes for multispecies occupancy models 
+  #'  for each pairwise combination and season
+  umf_setup <- function(dh_spp1, dh_spp2, listnames, sitecovs, srvycovs) {
+    
+    #'  List detection histories of interacting species
+    spp12_DH <- list(spp1 = dh_spp1, spp2 = dh_spp1)
+    #'  Rename lists by species
+    names(spp12_DH) <- listnames
+    
+    #'  Create array with detection histories, site-level and survey-level covariates
+    spp12_UMF <- unmarkedFrameOccuMulti(y = spp12_DH,
+                                        siteCovs = sitecovs,
+                                        obsCovs = srvycovs,
+                                        maxOrder = 2)
+    
+    #'  Plot detection histories
+    plot(spp12_UMF)
+    #'  Summarize data
+    summary(spp12_UMF)
+    
+    return(spp12_UMF)
+  }
   
-  ####  BEAR-LION UMF  ####
-  bear_lion_smr20_DH <- list(bear = DH_eoe20s_predators[[1]][[1]], lion = DH_eoe20s_predators[[4]][[1]])
-  bear_lion_smr20_UMF <- unmarkedFrameOccuMulti(y = bear_lion_smr20_DH,
-                                                siteCovs = stations_eoe20s,
-                                                obsCovs = srvy_covs_eoe20s,
-                                                maxOrder = 2)
-  #'  Visualize detection/non-detection data
-  plot(bear_lion_smr20_UMF)
-  #'  Review covariates
-  summary(bear_lion_smr20_UMF)
-  #'  Look at natural parameters f design matrix
-  bear_lion_smr20_UMF@fDesign
+  ####  WOLF UMFs  ####
+  #'  Wolf-Bear
+  wolf_bear_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[1]][[1]], 
+                                 listnames = c("wolf", "bear"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  wolf_bear_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[5]][[1]], dh_spp2 = DH_eoe21s_predators[[1]][[1]], 
+                                 listnames = c("wolf", "bear"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
   
-  bear_lion_wtr20_DH <- list(bear = DH_eoe20w_predators[[1]][[1]], lion = DH_eoe20w_predators[[4]][[1]])
-  bear_lion_wtr20_UMF <- unmarkedFrameOccuMulti(y = bear_lion_wtr20_DH,
-                                                siteCovs = stations_eoe20w,
-                                                obsCovs = srvy_covs_eoe20w,
-                                                maxOrder = 2)
-  #'  Visualize detection/non-detection data
-  plot(bear_lion_wtr20_UMF)
-  #'  Review covariates
-  summary(bear_lion_wtr20_UMF)
-  #'  Look at natural parameters f design matrix
-  bear_lion_wtr20_UMF@fDesign
+  #'  Wolf-Bobcat
+  wolf_bob_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[2]][[1]], 
+                                listnames = c("wolf", "bobcat"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  wolf_bob_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[5]][[1]], dh_spp2 = DH_eoe20w_predators[[2]][[1]], 
+                                listnames = c("wolf", "bobcat"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
+  wolf_bob_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[5]][[1]], dh_spp2 = DH_eoe21s_predators[[2]][[1]], 
+                                listnames = c("wolf", "bobcat"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
+  
+  #'  Wolf-Coyote
+  wolf_coy_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[3]][[1]], 
+                                listnames = c("wolf", "coyote"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  wolf_coy_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[5]][[1]], dh_spp2 = DH_eoe20w_predators[[3]][[1]], 
+                                listnames = c("wolf", "coyote"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
+  wolf_coy_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[5]][[1]], dh_spp2 = DH_eoe21s_predators[[3]][[1]], 
+                                listnames = c("wolf", "coyote"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
+  
+  #'  Wolf-Lion
+  wolf_lion_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[4]][[1]], 
+                                listnames = c("wolf", "lion"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  wolf_lion_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[5]][[1]], dh_spp2 = DH_eoe20w_predators[[4]][[1]], 
+                                listnames = c("wolf", "lion"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
+  wolf_lion_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[5]][[1]], dh_spp2 = DH_eoe21s_predators[[4]][[1]], 
+                                listnames = c("wolf", "lion"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
+  
+  ####  LION UMFs  ####
+  #'  Lion-Bear
+  lion_bear_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[4]][[1]], dh_spp2 = DH_eoe20s_predators[[1]][[1]], 
+                                 listnames = c("lion", "bear"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  lion_bear_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[4]][[1]], dh_spp2 = DH_eoe21s_predators[[1]][[1]], 
+                                 listnames = c("lion", "bear"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
+  
+  #'  Lion-Bobcat
+  lion_bob_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[4]][[1]], dh_spp2 = DH_eoe20s_predators[[2]][[1]], 
+                                listnames = c("lion", "bobcat"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  lion_bob_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[4]][[1]], dh_spp2 = DH_eoe20w_predators[[2]][[1]], 
+                                listnames = c("lion", "bobcat"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
+  lion_bob_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[4]][[1]], dh_spp2 = DH_eoe21s_predators[[2]][[1]], 
+                                listnames = c("lion", "bobcat"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
+  
+  #'  Lion-Coyote
+  lion_coy_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[4]][[1]], dh_spp2 = DH_eoe20s_predators[[3]][[1]], 
+                                listnames = c("lion", "coyote"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  lion_coy_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[4]][[1]], dh_spp2 = DH_eoe20w_predators[[3]][[1]], 
+                                listnames = c("lion", "coyote"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
+  lion_coy_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[4]][[1]], dh_spp2 = DH_eoe21s_predators[[3]][[1]], 
+                                listnames = c("lion", "coyote"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
+  
+  ####  BEAR UMFs  ####
+  #'  Bear-Bobcat
+  bear_bob_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[1]][[1]], dh_spp2 = DH_eoe20s_predators[[2]][[1]], 
+                                listnames = c("bear", "bobcat"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  bear_bob_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[1]][[1]], dh_spp2 = DH_eoe21s_predators[[2]][[1]], 
+                                listnames = c("bear", "bobcat"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
+  
+  #'  Bear-Coyote
+  bear_coy_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[1]][[1]], dh_spp2 = DH_eoe20s_predators[[3]][[1]], 
+                                listnames = c("bear", "coyote"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  bear_coy_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[1]][[1]], dh_spp2 = DH_eoe21s_predators[[3]][[1]], 
+                                listnames = c("bear", "coyote"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
+  
+  ####  MESOPREDATOR UMFs  ####
+  #'  Bobcat-Coyote
+  bob_coy_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[2]][[1]], dh_spp2 = DH_eoe20s_predators[[3]][[1]], 
+                                listnames = c("bobcat", "coyote"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
+  bob_coy_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[2]][[1]], dh_spp2 = DH_eoe20w_predators[[3]][[1]], 
+                                listnames = c("bobcat", "coyote"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
+  bob_coy_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[2]][[1]], dh_spp2 = DH_eoe21s_predators[[3]][[1]], 
+                                listnames = c("bobcat", "coyote"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
   
   
-  bear_lion_smr21_DH <- list(bear = DH_eoe21s_predators[[1]][[1]], lion = DH_eoe21s_predators[[4]][[1]])
-  bear_lion_smr21_UMF <- unmarkedFrameOccuMulti(y = bear_lion_smr21_DH,
-                                           siteCovs = stations_eoe21s,
-                                           obsCovs = srvy_covs_eoe21s,
-                                           maxOrder = 2)
-  #'  Visualize detection/non-detection data
-  plot(bear_lion_smr21_UMF)
-  #'  Review covariates
-  summary(bear_lion_smr21_UMF)
-  #'  Look at natural parameters f design matrix
-  bear_lion_smr21_UMF@fDesign
+  #'  Fin
+  #'  This is all sourced by Multi-Spp_OccMod_2spp_unmarked.R
   
   
-  ####  COY-LION UMF  ####
-  coy_lion_smr20_DH <- list(coy = DH_eoe20s_predators[[3]][[1]], lion = DH_eoe20s_predators[[4]][[1]])
-  coy_lion_smr20_UMF <- unmarkedFrameOccuMulti(y = coy_lion_smr20_DH,
-                                         siteCovs = stations_eoe20s,
-                                         obsCovs = srvy_covs_eoe20s,
-                                         maxOrder = 2)
-  #'  Visualize detection/non-detection data
-  plot(coy_lion_smr20_UMF)
-  #'  Review covariates
-  summary(coy_lion_smr20_UMF)
-  
-  coy_lion_smr21_DH <- list(coy = DH_eoe21s_predators[[3]][[1]], lion = DH_eoe21s_predators[[4]][[1]])
-  coy_lion_smr21_UMF <- unmarkedFrameOccuMulti(y = coy_lion_smr21_DH,
-                                              siteCovs = stations_eoe21s,
-                                              obsCovs = srvy_covs_eoe21s,
-                                              maxOrder = 2)
-  #'  Visualize detection/non-detection data
-  plot(coy_lion_smr21_UMF)
-  #'  Review covariates
-  summary(coy_lion_smr21_UMF)
-
-  
-  ####  BOB-LION UMF  ####
-  bob_lion_smr20_DH <- list(bob = DH_eoe20s_predators[[2]][[1]], lion = DH_eoe20s_predators[[4]][[1]])
-  bob_lion_smr20_UMF <- unmarkedFrameOccuMulti(y = bob_lion_smr20_DH,
-                                              siteCovs = stations_eoe20s,
-                                              obsCovs = srvy_covs_eoe20s,
-                                              maxOrder = 2)
-  #'  Visualize detection/non-detection data
-  plot(bob_lion_smr20_UMF)
-  #'  Review covariates
-  summary(bob_lion_smr20_UMF)
-  
-  bob_lion_smr21_DH <- list(bob = DH_eoe21s_predators[[2]][[1]], lion = DH_eoe21s_predators[[4]][[1]])
-  bob_lion_smr21_UMF <- unmarkedFrameOccuMulti(y = bob_lion_smr21_DH,
-                                               siteCovs = stations_eoe21s,
-                                               obsCovs = srvy_covs_eoe21s,
-                                               maxOrder = 2)
-  #'  Visualize detection/non-detection data
-  plot(bob_lion_smr21_UMF)
-  #'  Review covariates
-  summary(bob_lion_smr21_UMF)
 
   
   
