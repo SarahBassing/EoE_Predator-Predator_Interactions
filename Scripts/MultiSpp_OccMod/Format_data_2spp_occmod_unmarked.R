@@ -76,16 +76,17 @@
     #'  Rename, format, and scale as needed
     formatted <- transmute(cam_covs,
                            NewLocationID = as.factor(NewLocationID),
-                           #Year = as.factor(Year),
                            Season = as.factor(Season),
                            GMU = as.factor(GMU),
-                           #Distance = scale(Distance_Focal_Point),
-                           Height = scale(CameraHeight_M),
                            CameraFacing = as.factor(CameraFacing),
                            Setup = as.factor(Setup),
                            Target = as.factor(Target),
-                           perc_forest = scale(perc_forest), 
-                           min_group_size = scale(avg_min_group_size), 
+                           Habitat = as.factor(HabLayer_30m2),
+                           Height = scale(CameraHeight_M),
+                           PercForest = scale(perc_forest), 
+                           Elev = scale(Elevation__10m2),
+                           NearestRd = scale(dist2rd),
+                           MinGroupSize = scale(avg_min_group_size), 
                            Bear_mort_n = scale(Bear_mort_n), 
                            Bear_mort_km2 = scale(Bear_mort_km2),
                            Bob_mort_n = scale(Bob_mort_n), 
@@ -139,14 +140,14 @@
   #'  be highly correlated (1 or -1) so ignore those coefficients
   #'  Warnings are due to variables with no variation (Lion and Wolf mort km2 data)
   corr_matrix <- function(dat, firstcol, lastcol) {
-    continuous_variables <- stations_eoe20s[,firstcol:lastcol]
+    continuous_variables <- dat[,firstcol:lastcol]
     corr_all <- cor(continuous_variables)
     corr_all <- as.data.frame(round(corr_all, 2))
     print(corr_all)
     return(corr_all)
   }
   camera_station_list <- list(stations_eoe20s, stations_eoe20w, stations_eoe21s)
-  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 17)
+  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 20)
   
   
   #'  ---------------------------
@@ -226,7 +227,7 @@
   #'  Wolf-Bobcat
   wolf_bob_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[2]][[1]], 
                                 listnames = c("wolf", "bobcat"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
-  wolf_bob_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[5]][[1]], dh_spp2 = DH_eoe20w_predators[[2]][[1]], 
+  wolf_bob_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[4]][[1]], dh_spp2 = DH_eoe20w_predators[[1]][[1]], # note the different indexing for winter DHs
                                 listnames = c("wolf", "bobcat"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
   wolf_bob_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[5]][[1]], dh_spp2 = DH_eoe21s_predators[[2]][[1]], 
                                 listnames = c("wolf", "bobcat"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
@@ -234,7 +235,7 @@
   #'  Wolf-Coyote
   wolf_coy_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[3]][[1]], 
                                 listnames = c("wolf", "coyote"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
-  wolf_coy_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[5]][[1]], dh_spp2 = DH_eoe20w_predators[[3]][[1]], 
+  wolf_coy_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[4]][[1]], dh_spp2 = DH_eoe20w_predators[[2]][[1]], # note the different indexing for winter DHs
                                 listnames = c("wolf", "coyote"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
   wolf_coy_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[5]][[1]], dh_spp2 = DH_eoe21s_predators[[3]][[1]], 
                                 listnames = c("wolf", "coyote"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
@@ -242,7 +243,7 @@
   #'  Wolf-Lion
   wolf_lion_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[4]][[1]], 
                                 listnames = c("wolf", "lion"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
-  wolf_lion_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[5]][[1]], dh_spp2 = DH_eoe20w_predators[[4]][[1]], 
+  wolf_lion_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[4]][[1]], dh_spp2 = DH_eoe20w_predators[[3]][[1]], # note the different indexing for winter DHs
                                 listnames = c("wolf", "lion"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
   wolf_lion_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[5]][[1]], dh_spp2 = DH_eoe21s_predators[[4]][[1]], 
                                 listnames = c("wolf", "lion"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
@@ -257,7 +258,7 @@
   #'  Lion-Bobcat
   lion_bob_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[4]][[1]], dh_spp2 = DH_eoe20s_predators[[2]][[1]], 
                                 listnames = c("lion", "bobcat"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
-  lion_bob_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[4]][[1]], dh_spp2 = DH_eoe20w_predators[[2]][[1]], 
+  lion_bob_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[3]][[1]], dh_spp2 = DH_eoe20w_predators[[1]][[1]], # note the different indexing for winter DHs
                                 listnames = c("lion", "bobcat"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
   lion_bob_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[4]][[1]], dh_spp2 = DH_eoe21s_predators[[2]][[1]], 
                                 listnames = c("lion", "bobcat"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
@@ -265,7 +266,7 @@
   #'  Lion-Coyote
   lion_coy_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[4]][[1]], dh_spp2 = DH_eoe20s_predators[[3]][[1]], 
                                 listnames = c("lion", "coyote"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
-  lion_coy_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[4]][[1]], dh_spp2 = DH_eoe20w_predators[[3]][[1]], 
+  lion_coy_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[3]][[1]], dh_spp2 = DH_eoe20w_predators[[2]][[1]], # note the different indexing for winter DHs
                                 listnames = c("lion", "coyote"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
   lion_coy_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[4]][[1]], dh_spp2 = DH_eoe21s_predators[[3]][[1]], 
                                 listnames = c("lion", "coyote"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
@@ -287,7 +288,7 @@
   #'  Bobcat-Coyote
   bob_coy_20s_umf <- umf_setup(dh_spp1 = DH_eoe20s_predators[[2]][[1]], dh_spp2 = DH_eoe20s_predators[[3]][[1]], 
                                 listnames = c("bobcat", "coyote"), sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
-  bob_coy_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[2]][[1]], dh_spp2 = DH_eoe20w_predators[[3]][[1]], 
+  bob_coy_20w_umf <- umf_setup(dh_spp1 = DH_eoe20w_predators[[1]][[1]], dh_spp2 = DH_eoe20w_predators[[2]][[1]], # note the different indexing for winter DHs
                                 listnames = c("bobcat", "coyote"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
   bob_coy_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[2]][[1]], dh_spp2 = DH_eoe21s_predators[[3]][[1]], 
                                 listnames = c("bobcat", "coyote"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
