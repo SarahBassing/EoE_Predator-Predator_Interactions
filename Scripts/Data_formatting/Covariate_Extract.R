@@ -29,8 +29,6 @@
   id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp")
   elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
   habclass <- rast("./Shapefiles/IDFG spatial data/HabLayer_30m2.tif")
-  dist2rds <- rast("./Shapefiles/IDFG spatial data/EucDist_Road_30m2.tif")
-  # nearestrd <- rast("./Shapefiles/IDFG spatial data/Dist2Nearest_Road.tif")
   #'  IDFG Geodatabase with roads
   idfg_gdb <- "./Shapefiles/IDFG spatial data/IDFG Geodatabase.gdb"
   st_layers(idfg_gdb)
@@ -41,15 +39,13 @@
   crs(nlcd, describe = TRUE, proj = TRUE)
   crs(elev, describe = TRUE, proj = TRUE)
   crs(habclass, describe = TRUE, proj = TRUE)
-  crs(dist2rds, describe = TRUE, proj = TRUE)
   # projection(id)
-  # projection(rds)
+  projection(rds)
   
   res(pforest)
   res(nlcd)
   res(elev)
   res(habclass)
-  res(dist2rds)
   
   #'  Define projections to use when reprojecting camera locations
   wgs84 <- crs("+proj=longlat +datum=WGS84 +no_defs")
@@ -80,7 +76,6 @@
       mutate(obs = seq(1:nrow(.))) %>%
       dplyr::select(c("NewLocationID")) %>%
       st_transform(proj)
-    # print(projection(sf_locs))
     return(sf_locs)
   }
   cams_wgs84 <- lapply(cams_list, spatial_locs, proj = wgs84)
@@ -92,18 +87,7 @@
   plot(pforest, main = "Camera locations over percent forested habitat, 500m radius")
   plot(id_aea[1], add = TRUE, col = NA)
   plot(cams_aea[[1]], add = TRUE, col = "black", cex = 0.75)
-  
-  plot(dist2rds, colNA = "blue", ext = extent(cams_nad83[[1]]), 
-       main = "Camera locations over distance to nearest road, 30m res")
-  plot(id_nad83[1], add = TRUE, col = NA)
-  plot(cams_nad83[[1]], add = TRUE, col = "black", cex = 0.75)
-  plot(cams_nad83[[1]][cams_nad83[[1]]$NewLocationID == "GMU10A_P_10",], col = "red", cex = 0.75, pch = 16, add = T)
-  plot(cams_nad83[[1]][cams_nad83[[1]]$NewLocationID == "GMU10A_U_101",], col = "red", cex = 0.75, pch = 16, add = T)
-  plot(cams_nad83[[1]][cams_nad83[[1]]$NewLocationID == "GMU6_P_37",], col = "red", cex = 0.75, pch = 16, add = T)
-  plot(cams_nad83[[1]][cams_nad83[[1]]$NewLocationID == "GMU6_U_169",], col = "red", cex = 0.75, pch = 16, add = T)
-  
-  
-  
+
   
   #'  ------------------------
   ####  Additional data sets  ####
@@ -163,7 +147,10 @@
     landcover <- terra::extract(nlcd, vect(locs_aea))
     elev <- terra::extract(elev, vect(locs_nad83))
     habitat <- terra::extract(habclass, vect(locs_hab_crs))
-    nearestRd <- terra::extract(dist2rds, vect(locs_nad83))
+    #'  Find nearest road to each camera
+    nearestrd <- st_nearest_feature(locs_nad83, rds)
+    #'  Calculate distance to nearest road (in meters)
+    dist2rd <- as.numeric(st_distance(locs_nad83, rds[nearestrd,], by_element = T))
     
     #'  Join each extracted covariate to the unique camera location data
     covs <- as.data.frame(locs_aea) %>%
@@ -172,10 +159,11 @@
       full_join(landcover, by = "ID") %>%
       full_join(elev, by = "ID") %>%
       full_join(habitat, by = "ID") %>%
-      full_join(nearestRd, by = "ID") %>%
+      cbind(dist2rd) %>%
       #'  Join with additional data sets already formatted for each camera site
       full_join(min_group_size, by = "NewLocationID") %>%
-      mutate(GMU = sub("_.*", "", NewLocationID)) %>%
+      mutate(GMU = sub("_.*", "", NewLocationID), 
+             dist2rd = round(dist2rd, digits = 2)) %>%
       relocate(GMU, .after = NewLocationID) %>%
       full_join(mort, by = "GMU") %>%
       dplyr::select(-c(geometry, ID, Lat, Long))
@@ -188,10 +176,7 @@
                               min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df)
   eoe_covs_21s <- cov_extract(locs_aea = cams_aea[[3]], locs_nad83 = cams_nad83[[3]], locs_hab_crs = cams_hab_crs[[3]], 
                               min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df)
-  # eoe_covs_20s <- cov_extract(cams_aea_eoe20s, min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df)
-  # eoe_covs_20w <- cov_extract(cams_aea_eoe20w, min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df)
-  # eoe_covs_21s <- cov_extract(cams_aea_eoe21s, min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df)
-  
+
   
   #' #'  Save
   #' write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.csv")
