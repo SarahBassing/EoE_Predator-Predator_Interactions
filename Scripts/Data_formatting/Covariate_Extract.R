@@ -27,25 +27,29 @@
   pforest <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForeest_500m.tif")
   nlcd <- rast("./Shapefiles/National Land Cover Database (NCLD)/NLCD19_Idaho.tif")
   id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp")
+  elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
+  habclass <- rast("./Shapefiles/IDFG spatial data/HabLayer_30m2.tif")
+  dist2rds <- rast("./Shapefiles/IDFG spatial data/EucDist_Road_30m2.tif")
+  # nearestrd <- rast("./Shapefiles/IDFG spatial data/Dist2Nearest_Road.tif")
   #'  IDFG Geodatabase with roads
   idfg_gdb <- "./Shapefiles/IDFG spatial data/IDFG Geodatabase.gdb"
   st_layers(idfg_gdb)
   rds <- sf::st_read(dsn = idfg_gdb, layer = "Road_OpenStreetMap")
-  elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
-  habclass <- rast("./Shapefiles/IDFG spatial data/HabLayer_30m2.tif")
 
   #'  Take a closer look  
   crs(pforest, describe = TRUE, proj = TRUE)
   crs(nlcd, describe = TRUE, proj = TRUE)
   crs(elev, describe = TRUE, proj = TRUE)
   crs(habclass, describe = TRUE, proj = TRUE)
+  crs(dist2rds, describe = TRUE, proj = TRUE)
   # projection(id)
-  projection(rds)
+  # projection(rds)
   
   res(pforest)
   res(nlcd)
   res(elev)
   res(habclass)
+  res(dist2rds)
   
   #'  Define projections to use when reprojecting camera locations
   wgs84 <- crs("+proj=longlat +datum=WGS84 +no_defs")
@@ -55,7 +59,8 @@
   
   #'  Reproject shapefiles
   id_aea <- st_transform(id, aea)
-  rds_aes <- st_transform(rds, aea)
+  id_nad83 <- st_transform(id, nad83)
+  # rds_aes <- st_transform(rds, aea)
 
   
   #'  ---------------
@@ -82,14 +87,22 @@
   cams_aea <- lapply(cams_list, spatial_locs, proj = aea)
   cams_nad83 <- lapply(cams_list, spatial_locs, proj = nad83)
   cams_hab_crs <- lapply(cams_list, spatial_locs, proj = hab_crs)
-  # cams_aea_eoe20s <- spatial_locs(eoe_probcams_20s, proj = aea)
-  # cams_aea_eoe20w <- spatial_locs(eoe_probcams_20w, proj = aea)
-  # cams_aea_eoe21s <- spatial_locs(eoe_probcams_21s, proj = aea)
   
   #'  Double check these are plotting correctly
   plot(pforest, main = "Camera locations over percent forested habitat, 500m radius")
   plot(id_aea[1], add = TRUE, col = NA)
   plot(cams_aea[[1]], add = TRUE, col = "black", cex = 0.75)
+  
+  plot(dist2rds, colNA = "blue", ext = extent(cams_nad83[[1]]), 
+       main = "Camera locations over distance to nearest road, 30m res")
+  plot(id_nad83[1], add = TRUE, col = NA)
+  plot(cams_nad83[[1]], add = TRUE, col = "black", cex = 0.75)
+  plot(cams_nad83[[1]][cams_nad83[[1]]$NewLocationID == "GMU10A_P_10",], col = "red", cex = 0.75, pch = 16, add = T)
+  plot(cams_nad83[[1]][cams_nad83[[1]]$NewLocationID == "GMU10A_U_101",], col = "red", cex = 0.75, pch = 16, add = T)
+  plot(cams_nad83[[1]][cams_nad83[[1]]$NewLocationID == "GMU6_P_37",], col = "red", cex = 0.75, pch = 16, add = T)
+  plot(cams_nad83[[1]][cams_nad83[[1]]$NewLocationID == "GMU6_U_169",], col = "red", cex = 0.75, pch = 16, add = T)
+  
+  
   
   
   #'  ------------------------
@@ -150,6 +163,7 @@
     landcover <- terra::extract(nlcd, vect(locs_aea))
     elev <- terra::extract(elev, vect(locs_nad83))
     habitat <- terra::extract(habclass, vect(locs_hab_crs))
+    nearestRd <- terra::extract(dist2rds, vect(locs_nad83))
     
     #'  Join each extracted covariate to the unique camera location data
     covs <- as.data.frame(locs_aea) %>%
@@ -158,6 +172,7 @@
       full_join(landcover, by = "ID") %>%
       full_join(elev, by = "ID") %>%
       full_join(habitat, by = "ID") %>%
+      full_join(nearestRd, by = "ID") %>%
       #'  Join with additional data sets already formatted for each camera site
       full_join(min_group_size, by = "NewLocationID") %>%
       mutate(GMU = sub("_.*", "", NewLocationID)) %>%
@@ -189,12 +204,5 @@
   #' save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
   
   
-  
-  
-  
-  
-  
-  
-  
-  
+ 
   
