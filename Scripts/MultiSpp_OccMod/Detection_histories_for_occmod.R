@@ -51,7 +51,8 @@
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
       #'  Remove observations that can't be linked to a camera with coordinates
-      filter(!is.na(NewLocationID))
+      filter(!is.na(NewLocationID)) %>%
+      arrange(NewLocationID)
     return(dets)
   }
   eoe20s_dets <- detections(eoe20s_allM, start_date = "2020-07-01", end_date = "2020-09-15")
@@ -99,6 +100,7 @@
   #'  Create a matrix with each camera & dates it deployed
   #'  1 = operating; 0 = not operating but deployed; NA = not deployed
   camera_operation_tbl <- function(cams) {
+    cams <- arrange(cams, NewLocationID)
     #'  Add one day to retrieval date when setup & retrieval dates are the same
     #'  Necessary for cameraOperation function below... so annoying
     same_startend <- cams[cams$Setup_date == cams$Retrieval_date,]
@@ -239,6 +241,7 @@
   #'  at each camera, then find the average to represent the average minimum group
   #'  size detected at each camera
   avg_min_group_size <- function(dets, stations, elapsed_time) {
+    dets <- arrange(dets, NewLocationID)
     min_group_size <- dets %>%
       filter(Species == "wolf") %>%
       arrange(NewLocationID, posix_date_time) %>%
@@ -270,10 +273,10 @@
   min_group_size_eoe20w <- avg_min_group_size(eoe20w_dets, stations = eoe_probcams_20w, elapsed_time = 300)
   min_group_size_eoe21s <- avg_min_group_size(eoe21s_dets, stations = eoe_probcams_21s, elapsed_time = 300)
   
-  #'  Save minimum group size counts
-  # save(min_group_size_eoe20s, file = "./Data/Wolf count data/min_group_size_eoe20s.RData")
-  # save(min_group_size_eoe20w, file = "./Data/Wolf count data/min_group_size_eoe20w.RData")
-  # save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
+  #' #'  Save minimum group size counts
+  #' save(min_group_size_eoe20s, file = "./Data/Wolf count data/min_group_size_eoe20s.RData")
+  #' save(min_group_size_eoe20w, file = "./Data/Wolf count data/min_group_size_eoe20w.RData")
+  #' save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
   
   
   
