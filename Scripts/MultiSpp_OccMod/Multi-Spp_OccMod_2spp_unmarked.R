@@ -61,6 +61,7 @@
   #'  Detection formulas
   detFormulas_trail <- c("~CameraFacing", "~CameraFacing")
   detFormulas_setup <- c("~Setup", "~Setup") 
+  detFormulas_height <- c("~Height", "~Height")
   detFormulas_wolfact <- c("~wolf_activity", "~wolf_activity") 
   
   ####  OCCUPANCY SUBMODEL  ####
@@ -69,105 +70,240 @@
   occFormulas_null2 <- c("~1", "~1", "~1") # 2-spp interactions
   
   #'  Question 2: Does co-occurrence or conditional occupancy vary with covariates?
-  occFormulas_gmu1 <- c("~GMU",  "~GMU", "~1")
-  occFormulas_gmu2 <- c("~GMU",  "~GMU", "~GMU")
-
-  occFormulas_hab1 <- c("~perc_forest", "~perc_forest", "~1")
-  occFormulas_hab2 <- c("~perc_forest", "~perc_forest", "~perc_forest")
+  occFormulas_hab1 <- c("~Elev + PercForest", "~Elev + PercForest", "~1")
+  occFormulas_hab2 <- c("~Elev + PercForest", "~Elev + PercForest", "~Elev + PercForest")
   
-  occFormulas_group1 <- c("~min_group_size", "~min_group_size", "~1")
-  occFormulas_group2 <- c("~min_group_size", "~min_group_size", "~min_group_size")
+  occFormulas_group1 <- c("~MinGroupSize", "~MinGroupSize", "~1")
+  occFormulas_group2 <- c("~MinGroupSize", "~MinGroupSize", "~MinGroupSize")
   
-  occFormulas_habgroup <- c("~perc_forest", "~perc_forest", "~min_group_size")
+  occFormulas_group1_nowolf <- c("~1", "~MinGroupSize", "~1")
+  occFormulas_group2_nowolf <- c("~1", "~MinGroupSize", "~MinGroupSize")
   
-  occFormula_bblmort1 <- c("~Bear_mort_km2", "~Lion_mort_n", "~1")
-  occFormula_bblmort2 <- c("~Bear_mort_km2", "~Lion_mort_n", "~Lion_mort_n")
-  occFormula_blmort1 <- c("~Bob_mort_km2", "~Lion_mort_n", "~1")
-  occFormula_blmort2 <- c("~Bob_mort_km2", "~Lion_mort_n", "~Lion_mort_n")
-  occFormula_clmort1 <- c("~1", "~Lion_mort_n", "~1")
-  occFormula_clmort2 <- c("~1", "~Lion_mort_n", "~Lion_mort_n")
-  occFormula_wolfmort <- c("~1", "~1", "~Wolf_mort_km2")
+  occFormulas_habgroup1 <- c("~Elev + PercForest + MinGroupSize", "~Elev + PercForest + MinGroupSize", "~1")
+  occFormulas_habgroup2 <- c("~Elev + PercForest + MinGroupSize", "~Elev + PercForest + MinGroupSize", "~Elev + PercForest + MinGroupSize")
+  
+  occFormulas_habgroup1_nowolf <- c("~Elev + PercForest", "~Elev + PercForest + MinGroupSize", "~1")
+  occFormulas_habgroup2_nowolf <- c("~Elev + PercForest", "~Elev + PercForest + MinGroupSize", "~Elev + PercForest + MinGroupSize")
   
   
-  ####  Bear-Lion  ####
-  (bbl_trail <- occuMulti(detFormulas_trail, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_setup <- occuMulti(detFormulas_setup, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
-  #' List of fitted models
-  bbl_det_fld <- fitList(bbl_trail, bbl_setup, bbl_wolfact)
+  ####  Detection Sub-Model Selection V1  ####
+  #'  Function run and compare detection sub-models for each species pairing
+  choose_det_submod_wolf <- function(det_submod, umf) {
+    print(det_trail <- occuMulti(det_submod[[1]], occFormulas_null2, umf, silent = TRUE))
+    print(det_setup <- occuMulti(det_submod[[2]], occFormulas_null2, umf, silent = TRUE))
+    print(det_height <- occuMulti(det_submod[[3]], occFormulas_null2, umf, silent = TRUE))
+    #' List of fitted models
+    det_fld <- fitList(det_trail, det_setup, det_height) 
+    #' Model selection
+    print(modSel(det_fld))
+  }
+  det_submod <- list(detFormulas_trail, detFormulas_setup, detFormulas_height, detFormulas_wolfact)
+  
+  
+  ####  Wolf - Bear Summer 2020  ####
+  #'  Review detection sub-models
+  choose_det_submod_wolf(det_submod, umf = wolf_bear_20s_umf)  # setup
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (wbr_20s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, wolf_bear_20s_umf, silent = TRUE))
+  # (wbr_20s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1_nowolf, wolf_bear_20s_umf, silent = TRUE))
+  # (wbr_20s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2_nowolf, wolf_bear_20s_umf, silent = TRUE))
+  # (wbr_20s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1_nowolf, wolf_bear_20s_umf, silent = TRUE))
+  # (wbr_20s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2_nowolf, wolf_bear_20s_umf, silent = TRUE))
+  wbr_20s_occ_fld <- fitList(wbr_20s_null1, wbr_20s_null2, wbr_20s_hab1, wbr_20s_hab2) #, wbr_20s_group1, wbr_20s_group2, wbr_20s_habgroup1, wbr_20s_habgroup2
   #' Model selection
-  modSel(bbl_det_fld)
+  modSel(wbr_20s_occ_fld)
+  summary(wbr_20s_hab1)
   
-  (bbl_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_gmu1 <- occuMulti(detFormulas_setup, occFormulas_gmu1, bear_lion_smr20_UMF, silent = TRUE))
-  # (bbl_gmu2 <- occuMulti(detFormulas_setup, occFormulas_gmu2, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_group1 <- occuMulti(detFormulas_setup, occFormulas_group1, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_group2 <- occuMulti(detFormulas_setup, occFormulas_group2, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_mort1 <- occuMulti(detFormulas_setup, occFormula_bblmort1, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_mort2 <- occuMulti(detFormulas_setup, occFormula_bblmort2, bear_lion_smr20_UMF, silent = TRUE))
-  (bbl_mort3 <- occuMulti(detFormulas_setup, occFormula_wolfmort, bear_lion_smr20_UMF, silent = TRUE))
-  bbl_occ_fld <- fitList(bbl_null1, bbl_null2, bbl_gmu1, bbl_hab1, bbl_hab2, bbl_group1, bbl_group2, bbl_habgroup, bbl_mort1, bbl_mort2, bbl_mort3)
+  ####  Wolf - Bear Summer 2021  ####
+  #'  Review detection sub-models
+  choose_det_submod_wolf(det_submod, umf = wolf_bear_21s_umf)  # setup
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (wbr_21s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, wolf_bear_21s_umf, silent = TRUE))
+  # (wbr_21s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1_nowolf, wolf_bear_21s_umf, silent = TRUE))
+  # (wbr_21s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2_nowolf, wolf_bear_21s_umf, silent = TRUE))
+  # (wbr_21s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1_nowolf, wolf_bear_21s_umf, silent = TRUE))
+  # (wbr_21s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2_nowolf, wolf_bear_21s_umf, silent = TRUE))
+  wbr_21s_occ_fld <- fitList(wbr_21s_null1, wbr_21s_null2, wbr_21s_hab1, wbr_21s_hab2) #, wbr_21s_group1, wbr_21s_group2, wbr_21s_habgroup1, wbr_21s_habgroup2
   #' Model selection
-  modSel(bbl_occ_fld)
-  summary(bbl_habgroup)
+  modSel(wbr_21s_occ_fld)
+  summary(wbr_21s_hab1)
   
   
-  ####  COY-LION  ####
-  (cl_trail <- occuMulti(detFormulas_trail, occFormulas_null1, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_setup <- occuMulti(detFormulas_setup, occFormulas_null1, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, coy_lion_smr20_UMF, silent = TRUE))
-  #' List of fitted models
-  cl_det_fld <- fitList(cl_trail, cl_setup, cl_wolfact)
+  ####  Wolf - Bobcat Summer 2020  ####
+  #'  Review detection sub-models
+  choose_det_submod_wolf(det_submod, umf = wolf_bob_20s_umf)  # setup
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (wb_20s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, wolf_bob_20s_umf, silent = TRUE))
+  (wb_20s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_bob_20s_umf, silent = TRUE))
+  (wb_20s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, wolf_bob_20s_umf, silent = TRUE))
+  (wb_20s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, wolf_bob_20s_umf, silent = TRUE))
+  # (wb_20s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1_nowolf, wolf_bob_20s_umf, silent = TRUE))
+  # (wb_20s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2_nowolf, wolf_bob_20s_umf, silent = TRUE))
+  # (wb_20s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1_nowolf, wolf_bob_20s_umf, silent = TRUE))
+  # (wb_20s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2_nowolf, wolf_bob_20s_umf, silent = TRUE))
+  wb_20s_occ_fld <- fitList(wb_20s_null1, wb_20s_null2, wb_20s_hab1, wb_20s_hab2) #, wb_20s_group1, wb_20s_group2, wb_20s_habgroup1, wb_20s_habgroup2
   #' Model selection
-  modSel(cl_det_fld)
+  modSel(wb_20s_occ_fld)
+  summary(wb_20s_hab1)
   
-  (cl_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_gmu1 <- occuMulti(detFormulas_trail, occFormulas_gmu1, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_gmu2 <- occuMulti(detFormulas_trail, occFormulas_gmu2, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_hab1 <- occuMulti(detFormulas_trail, occFormulas_hab1, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_hab2 <- occuMulti(detFormulas_trail, occFormulas_hab2, coy_lion_smr20_UMF, silent = TRUE))
-  # (cl_group1 <- occuMulti(detFormulas_trail, occFormulas_group1, coy_lion_smr20_UMF, silent = TRUE))
-  # (cl_group2 <- occuMulti(detFormulas_trail, occFormulas_group2, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_mort1 <- occuMulti(detFormulas_setup, occFormula_clmort1, coy_lion_smr20_UMF, silent = TRUE))
-  # (cl_mort2 <- occuMulti(detFormulas_setup, occFormula_clmort2, coy_lion_smr20_UMF, silent = TRUE))
-  (cl_mort3 <- occuMulti(detFormulas_setup, occFormula_wolfmort, coy_lion_smr20_UMF, silent = TRUE))
-  cl_occ_fld <- fitList(cl_null1, cl_null2, cl_gmu1, cl_gmu2, cl_hab1, cl_hab2, cl_habgroup, cl_mort1, cl_mort3)
+  ####  Wolf - Bobcat Summer 2021  ####
+  #'  Review detection sub-models
+  choose_det_submod_wolf(det_submod, umf = wolf_bob_21s_umf)  # trail
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (wb_21s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_bob_21s_umf, silent = TRUE))
+  (wb_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_bob_21s_umf, silent = TRUE))
+  (wb_21s_hab1 <- occuMulti(detFormulas_trail, occFormulas_hab1, wolf_bob_21s_umf, silent = TRUE))
+  (wb_21s_hab2 <- occuMulti(detFormulas_trail, occFormulas_hab2, wolf_bob_21s_umf, silent = TRUE))
+  # (wb_21s_group1 <- occuMulti(detFormulas_trail, occFormulas_group1_nowolf, wolf_bob_21s_umf, silent = TRUE))
+  # (wb_21s_group2 <- occuMulti(detFormulas_trail, occFormulas_group2_nowolf, wolf_bob_21s_umf, silent = TRUE))
+  (wb_21s_habgroup1 <- occuMulti(detFormulas_trail, occFormulas_habgroup1_nowolf, wolf_bob_21s_umf, silent = TRUE))
+  # (wb_21s_habgroup2 <- occuMulti(detFormulas_trail, occFormulas_habgroup2_nowolf, wolf_bob_21s_umf, silent = TRUE))
+  wb_21s_occ_fld <- fitList(wb_21s_null1, wb_21s_null2, wb_21s_hab1, wb_21s_hab2, wb_21s_habgroup1) #, wb_21s_group1, wb_21s_group2, wb_21s_habgroup1, wb_21s_habgroup2
   #' Model selection
-  modSel(cl_occ_fld)
-  summary(cl_habgroup)
+  modSel(wb_21s_occ_fld)
+  summary(wb_21s_hab1)
   
   
-  ####  BOB-LION  ####
-  (bl_trail <- occuMulti(detFormulas_trail, occFormulas_null1, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_setup <- occuMulti(detFormulas_setup, occFormulas_null1, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_wolfact <- occuMulti(detFormulas_wolfact, occFormulas_null1, bob_lion_smr20_UMF, silent = TRUE))
-  #' List of fitted models
-  bl_det_fld <- fitList(bl_trail, bl_setup, bl_wolfact)
+  ####  Wolf - Coyote Summer 2020  ####
+  #'  Review detection sub-models
+  choose_det_submod_wolf(det_submod, umf = wolf_coy_20s_umf)  # trail
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (wc_20s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_hab1 <- occuMulti(detFormulas_trail, occFormulas_hab1, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_hab2 <- occuMulti(detFormulas_trail, occFormulas_hab2, wolf_coy_20s_umf, silent = TRUE))
+  # (wc_20s_group1 <- occuMulti(detFormulas_trail, occFormulas_group1_nowolf, wolf_coy_20s_umf, silent = TRUE))
+  # (wc_20s_group2 <- occuMulti(detFormulas_trail, occFormulas_group2_nowolf, wolf_coy_20s_umf, silent = TRUE))
+  # (wc_20s_habgroup1 <- occuMulti(detFormulas_trail, occFormulas_habgroup1_nowolf, wolf_coy_20s_umf, silent = TRUE))
+  # (wc_20s_habgroup2 <- occuMulti(detFormulas_trail, occFormulas_habgroup2_nowolf, wolf_coy_20s_umf, silent = TRUE))
+  wc_20s_occ_fld <- fitList(wc_20s_null1, wc_20s_null2, wc_20s_hab1, wc_20s_hab2) #, wc_20s_group1, wc_20s_group2, wc_20s_habgroup1, wc_20s_habgroup2
   #' Model selection
-  modSel(bl_det_fld)
+  modSel(wc_20s_occ_fld)
+  summary(wc_20s_hab1) # wc_20s_hab2 is actually top model but much larger standard errors - way less certain about estimates
   
-  (bl_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_gmu1 <- occuMulti(detFormulas_setup, occFormulas_gmu1, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_gmu2 <- occuMulti(detFormulas_setup, occFormulas_gmu2, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_group1 <- occuMulti(detFormulas_setup, occFormulas_group1, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_group2 <- occuMulti(detFormulas_setup, occFormulas_group2, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_habgroup <- occuMulti(detFormulas_setup, occFormulas_habgroup, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_mort1 <- occuMulti(detFormulas_setup, occFormula_blmort1, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_mort2 <- occuMulti(detFormulas_setup, occFormula_blmort2, bob_lion_smr20_UMF, silent = TRUE))
-  (bl_mort3 <- occuMulti(detFormulas_setup, occFormula_wolfmort, bob_lion_smr20_UMF, silent = TRUE))
-  bl_occ_fld <- fitList(bl_null1, bl_null2, bl_gmu1, bl_gmu2, bl_hab1, bl_hab2, bl_group1, bl_group2, bl_habgroup, bl_mort1, bl_mort2, bl_mort3)
+  ####  Wolf - Coyote Summer 2021  ####
+  #'  Review detection sub-models
+  choose_det_submod_wolf(det_submod, umf = wolf_coy_21s_umf)  # trail
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (wc_21s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_hab1 <- occuMulti(detFormulas_trail, occFormulas_hab1, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_hab2 <- occuMulti(detFormulas_trail, occFormulas_hab2, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_group1 <- occuMulti(detFormulas_trail, occFormulas_group1_nowolf, wolf_coy_21s_umf, silent = TRUE))
+  # (wc_21s_group2 <- occuMulti(detFormulas_trail, occFormulas_group2_nowolf, wolf_coy_21s_umf, silent = TRUE))
+  # (wc_21s_habgroup1 <- occuMulti(detFormulas_trail, occFormulas_habgroup1_nowolf, wolf_coy_21s_umf, silent = TRUE))
+  # (wc_21s_habgroup2 <- occuMulti(detFormulas_trail, occFormulas_habgroup2_nowolf, wolf_coy_21s_umf, silent = TRUE))
+  wc_21s_occ_fld <- fitList(wc_21s_null1, wc_21s_null2, wc_21s_hab1, wc_21s_hab2, wc_21s_group1) #, wc_21s_group1, wc_21s_group2, wc_21s_habgroup1, wc_21s_habgroup2
   #' Model selection
-  modSel(bl_occ_fld)
-  summary(bl_group2)
+  modSel(wc_21s_occ_fld)
+  summary(wc_21s_group1)
+  summary(wc_21s_hab1)
+  
+  
+  ####  Wolf - Lion Summer 2020  ####
+  #'  Review detection sub-models
+  choose_det_submod_wolf(det_submod, umf = wolf_lion_20s_umf)  # setup
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (wl_20s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, wolf_lion_20s_umf, silent = TRUE))
+  # (wl_20s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1_nowolf, wolf_lion_20s_umf, silent = TRUE))
+  # (wl_20s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2_nowolf, wolf_lion_20s_umf, silent = TRUE))
+  # (wl_20s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1_nowolf, wolf_lion_20s_umf, silent = TRUE))
+  # (wl_20s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2_nowolf, wolf_lion_20s_umf, silent = TRUE))
+  wl_20s_occ_fld <- fitList(wl_20s_null1, wl_20s_null2, wl_20s_hab1, wl_20s_hab2) #, wl_20s_group1, wl_20s_group2, wl_20s_habgroup1, wl_20s_habgroup2
+  #' Model selection
+  modSel(wl_20s_occ_fld)
+  summary(wl_20s_hab1)
+  
+  ####  Wolf - Lion Summer 2021  ####
+  #'  Review detection sub-models
+  choose_det_submod_wolf(det_submod, umf = wolf_lion_21s_umf)  # setup
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (wl_21s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, wolf_lion_21s_umf, silent = TRUE))
+  # (wl_21s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1_nowolf, wolf_lion_21s_umf, silent = TRUE))
+  # (wl_21s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2_nowolf, wolf_lion_21s_umf, silent = TRUE))
+  # (wl_21s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1_nowolf, wolf_lion_21s_umf, silent = TRUE))
+  # (wl_21s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2_nowolf, wolf_lion_21s_umf, silent = TRUE))
+  wl_21s_occ_fld <- fitList(wl_21s_null1, wl_21s_null2, wl_21s_hab1, wl_21s_hab2) #, wl_21s_group1, wl_21s_group2, wl_21s_habgroup1, wl_21s_habgroup2
+  #' Model selection
+  modSel(wl_21s_occ_fld)
+  summary(wl_21s_hab1)
+  
+  
+  ####  Detection Sub-Model Selection V2  ####
+  #'  Function run and compare detection sub-models for each species pairing
+  choose_det_submod <- function(det_submod, umf) {
+    print(det_trail <- occuMulti(det_submod[[1]], occFormulas_null2, umf, silent = TRUE))
+    print(det_setup <- occuMulti(det_submod[[2]], occFormulas_null2, umf, silent = TRUE))
+    print(det_height <- occuMulti(det_submod[[3]], occFormulas_null2, umf, silent = TRUE))
+    print(det_wolfact <- occuMulti(det_submod[[4]], occFormulas_null2, umf, silent = TRUE))
+    #' List of fitted models
+    det_fld <- fitList(det_trail, det_setup, det_height, det_wolfact) 
+    #' Model selection
+    print(modSel(det_fld))
+  }
+  det_submod <- list(detFormulas_trail, detFormulas_setup, detFormulas_height, detFormulas_wolfact)
+  
+  
+  ####  Lion - Bear Summer 2020  ####
+  #'  Review detection sub-models
+  choose_det_submod(det_submod, umf = lion_bear_20s_umf)  # setup
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (lbr_20s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, lion_bear_20s_umf, silent = TRUE))
+  (lbr_20s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, lion_bear_20s_umf, silent = TRUE))
+  (lbr_20s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, lion_bear_20s_umf, silent = TRUE))
+  (lbr_20s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, lion_bear_20s_umf, silent = TRUE))
+  (lbr_20s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1, lion_bear_20s_umf, silent = TRUE))
+  (lbr_20s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2, lion_bear_20s_umf, silent = TRUE))
+  (lbr_20s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1, lion_bear_20s_umf, silent = TRUE))
+  (lbr_20s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2, lion_bear_20s_umf, silent = TRUE))
+  lbr_20s_occ_fld <- fitList(lbr_20s_null1, lbr_20s_null2, lbr_20s_hab1, lbr_20s_hab2, lbr_20s_group1, lbr_20s_group2, lbr_20s_habgroup1, lbr_20s_habgroup2) 
+  #' Model selection
+  modSel(lbr_20s_occ_fld)
+  summary(lbr_20s_habgroup1)
+  
+  ####  Lion - Bear Summer 2021  ####
+  #'  Review detection sub-models
+  choose_det_submod_wolf(det_submod, umf = lion_bear_21s_umf)  # setup
+  
+  #'  Run occupancy models using best supported detection sub-model
+  (lbr_21s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, lion_bear_21s_umf, silent = TRUE))
+  (lbr_21s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, lion_bear_21s_umf, silent = TRUE))
+  (lbr_21s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, lion_bear_21s_umf, silent = TRUE))
+  (lbr_21s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, lion_bear_21s_umf, silent = TRUE))
+  # (lbr_21s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1_nowolf, lion_bear_21s_umf, silent = TRUE))
+  # (lbr_21s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2_nowolf, lion_bear_21s_umf, silent = TRUE))
+  # (lbr_21s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1_nowolf, lion_bear_21s_umf, silent = TRUE))
+  # (lbr_21s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2_nowolf, lion_bear_21s_umf, silent = TRUE))
+  lbr_21s_occ_fld <- fitList(lbr_21s_null1, lbr_21s_null2, lbr_21s_hab1, lbr_21s_hab2) #, lbr_21s_group1, lbr_21s_group2, lbr_21s_habgroup1, lbr_21s_habgroup2
+  #' Model selection
+  modSel(lbr_21s_occ_fld)
+  summary(lbr_21s_hab1)
+  
+  
+  
+  
+  
   
   
   
