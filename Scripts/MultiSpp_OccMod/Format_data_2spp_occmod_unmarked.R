@@ -196,10 +196,10 @@
   #'  ---------------------------
   #'  Function to create unmarked dataframes for multispecies occupancy models 
   #'  for each pairwise combination and season
-  umf_setup <- function(dh_spp1, dh_spp2, listnames, sitecovs, srvycovs) {
+  umf_setup <- function(dh_spp1, dh_spp2, listnames, sitecovs, srvycovs, plotit = T) {
     
     #'  List detection histories of interacting species
-    spp12_DH <- list(spp1 = dh_spp1, spp2 = dh_spp1)
+    spp12_DH <- list(spp1 = dh_spp1, spp2 = dh_spp2)
     #'  Rename lists by species
     names(spp12_DH) <- listnames
     
