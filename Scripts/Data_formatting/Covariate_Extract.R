@@ -72,6 +72,7 @@
   
   #'  Make camera location data spatial sf objects
   spatial_locs <- function(locs, proj) {
+    locs <- arrange(locs, NewLocationID)
     sf_locs <- st_as_sf(locs, coords = c("Long", "Lat"), crs = wgs84) %>%
       mutate(obs = seq(1:nrow(.))) %>%
       dplyr::select(c("NewLocationID")) %>%
@@ -101,6 +102,15 @@
   
   load("./Data/Wolf count data/count_eoe21s_wolf.RData")
   load("./Data/Wolf count data/min_group_size_eoe21s.RData")
+  
+  #'  Make sure everything is ordered correctly
+  arrange_dat <- function(dat) {
+    dat <- arrange(dat, NewLocationID)
+    return(dat)
+  }
+  min_group_size_eoe20s <- arrange_dat(min_group_size_eoe20s)
+  min_group_size_eoe20w <- arrange_dat(min_group_size_eoe20w)
+  min_group_size_eoe21s <- arrange_dat(min_group_size_eoe21s)
   
   #'  Mortality data provided by IDFG
   load("./Data/IDFG BGMR data/mort_preSmr20.RData")
@@ -166,7 +176,8 @@
              dist2rd = round(dist2rd, digits = 2)) %>%
       relocate(GMU, .after = NewLocationID) %>%
       full_join(mort, by = "GMU") %>%
-      dplyr::select(-c(geometry, ID, Lat, Long))
+      dplyr::select(-c(geometry, ID, Lat, Long)) %>%
+      arrange(NewLocationID)
     
      return(covs)
   }
