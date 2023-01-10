@@ -4,10 +4,10 @@
   #'  Sarah Bassing
   #'  January 2023
   #'  -------------------------------
-  #'  Script to generate relative abundance indicies for different species detected
-  #'  at each camera site.
-  #'  
-  #'  Camera operations table generated in Detection_data_cleaning.R
+  #'  Script to generate relative abundance indices for different species detected
+  #'  at each camera site and compare them using Pearson's correlation coefficient
+  #'  to determine if there are notable differences in how they represent 
+  #'  relative abundance at the camera site. 
   #'  -------------------------------
   
   #'  Clean workspace
@@ -22,11 +22,6 @@
   #'  ----------------
   ####  Read in data  ####
   #'  ----------------
-  #' #'  Problem cameras
-  #' load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
-  #' load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
-  #' load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
-  
   #'  Detection data (motion trigger observations only)
   load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
