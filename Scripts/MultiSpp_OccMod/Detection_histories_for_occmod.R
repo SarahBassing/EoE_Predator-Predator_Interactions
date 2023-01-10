@@ -33,11 +33,25 @@
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
   
+  #'  Sequential problem images
+  load("./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
+  load("./Data/IDFG camera data/Problem images/eoe20w_sequential_probimgs.RData")
+  load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
+  
     
   #'  ------------------------
   ###  Filter detection data  ####
   #'  ------------------------
-  #'  Filter detection data to focal species and time period of interest
+  #'  1) Remove sequential problem images
+  thin_detections <- function(dets, seqprobs) {
+    skinny_dets <- dets[!(dets$File %in% seqprobs$File),]
+    return(skinny_dets)
+  }
+  eoe20s_allM_skinny <- thin_detections(eoe20s_allM, eoe_seqprob_20s)
+  eoe20w_allM_skinny <- thin_detections(eoe20w_allM, eoe_seqprob_20w)
+  eoe21s_allM_skinny <- thin_detections(eoe21s_allM, eoe_seqprob_21s)
+  
+  #'  2) Filter detection data to time period of interest
   #'  Time periods of interest determined by IDFG and plotting histograms of when 
   #'  most cameras were active each season (Detection_data_cleaning.R script)
   detections <- function(dets, start_date, end_date) {
@@ -55,9 +69,9 @@
       arrange(NewLocationID)
     return(dets)
   }
-  eoe20s_dets <- detections(eoe20s_allM, start_date = "2020-07-01", end_date = "2020-09-15")
-  eoe20w_dets <- detections(eoe20w_allM, start_date = "2020-12-01", end_date = "2021-02-01")
-  eoe21s_dets <- detections(eoe21s_allM, start_date = "2021-07-01", end_date = "2021-09-15")
+  eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15")
+  eoe20w_dets <- detections(eoe20w_allM_skinny, start_date = "2020-12-01", end_date = "2021-02-01")
+  eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15")
 
   
   #'  -----------------------------------------
@@ -217,10 +231,10 @@
   rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 147, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
   DH_eoe21s_predators <- lapply(spp_smr, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_eoe21s, oc = 11)
     
-  #'  Save seasonal detection histories
-  # save(DH_eoe20s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
-  # save(DH_eoe20w_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20w_predators.RData")
-  # save(DH_eoe21s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
+  #' #'  Save seasonal detection histories
+  #' save(DH_eoe20s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
+  #' save(DH_eoe20w_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20w_predators.RData")
+  #' save(DH_eoe21s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
   
 
   #'  Count number of wolf detections per sampling occasion
@@ -228,10 +242,10 @@
   count_eoe20w_wolf <- DH(spp = "wolf", dets = eoe20w_det_events, cam_probs = eoe20w_probs, start_date = "2020-12-01", y = "count", rm_rows = rm_rows_eoe20w,oc = 9)  
   count_eoe21s_wolf <- DH(spp = "wolf", dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "count", rm_rows = rm_rows_eoe21s, oc = 11)
   
-  #'  Save seasonal wolf detection data
-  # save(count_eoe20s_wolf, file = "./Data/Wolf count data/count_eoe20s_wolf.RData")
-  # save(count_eoe20w_wolf, file = "./Data/Wolf count data/count_eoe20w_wolf.RData")
-  # save(count_eoe21s_wolf, file = "./Data/Wolf count data/count_eoe21s_wolf.RData")
+  #' #'  Save seasonal wolf detection data
+  #' save(count_eoe20s_wolf, file = "./Data/Wolf count data/count_eoe20s_wolf.RData")
+  #' save(count_eoe20w_wolf, file = "./Data/Wolf count data/count_eoe20w_wolf.RData")
+  #' save(count_eoe21s_wolf, file = "./Data/Wolf count data/count_eoe21s_wolf.RData")
   
   
   #'  -----------------------
