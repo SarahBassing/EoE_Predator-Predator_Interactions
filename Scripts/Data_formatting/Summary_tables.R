@@ -14,7 +14,7 @@
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe20s_det_events.RData") 
   eoe20s_det_events <- mutate(eoe20s_det_events, Season = "Smr20")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe20w_det_events.RData") 
-  eoe20w_det_events <- mutate(eoe20s_det_events, Season = "Wtr20")
+  eoe20w_det_events <- mutate(eoe20w_det_events, Season = "Wtr20")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe21s_det_events.RData")
   eoe21s_det_events <- mutate(eoe21s_det_events, Season = "Smr21")
   
