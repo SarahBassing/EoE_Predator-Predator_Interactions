@@ -29,6 +29,8 @@
   id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp")
   elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
   habclass <- rast("./Shapefiles/IDFG spatial data/HabLayer_30m2.tif")
+  dist2suburbs <- rast("./Shapefiles/GEE/HumanSettlement/Dist2Suburbs.tif")
+  dist2rural <- rast("./Shapefiles/GEE/HumanSettlement/Dist2Rural.tif")
   #'  IDFG Geodatabase with roads
   idfg_gdb <- "./Shapefiles/IDFG spatial data/IDFG Geodatabase.gdb"
   st_layers(idfg_gdb)
@@ -39,6 +41,7 @@
   crs(nlcd, describe = TRUE, proj = TRUE)
   crs(elev, describe = TRUE, proj = TRUE)
   crs(habclass, describe = TRUE, proj = TRUE)
+  crs(dist2suburbs, describe = TRUE, proj = TRUE)
   # projection(id)
   projection(rds)
   
@@ -46,18 +49,22 @@
   res(nlcd)
   res(elev)
   res(habclass)
+  res(dist2suburbs)
   
   #'  Define projections to use when reprojecting camera locations
   wgs84 <- crs("+proj=longlat +datum=WGS84 +no_defs")
   (aea <- crs(nlcd, proj = TRUE))
-  (nad83 <- crs(elev, proj = TRUE))
+  (nad83 <- crs(elev, proj = TRUE)) # Idaho Transverse Mercator NAD83
   (hab_crs <- crs(habclass, proj = TRUE))
   
   #'  Reproject shapefiles
   id_aea <- st_transform(id, aea)
   id_nad83 <- st_transform(id, nad83)
-  # rds_aes <- st_transform(rds, aea)
 
+  #'  Convert NAs to 0 - happens when pixel was suburban or rural and surrounded 
+  #'  by other suburban or rural pixels so no distance to calculated (should be 0)
+  dist2suburbs[is.na(dist2suburbs)] <- 0
+  dist2rural[is.na(dist2rural)] <- 0
   
   #'  ---------------
   ####  Camera data  ####
@@ -157,6 +164,8 @@
     landcover <- terra::extract(nlcd, vect(locs_aea))
     elev <- terra::extract(elev, vect(locs_nad83))
     habitat <- terra::extract(habclass, vect(locs_hab_crs))
+    dist2suburbs <- terra::extract(dist2suburbs, vect(locs_nad83))
+    dist2rural <- terra::extract(dist2rural, vect(locs_nad83))
     #'  Find nearest road to each camera
     nearestrd <- st_nearest_feature(locs_nad83, rds)
     #'  Calculate distance to nearest road (in meters)
@@ -169,6 +178,8 @@
       full_join(landcover, by = "ID") %>%
       full_join(elev, by = "ID") %>%
       full_join(habitat, by = "ID") %>%
+      full_join(dist2suburbs, by = "ID") %>%
+      full_join(dist2rural, by = "ID") %>%
       cbind(dist2rd) %>%
       #'  Join with additional data sets already formatted for each camera site
       full_join(min_group_size, by = "NewLocationID") %>%
