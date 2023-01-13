@@ -58,10 +58,10 @@
   #' load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf_time_skinny.RData")
   #' 
-  #' #'  Add camera setup info (P/U/O/A) and consistent naming structure to match 
-  #' #'  camera location data
-  #' #'  EoE cameras
-  #' eoe_deploy_info <- function(dets, season, pred) { 
+  #'  Add camera setup info (P/U/O/A) and consistent naming structure to match
+  #'  camera location data
+  #'  EoE cameras
+  #' eoe_deploy_info <- function(dets, season, pred) {
   #'   #'  Filter to specific season and predator setup cameras
   #'   sub_cams <- cams_eoe_long %>%
   #'     filter(Season == season) %>%
@@ -118,7 +118,8 @@
   #' eoe20w_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
   #' eoe21s_allM <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator")
   #' eoe21s_allM <- mutate(eoe21s_allM, NewLocationID = LocationID) %>%
-  #'   relocate(NewLocationID, .after = LocationID)
+  #'   relocate(NewLocationID, .after = LocationID) %>%
+  #'   mutate(NewLocationID = toupper(NewLocationID))
   #' save(eoe20s_allM, file = "./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
   #' save(eoe20w_allM, file = "./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   #' save(eoe21s_allM, file = "./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
@@ -135,7 +136,8 @@
   #' eoe20w_allT <- eoe_deploy_info(season = "Wtr20", dets = eoe20w_allT, pred = "predator")
   #' eoe21s_allT <- eoe_deploy_info(season = "Smr21", dets = eoe21s_allT, pred = "predator")
   #' eoe21s_allT <- mutate(eoe21s_allT, NewLocationID = LocationID) %>%
-  #'   relocate(NewLocationID, .after = LocationID)
+  #'   relocate(NewLocationID, .after = LocationID) %>%
+  #'   mutate(NewLocationID = toupper(NewLocationID))
   #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
   #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
   #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
@@ -287,8 +289,11 @@
     filter(Date != "29-Sep-2020") %>%
     #'  Add dummy Setup column because missing for some reason
     mutate(Setup = "U or P") %>%
-    relocate(Setup, .after = "NewLocationID") %>% mutate(NewLocationID = toupper(NewLocationID))
-  eoe21s_allT <- set_tzone(eoe21s_allT) %>% mutate(NewLocationID = toupper(NewLocationID))
+    relocate(Setup, .after = "NewLocationID") #%>% mutate(NewLocationID = toupper(NewLocationID))
+  eoe21s_allT <- set_tzone(eoe21s_allT) %>%
+    #'  Add dummy Setup column because missing for some reason
+    mutate(Setup = "U or P") %>%
+    relocate(Setup, .after = "NewLocationID") #%>% mutate(NewLocationID = toupper(NewLocationID))
   
   #'  Wolf Summer 2019
   load("./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
@@ -774,30 +779,39 @@
   }
   #'  Flag problematic images from each full time-trigger data set
   #'  ntime: 6 = 1 hr, 36 = 6 hrs, 72 = 12 hrs
-  eoe_1hr_20s <- lapply(eoe20s_probs, sequential_probs, ntime = 72) %>% 
+  eoe_seqprob_20s <- lapply(eoe20s_probs, sequential_probs, ntime = 72) %>% 
     #'  Merge listed motion & time trigger data into one dataframe
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  eoe_1hr_20w <- lapply(eoe20w_probs, sequential_probs, ntime = 72) %>%
+  eoe_seqprob_20w <- lapply(eoe20w_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
-  eoe_1hr_21s <- lapply(eoe21s_probs, sequential_probs, ntime = 72) %>%
-    do.call(rbind.data.frame, .) %>%
-    arrange(NewLocationID, posix_date_time)
-  
-  wolf_1hr_19s <- lapply(wolf19s_probs, sequential_probs, ntime = 72) %>%
-    do.call(rbind.data.frame, .) %>%
-    arrange(NewLocationID, posix_date_time)
-  wolf_1hr_20s <- lapply(wolf20s_probs, sequential_probs, ntime = 72) %>%
-    do.call(rbind.data.frame, .) %>%
-    arrange(NewLocationID, posix_date_time)
-  wolf_1hr_21s <- lapply(wolf21s_probs, sequential_probs, ntime = 72) %>%
+  eoe_seqprob_21s <- lapply(eoe21s_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
   
+  wolf_seqprob_19s <- lapply(wolf19s_probs, sequential_probs, ntime = 72) %>%
+    do.call(rbind.data.frame, .) %>%
+    arrange(NewLocationID, posix_date_time)
+  wolf_seqprob_20s <- lapply(wolf20s_probs, sequential_probs, ntime = 72) %>%
+    do.call(rbind.data.frame, .) %>%
+    arrange(NewLocationID, posix_date_time)
+  wolf_seqprob_21s <- lapply(wolf21s_probs, sequential_probs, ntime = 72) %>%
+    do.call(rbind.data.frame, .) %>%
+    arrange(NewLocationID, posix_date_time)
+  
+  #'  Save sequential problematic images so they can be filtered out of larger
+  #'  data sets later
+  save(eoe_seqprob_20s, file = "./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
+  save(eoe_seqprob_20w, file = "./Data/IDFG camera data/Problem images/eoe20w_sequential_probimgs.RData")
+  save(eoe_seqprob_21s, file = "./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
+  
+  save(wolf_seqprob_19s, file = "./Data/IDFG camera data/Problem images/wolf19s_sequential_probimgs.RData")
+  save(wolf_seqprob_20s, file = "./Data/IDFG camera data/Problem images/wolf20s_sequential_probimgs.RData")
+  save(wolf_seqprob_21s, file = "./Data/IDFG camera data/Problem images/wolf21s_sequential_probimgs.RData")
   
   #'  Plot distribution of problem times - is there a temporal pattern?
-  eoe_probtimes_20s <- eoe_1hr_20s %>%  #  Summer 2020
+  eoe_probtimes_20s <- eoe_seqprob_20s %>%  #  Summer 2020
     mutate(Time = hms::as_hms(Time),
            Hours = hour(Time)) %>%
     ggplot(aes(Time)) + #Hours
@@ -807,7 +821,7 @@
   ggsave("./Outputs/Figures/eoe_probtimes_20s_1hr.png", eoe_probtimes_20s, units = "in", 
          width = 6, height = 6, dpi = 600, device = "png")
   
-  eoe_probtimes_20w <- eoe_1hr_20w %>%  #  Winter 2020-2021
+  eoe_probtimes_20w <- eoe_seqprob_20w %>%  #  Winter 2020-2021
     mutate(Time = hms::as_hms(Time),
            Hours = hour(Time)) %>%
     ggplot(aes(Time)) + #Hours
@@ -817,7 +831,7 @@
   ggsave("./Outputs/Figures/eoe_probtimes_20w_1hr.png", eoe_probtimes_20w, units = "in", 
          width = 6, height = 6, dpi = 600, device = "png")
   
-  eoe_probtimes_21s <- eoe_1hr_21s %>%  #  Summer 2021
+  eoe_probtimes_21s <- eoe_seqprob_21s %>%  #  Summer 2021
     mutate(Time = hms::as_hms(Time),
            Hours = hour(Time)) %>%
     ggplot(aes(Time)) + #Hours
@@ -872,7 +886,7 @@
       ungroup()
     return(prob_dates)
   }
-  eoe_prob_dates_20s <- prob_days(eoe_1hr_20s) %>% 
+  eoe_prob_dates_20s <- prob_days(eoe_seqprob_20s) %>% 
     arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop this one observation - same camera labeled w/ 2 problems on same day 
     filter(NewLocationID != "GMU10A_U_67" | OpState != "completely obscured") %>%
@@ -885,7 +899,7 @@
     # filter(NewLocationID != "GMU10A_P_110" | OpState != "severely misdirected" | Date != "2020-10-16" | StartEnd != "First") %>%
     # mutate(ndays = ifelse(NewLocationID == "GMU10A_P_110" & OpState == "severely misdirected" & Date == "2020-10-16" & StartEnd == "Last", 3, ndays)) %>%
     # filter(NewLocationID != "GMU10A_U_37" | OpState != "severely misdirected")
-  eoe_prob_dates_20w <- prob_days(eoe_1hr_20w) %>%
+  eoe_prob_dates_20w <- prob_days(eoe_seqprob_20w) %>%
     arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop these observation - same camera labeled w/ 2 problems on same day
     # filter(NewLocationID != "GMU10A_U_23" | OpState != "completely obscured") %>% # KEEP if ntime = 72
@@ -904,16 +918,16 @@
     mutate(StartEnd = ifelse(NewLocationID == "GMU10A_U_78" & Date == "2021-02-06", "Last", StartEnd)) %>% # Needed for ntime = 72
     filter(NewLocationID != "GMU6_U_11" | Date >= "2020-11-01") %>% # Needed for ntime = 72
     filter(NewLocationID != "GMU6_U_56" | Date >= "2020-11-01") # Needed for ntime = 72
-  eoe_prob_dates_21s <- prob_days(eoe_1hr_21s) %>%
+  eoe_prob_dates_21s <- prob_days(eoe_seqprob_21s) %>%
     arrange(NewLocationID, Date, StartEnd)
   
-  wolf_prob_dates_19s <- prob_days(wolf_1hr_19s) %>%
+  wolf_prob_dates_19s <- prob_days(wolf_seqprob_19s) %>%
     arrange(NewLocationID, Date, StartEnd) %>%
     #'  Drop this observation - same camera labeled w/ 2 problems on same day
     filter(NewLocationID != "GMU44_A_3110" | OpState != "completely obscured")
-  wolf_prob_dates_20s <- prob_days(wolf_1hr_20s) %>%
+  wolf_prob_dates_20s <- prob_days(wolf_seqprob_20s) %>%
     arrange(NewLocationID, Date, StartEnd)
-  wolf_prob_dates_21s <- prob_days(wolf_1hr_21s) %>%
+  wolf_prob_dates_21s <- prob_days(wolf_seqprob_21s) %>%
     arrange(NewLocationID, Date, StartEnd) %>%
     filter(NewLocationID != "GMU39_A_3056" | OpState != "completely obscured")
   
@@ -959,7 +973,7 @@
              NewLocationID != "GMU6_U_27" & NewLocationID != "GMU6_U_29" & 
              NewLocationID != "GMU6_U_99") %>%
     rbind(GMU10A_U_32, GMU10A_U_103, GMU6_U_27, GMU6_U_29, GMU6_U_99) %>%
-    arrange(NewLocationID, Date)
+    arrange(NewLocationID, Date) %>%
     #'  Recalculate number of days per Gap or OpState problem
     group_by(NewLocationID, Burst) %>%
     mutate(ndays = as.numeric(difftime(Date, lag(Date), units = "days")),

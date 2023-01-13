@@ -11,13 +11,15 @@
   library(tidyverse)
   
   #'  Load unique detection event data
-  load("./Data/Detection_Histories/eoe20s_det_events.RData") 
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe20s_det_events.RData") 
   eoe20s_det_events <- mutate(eoe20s_det_events, Season = "Smr20")
-  load("./Data/Detection_Histories/eoe21s_det_events.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe20w_det_events.RData") 
+  eoe20w_det_events <- mutate(eoe20w_det_events, Season = "Wtr20")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe21s_det_events.RData")
   eoe21s_det_events <- mutate(eoe21s_det_events, Season = "Smr21")
   
   #'  Merge data
-  eoe_det_events <- rbind(eoe20s_det_events, eoe21s_det_events) %>%
+  eoe_det_events <- rbind(eoe20s_det_events, eoe20w_det_events, eoe21s_det_events) %>%
     mutate(GMU = sub("_.*", "", NewLocationID)) %>%
     filter(Species == "bear_black" | Species == "bobcat" | Species == "coyote" | 
              Species == "mountain_lion" | Species == "wolf")

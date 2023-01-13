@@ -29,7 +29,7 @@
   library(tidyverse)
   
   #'  Source script that formats detection and covariate data for unmarked
-  source("./Scripts/Format_data_3spp_occmod_unmarked.R")
+  source("./Scripts/MultiSpp_OccMod/Format_data_3spp_occmod_unmarked.R")
   
   
   ####  Multi-Species Occupancy models  ####

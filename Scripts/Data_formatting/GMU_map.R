@@ -11,9 +11,13 @@ eoe_gmu <- gmu[gmu$NAME == "1" | gmu$NAME == "6" | gmu$NAME == "10A",]
 usa <- st_read("./Shapefiles/tl_2012_us_state/tl_2012_us_state.shp")
 id <- usa[usa$NAME == "Idaho",]
 gmu_proj <- projection(gmu)
+wgs84 <- crs("+proj=longlat +datum=WGS84 +no_defs")
 projection(id)
 id_reproj <- st_transform(id, gmu_proj) #"epsg:2243"
 projection(id_reproj)
+id_wgs84 <- st_transform(id, wgs84)
+projection(id_wgs84)
+extent(id_wgs84)
 # st_write(eoe_gmu, dsn = "C:/Users/sarah/Desktop/Coop Unit Work/Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp", layer = "EoE_GMUs.shp", driver = "ESRI Shapefile")
 # st_write(id_reproj, dsn = "C:/Users/sarah/Desktop/Coop Unit Work/Shapefiles/tl_2012_us_state/IdahoState.shp", layer = "IdahoState_2243.shp", driver = "ESRI Shapefile")
 

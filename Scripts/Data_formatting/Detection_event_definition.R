@@ -4,7 +4,7 @@
   #'  ID CRU - Predator Interactions
   #'  Dec. 2020
   #'  ---------------------------------
-  #'  Explor the duratin of time used to define a unique detection event. How much
+  #'  Explore the duration of time used to define a unique detection event. How much
   #'  does it change the number of detections for a given species?
   #'  ---------------------------------
     
@@ -22,11 +22,25 @@
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
   
+  #'  Sequential problem images
+  load("./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
+  load("./Data/IDFG camera data/Problem images/eoe20w_sequential_probimgs.RData")
+  load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
+  
   
   #'  ------------------------
   ###  Filter detection data  ####
   #'  ------------------------
-  #'  Filter detection data to focal species and time period of interest
+  #'  1) Remove sequential problem images
+  thin_detections <- function(dets, seqprobs) {
+    skinny_dets <- dets[!(dets$File %in% seqprobs$File),]
+    return(skinny_dets)
+  }
+  eoe20s_allM_skinny <- thin_detections(eoe20s_allM, eoe_seqprob_20s)
+  eoe20w_allM_skinny <- thin_detections(eoe20w_allM, eoe_seqprob_20w)
+  eoe21s_allM_skinny <- thin_detections(eoe21s_allM, eoe_seqprob_21s)
+  
+  #'  2) Filter detection data to time period of interest
   #'  Time periods of interest determined by IDFG and plotting histograms of when 
   #'  most cameras were active each season (Detection_data_cleaning.R script)
   detections <- function(dets, start_date, end_date) {
@@ -43,9 +57,9 @@
       filter(!is.na(NewLocationID))
     return(dets)
   }
-  eoe20s_dets <- detections(eoe20s_allM, start_date = "2020-07-01", end_date = "2020-09-15")
-  eoe20w_dets <- detections(eoe20w_allM, start_date = "2020-12-01", end_date = "2021-02-01")
-  eoe21s_dets <- detections(eoe21s_allM, start_date = "2021-07-01", end_date = "2021-09-15")
+  eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15")
+  eoe20w_dets <- detections(eoe20w_allM_skinny, start_date = "2020-12-01", end_date = "2021-02-01")
+  eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15")
   
   
   #'  -----------------------------------------
@@ -162,21 +176,94 @@
   # write.csv(indi_definition_tbl, "./Outputs/Tables/Independence_definition_ndets.csv")
   
   
+  #'  ----------------------------
+  ####  Temporal Autocorrelation  ####
+  #'  ----------------------------
+  #'  Is there temporal autocorrelation in detection data based on definition
+  #'  of "independent" detection events?
+  #'  List detection event data sets
+  det_list <- list(eoe20s_dets_2min, eoe20s_dets_5min, eoe20s_dets_10min, eoe20s_dets_30min, eoe20s_dets_60min)
   
-  #'  Temporal autocorrelation
-  bear <- eoe20s_allM[eoe20s_allM$Species == "bear_black",]
-  tst <- bear %>%
-    dplyr::select(c(NewLocationID, posix_date_time)) %>%
-    group_by(NewLocationID) %>%
-    acf(posix_date_time, lag.max = 1, plot = FALSE) %>%
-    ungroup()
+  #'  Reformat POSIXct data to a numeric form (needed for acf) and filter 
+  convert_datetime <- function(dets, spp, min_obs) {
+    dets_dt <- dets %>%
+      #'  Reformat POSIXct data to a "raw" numeric form
+      mutate(datetime = unclass(posix_date_time),
+             #'  Assign each camera location a number
+             ID = as.numeric(factor(NewLocationID))) 
+    spp_dets_dt <- dets_dt %>%
+      #'  Filter to desires species
+      filter(Species == spp) 
+    nobs <- spp_dets_dt %>%
+      group_by(NewLocationID) %>%
+      summarize(nobs = n()) %>%
+      ungroup
+    spp_dets_dt <- full_join(spp_dets_dt, nobs, by = "NewLocationID") %>%
+      #'  Filter data to camera sites with very few observation (no need to worry 
+      #'  about autocorrelation at these sites)
+      filter(nobs > min_obs)
+      
+    return(spp_dets_dt)
+  }
+  bear_dets_list <- lapply(det_list, convert_datetime, spp = "bear_black", min_obs = 2)
+  bob_dets_list <- lapply(det_list, convert_datetime, spp = "bobcat", min_obs = 2)
+  coy_dets_list <- lapply(det_list, convert_datetime, spp = "coyote", min_obs = 2)
+  lion_dets_list <- lapply(det_list, convert_datetime, spp = "mountain_lion", min_obs = 2)
+  wolf_dets_list <- lapply(det_list, convert_datetime, spp = "wolf", min_obs = 2)
   
-  library(timetk)
-  tst <- bear %>%
-    group_by(NewLocationID) %>%
-    nest() %>% 
-    mutate(data = map(data, ~acf(posix_date_time, lag.max=1, type="correlation", plot=F)))
+  # elk_dets_list <- lapply(det_list, convert_datetime, spp = "elk")
+  # moose_dets_list <- lapply(det_list, convert_datetime, spp = "moose")
+  # md_dets_list <- lapply(det_list, convert_datetime, spp = "muledeer")
+  # wtd_dets_list <- lapply(det_list, convert_datetime, spp = "whitetaileddeer")
   
+  #'  Function to split dataframe into a list of dfs based on grouped data
+  split_tibble <- function(tibble, col = 'col') tibble %>% split(., .[, col])
+  bear_split_list <- lapply(bear_dets_list, split_tibble, 'NewLocationID')
+  bob_split_list <- lapply(bob_dets_list, split_tibble, 'NewLocationID')
+  coy_split_list <- lapply(coy_dets_list, split_tibble, 'NewLocationID')
+  lion_split_list <- lapply(lion_dets_list, split_tibble, 'NewLocationID')
+  wolf_split_list <- lapply(wolf_dets_list, split_tibble, 'NewLocationID')
+  
+  
+  #'  Function to estimate and visualize temporal autocorrelation
+  acf_function <- function(dat) {
+    autocorr <- acf(dat$datetime, lag.max = 100, plot = T, ylim = c(-2, 2), 
+                    main = unique(dat$NewLocationID))
+  }
+  #'  Black bear
+  bear_acf_2min <- lapply(bear_split_list[[1]], acf_function)
+  bear_acf_5min <- lapply(bear_split_list[[2]], acf_function)
+  bear_acf_10min <- lapply(bear_split_list[[3]], acf_function)
+  bear_acf_30min <- lapply(bear_split_list[[4]], acf_function)
+  bear_acf_60min <- lapply(bear_split_list[[5]], acf_function)
+  #'  Bobcat
+  bob_acf_2min <- lapply(bob_split_list[[1]], acf_function)
+  bob_acf_5min <- lapply(bob_split_list[[2]], acf_function)
+  bob_acf_10min <- lapply(bob_split_list[[3]], acf_function)
+  bob_acf_30min <- lapply(bob_split_list[[4]], acf_function)
+  bob_acf_60min <- lapply(bob_split_list[[5]], acf_function)
+  #'  Coyote
+  coy_acf_2min <- lapply(coy_split_list[[1]], acf_function)
+  coy_acf_5min <- lapply(coy_split_list[[2]], acf_function)
+  coy_acf_10min <- lapply(coy_split_list[[3]], acf_function)
+  coy_acf_30min <- lapply(coy_split_list[[4]], acf_function)
+  coy_acf_60min <- lapply(coy_split_list[[5]], acf_function)
+  #'  Mountain lion
+  lion_acf_2min <- lapply(lion_split_list[[1]], acf_function)
+  lion_acf_5min <- lapply(lion_split_list[[2]], acf_function)
+  lion_acf_10min <- lapply(lion_split_list[[3]], acf_function)
+  lion_acf_30min <- lapply(lion_split_list[[4]], acf_function)
+  lion_acf_60min <- lapply(lion_split_list[[5]], acf_function)
+  #'  Wolf
+  wolf_acf_2min <- lapply(wolf_split_list[[1]], acf_function)
+  wolf_acf_5min <- lapply(wolf_split_list[[2]], acf_function)
+  wolf_acf_10min <- lapply(wolf_split_list[[3]], acf_function)
+  wolf_acf_30min <- lapply(wolf_split_list[[4]], acf_function)
+  wolf_acf_60min <- lapply(wolf_split_list[[5]], acf_function)
+  
+  
+  
+ 
   
   
   
