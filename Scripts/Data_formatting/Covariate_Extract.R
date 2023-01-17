@@ -162,7 +162,8 @@
       spread(Species, n_dets) %>%
       rowwise() %>%
       #'  Add domestic animals to human count (except cattle)
-      mutate(human_plus = sum(human, cat_domestic, dog_domestic, horse, na.rm = TRUE)) %>%
+      mutate(human_plus = sum(human, cat_domestic, dog_domestic, horse, na.rm = TRUE),
+             ungulate = sum(elk, moose, muledeer, whitetaileddeer, na.rm = TRUE)) %>%
       #'  Rename and drop columns
       rename(livestock = cattle_cow) %>%
       dplyr::select(-c(cat_domestic, dog_domestic, horse)) %>%
@@ -170,7 +171,8 @@
       replace(is.na(.), 0) %>%
       #'  Relocate columns so more intuitive order
       relocate(human_plus, .after = human) %>%
-      relocate(livestock, .before = moose)
+      relocate(livestock, .before = moose) %>%
+      relocate(ungulate, .after = whitetaileddeer)
     return(RelativeN)
   }
   RA_Smr20_df <- reformat_relativeN_data(eoe_dethr_list[[1]])
