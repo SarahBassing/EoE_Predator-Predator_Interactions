@@ -152,10 +152,36 @@
     filter(GMU != "GMU1")
   mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
   
+  #'  Relative abundance index (prey & human activity)
+  #'  Using Hour of Detection as RA index b/c highly correlated with other 
+  #'  definitions of independent detection events and consistent with Ausband et al. in review
+  load("./Data/Relative abundance data/EoE_RelativeN_HrOfDetection.RData")
+  reformat_relativeN_data <- function(dat) {
+    RelativeN <- dat %>%
+      #'  Create one column per species
+      spread(Species, n_dets) %>%
+      rowwise() %>%
+      #'  Add domestic animals to human count (except cattle)
+      mutate(human_plus = sum(human, cat_domestic, dog_domestic, horse, na.rm = TRUE)) %>%
+      #'  Rename and drop columns
+      rename(livestock = cattle_cow) %>%
+      dplyr::select(-c(cat_domestic, dog_domestic, horse)) %>%
+      #'  Change all NAs introduced during spread to 0's (i.e., non-detection)
+      replace(is.na(.), 0) %>%
+      #'  Relocate columns so more intuitive order
+      relocate(human_plus, .after = human) %>%
+      relocate(livestock, .before = moose)
+    return(RelativeN)
+  }
+  RA_Smr20_df <- reformat_relativeN_data(eoe_dethr_list[[1]])
+  RA_Wtr20_df <- reformat_relativeN_data(eoe_dethr_list[[2]])
+  RA_Smr21_df <- reformat_relativeN_data(eoe_dethr_list[[3]])
+  
+  
   #'  ----------------------------------
   ####  COVARIATE EXTRACTION & MERGING  ####
   #'  ----------------------------------
-  cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs, min_group_size, mort) {
+  cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs, min_group_size, mort, relativeN) {
     
     #'  Extract covariate data for each camera site from spatial layers
     perc_forest <- terra::extract(pforest, vect(locs_aea)) %>%
@@ -186,6 +212,10 @@
       mutate(GMU = sub("_.*", "", NewLocationID), 
              dist2rd = round(dist2rd, digits = 2)) %>%
       relocate(GMU, .after = NewLocationID) %>%
+      full_join(relativeN, by = "NewLocationID") %>%
+      #'  Change all NAs introduced during joining to 0's 
+      #'  (MAKE SURE THIS ONLY AFFECTS RELATIVE ABUNDANCE DATA)
+      replace(is.na(.), 0) %>%
       full_join(mort, by = "GMU") %>%
       dplyr::select(-c(geometry, ID, Lat, Long)) %>%
       arrange(NewLocationID)
@@ -193,11 +223,11 @@
      return(covs)
   }
   eoe_covs_20s <- cov_extract(locs_aea = cams_aea[[1]], locs_nad83 = cams_nad83[[1]], locs_hab_crs = cams_hab_crs[[1]], 
-                              min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df)
+                              min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df, relativeN = RA_Smr20_df)
   eoe_covs_20w <- cov_extract(locs_aea = cams_aea[[2]], locs_nad83 = cams_nad83[[2]], locs_hab_crs = cams_hab_crs[[2]], 
-                              min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df)
+                              min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df, relativeN = RA_Wtr20_df)
   eoe_covs_21s <- cov_extract(locs_aea = cams_aea[[3]], locs_nad83 = cams_nad83[[3]], locs_hab_crs = cams_hab_crs[[3]], 
-                              min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df)
+                              min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df, relativeN = RA_Smr21_df)
 
   
   #' #'  Save
