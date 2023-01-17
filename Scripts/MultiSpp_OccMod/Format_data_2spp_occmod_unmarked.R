@@ -85,6 +85,8 @@
                            Height = scale(CameraHeight_M),
                            PercForest = scale(perc_forest), 
                            Elev = scale(Elevation__10m2),
+                           Dist2Sububrs = scale(Dist2Suburbs),
+                           Dist2Rural = scale(Dist2Rural),
                            NearestRd = scale(dist2rd),
                            MinGroupSize = scale(avg_min_group_size), 
                            Bear_mort_n = scale(Bear_mort_n), 
@@ -136,8 +138,8 @@
   DH_eoe21s_predators[[1]][[1]][82:90,1:3]
   
   #'  Correlation matrix to check for collinearity among continuous variables
-  #'  Note: the species-specific total mortality and area-weighted mortality will 
-  #'  be highly correlated (1 or -1) so ignore those coefficients
+  #'  Note: the species-specific total mortality and area-weighted mortality are 
+  #'  highly correlated (1 or -1) so ignore those coefficients
   #'  Warnings are due to variables with no variation (Lion and Wolf mort km2 data)
   corr_matrix <- function(dat, firstcol, lastcol) {
     continuous_variables <- dat[,firstcol:lastcol]
@@ -147,7 +149,9 @@
     return(corr_all)
   }
   camera_station_list <- list(stations_eoe20s, stations_eoe20w, stations_eoe21s)
-  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 20)
+  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 22)
+  #'  Dist2Suburbs & Dist2Rural moderately correlated (r ranged 0.58 - 0.64 depending on year)
+  #'  Dist2Suburbs & mortality correlated for most species and years (r values included 0.62, -0.87, etc.)
   
   
   #'  ---------------------------
