@@ -97,13 +97,8 @@
       group_by(NewLocationID, Species, det_events) %>%
       slice(1L) %>%
       ungroup()
-<<<<<<< HEAD
-    
-    #' Count total number of detection events per species per camera
-=======
-
+      
     #' Count number of detection events per species per camera
->>>>>>> 19387afb9996702eebf788484dc32ff329676c14
     n_dets <- det_events %>%
       group_by(NewLocationID, Species) %>%
       summarise(n_dets = n()) %>%
@@ -184,20 +179,13 @@
   motorized_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human_motorized")
   cattle_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "cattle_cow")
   
-<<<<<<< HEAD
-  
-  #'  Saving total hours detected as relative abundance index
-  #'  Highly correlated with other metrics for all species & years; r = 0.93 - 1.0
+  #'  Saving different metrics of relative abundance index
+  #'  Detection hr highly correlated with other metrics for all species & years; r = 0.93 - 1.0
   #'  (5min and 30min metrics less correlated for moose in some years; r = 0.78)
-  # save(eoe_dethr_list, file = "./Data/Relative abundance index/EoE_TotalHoursDetected.RData")
-  
-=======
-  #'  Save relative abundance index data
   save(eoe_5min_list, file = "./Data/Relative abundance data/EoE_RelativeN_5minElapsed.RData")
   save(eoe_30min_list, file = "./Data/Relative abundance data/EoE_RelativeN_30minElapsed.RData")
   save(eoe_dethr_list, file = "./Data/Relative abundance data/EoE_RelativeN_HrOfDetection.RData")
 
->>>>>>> 19387afb9996702eebf788484dc32ff329676c14
   
   #'  ----------------------------------------------------
   ####  Relative abundance indices per sampling occasion  ####
