@@ -60,7 +60,7 @@
       mutate(
         Date = as.Date(Date, format = "%d-%b-%Y"),
         Time = chron(times = Time),
-        Species = ifelse(Vehicle == "TRUE", "human_vehicle", Species)
+        Species = ifelse(Vehicle == "TRUE", "human_motorized", Species)
       ) %>%
       dplyr::select(-Vehicle) %>%
       #'  Filter to images to desired date range
@@ -174,7 +174,7 @@
   wtd_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "whitetaileddeer")
   
   human_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human")
-  vehicl_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human_vehicle")
+  motorized_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human_motorized")
   cattle_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "cattle_cow")
   
   #'  Save relative abundance index data
