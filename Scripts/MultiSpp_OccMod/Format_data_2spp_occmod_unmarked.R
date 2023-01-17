@@ -85,7 +85,7 @@
                            Height = scale(CameraHeight_M),
                            PercForest = scale(perc_forest), 
                            Elev = scale(Elevation__10m2),
-                           Dist2Sububrs = scale(Dist2Suburbs),
+                           Dist2Suburbs = scale(Dist2Suburbs),
                            Dist2Rural = scale(Dist2Rural),
                            NearestRd = scale(dist2rd),
                            MinGroupSize = scale(avg_min_group_size), 
@@ -93,9 +93,11 @@
                            Nhuman = scale(human),
                            Nhumanplus = scale(human_plus),
                            Nmotorized = scale(human_motorized),
+                           Nlivestock = scale(livestock),
                            Nmoose = scale(moose),
                            Nmd = scale(muledeer),
                            Nwtd = scale(whitetaileddeer),
+                           Nungulate = scale(ungulate),
                            Bear_mort_n = scale(Bear_mort_n), 
                            Bear_mort_km2 = scale(Bear_mort_km2),
                            Bob_mort_n = scale(Bob_mort_n), 
@@ -159,6 +161,7 @@
   cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 27)
   #'  Dist2Suburbs & Dist2Rural moderately correlated (r ranged 0.58 - 0.64 depending on year)
   #'  Dist2Suburbs & mortality correlated for most species and years (r values included 0.62, -0.87, etc.)
+  #'  Nhuman & Nhumanplus highly correlate (duh), and Nmotorized correlated with both in winter (0.59 - 0.6)
   
   #'  ---------------------------
   ####  Survey-level covariates  ####
@@ -200,9 +203,11 @@
   #'  Define maximum interaction order with maxOrder. Defaults to all possible
   #'  interactions if not defined. 
   #'  Detection histories have to already be generated for this to work. 
-  #'  List order:
+  #'  List order in summer:
   #'  Black bear [1], Bobcat [2], Coyote [3], Mountain lion [4], Wolf [5],
   #'  Detection history [1] and sampling effort [2] listed per species
+  #'  List order in winter:
+  #'  Bobcat [1], Coyote [2], Mountain lion [3], Wolf [4]
   #'  ---------------------------
   #'  Function to create unmarked dataframes for multispecies occupancy models 
   #'  for each pairwise combination and season
@@ -220,7 +225,7 @@
                                         maxOrder = 2)
     
     #'  Plot detection histories
-    plot(spp12_UMF)
+    print(plot(spp12_UMF))
     #'  Summarize data
     summary(spp12_UMF)
     
