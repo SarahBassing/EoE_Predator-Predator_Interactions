@@ -87,6 +87,13 @@
                            Elev = scale(Elevation__10m2),
                            NearestRd = scale(dist2rd),
                            MinGroupSize = scale(avg_min_group_size), 
+                           Nelk = scale(elk),
+                           Nhuman = scale(human),
+                           Nhumanplus = scale(human_plus),
+                           Nmotorized = scale(human_motorized),
+                           Nmoose = scale(moose),
+                           Nmd = scale(muledeer),
+                           Nwtd = scale(whitetaileddeer),
                            Bear_mort_n = scale(Bear_mort_n), 
                            Bear_mort_km2 = scale(Bear_mort_km2),
                            Bob_mort_n = scale(Bob_mort_n), 
@@ -147,7 +154,7 @@
     return(corr_all)
   }
   camera_station_list <- list(stations_eoe20s, stations_eoe20w, stations_eoe21s)
-  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 20)
+  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 27)
   
   
   #'  ---------------------------
