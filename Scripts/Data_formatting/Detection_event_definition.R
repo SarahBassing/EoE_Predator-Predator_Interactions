@@ -45,7 +45,7 @@
   #'  most cameras were active each season (Detection_data_cleaning.R script)
   detections <- function(dets, start_date, end_date) {
     dets <- dets %>%
-      dplyr::select("NewLocationID", "CamID", "Date", "Time", "posix_date_time", "TriggerMode",
+      dplyr::select("NewLocationID", "CamID", "Date", "Time", "posix_date_time", "TriggerMode", 
                     "OpState", "Species", "Count") %>%
       mutate(
         Date = as.Date(Date, format = "%d-%b-%Y"),

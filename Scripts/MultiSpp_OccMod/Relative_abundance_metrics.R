@@ -53,7 +53,7 @@
   detections <- function(dets, start_date, end_date) {
     dets <- dets %>%
       filter(Species == "elk" | Species == "moose" | Species == "muledeer" | Species == "whitetaileddeer" |
-               Species == "deer_speciesunknown" | Species == "human" | Species == "dog_domestic" |
+               Species == "human" | Species == "dog_domestic" | #Species == "deer_speciesunknown" | 
                Species == "horse" |  Species == "cattle_cow" | Species == "cat_domestic" |
                Vehicle == "TRUE") %>%
       dplyr::select("NewLocationID", "CamID", "Date", "Time", "posix_date_time", "TriggerMode",
@@ -61,7 +61,7 @@
       mutate(
         Date = as.Date(Date, format = "%d-%b-%Y"),
         Time = chron(times = Time),
-        Species = ifelse(Vehicle == "TRUE", "human_vehicle", Species)
+        Species = ifelse(Vehicle == "TRUE", "human_motorized", Species)
       ) %>%
       dplyr::select(-Vehicle) %>%
       #'  Filter to images to desired date range
@@ -90,15 +90,20 @@
       arrange(NewLocationID, posix_date_time) %>%
       #'  Flag images of same species at same camera as being a different detection event
       #'  when time since last image of that species is greater than defined time interval
-      group_by(NewLocationID, Species) %>%
-      mutate(det_events = cumsum(c(1, diff(posix_date_time) > elapsed_time))) %>% # units in seconds! 
+      group_by(Species, NewLocationID) %>%
+      mutate(det_events = cumsum(c(1, diff(posix_date_time) > elapsed_time))) %>% # units in seconds!
       ungroup() %>%
       #'  Retain only the first image from each unique detection event
       group_by(NewLocationID, Species, det_events) %>%
       slice(1L) %>%
       ungroup()
+<<<<<<< HEAD
     
     #' Count total number of detection events per species per camera
+=======
+
+    #' Count number of detection events per species per camera
+>>>>>>> 19387afb9996702eebf788484dc32ff329676c14
     n_dets <- det_events %>%
       group_by(NewLocationID, Species) %>%
       summarise(n_dets = n()) %>%
@@ -117,6 +122,7 @@
   #'  List 30min-elapsed detection events
   eoe_30min_list <- list(eoe20s_30min_ndets, eoe20w_30min_ndets, eoe21s_30min_ndets)
 
+  # mismatches <- setdiff(eoe20s_5min_ndets[,1:3], eoe20s_30min_ndets[,1:3])
   
   #'  ---------------------------------
   ####  Hours when detection occurred  ####
@@ -175,15 +181,23 @@
   wtd_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "whitetaileddeer")
   
   human_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human")
-  vehicl_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human_vehicle")
+  motorized_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human_motorized")
   cattle_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "cattle_cow")
   
+<<<<<<< HEAD
   
   #'  Saving total hours detected as relative abundance index
   #'  Highly correlated with other metrics for all species & years; r = 0.93 - 1.0
   #'  (5min and 30min metrics less correlated for moose in some years; r = 0.78)
   # save(eoe_dethr_list, file = "./Data/Relative abundance index/EoE_TotalHoursDetected.RData")
   
+=======
+  #'  Save relative abundance index data
+  save(eoe_5min_list, file = "./Data/Relative abundance data/EoE_RelativeN_5minElapsed.RData")
+  save(eoe_30min_list, file = "./Data/Relative abundance data/EoE_RelativeN_30minElapsed.RData")
+  save(eoe_dethr_list, file = "./Data/Relative abundance data/EoE_RelativeN_HrOfDetection.RData")
+
+>>>>>>> 19387afb9996702eebf788484dc32ff329676c14
   
   #'  ----------------------------------------------------
   ####  Relative abundance indices per sampling occasion  ####
