@@ -85,7 +85,7 @@
                            Height = scale(CameraHeight_M),
                            PercForest = scale(perc_forest), 
                            Elev = scale(Elevation__10m2),
-                           Dist2Sububrs = scale(Dist2Suburbs),
+                           Dist2Suburbs = scale(Dist2Suburbs),
                            Dist2Rural = scale(Dist2Rural),
                            NearestRd = scale(dist2rd),
                            MinGroupSize = scale(avg_min_group_size), 
@@ -233,8 +233,7 @@
     return(spp123_UMF)
   }
   
-  ####  APEX Predators UMFs  ####
-  #'  Wolf-Bear-Lion
+  ####  Wolf-Bear-Lion UMFs  ####
   wolf_bear_lion_20s_umf <- umf_setup_3wayX(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[1]][[1]], 
                                             dh_spp3 = DH_eoe20s_predators[[4]][[1]], listnames = c("wolf", "bear", "lion"), 
                                             sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
@@ -243,8 +242,7 @@
                                             sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
   
   
-  ####  Wolf - Felid UMFs  ####
-  #'  Wolf-Bobcat-Lion
+  ####  Wolf-Bobcat-Lion UMFs  ####
   wolf_bob_lion_20s_umf <- umf_setup_3wayX(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[2]][[1]], 
                                             dh_spp3 = DH_eoe20s_predators[[4]][[1]], listnames = c("wolf", "bobcat", "lion"), 
                                             sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
@@ -256,8 +254,7 @@
                                             sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
   
   
-  ####  Canid - Lion UMFs  ####
-  #'  Wolf-Coyote-Lion
+  ####  Wolf-Coyote-Lion UMFs  ####
   wolf_coy_lion_20s_umf <- umf_setup_3wayX(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[3]][[1]], 
                                            dh_spp3 = DH_eoe20s_predators[[4]][[1]], listnames = c("wolf", "coyote", "lion"), 
                                            sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
@@ -269,8 +266,7 @@
                                            sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
   
   
-  ####  Wolf - Mesopredators UMFs  ####
-  #'  Wolf-Bobcat-Coyote
+  ####  Wolf-Bobcat-Coyote UMFs  ####
   wolf_bob_coy_20s_umf <- umf_setup_3wayX(dh_spp1 = DH_eoe20s_predators[[5]][[1]], dh_spp2 = DH_eoe20s_predators[[2]][[1]], 
                                            dh_spp3 = DH_eoe20s_predators[[3]][[1]], listnames = c("wolf", "bobcat", "coyote"), 
                                            sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
@@ -282,8 +278,7 @@
                                            sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
   
   
-  ####  Scavenger - Mesopredators UMFs  ####
-  #'  Bear-bobcat-coyote
+  ####  Bear-bobcat-Coyote UMFs  ####
   bear_bob_coy_20s_umf <- umf_setup_3wayX(dh_spp1 = DH_eoe20s_predators[[1]][[1]], dh_spp2 = DH_eoe20s_predators[[2]][[1]], 
                                             dh_spp3 = DH_eoe20s_predators[[3]][[1]], listnames = c("bear", "bobcat", "coyote"), 
                                             sitecovs = stations_eoe20s, srvycovs = srvy_covs_eoe20s)
