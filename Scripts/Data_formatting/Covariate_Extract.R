@@ -166,11 +166,13 @@
              ungulate = sum(elk, moose, muledeer, whitetaileddeer, na.rm = TRUE)) %>%
       #'  Rename and drop columns
       rename(livestock = cattle_cow) %>%
+      rename(lagomorphs = rabbit_hare) %>%
       dplyr::select(-c(cat_domestic, dog_domestic, horse)) %>%
       #'  Change all NAs introduced during spread to 0's (i.e., non-detection)
       replace(is.na(.), 0) %>%
       #'  Relocate columns so more intuitive order
       relocate(human_plus, .after = human) %>%
+      relocate(lagomorphs, .before = moose) %>%
       relocate(livestock, .before = moose) %>%
       relocate(ungulate, .after = whitetaileddeer)
     return(RelativeN)
@@ -232,16 +234,16 @@
                               min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df, relativeN = RA_Smr21_df)
 
   
-  #' #'  Save
-  #' write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.csv")
-  #' save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
-  #' 
-  #' write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.csv")
-  #' save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
-  #' 
-  #' write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.csv")
-  #' save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
-  
+  #'  Save
+  write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.csv")
+  save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
+
+  write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.csv")
+  save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
+
+  write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.csv")
+  save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
+
   
  
   
