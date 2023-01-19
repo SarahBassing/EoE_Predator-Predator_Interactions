@@ -13,7 +13,7 @@
   #'  potential model issues (e.g., collinearity).
   #'  
   #'  Encounter histories are generated with the Detection_histories_for_occmod.R
-  #'  DH and covariate data formated for unmarked with Format_data_2spp_occmod_unmarked.R
+  #'  DH and covariate data formatted for unmarked with Format_data_2spp_occmod_unmarked.R
   #'  --------------------------------------------
   
   #'  Clean workspace & load libraries
