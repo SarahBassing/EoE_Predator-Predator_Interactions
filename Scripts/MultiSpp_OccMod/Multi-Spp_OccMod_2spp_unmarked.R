@@ -67,19 +67,6 @@
   occFormulas_hab1 <- c("~Elev + PercForest", "~Elev + PercForest", "~1")
   occFormulas_hab2 <- c("~Elev + PercForest", "~Elev + PercForest", "~Elev + PercForest")
   
-  # occFormulas_group1 <- c("~MinGroupSize", "~MinGroupSize", "~1")
-  # occFormulas_group2 <- c("~MinGroupSize", "~MinGroupSize", "~MinGroupSize")
-  # occFormulas_group <- c("~1", "~1", "~MinGroupSize")
-  # 
-  # occFormulas_group1_nowolf <- c("~1", "~MinGroupSize", "~1")
-  # occFormulas_group2_nowolf <- c("~1", "~MinGroupSize", "~MinGroupSize")
-  # 
-  # occFormulas_habgroup1 <- c("~Elev + PercForest + MinGroupSize", "~Elev + PercForest + MinGroupSize", "~1")
-  # occFormulas_habgroup2 <- c("~Elev + PercForest + MinGroupSize", "~Elev + PercForest + MinGroupSize", "~Elev + PercForest + MinGroupSize")
-  # 
-  # occFormulas_habgroup1_nowolf <- c("~Elev + PercForest", "~Elev + PercForest + MinGroupSize", "~1")
-  # occFormulas_habgroup2_nowolf <- c("~Elev + PercForest", "~Elev + PercForest + MinGroupSize", "~Elev + PercForest + MinGroupSize")
-  
   occFormulas_prey1 <- c("~Nungulate", "~Nungulate", "~1")
   occFormulas_prey2 <- c("~Nungulate", "~Nungulate", "~Nungulate")
   occFormulas_prey3 <- c("~Elev + PercForest + Nungulate", "~Elev + PercForest + Nungulate", "~Elev + PercForest + Nungulate")
