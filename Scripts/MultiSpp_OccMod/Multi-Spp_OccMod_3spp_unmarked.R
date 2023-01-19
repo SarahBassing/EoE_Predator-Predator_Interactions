@@ -13,7 +13,6 @@
   #'  
   #'  Summer primary period is considered July 1 - Spet. 15, equating to 11 1-wk 
   #'  sampling periods. 
-  #'  Winter primary period is considered ....
   #'   
   #'  
   #'  Encounter histories are generated with the Detection_histories_for_occmod.R
@@ -47,13 +46,6 @@
   #'  Covariates: Can use different covariates on different natural parameters, 
   #'  E.g., covs on 1st order parameters to explain single-spp occurrence 
   #'  regardless of other spp, covs on 2nd order parameters to explain co-occ
-  #'  
-  #'  Testing hypothesis that co-occurrence is non-independent and that cattle/
-  #'  hunter activity impacts occurrence and/or co-occurrence patterns between
-  #'  predators and prey.
-  #'  
-  #'  Include a consistent set of additional covariates to account for habitat
-  #'  variation and other factors we know influence occurrence and detection.
   #'  Use AIC for model selection.
   #'  =============================
   
