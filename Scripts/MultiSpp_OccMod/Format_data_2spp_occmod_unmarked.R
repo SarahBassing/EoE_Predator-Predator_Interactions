@@ -93,6 +93,7 @@
                            Nhuman = scale(human),
                            Nhumanplus = scale(human_plus),
                            Nmotorized = scale(human_motorized),
+                           Nlagomorph = scale(lagomorphs),
                            Nlivestock = scale(livestock),
                            Nmoose = scale(moose),
                            Nmd = scale(muledeer),
@@ -158,7 +159,7 @@
     return(corr_all)
   }
   camera_station_list <- list(stations_eoe20s, stations_eoe20w, stations_eoe21s)
-  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 27)
+  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 32)
   #'  Dist2Suburbs & Dist2Rural moderately correlated (r ranged 0.58 - 0.64 depending on year)
   #'  Dist2Suburbs & mortality correlated for most species and years (r values included 0.62, -0.87, etc.)
   #'  Nhuman & Nhumanplus highly correlate (duh), and Nmotorized correlated with both in winter (0.59 - 0.6)
