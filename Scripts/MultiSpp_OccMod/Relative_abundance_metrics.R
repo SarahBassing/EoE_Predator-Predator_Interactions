@@ -18,7 +18,7 @@
   library(chron)
   library(lubridate)
   library(tidyverse)
-  library(timetk)
+  # library(timetk)
   
   #'  ----------------
   ####  Read in data  ####
@@ -53,7 +53,7 @@
   detections <- function(dets, start_date, end_date) {
     dets <- dets %>%
       filter(Species == "elk" | Species == "moose" | Species == "muledeer" | Species == "whitetaileddeer" |
-               Species == "human" | Species == "dog_domestic" | #Species == "deer_speciesunknown" | 
+               Species == "rabbit_hare" | Species == "human" | Species == "dog_domestic" | 
                Species == "horse" |  Species == "cattle_cow" | Species == "cat_domestic" |
                Vehicle == "TRUE") %>%
       dplyr::select("NewLocationID", "CamID", "Date", "Time", "posix_date_time", "TriggerMode",
@@ -68,6 +68,8 @@
       filter(Date >= start_date & Date <= end_date) %>%
       #'  Remove observations that can't be linked to a camera with coordinates
       filter(!is.na(NewLocationID)) %>%
+      #'  Remove maintenance images so not included in human/motorized image sets
+      filter(OpState != "maintenance") %>%
       arrange(NewLocationID)
     return(dets)
   }
@@ -174,6 +176,7 @@
   moose_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "moose")
   md_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "muledeer")
   wtd_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "whitetaileddeer")
+  bunny_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "rabbit_hare")
   
   human_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human")
   motorized_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human_motorized")
@@ -194,9 +197,9 @@
   #'  30-min elapsing between sequential images to define an independent event 
   unique_dets_per_occasion <- function(dets, elapsed_time, startDate, occlength) {
     #'  Generate unique detection events
-    det_events <- dets %>%
+    det_events30 <- dets %>%
       arrange(NewLocationID, posix_date_time) %>%
-      #'  Indicate which 1 week sampling occasion each image belongs to 2/7
+      #'  Indicate which 1 week sampling occasion each image belongs to 
       mutate(SamplingOccasion = 1 + as.numeric(Date - as.Date(startDate)) %/% occlength) %>%
       #'  Flag images of same species at same camera as being a different detection event
       #'  when time since last image of that species is greater than defined time interval
@@ -229,12 +232,12 @@
   
   
   #'  Number of hours when at least one detection occurred per sampling occasion
-  det_hour_per_occasion <- function(dets) {
+  det_hour_per_occasion <- function(dets, startDate, occlength) {
     det_hr <- dets %>%
       arrange(NewLocationID, posix_date_time) %>%
       #'  Remove empty images
       filter(Species != "none") %>%
-      #'  Indicate which 1 week sampling occasion each image belongs to 2/7
+      #'  Indicate which 1 week sampling occasion each image belongs to
       mutate(SamplingOccasion = 1 + as.numeric(Date - as.Date(startDate)) %/% occlength) %>%
       #'  Floor time to the hour of each image
       mutate(floor_DT = floor_date(posix_date_time, unit = "hour")) %>%
@@ -248,46 +251,51 @@
       ungroup()
     return(det_hr)
   }
-  eoe20s_dethr_occ <- det_hour_per_occasion(eoe20s_dets)
-  eoe20w_dethr_occ <- det_hour_per_occasion(eoe20w_dets)
-  eoe21s_dethr_occ <- det_hour_per_occasion(eoe21s_dets)
+  eoe20s_dethr_occ <- det_hour_per_occasion(eoe20s_dets, startDate = "2020-07-01", occlength = 7)
+  eoe20w_dethr_occ <- det_hour_per_occasion(eoe20w_dets, startDate = "2020-12-01", occlength = 7)
+  eoe21s_dethr_occ <- det_hour_per_occasion(eoe21s_dets, startDate = "2021-07-01", occlength = 7)
   #'  List hour of detection data sets
   eoe_dethr_sampocc_list <- list(eoe20s_dethr_occ, eoe20w_dethr_occ, eoe21s_dethr_occ)
   
   
+  ####  CURRENTLY USING THIS TO FLAG CAMS WHERE CUMSUM FUNCTION ISN'T WORKING RIGHT  ####
+  
   #'  Test for correlation between different metrics of relative abundance
   compare_relative_abund <- function(ndets_5min, ndets_30min, n_dethrs, spp) {
     #'  Filter to species of interest
-    ndets_5min <- filter(ndets_5min, Species == spp) %>% dplyr::select(n_dets) %>%
-      rename(ndets_5min = n_dets)
-    ndets_30min <- filter(ndets_30min, Species == spp) %>% dplyr::select(n_dets) %>%
-      rename(ndets_30min = n_dets)
-    n_dethrs <- filter(n_dethrs, Species == spp) %>% dplyr::select(n_dets) %>%
-      rename(dethr = n_dets)
+    ndets_5min <- filter(ndets_5min, Species == spp) %>% mutate(datastream = "5min")#%>% dplyr::select(n_dets) %>%
+      #rename(ndets_5min = n_dets)
+    ndets_30min <- filter(ndets_30min, Species == spp) %>% mutate(datastream = "30min")#%>% dplyr::select(n_dets) %>%
+      #rename(ndets_30min = n_dets)
+    n_dethrs <- filter(n_dethrs, Species == spp) %>% mutate(datastream = "dethr")#%>% dplyr::select(n_dets) %>%
+      #rename(dethr = n_dets)
     #'  Combine all datasets
-    ra_metrics <- cbind(ndets_5min, ndets_30min, n_dethrs) 
+    ra_metrics <- full_join(ndets_5min, ndets_30min, by = c("NewLocationID", "Species", "SamplingOccasion")) %>%
+      full_join(n_dethrs, by = c("NewLocationID", "Species", "SamplingOccasion"))
+    return(ra_metrics)
     
-    #'  Run correlation test using Pearson's correlation
-    corr_all <- cor(ra_metrics)
-    corr_all <- as.data.frame(round(corr_all, 2))
-    
-    print(corr_all)
-    return(corr_all)
+    #' #'  Run correlation test using Pearson's correlation
+    #' corr_all <- cor(ra_metrics)
+    #' corr_all <- as.data.frame(round(corr_all, 2))
+    #' 
+    #' print(corr_all)
+    #' return(corr_all)
   }
   elk_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_sampocc_list, ndets_30min = eoe_30min_sampocc_list, n_dethrs = eoe_dethr_sampocc_list, spp = "elk")
   moose_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_sampocc_list, ndets_30min = eoe_30min_sampocc_list, n_dethrs = eoe_dethr_sampocc_list, spp = "moose")
   md_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_sampocc_list, ndets_30min = eoe_30min_sampocc_list, n_dethrs = eoe_dethr_sampocc_list, spp = "muledeer")
   wtd_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_sampocc_list, ndets_30min = eoe_30min_sampocc_list, n_dethrs = eoe_dethr_sampocc_list, spp = "whitetaileddeer")
+  bunny_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_sampocc_list, ndets_30min = eoe_30min_sampocc_list, n_dethrs = eoe_dethr_sampocc_list, spp = "rabbit_hare")
   
-  human_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human")
-  vehicl_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human_vehicle")
-  cattle_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "cattle_cow")
+  human_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_sampocc_list, ndets_30min = eoe_30min_sampocc_list, n_dethrs = eoe_dethr_sampocc_list, spp = "human")
+  vehicl_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_sampocc_list, ndets_30min = eoe_30min_sampocc_list, n_dethrs = eoe_dethr_sampocc_list, spp = "human_vehicle")
+  cattle_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_sampocc_list, ndets_30min = eoe_30min_sampocc_list, n_dethrs = eoe_dethr_sampocc_list, spp = "cattle_cow")
   
   
   #'  Saving total hours detected as relative abundance index
-  #'  Highly correlated with other metrics for all species & years; r = 0.93 - 1.0
-  #'  (5min and 30min metrics less correlated for moose in some years; r = 0.78)
-  # save(eoe_dethr_list, file = "./Data/Relative abundance index/EoE_TotalHoursDetected.RData")
+  save(eoe_5min_sampocc_list, file = "./Data/Relative abundance data/EoE_RelativeN_5minElapsed_SamplingOcc.RData")
+  save(eoe_30min_sampocc_list, file = "./Data/Relative abundance data/EoE_RelativeN_30minElapsed_SamplingOcc.RData")
+  save(eoe_dethr_sampocc_list, file = "./Data/Relative abundance data/EoE_RelativeN_HrOfDetection_SamplingOcc.RData")
   
   
   
