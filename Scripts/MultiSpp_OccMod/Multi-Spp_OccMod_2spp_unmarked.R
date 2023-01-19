@@ -18,7 +18,7 @@
   #'   
   #'  
   #'  Encounter histories are generated with the Detection_histories_for_occmod.R
-  #'  DH and covariate data formated for unmarked with Format_data_2spp_occmod_unmarked.R
+  #'  DH and covariate data formatted for unmarked with Format_data_2spp_occmod_unmarked.R
   #'  --------------------------------------------
   
   #'  Clean workspace & load libraries
@@ -123,9 +123,14 @@
   (wbr_20s_global2a <- occuMulti(detFormulas_setup, occFormula_global2a, wolf_bear_20s_umf, silent = TRUE))
   (wbr_20s_global1b <- occuMulti(detFormulas_setup, occFormula_global1b, wolf_bear_20s_umf, silent = TRUE))
   (wbr_20s_global2b <- occuMulti(detFormulas_setup, occFormula_global2b, wolf_bear_20s_umf, silent = TRUE))
-  wbr_20s_occ_fld <- fitList(wbr_20s_null1, wbr_20s_null2, wbr_20s_hab1, wbr_20s_hab2, wbr_20s_global1a, wbr_20s_global2a, wbr_20s_global1b, wbr_20s_global2b) 
+  wbr_20s_occ_fld <- fitList(wbr_20s_null1, wbr_20s_null2, wbr_20s_hab1, wbr_20s_hab2, 
+                             wbr_20s_prey1, wbr_20s_prey2, wbr_20s_prey3, wbr_20s_diversity1, 
+                             wbr_20s_diversity2, wbr_20s_diversity3, wbr_20s_anthro1, 
+                             wbr_20s_anthro2, wbr_20s_anthro3, wbr_20s_global1a, 
+                             wbr_20s_global2a, wbr_20s_global1b, wbr_20s_global2b) 
   #' Model selection
   modSel(wbr_20s_occ_fld)
+  summary(wbr_20s_global1a)
   summary(wbr_20s_hab1)
   
   ####  Wolf - Bear Summer 2021  ####
@@ -137,13 +142,27 @@
   (wbr_21s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_bear_21s_umf, silent = TRUE))
   (wbr_21s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, wolf_bear_21s_umf, silent = TRUE))
   (wbr_21s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, wolf_bear_21s_umf, silent = TRUE))
-  # (wbr_21s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1_nowolf, wolf_bear_21s_umf, silent = TRUE))
-  # (wbr_21s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2_nowolf, wolf_bear_21s_umf, silent = TRUE))
-  # (wbr_21s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1_nowolf, wolf_bear_21s_umf, silent = TRUE))
-  # (wbr_21s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2_nowolf, wolf_bear_21s_umf, silent = TRUE))
-  wbr_21s_occ_fld <- fitList(wbr_21s_null1, wbr_21s_null2, wbr_21s_hab1, wbr_21s_hab2) #, wbr_21s_group1, wbr_21s_group2, wbr_21s_habgroup1, wbr_21s_habgroup2
+  (wbr_21s_prey1 <- occuMulti(detFormulas_setup, occFormulas_prey1, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_prey2 <- occuMulti(detFormulas_setup, occFormulas_prey2, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_prey3 <- occuMulti(detFormulas_setup, occFormulas_prey3, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_diversity1 <- occuMulti(detFormulas_setup, occFormulas_diversity1, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_diversity2 <- occuMulti(detFormulas_setup, occFormulas_diversity2, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_diversity3 <- occuMulti(detFormulas_setup, occFormulas_diversity3, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_anthro1 <- occuMulti(detFormulas_setup, occFormulas_anthro1, wolf_bear_21s_umf, silent = TRUE))
+  # (wbr_21s_anthro2 <- occuMulti(detFormulas_setup, occFormulas_anthro2, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_anthro3 <- occuMulti(detFormulas_setup, occFormulas_anthro3, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_global1a <- occuMulti(detFormulas_setup, occFormula_global1a, wolf_bear_21s_umf, silent = TRUE))
+  # (wbr_21s_global2a <- occuMulti(detFormulas_setup, occFormula_global2a, wolf_bear_21s_umf, silent = TRUE))
+  (wbr_21s_global1b <- occuMulti(detFormulas_setup, occFormula_global1b, wolf_bear_21s_umf, silent = TRUE))
+  # (wbr_21s_global2b <- occuMulti(detFormulas_setup, occFormula_global2b, wolf_bear_21s_umf, silent = TRUE))  
+  wbr_21s_occ_fld <- fitList(wbr_21s_null1, wbr_21s_null2, wbr_21s_hab1, wbr_21s_hab2, 
+                             wbr_21s_prey1, wbr_21s_prey2, wbr_21s_prey3, wbr_21s_diversity1,
+                             wbr_21s_diversity2, wbr_21s_diversity3, wbr_21s_anthro1,
+                             wbr_21s_anthro3, wbr_21s_global1a, #wbr_21s_anthro2, wbr_21s_global2a, , wbr_21s_global2b
+                             wbr_21s_global1b) 
   #' Model selection
   modSel(wbr_21s_occ_fld)
+  summary(wbr_21s_global1a)
   summary(wbr_21s_hab1)
   
   
@@ -231,14 +250,27 @@
   (wl_20s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, wolf_lion_20s_umf, silent = TRUE))
-  # (wl_20s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1_nowolf, wolf_lion_20s_umf, silent = TRUE))
-  # (wl_20s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2_nowolf, wolf_lion_20s_umf, silent = TRUE))
-  # (wl_20s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1_nowolf, wolf_lion_20s_umf, silent = TRUE))
-  # (wl_20s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2_nowolf, wolf_lion_20s_umf, silent = TRUE))
-  wl_20s_occ_fld <- fitList(wl_20s_null1, wl_20s_null2, wl_20s_hab1, wl_20s_hab2) #, wl_20s_group1, wl_20s_group2, wl_20s_habgroup1, wl_20s_habgroup2
+  (wl_20s_prey1 <- occuMulti(detFormulas_setup, occFormulas_prey1, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_prey2 <- occuMulti(detFormulas_setup, occFormulas_prey2, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_prey3 <- occuMulti(detFormulas_setup, occFormulas_prey3, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_diversity1 <- occuMulti(detFormulas_setup, occFormulas_diversity1, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_diversity2 <- occuMulti(detFormulas_setup, occFormulas_diversity2, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_diversity3 <- occuMulti(detFormulas_setup, occFormulas_diversity3, wolf_lion_20s_umf, silent = TRUE)) # suspect coefficient magnitude
+  (wl_20s_anthro1 <- occuMulti(detFormulas_setup, occFormulas_anthro1, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_anthro2 <- occuMulti(detFormulas_setup, occFormulas_anthro2, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_anthro3 <- occuMulti(detFormulas_setup, occFormulas_anthro3, wolf_lion_20s_umf, silent = TRUE)) # suspect coefficient magnitude
+  (wl_20s_global1a <- occuMulti(detFormulas_setup, occFormula_global1a, wolf_lion_20s_umf, silent = TRUE))
+  #(wl_20s_global2a <- occuMulti(detFormulas_setup, occFormula_global2a, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_global1b <- occuMulti(detFormulas_setup, occFormula_global1b, wolf_lion_20s_umf, silent = TRUE))
+  #(wl_20s_global2b <- occuMulti(detFormulas_setup, occFormula_global2b, wolf_lion_20s_umf, silent = TRUE))
+  wl_20s_occ_fld <- fitList(wl_20s_null1, wl_20s_null2, wl_20s_hab1, wl_20s_hab2, 
+                            wl_20s_prey1, wl_20s_prey2, wl_20s_prey3, wl_20s_diversity1,
+                            wl_20s_diversity2, wl_20s_diversity3, wl_20s_anthro1,
+                            wl_20s_anthro2, wl_20s_anthro3, wl_20s_global1a,
+                            wl_20s_global1b) # wl_20s_global2b, wl_20s_global2b
   #' Model selection
   modSel(wl_20s_occ_fld)
-  summary(wl_20s_hab1)
+  summary(wl_20s_global1b)
   
   ####  Wolf - Lion Summer 2021  ####
   #'  Review detection sub-models
