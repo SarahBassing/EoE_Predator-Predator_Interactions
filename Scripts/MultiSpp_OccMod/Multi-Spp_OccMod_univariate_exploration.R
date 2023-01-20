@@ -45,9 +45,9 @@
   occFormulas_moose <- c("~Nmoose", "~Nmoose", "~Nmoose")
   occFormulas_md <- c("~Nmd", "~Nmd", "~Nmd")
   occFormulas_wtd <- c("~Nwtd", "~Nwtd", "~Nwtd")
-  occFormulas_suburbs <- c("~Dist2Suburbs", "~Dist2Suburbs", "~Dist2Suburbs")
-  occFormulas_rural <- c("~Dist2Rural", "~Dist2Rural", "~Dist2Rural")
-  occFormulas_dist2rd <- c("~NearestRd", "~NearestRd", "~NearestRd")
+  occFormulas_suburbs <- c("~Dist2Burbs", "~Dist2Burbs", "~Dist2Burbs")
+  occFormulas_rural <- c("~Dist2Rrl", "~Dist2Rrl", "~Dist2Rrl")
+  occFormulas_dist2rd <- c("~logNearestRd", "~logNearestRd", "~logNearestRd")
   occFormulas_human <- c("~Nhuman", "~Nhuman", "~Nhuman")
   occFormulas_livestock <- c("~Nlivestock", "~Nlivestock", "~Nlivestock")
   
