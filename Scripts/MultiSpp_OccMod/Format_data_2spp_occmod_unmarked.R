@@ -85,9 +85,11 @@
                            Height = scale(CameraHeight_M),
                            PercForest = scale(perc_forest), 
                            Elev = scale(Elevation__10m2),
-                           Dist2Suburbs = scale(Dist2Suburbs),
-                           Dist2Rural = scale(Dist2Rural),
+                           Dist2Burbs = scale(Dist2Suburbs),
+                           logDist2Burbs = scale(log10(Dist2Suburbs)),
+                           Dist2Rrl = scale(Dist2Rural),
                            NearestRd = scale(dist2rd),
+                           logNearestRd = scale(log10(dist2rd)),
                            MinGroupSize = scale(avg_min_group_size), 
                            Nelk = scale(elk),
                            Nhuman = scale(human),
@@ -159,7 +161,7 @@
     return(corr_all)
   }
   camera_station_list <- list(stations_eoe20s, stations_eoe20w, stations_eoe21s)
-  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 32)
+  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 34)
   #'  Dist2Suburbs & Dist2Rural moderately correlated (r ranged 0.58 - 0.64 depending on year)
   #'  Dist2Suburbs & mortality correlated for most species and years (r values included 0.62, -0.87, etc.)
   #'  Nhuman & Nhumanplus highly correlate (duh), and Nmotorized correlated with both in winter (0.59 - 0.6)
