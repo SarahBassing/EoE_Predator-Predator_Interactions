@@ -245,5 +245,23 @@
   save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
 
   
- 
+  #'  Histogram of covariate data
+  spread_of_covariate_data <- function(covs, season) {
+    hist(covs$Elevation__10m2, breaks =  20, main = paste("Frequency of elevation at cameras\n", season))
+    hist(covs$perc_forest, breaks =  20, main = paste("Frequency of percent forest at cameras\n", season))
+    hist(covs$Dist2Suburbs, breaks =  20, main = paste("Frequency of distance of camera to suburbs\n", season))
+    hist(log(covs$dist2rd), breaks =  20, main = paste("Frequency of log distance of camera to nearest road\n", season))
+    hist(covs$elk, breaks =  20, main = paste("Frequency of elk activity at cameras\n", season))
+    hist(covs$human, breaks =  20, main = paste("Frequency of human activity at cameras\n", season))
+    hist(covs$human_motorized, breaks =  30, main = paste("Frequency of motorized vehicles at cameras\n", season))
+    hist(covs$lagomorphs, breaks =  20, main = paste("Frequency of lagomorph activity at cameras\n", season))
+    hist(covs$livestock, breaks =  30, main = paste("Frequency of livestock activity at cameras\n", season))
+    hist(covs$moose, breaks =  20, main = paste("Frequency of moose activity at cameras\n", season))
+    hist(covs$muledeer, breaks =  20, main = paste("Frequency of mule deer activity at cameras\n", season))
+    hist(covs$whitetaileddeer, breaks =  20, main = paste("Frequency of white-tailed deer activity at cameras\n", season))
+    hist(covs$ungulate, breaks =  10, main = paste("Frequency of ungulate activity at cameras\n", season))
+  }
+  spread_of_covariate_data(eoe_covs_20s, season = "Summer 2020")
+  spread_of_covariate_data(eoe_covs_20w, season = "Winter 2020-2021")
+  spread_of_covariate_data(eoe_covs_21s, season = "Summer 2021")
   
