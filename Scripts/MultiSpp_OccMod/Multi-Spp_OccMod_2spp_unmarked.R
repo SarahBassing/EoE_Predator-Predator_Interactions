@@ -75,15 +75,31 @@
   occFormulas_diversity2 <- c("~Nelk + Nmoose + Nmd + Nwtd", "~Nelk + Nmoose + Nmd + Nwtd", "~Nelk + Nmoose + Nmd + Nwtd")
   occFormulas_diversity3 <- c("~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd")
   
-  occFormulas_anthro1 <- c("~Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~1")
-  occFormulas_anthro2 <- c("~Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Dist2Suburbs + NearestRd + Nhuman + Nlivestock")
-  occFormulas_anthro3 <- c("~Elev + PercForest + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Dist2Suburbs + NearestRd + Nhuman + Nlivestock")
+  #'  Log distance to nearest road b/c expect behavioral response to dampen with growing distance from road
+  #'  Not logging distance to suburbia b/v expect a relatively linear decline in mortality risk further from suburban/urband areas
+  # occFormulas_anthro1 <- c("~Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~1")
+  # occFormulas_anthro2 <- c("~Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Dist2Burbs + logNearestRd + Nhuman + Nlivestock")
+  # occFormulas_anthro3 <- c("~Elev + PercForest + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Dist2Burbs + logNearestRd + Nhuman + Nlivestock")
+  # 
+  # occFormulas_anthro1b <- c("~Dist2Burbs + logNearestRd + Nlivestock", "~Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~1")
+  # occFormulas_anthro2b <- c("~Dist2Burbs + logNearestRd + Nlivestock", "~Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Dist2Burbs + logNearestRd + Nhuman + Nlivestock")
+  # occFormulas_anthro3b <- c("~Elev + PercForest + Dist2Burbs + logNearestRd + Nlivestock", "~Elev + PercForest + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Dist2Burbs + logNearestRd + Nhuman + Nlivestock")
   
-  occFormula_global1a <- c("~Elev + PercForest + Nungulate + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nungulate + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~1")
-  occFormula_global2a <- c("~Elev + PercForest + Nungulate + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nungulate + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nungulate + Dist2Suburbs + NearestRd + Nhuman + Nlivestock")
+  #'  Anthropogenic factors hypothesized to be associated with mortality risk
+  occFormulas_anthro1 <- c("~Dist2Burbs + Nlivestock", "~Dist2Burbs + Nlivestock", "~1")
+  occFormulas_anthro2 <- c("~Dist2Burbs + Nlivestock", "~Dist2Burbs + Nlivestock", "~Dist2Burbs + Nlivestock")
+  occFormulas_anthro3 <- c("~Elev + PercForest + Dist2Burbs + Nlivestock", "~Elev + PercForest + Dist2Burbs + Nlivestock", "~Elev + PercForest + Dist2Burbs + Nlivestock")
   
-  occFormula_global1b <- c("~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~1")
-  occFormula_global2b <- c("~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Suburbs + NearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Suburbs + NearestRd + Nhuman + Nlivestock")
+  #'  Anthropogenic factors hypothesized to be associated with disturbance
+  occFormulas_anthro1b <- c("~logNearestRd + Nhuman", "~logNearestRd + Nhuman", "~1")
+  occFormulas_anthro2b <- c("~logNearestRd + Nhuman", "~logNearestRd + Nhuman", "~logNearestRd + Nhuman")
+  occFormulas_anthro3b <- c("~Elev + PercForest + logNearestRd + Nhuman", "~Elev + PercForest + logNearestRd + Nhuman", "~Elev + PercForest + logNearestRd + Nhuman")
+  
+  occFormula_global1a <- c("~Elev + PercForest + Nungulate + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nungulate + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~1")
+  occFormula_global2a <- c("~Elev + PercForest + Nungulate + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nungulate + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nungulate + Dist2Burbs + logNearestRd + Nhuman + Nlivestock")
+  
+  occFormula_global1b <- c("~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~1")
+  occFormula_global2b <- c("~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Burbs + logNearestRd + Nhuman + Nlivestock", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Dist2Burbs + logNearestRd + Nhuman + Nlivestock")
   
   
   
@@ -212,10 +228,12 @@
   (wc_20s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_coy_20s_umf, silent = TRUE))
   (wc_20s_hab1 <- occuMulti(detFormulas_trail, occFormulas_hab1, wolf_coy_20s_umf, silent = TRUE))
   (wc_20s_hab2 <- occuMulti(detFormulas_trail, occFormulas_hab2, wolf_coy_20s_umf, silent = TRUE))
-  # (wc_20s_group1 <- occuMulti(detFormulas_trail, occFormulas_group1_nowolf, wolf_coy_20s_umf, silent = TRUE))
-  # (wc_20s_group2 <- occuMulti(detFormulas_trail, occFormulas_group2_nowolf, wolf_coy_20s_umf, silent = TRUE))
-  # (wc_20s_habgroup1 <- occuMulti(detFormulas_trail, occFormulas_habgroup1_nowolf, wolf_coy_20s_umf, silent = TRUE))
-  # (wc_20s_habgroup2 <- occuMulti(detFormulas_trail, occFormulas_habgroup2_nowolf, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_anthro1 <- occuMulti(detFormulas_setup, occFormulas_anthro1, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_anthro2 <- occuMulti(detFormulas_setup, occFormulas_anthro2, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_anthro3 <- occuMulti(detFormulas_setup, occFormulas_anthro3, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_anthro1b <- occuMulti(detFormulas_setup, occFormulas_anthro1b, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_anthro2b <- occuMulti(detFormulas_setup, occFormulas_anthro2b, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_anthro3b <- occuMulti(detFormulas_setup, occFormulas_anthro3b, wolf_coy_20s_umf, silent = TRUE))
   wc_20s_occ_fld <- fitList(wc_20s_null1, wc_20s_null2, wc_20s_hab1, wc_20s_hab2) #, wc_20s_group1, wc_20s_group2, wc_20s_habgroup1, wc_20s_habgroup2
   #' Model selection
   modSel(wc_20s_occ_fld)
@@ -230,10 +248,13 @@
   (wc_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_coy_21s_umf, silent = TRUE))
   (wc_21s_hab1 <- occuMulti(detFormulas_trail, occFormulas_hab1, wolf_coy_21s_umf, silent = TRUE))
   (wc_21s_hab2 <- occuMulti(detFormulas_trail, occFormulas_hab2, wolf_coy_21s_umf, silent = TRUE))
-  (wc_21s_group1 <- occuMulti(detFormulas_trail, occFormulas_group1_nowolf, wolf_coy_21s_umf, silent = TRUE))
-  # (wc_21s_group2 <- occuMulti(detFormulas_trail, occFormulas_group2_nowolf, wolf_coy_21s_umf, silent = TRUE))
-  # (wc_21s_habgroup1 <- occuMulti(detFormulas_trail, occFormulas_habgroup1_nowolf, wolf_coy_21s_umf, silent = TRUE))
-  # (wc_21s_habgroup2 <- occuMulti(detFormulas_trail, occFormulas_habgroup2_nowolf, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_anthro1 <- occuMulti(detFormulas_setup, occFormulas_anthro1, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_anthro2 <- occuMulti(detFormulas_setup, occFormulas_anthro2, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_anthro3 <- occuMulti(detFormulas_setup, occFormulas_anthro3, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_anthro1b <- occuMulti(detFormulas_setup, occFormulas_anthro1b, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_anthro2b <- occuMulti(detFormulas_setup, occFormulas_anthro2b, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_anthro3b <- occuMulti(detFormulas_setup, occFormulas_anthro3b, wolf_coy_21s_umf, silent = TRUE))
+  
   wc_21s_occ_fld <- fitList(wc_21s_null1, wc_21s_null2, wc_21s_hab1, wc_21s_hab2, wc_21s_group1) #, wc_21s_group1, wc_21s_group2, wc_21s_habgroup1, wc_21s_habgroup2
   #' Model selection
   modSel(wc_21s_occ_fld)
@@ -259,6 +280,9 @@
   (wl_20s_anthro1 <- occuMulti(detFormulas_setup, occFormulas_anthro1, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_anthro2 <- occuMulti(detFormulas_setup, occFormulas_anthro2, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_anthro3 <- occuMulti(detFormulas_setup, occFormulas_anthro3, wolf_lion_20s_umf, silent = TRUE)) # suspect coefficient magnitude
+  (wl_20s_anthro1b <- occuMulti(detFormulas_setup, occFormulas_anthro1b, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_anthro2b <- occuMulti(detFormulas_setup, occFormulas_anthro2b, wolf_lion_20s_umf, silent = TRUE))
+  (wl_20s_anthro3b <- occuMulti(detFormulas_setup, occFormulas_anthro3b, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_global1a <- occuMulti(detFormulas_setup, occFormula_global1a, wolf_lion_20s_umf, silent = TRUE))
   #(wl_20s_global2a <- occuMulti(detFormulas_setup, occFormula_global2a, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_global1b <- occuMulti(detFormulas_setup, occFormula_global1b, wolf_lion_20s_umf, silent = TRUE))
@@ -281,11 +305,22 @@
   (wl_21s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_lion_21s_umf, silent = TRUE))
   (wl_21s_hab1 <- occuMulti(detFormulas_setup, occFormulas_hab1, wolf_lion_21s_umf, silent = TRUE))
   (wl_21s_hab2 <- occuMulti(detFormulas_setup, occFormulas_hab2, wolf_lion_21s_umf, silent = TRUE))
-  # (wl_21s_group1 <- occuMulti(detFormulas_setup, occFormulas_group1_nowolf, wolf_lion_21s_umf, silent = TRUE))
-  # (wl_21s_group2 <- occuMulti(detFormulas_setup, occFormulas_group2_nowolf, wolf_lion_21s_umf, silent = TRUE))
-  # (wl_21s_habgroup1 <- occuMulti(detFormulas_setup, occFormulas_habgroup1_nowolf, wolf_lion_21s_umf, silent = TRUE))
-  # (wl_21s_habgroup2 <- occuMulti(detFormulas_setup, occFormulas_habgroup2_nowolf, wolf_lion_21s_umf, silent = TRUE))
-  wl_21s_occ_fld <- fitList(wl_21s_null1, wl_21s_null2, wl_21s_hab1, wl_21s_hab2) #, wl_21s_group1, wl_21s_group2, wl_21s_habgroup1, wl_21s_habgroup2
+  (wl_21s_prey1 <- occuMulti(detFormulas_setup, occFormulas_prey1, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_prey2 <- occuMulti(detFormulas_setup, occFormulas_prey2, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_prey3 <- occuMulti(detFormulas_setup, occFormulas_prey3, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_diversity1 <- occuMulti(detFormulas_setup, occFormulas_diversity1, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_diversity2 <- occuMulti(detFormulas_setup, occFormulas_diversity2, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_diversity3 <- occuMulti(detFormulas_setup, occFormulas_diversity3, wolf_lion_21s_umf, silent = TRUE)) # suspect coefficient magnitude
+  (wl_21s_anthro1 <- occuMulti(detFormulas_setup, occFormulas_anthro1, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_anthro2 <- occuMulti(detFormulas_setup, occFormulas_anthro2, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_anthro3 <- occuMulti(detFormulas_setup, occFormulas_anthro3, wolf_lion_21s_umf, silent = TRUE)) # suspect coefficient magnitude
+  (wl_21s_anthro1b <- occuMulti(detFormulas_setup, occFormulas_anthro1b, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_anthro2b <- occuMulti(detFormulas_setup, occFormulas_anthro2b, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_anthro3b <- occuMulti(detFormulas_setup, occFormulas_anthro3b, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_global1a <- occuMulti(detFormulas_setup, occFormula_global1a, wolf_lion_21s_umf, silent = TRUE))
+  (wl_20s_global2a <- occuMulti(detFormulas_setup, occFormula_global2a, wolf_lion_21s_umf, silent = TRUE))
+  (wl_20s_global1b <- occuMulti(detFormulas_setup, occFormula_global1b, wolf_lion_21s_umf, silent = TRUE))
+  (wl_20s_global2b <- occuMulti(detFormulas_setup, occFormula_global2b, wolf_lion_21s_umf, silent = TRUE))  wl_21s_occ_fld <- fitList(wl_21s_null1, wl_21s_null2, wl_21s_hab1, wl_21s_hab2) #, wl_21s_group1, wl_21s_group2, wl_21s_habgroup1, wl_21s_habgroup2
   #' Model selection
   modSel(wl_21s_occ_fld)
   summary(wl_21s_hab1)
