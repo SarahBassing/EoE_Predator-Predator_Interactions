@@ -101,6 +101,8 @@
                            Nmd = scale(muledeer),
                            Nwtd = scale(whitetaileddeer),
                            Nungulate = scale(ungulate),
+                           Nbig_deer = scale(big_deer),
+                           Nsmall_deer = scale(small_deer),
                            Bear_mort_n = scale(Bear_mort_n), 
                            Bear_mort_km2 = scale(Bear_mort_km2),
                            Bob_mort_n = scale(Bob_mort_n), 
@@ -161,7 +163,7 @@
     return(corr_all)
   }
   camera_station_list <- list(stations_eoe20s, stations_eoe20w, stations_eoe21s)
-  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 34)
+  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 36)
   #'  Dist2Suburbs & Dist2Rural moderately correlated (r ranged 0.58 - 0.64 depending on year)
   #'  Dist2Suburbs & mortality correlated for most species and years (r values included 0.62, -0.87, etc.)
   #'  Nhuman & Nhumanplus highly correlate (duh), and Nmotorized correlated with both in winter (0.59 - 0.6)
