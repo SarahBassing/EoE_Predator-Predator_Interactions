@@ -163,7 +163,9 @@
       rowwise() %>%
       #'  Add domestic animals to human count (except cattle)
       mutate(human_plus = sum(human, cat_domestic, dog_domestic, horse, na.rm = TRUE),
-             ungulate = sum(elk, moose, muledeer, whitetaileddeer, na.rm = TRUE)) %>%
+             ungulate = sum(elk, moose, muledeer, whitetaileddeer, na.rm = TRUE),
+             big_deer = sum(elk, moose, na.rm = TRUE),
+             small_deer = sum(muledeer, whitetaileddeer, na.rm = TRUE)) %>%
       #'  Rename and drop columns
       rename(livestock = cattle_cow) %>%
       rename(lagomorphs = rabbit_hare) %>%
@@ -174,7 +176,9 @@
       relocate(human_plus, .after = human) %>%
       relocate(lagomorphs, .before = moose) %>%
       relocate(livestock, .before = moose) %>%
-      relocate(ungulate, .after = whitetaileddeer)
+      relocate(ungulate, .after = whitetaileddeer) %>%
+      relocate(big_deer, .after = ungulate) %>%
+      relocate(small_deer, .after = big_deer)
     return(RelativeN)
   }
   RA_Smr20_df <- reformat_relativeN_data(eoe_dethr_list[[1]])
@@ -259,7 +263,9 @@
     hist(covs$moose, breaks =  20, main = paste("Frequency of moose activity at cameras\n", season))
     hist(covs$muledeer, breaks =  20, main = paste("Frequency of mule deer activity at cameras\n", season))
     hist(covs$whitetaileddeer, breaks =  20, main = paste("Frequency of white-tailed deer activity at cameras\n", season))
-    hist(covs$ungulate, breaks =  10, main = paste("Frequency of ungulate activity at cameras\n", season))
+    hist(covs$ungulate, breaks =  20, main = paste("Frequency of ungulate activity at cameras\n", season))
+    hist(covs$big_deer, breaks = 20, main = paste("Frequency of elk & moose activity at cameras\n", season))
+    hist(covs$small_deer, breaks = 20, main = paste("Frequency of mule deer & white-tail activity at cameras\n", season))
   }
   spread_of_covariate_data(eoe_covs_20s, season = "Summer 2020")
   spread_of_covariate_data(eoe_covs_20w, season = "Winter 2020-2021")
