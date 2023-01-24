@@ -128,16 +128,16 @@
   (wbr_21s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_bear_21s_umf, silent = TRUE))
   (wbr_21s_hab <- occuMulti(detFormulas_setup, occFormulas_hab, wolf_bear_21s_umf, silent = TRUE))
   (wbr_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_bear_21s_umf, silent = TRUE)) #fails with lagomorphs
-  (wbr_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bear_21s_umf, silent = TRUE)) #questionable coeffs with lagomorphs
+  (wbr_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bear_21s_umf, silent = TRUE)) 
   (wbr_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_bear_21s_umf, silent = TRUE))
   (wbr_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_bear_21s_umf, silent = TRUE))
-  (wbr_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bear_21s_umf, silent = TRUE)) #questionable coeffs with lagomorphs
-  (wbr_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_bear_21s_umf, silent = TRUE)) #questionable coeffs with lagomorphs
-  wbr_21s_occ_fld <- fitList(wbr_21s_null1, wbr_21s_null2, wbr_21s_hab, wbr_21s_preydiversity,  #wbr_21s_preygroups
-                             wbr_21s_anthromort, wbr_21s_anthrodist, wbr_21s_global1, wbr_21s_global2) 
+  (wbr_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bear_21s_umf, silent = TRUE)) #fail with lagomorphs
+  (wbr_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_bear_21s_umf, silent = TRUE)) #fail with lagomorphs
+  wbr_21s_occ_fld <- fitList(wbr_21s_null1, wbr_21s_null2, wbr_21s_hab, wbr_21s_preydiversity, #wbr_21s_preygroups, 
+                             wbr_21s_anthromort, wbr_21s_anthrodist) #, wbr_21s_global1, wbr_21s_global2
   #' Model selection
   modSel(wbr_21s_occ_fld)
-  summary(wbr_21s_anthromort) # global models ranked higher had questionable coefficient estimates when lagomorph data included in model
+  summary(wbr_21s_anthromort) 
   
   
   ####  Wolf - Bobcat Summer 2020  ####
@@ -152,13 +152,14 @@
   (wb_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bob_20s_umf, silent = TRUE))
   (wb_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_bob_20s_umf, silent = TRUE))
   (wb_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_bob_20s_umf, silent = TRUE))
-  (wb_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bob_20s_umf, silent = TRUE))
+  (wb_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bob_20s_umf, silent = TRUE)) #questionable coeffs
   (wb_20s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_bob_20s_umf, silent = TRUE)) # fail
   wb_20s_occ_fld <- fitList(wb_20s_null1, wb_20s_null2, wb_20s_hab, wb_20s_preygroups, wb_20s_preydiversity,
                             wb_20s_anthromort, wb_20s_anthrodist, wb_20s_global1) #, wb_20s_global2
   #' Model selection
   modSel(wb_20s_occ_fld)
-  summary(wb_20s_global1)
+  summary(wb_20s_preydiversity)  # global1 but questionable coeffs
+  summary(wb_20s_anthromort) # ranked very close second to prey diversity
   
   ####  Wolf - Bobcat Summer 2021  ####
   #'  Review detection sub-models
@@ -169,7 +170,7 @@
   (wb_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_bob_21s_umf, silent = TRUE))
   (wb_21s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_bob_21s_umf, silent = TRUE))
   (wb_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_bob_21s_umf, silent = TRUE))
-  (wb_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bob_21s_umf, silent = TRUE))
+  (wb_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bob_21s_umf, silent = TRUE)) #questionable coeffs
   (wb_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_bob_21s_umf, silent = TRUE))
   (wb_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_bob_21s_umf, silent = TRUE))
   (wb_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bob_21s_umf, silent = TRUE)) #fail
@@ -178,6 +179,7 @@
                             wb_21s_anthromort, wb_21s_anthrodist, wb_21s_global2) #wb_21s_global1 
   #' Model selection
   modSel(wb_21s_occ_fld)
+  summary(wb_21s_preydiversity) # top ranked model but somewhat questionable coeffs
   summary(wb_21s_anthromort)
   
   
@@ -188,15 +190,15 @@
   #'  Run occupancy models using best supported detection sub-model
   (wc_20s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_coy_20s_umf, silent = TRUE))
   (wc_20s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_coy_20s_umf, silent = TRUE))
-  (wc_20s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_coy_20s_umf, silent = TRUE))
-  (wc_20s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_coy_20s_umf, silent = TRUE))
-  (wc_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_coy_20s_umf, silent = TRUE))
-  (wc_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_coy_20s_umf, silent = TRUE))
-  (wc_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_coy_20s_umf, silent = TRUE))
+  (wc_20s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_coy_20s_umf, silent = TRUE)) #questionable coeffs
+  (wc_20s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_coy_20s_umf, silent = TRUE)) #questionable coeffs
+  (wc_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_coy_20s_umf, silent = TRUE)) #fail
+  (wc_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_coy_20s_umf, silent = TRUE)) #questionable coeffs
+  (wc_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_coy_20s_umf, silent = TRUE)) #questionable coeffs
   (wc_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_coy_20s_umf, silent = TRUE)) #fail
   (wc_20s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_coy_20s_umf, silent = TRUE)) #fail
-  wc_20s_occ_fld <- fitList(wc_20s_null1, wc_20s_null2, wc_20s_hab, wc_20s_preygroups, wc_20s_preydiversity,
-                            wc_20s_anthromort, wc_20s_anthrodist) # wc_20s_global1, wc_20s_global2
+  wc_20s_occ_fld <- fitList(wc_20s_null1, wc_20s_null2, wc_20s_hab, wc_20s_preygroups, #wc_20s_preydiversity,
+                            wc_20s_anthromort, wc_20s_anthrodist) #wc_20s_global1, wc_20s_global2
   #' Model selection
   modSel(wc_20s_occ_fld)
   summary(wc_20s_preygroups) 
@@ -232,12 +234,12 @@
   (wl_20s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_hab <- occuMulti(detFormulas_setup, occFormulas_hab, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_lion_20s_umf, silent = TRUE))
-  (wl_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_lion_20s_umf, silent = TRUE)) 
+  (wl_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_lion_20s_umf, silent = TRUE)) #fail
   (wl_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_lion_20s_umf, silent = TRUE)) 
   (wl_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_lion_20s_umf, silent = TRUE))
   (wl_20s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_lion_20s_umf, silent = TRUE))
-  wl_20s_occ_fld <- fitList(wl_20s_null1, wl_20s_null2, wl_20s_hab, wl_20s_preygroups, wl_20s_preydiversity, 
+  wl_20s_occ_fld <- fitList(wl_20s_null1, wl_20s_null2, wl_20s_hab, wl_20s_preygroups, #wl_20s_preydiversity, 
                             wl_20s_anthromort, wl_20s_anthrodist, wl_20s_global1, wl_20s_global2) 
   #' Model selection
   modSel(wl_20s_occ_fld)
@@ -255,14 +257,13 @@
   (wl_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_lion_21s_umf, silent = TRUE)) 
   (wl_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_lion_21s_umf, silent = TRUE)) 
   (wl_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_lion_21s_umf, silent = TRUE)) #questionable coeffs
-  (wl_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_lion_21s_umf, silent = TRUE)) #questionable coeffs
-  (wl_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_lion_21s_umf, silent = TRUE)) #questionable coeffs
+  (wl_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_lion_21s_umf, silent = TRUE)) #fail
+  (wl_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_lion_21s_umf, silent = TRUE)) #fail
   wl_21s_occ_fld <- fitList(wl_21s_null1, wl_21s_null2, wl_21s_hab, wl_21s_preygroups, wl_21s_preydiversity, 
-                            wl_21s_anthromort, wl_21s_anthrodist, wl_21s_global1, wl_21s_global2) 
+                            wl_21s_anthromort, wl_21s_anthrodist)#, wl_21s_global1, wl_21s_global2) 
   #' Model selection
   modSel(wl_21s_occ_fld)
-  summary(wl_21s_global2)
-  summary(wl_21s_anthromort)  # global and anthrodist models ranked better but all had questionable coefficient estimates
+  summary(wl_21s_anthromort)  # anthrodist model ranked better but had questionable coefficient estimates
   
   
   ####  Detection Sub-Model Selection V2  ####
