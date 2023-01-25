@@ -27,6 +27,7 @@
   library(unmarked)
   library(condformat)
   library(tidyverse)
+  library(stringr)
   
   #'  Source script that formats detection and covariate data for unmarked
   source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_unmarked.R")
@@ -118,6 +119,7 @@
   #' Model selection
   modSel(wbr_20s_occ_fld)
   summary(wbr_20s_anthromort)
+  wbr_20s_top <- wbr_20s_anthromort
 
   ####  Wolf - Bear Summer 2021  ####
   #'  Review detection sub-models
@@ -138,7 +140,7 @@
   #' Model selection
   modSel(wbr_21s_occ_fld)
   summary(wbr_21s_anthromort) 
-  
+  wbr_21s_top <- wbr_21s_anthromort
   
   ####  Wolf - Bobcat Summer 2020  ####
   #'  Review detection sub-models
@@ -160,6 +162,7 @@
   modSel(wb_20s_occ_fld)
   summary(wb_20s_preydiversity)  # global1 but questionable coeffs
   summary(wb_20s_anthromort) # ranked very close second to prey diversity
+  wb_20s_top <- wb_20s_preydiversity
   
   ####  Wolf - Bobcat Summer 2021  ####
   #'  Review detection sub-models
@@ -181,6 +184,7 @@
   modSel(wb_21s_occ_fld)
   summary(wb_21s_preydiversity) # top ranked model but somewhat questionable coeffs
   summary(wb_21s_anthromort)
+  wb_21s_top <- wb_21s_anthromort
   
   
   ####  Wolf - Coyote Summer 2020  ####
@@ -202,6 +206,7 @@
   #' Model selection
   modSel(wc_20s_occ_fld)
   summary(wc_20s_preygroups) 
+  wc_20s_top <- wc_20s_preygroups
   
   ####  Wolf - Coyote Summer 2021  ####
   #'  Review detection sub-models
@@ -223,6 +228,7 @@
   modSel(wc_21s_occ_fld)
   summary(wc_21s_global2)
   summary(wc_21s_preygroups) # global models ranked better but all had questionable coefficient estimates
+  wc_21s_top <- wc_21s_preygroups
   
   
   ####  Wolf - Lion Summer 2020  ####
@@ -244,6 +250,7 @@
   #' Model selection
   modSel(wl_20s_occ_fld)
   summary(wl_20s_global2)
+  wl_20s_top <- wl_20s_global2
   
   ####  Wolf - Lion Summer 2021  ####
   #'  Review detection sub-models
@@ -264,6 +271,7 @@
   #' Model selection
   modSel(wl_21s_occ_fld)
   summary(wl_21s_anthromort)  # anthrodist model ranked better but had questionable coefficient estimates
+  wl_21s_top <- wl_21s_anthromort
   
   
   ####  Detection Sub-Model Selection V2  ####
@@ -293,13 +301,14 @@
   (lbr_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, lion_bear_20s_umf, silent = TRUE)) 
   (lbr_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, lion_bear_20s_umf, silent = TRUE)) 
   (lbr_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, lion_bear_20s_umf, silent = TRUE))
-  (lbr_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, lion_bear_20s_umf, silent = TRUE))
+  (lbr_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, lion_bear_20s_umf, silent = TRUE)) #questionable coeffs
   (lbr_20s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, lion_bear_20s_umf, silent = TRUE)) #questionable coeffs
   lbr_20s_occ_fld <- fitList(lbr_20s_null1, lbr_20s_null2, lbr_20s_hab, lbr_20s_preygroups, lbr_20s_preydiversity, 
                              lbr_20s_anthromort, lbr_20s_anthrodist, lbr_20s_global1, lbr_20s_global2) 
   #' Model selection
   modSel(lbr_20s_occ_fld)
   summary(lbr_20s_anthromort)
+  lbr_20s_top <- lbr_20s_anthromort
   
   ####  Lion - Bear Summer 2021  ####
   #'  Review detection sub-models
@@ -309,7 +318,7 @@
   (lbr_21s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, lion_bear_21s_umf, silent = TRUE))
   (lbr_21s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, lion_bear_21s_umf, silent = TRUE))
   (lbr_21s_hab <- occuMulti(detFormulas_setup, occFormulas_hab, lion_bear_21s_umf, silent = TRUE))
-  (lbr_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, lion_bear_21s_umf, silent = TRUE)) #questionabl coeffs
+  (lbr_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, lion_bear_21s_umf, silent = TRUE)) #questionable coeffs
   (lbr_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, lion_bear_21s_umf, silent = TRUE)) #questionable coeffs
   (lbr_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, lion_bear_21s_umf, silent = TRUE)) 
   (lbr_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, lion_bear_21s_umf, silent = TRUE))
@@ -320,6 +329,7 @@
   #' Model selection
   modSel(lbr_21s_occ_fld)
   summary(lbr_21s_hab)
+  lbr_21s_top <- lbr_21s_hab
   
   
   ####  Lion - Bobcat Summer 2020  ####
@@ -331,7 +341,7 @@
   (lb_20s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, lion_bob_20s_umf, silent = TRUE))
   (lb_20s_hab <- occuMulti(detFormulas_setup, occFormulas_hab, lion_bob_20s_umf, silent = TRUE))
   (lb_20s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, lion_bob_20s_umf, silent = TRUE))
-  (lb_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, lion_bob_20s_umf, silent = TRUE)) #questionable coeffs
+  (lb_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, lion_bob_20s_umf, silent = TRUE)) 
   (lb_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, lion_bob_20s_umf, silent = TRUE)) 
   (lb_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, lion_bob_20s_umf, silent = TRUE)) #questionable coeffs
   (lb_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, lion_bob_20s_umf, silent = TRUE)) #fail
@@ -340,7 +350,8 @@
                              lb_20s_anthromort, lb_20s_anthrodist) #, lb_20s_global1, lb_20s_global2 
   #' Model selection
   modSel(lb_20s_occ_fld)
-  summary(lb_20s_anthrodist) # but really this and prey diversity are questionable - next best is null1
+  summary(lb_20s_anthrodist) # but coeffs are questionable - next best is null1
+  lb_20s_top <- lb_20s_anthrodist
   
   ####  Lion - Bobcat Summer 2021  ####
   #'  Review detection sub-models
@@ -361,6 +372,7 @@
   #' Model selection
   modSel(lb_21s_occ_fld)
   summary(lb_21s_hab) # but nothing is actually significant other than intercepts?!?!?!
+  lb_21s_top <- lb_21s_hab
   
   
   ####  Lion - Coyote Summer 2020  ####
@@ -381,7 +393,8 @@
                             lc_20s_anthromort, lc_20s_anthrodist, lc_20s_global1, lc_20s_global2) 
   #' Model selection
   modSel(lc_20s_occ_fld)
-  summary(lc_20s_global2) 
+  summary(lc_20s_global2)
+  lc_20s_top <- lc_20s_global2
   
   ####  Lion - Coyote Summer 2021  ####
   #'  Review detection sub-models
@@ -402,6 +415,7 @@
   #' Model selection
   modSel(lc_21s_occ_fld)
   summary(lc_21s_preygroups) # global models actually ranked better but questionable coeffs
+  lc_21s_top <- lc_21s_preygroups
   
   
   ####  Bear - Bobcat Summer 2020  ####
@@ -423,6 +437,7 @@
   #' Model selection
   modSel(brb_20s_occ_fld)
   summary(brb_20s_hab) # anthrodist ranked higher but questionable coeffs
+  brb_20s_top <- brb_20s_hab
   
   ####  Bear - Bobcat Summer 2021  ####
   #'  Review detection sub-models
@@ -433,16 +448,17 @@
   (brb_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, bear_bob_21s_umf, silent = TRUE))
   (brb_21s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, bear_bob_21s_umf, silent = TRUE))
   (brb_21s_preygroups <- occuMulti(detFormulas_trail, occFormulas_preygroups, bear_bob_21s_umf, silent = TRUE)) 
-  (brb_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, bear_bob_21s_umf, silent = TRUE)) 
+  (brb_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, bear_bob_21s_umf, silent = TRUE)) #fail
   (brb_21s_anthromort <- occuMulti(detFormulas_trail, occFormulas_anthromort, bear_bob_21s_umf, silent = TRUE)) 
   (brb_21s_anthrodist <- occuMulti(detFormulas_trail, occFormulas_anthrodist, bear_bob_21s_umf, silent = TRUE)) 
-  (brb_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, bear_bob_21s_umf, silent = TRUE)) 
+  (brb_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, bear_bob_21s_umf, silent = TRUE)) #questionable coeffs
   (brb_21s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, bear_bob_21s_umf, silent = TRUE)) #fail
-  brb_21s_occ_fld <- fitList(brb_21s_null1, brb_21s_null2, brb_21s_hab, brb_21s_preygroups, brb_21s_preydiversity, 
+  brb_21s_occ_fld <- fitList(brb_21s_null1, brb_21s_null2, brb_21s_hab, brb_21s_preygroups, #brb_21s_preydiversity, 
                              brb_21s_anthromort, brb_21s_anthrodist, brb_21s_global1) #brb_21s_global2   
   #' Model selection
   modSel(brb_21s_occ_fld)
   summary(brb_21s_preygroups) 
+  brb_21s_top <- brb_21s_preygroups
   
   
   ####  Bear - Coyote Summer 2020  ####
@@ -464,6 +480,7 @@
   #' Model selection
   modSel(brc_20s_occ_fld)
   summary(brc_20s_anthromort) # anthrodist actually ranked better but questionable coeffs
+  brc_20s_top <- brc_20s_anthromort
   
   ####  Bear - Coyote Summer 2021  ####
   #'  Review detection sub-models
@@ -484,6 +501,7 @@
   #' Model selection
   modSel(brc_21s_occ_fld)
   summary(brc_21s_global2) # but definitely questionable coeffs
+  brc_21s_top <- brc_21s_global2
   
   
   ####  Bobcat - Coyote Summer 2020  ####
@@ -505,6 +523,7 @@
   #' Model selection
   modSel(bc_20s_occ_fld)
   summary(bc_20s_preydiversity) 
+  bc_20s_top <- bc_20s_preydiversity
   
   ####  Bear - Coyote Summer 2021  ####
   #'  Review detection sub-models
@@ -517,21 +536,126 @@
   (bc_21s_preygroups <- occuMulti(detFormulas_trail, occFormulas_preygroups, bob_coy_21s_umf, silent = TRUE)) 
   (bc_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, bob_coy_21s_umf, silent = TRUE)) 
   (bc_21s_anthromort <- occuMulti(detFormulas_trail, occFormulas_anthromort, bob_coy_21s_umf, silent = TRUE)) 
-  (bc_21s_anthrodist <- occuMulti(detFormulas_trail, occFormulas_anthrodist, bob_coy_21s_umf, silent = TRUE)) 
-  (bc_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, bob_coy_21s_umf, silent = TRUE)) 
-  (bc_21s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, bob_coy_21s_umf, silent = TRUE)) 
+  (bc_21s_anthrodist <- occuMulti(detFormulas_trail, occFormulas_anthrodist, bob_coy_21s_umf, silent = TRUE)) #questionable coeffs
+  (bc_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, bob_coy_21s_umf, silent = TRUE)) #questionable coeffs
+  (bc_21s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, bob_coy_21s_umf, silent = TRUE)) #questionable coeffs
   bc_21s_occ_fld <- fitList(bc_21s_null1, bc_21s_null2, bc_21s_hab, bc_21s_preygroups, bc_21s_preydiversity, 
                             bc_21s_anthromort, bc_21s_anthrodist, bc_21s_global1, bc_21s_global2) 
   #' Model selection
   modSel(bc_21s_occ_fld)
-  summary(bc_21s_global2) 
+  summary(bc_21s_preygroups)   # global models actually ranked better but questionable coeffs
+  bc_21s_top <- bc_21s_preygroups
   
   
+  #' Save model outputs in one giant R image
+  save.image(file = "./Outputs/MultiSpp_OccMod_Outputs/MultiSpp_CoOcc_Models_2spp.RData")
   
   
+  #'  ------------------
+  ####  Summary tables  ####
+  #'  ------------------
+  #'  Save model outputs in table format 
+  #'  Functions extract outputs for each sub-model, appends species/season info,
+  #'  re-formats data into wide format for better comparison across species
+  #'  NOTE: ignore warning about computing `Parameter = ifelse(...)`
+  
+  #'  Function to save occupancy results
+  rounddig <- 2
+  occ_out <- function(mod, spp1, spp2, season) {
+    out <- summary(mod@estimates)$state %>%
+      mutate(
+        Parameter = row.names(summary(mod@estimates)$state),
+        Species1 = rep(spp1, nrow(.)),
+        Species2 = rep(spp2, nrow(.)),
+        Season = rep(season, nrow(.)),
+        Estimate = round(Estimate, rounddig),
+        SE = round(SE, rounddig),
+        Pval = round(`P(>|z|)`, 3)
+      ) %>%
+      dplyr::select(-`P(>|z|)`) %>%
+      relocate(Parameter, .before = Estimate) %>%
+      relocate(Species1, .before = Parameter) %>%
+      relocate(Species2, .before = Parameter) %>%
+      relocate(Season, .before = Parameter) %>%  
+      dplyr::select(-z) %>%
+      mutate(
+        # SE = round(SE, rounddig),
+        SE = paste0("(", SE, ")"),
+        #'  Generalize species names (necessary for wide format)
+        Parameter = ifelse(grepl(Species1, Parameter), str_replace(Parameter, Species1, "Species 1"), Parameter),
+        Parameter = ifelse(grepl(Species2, Parameter), str_replace(Parameter, Species2, "Species 2"), Parameter)
+      ) #%>%
+      # unite(Est_SE, Estimate, SE, sep = " ") %>%
+      # unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
+      # spread(Parameter, Est_SE_Pval) 
+    
+    return(out)
+  }
+  
+  #'  Run each model through function
+  occ_wolfbear_20s <- occ_out(wbr_20s_top, "wolf", "bear", "Summer 2020")
+  occ_wolfbear_21s <- occ_out(wbr_21s_top, "wolf", "bear", "Summer 2021")
+  occ_wolfbob_20s <- occ_out(wb_20s_top, "wolf", "bobcat", "Summer 2020")
+  occ_wolfbob_21s <- occ_out(wb_21s_top, "wolf", "bobcat", "Summer 2021")
+  occ_wolfcoy_20s <- occ_out(wc_20s_top, "wolf", "coyote", "Summer 2020")
+  occ_wolfcoy_21s <- occ_out(wc_21s_top, "wolf", "coyote", "Summer 2021")
+  occ_wolflion_20s <- occ_out(wl_20s_top, "wolf", "lion", "Summer 2020")
+  occ_wolflion_21s <- occ_out(wl_21s_top, "wolf", "lion", "Summer 2021")
+  occ_lionbear_20s <- occ_out(lbr_20s_top, "lion", "bear", "Summer 2020")
+  occ_lionbear_21s <- occ_out(lbr_21s_top, "lion", "bear", "Summer 2021")
+  occ_lionbob_20s <- occ_out(lb_20s_top, "lion", "bobcat", "Summer 2020")
+  occ_lionbob_21s <- occ_out(lb_21s_top, "lion", "bobcat", "Summer 2021")
+  occ_lioncoy_20s <- occ_out(lc_20s_top, "lion", "coyote", "Summer 2020")
+  occ_lioncoy_21s <- occ_out(lc_21s_top, "lion", "coyote", "Summer 2021")
+  occ_bearbob_20s <- occ_out(brb_20s_top, "bear", "bobcat", "Summer 2020")
+  occ_bearbob_21s <- occ_out(brb_21s_top, "bear", "bobcat", "Summer 2021")
+  occ_bearcoy_20s <- occ_out(brc_20s_top, "bear", "coyote", "Summer 2020")
+  occ_bearcoy_21s <- occ_out(brc_21s_top, "bear", "coyote", "Summer 2021")
+  occ_bobcoy_20s <- occ_out(bc_20s_top, "bobcat", "coyote", "Summer 2020")
+  occ_bobcoy_21s <- occ_out(bc_21s_top, "bobcat", "coyote", "Summer 2021")
+  
+  #'  Merge into larger data frames based on best supported model
+  #'  Habitat models
+  occ_results_habitat <- rbind(lbr_21s_top, lb_21s_top, brb_20s_top, )
+  #'  Prey relative abundance by functional group
+  occ_results_preygroup <- rbind()
+  #'  Prey relative abundance by species
+  occ_results_preydiversity <- rbind(wb_20s_top, bc_20s_top)
+  #'  Proxies for anthropogenic mortality risk
+  occ_results_anthromort <- rbind(occ_wolfbear_20s, occ_wolfbear_21s, occ_wolfbob_21s, occ_wolflion_21s, occ_bearcoy_20s)
+  #'  Proxies for anthropogenic disturbance
+  #'  Global model 1
+  #'  Global model 2
   
   
-  
-  
-  
-  
+  ####  Spread results into wide format and rename  ####
+  #'  Anthropogenic mortality results
+  results_occmod_wide_anthromort <- occ_results_anthromort %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
+    spread(Parameter, Est_SE_Pval) %>%
+    relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] Nlivestock") %>%
+    relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
+    relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
+    relocate("[Species 1:Species 2] Dist2Burbs", .after = "[Species 1:Species 2] PercForest") %>%
+    relocate("[Species 1:Species 2] Nlivestock", .after = "[Species 1:Species 2] Dist2Burbs") %>%
+    relocate("[Species 1] Elev", .after = "[Species 1] (Intercept)") %>%
+    relocate("[Species 2] Elev", .after = "[Species 2] (Intercept)") %>%
+    relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
+    relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
+    separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
+    separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
+    separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1] Dist2Burbs", c("[Species 1] Distance to Suburban (SE)", "[Species 1] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 2] Dist2Burbs", c("[Species 2] Distance to Suburban (SE)", "[Species 2] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 1] Nlivestock", c("[Species 1] Livestock activity (SE)", "[Species 1] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nlivestock", c("[Species 2] Livestock activity (SE)", "[Species 2] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Dist2Burbs", c("[Species 1:Species 2] Distance to Suburban (SE)", "[Species 1:Species 2] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nlivestock", c("[Species 1:Species 2] Livestock activity (SE)", "[Species 1:Species 2] Livestock activity Pval"), sep = "_") %>%
+    arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
