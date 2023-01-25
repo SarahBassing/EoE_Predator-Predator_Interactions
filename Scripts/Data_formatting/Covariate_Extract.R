@@ -19,6 +19,8 @@
   library(raster)
   library(terra)
   library(tidyverse)
+  library(ggplot2)
+  library(grid)
   
   #'  ----------------
   ####  Spatial data  ####
@@ -94,7 +96,7 @@
   #'  Double check these are plotting correctly
   plot(pforest, main = "Camera locations over percent forested habitat, 500m radius")
   plot(id_aea[1], add = TRUE, col = NA)
-  plot(cams_aea[[1]], add = TRUE, col = "black", cex = 0.75)
+  plot(cams_aea[[3]], add = TRUE, col = "black", cex = 0.75)
 
   
   #'  ------------------------
@@ -238,17 +240,9 @@
                               min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df, relativeN = RA_Smr21_df)
 
   
-  #'  Save
-  write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.csv")
-  save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
-
-  write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.csv")
-  save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
-
-  write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.csv")
-  save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
-
-  
+  #'  -------------------------
+  ####  Covariate exploration  ####
+  #'  -------------------------
   #'  Histogram of covariate data
   spread_of_covariate_data <- function(covs, season) {
     hist(covs$Elevation__10m2, breaks =  20, main = paste("Frequency of elevation at cameras\n", season))
@@ -270,4 +264,165 @@
   spread_of_covariate_data(eoe_covs_20s, season = "Summer 2020")
   spread_of_covariate_data(eoe_covs_20w, season = "Winter 2020-2021")
   spread_of_covariate_data(eoe_covs_21s, season = "Summer 2021")
+  
+  
+  #'  Relative abundance data based on camera setup (ungulate vs predator cams)
+  bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    dplyr::select(c(NewLocationID, lagomorphs)) %>%
+    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+           setup = factor(setup, levels = c("U", "P"))) %>%
+    dplyr::select(-NewLocationID)
+  table(bunnies)
+  maxbunnies <- grobTree(textGrob("max count = 71 (U)", x=0.60,  y=0.95, hjust=0,
+                              gp=gpar(col="red", fontsize=13, fontface="italic")))
+  ggplot(bunnies, aes(x = lagomorphs, fill = setup)) +
+    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    labs(fill="") +
+    ggtitle("Relative abundance of lagomorphs at Ungulate vs Predator cameras") +
+    annotation_custom(maxbunnies)
+  
+  ppl <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    dplyr::select(c(NewLocationID, human)) %>%
+    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+           setup = factor(setup, levels = c("U", "P"))) %>%
+    dplyr::select(-NewLocationID)
+  table(ppl)
+  maxppl <- grobTree(textGrob("max count = 136 (P)", x=0.60,  y=0.95, hjust=0,
+                            gp=gpar(col="red", fontsize=13, fontface="italic")))
+  ggplot(ppl, aes(x = human, fill = setup)) +
+    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    labs(fill="") +
+    ggtitle("Relative abundance of humans at Ungulate vs Predator cameras") +
+    annotation_custom(maxppl)
+  
+  elk <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    dplyr::select(c(NewLocationID, elk)) %>%
+    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+           setup = factor(setup, levels = c("U", "P"))) %>%
+    dplyr::select(-NewLocationID)
+  table(elk)
+  maxelk <- grobTree(textGrob("max count = 145 (P)", x=0.60,  y=0.95, hjust=0,
+                              gp=gpar(col="red", fontsize=13, fontface="italic")))
+  ggplot(elk, aes(x = elk, fill = setup)) +
+    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    labs(fill="") +
+    ggtitle("Relative abundance of elk at Ungulate vs Predator cameras") +
+    annotation_custom(maxelk)
+  
+  md <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    dplyr::select(c(NewLocationID, muledeer)) %>%
+    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+           setup = factor(setup, levels = c("U", "P"))) %>%
+    dplyr::select(-NewLocationID)
+  table(md)
+  maxmd <- grobTree(textGrob("max count = 64 (U)", x=0.60,  y=0.95, hjust=0,
+                              gp=gpar(col="red", fontsize=13, fontface="italic")))
+  ggplot(md, aes(x = muledeer, fill = setup)) +
+    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    labs(fill="") +
+    ggtitle("Relative abundance of mule deer at Ungulate vs Predator cameras") +
+    annotation_custom(maxmd)
+  
+  wtd <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    dplyr::select(c(NewLocationID, whitetaileddeer)) %>%
+    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+           setup = factor(setup, levels = c("U", "P"))) %>%
+    dplyr::select(-NewLocationID)
+  table(wtd)
+  maxwtd <- grobTree(textGrob("max count = 225 (P)", x=0.60,  y=0.95, hjust=0,
+                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  ggplot(wtd, aes(x = whitetaileddeer, fill = setup)) +
+    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    labs(fill="") +
+    ggtitle("Relative abundance of white-tails at Ungulate vs Predator cameras") +
+    annotation_custom(maxwtd)
+  
+  moose <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    dplyr::select(c(NewLocationID, moose)) %>%
+    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+           setup = factor(setup, levels = c("U", "P"))) %>%
+    dplyr::select(-NewLocationID)
+  table(moose)
+  maxmoose <- grobTree(textGrob("max count = 44 (U)", x=0.60,  y=0.95, hjust=0,
+                              gp=gpar(col="red", fontsize=13, fontface="italic")))
+  ggplot(moose, aes(x = moose, fill = setup)) +
+    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    labs(fill="") +
+    ggtitle("Relative abundance of moose at Ungulate vs Predator cameras") +
+    annotation_custom(maxmoose)
+  
+  
+  #'  Identify outliers in covariate data and cap at 99th percentile value
+  outliers <- function(cov, title) { 
+    #'  Summarize predicted values
+    hist(cov, breaks = 100, main = title)
+    boxplot(cov, main = title)
+    #'  What value represents the 99th percentile in the covariate values
+    quant <- quantile(cov, c(0.99), na.rm = TRUE)
+    #'  Print that value and maximum value
+    print(quant); print(max(cov, na.rm = TRUE))
+    #'  Identify the 1% most extreme values and set to 99th percentile value
+    extremevalues <- as.data.frame(cov) %>%
+      mutate(outlier = ifelse(cov > quant, "outlier", "not_outlier"),
+             adjusted_cov = ifelse(outlier == "outlier", quant, cov), 
+             adjusted_cov = round(adjusted_cov, 0))
+    #'  How many covariate values are above the 99th percentile?
+    outlier <- extremevalues[extremevalues$outlier == "outlier",]
+    outlier <- filter(outlier, !is.na(outlier))
+    print(nrow(outlier))
+    #'  What percentage of observations are being forced to 99th percentile value
+    print(nrow(outlier)/nrow(extremevalues))
+    
+    #'  Return these adjusted values
+    adjusted_cov <- extremevalues$adjusted_cov
+    return(adjusted_cov)
+  }
+  #' #'  Identify covariate outliers
+  #' bunnies$lagomorphs_adj <- outliers(bunnies$lagomorphs, "Lagomorph outliers")
+  #' ppl$humans_adj <- outliers(ppl$human, "Human outliers")
+  #' elk$elk_adj <- outliers(elk$elk, "Elk outliers")
+  #' moose$moose_adj <- outliers(moose$moose, "Moose outliers")
+  #' md$muledeer_adj <- outliers(md$muledeer, "Mule deer outliers")
+  #' wtd$whitetaileddeer_adj <- outliers(wtd$whitetaileddeer, "White-tailed deer outliers")
+  
+  #'  List heavily skewed covaraites (relative abundance data)
+  listnames <- c("lagomorphs99", "human99", "livestock99", "elk99", "moose99", "muledeer99", "whitetaileddeer99", "ungulate99", "big_deer99", "small_deer99")
+  cov_20s_list <- list(eoe_covs_20s$lagomorphs, eoe_covs_20s$human, eoe_covs_20s$livestock, eoe_covs_20s$elk, eoe_covs_20s$moose, eoe_covs_20s$muledeer, eoe_covs_20s$whitetaileddeer, eoe_covs_20s$ungulate, eoe_covs_20s$big_deer, eoe_covs_20s$small_deer)
+  cov_20w_list <- list(eoe_covs_20w$lagomorphs, eoe_covs_20w$human, eoe_covs_20w$livestock, eoe_covs_20w$elk, eoe_covs_20w$moose, eoe_covs_20w$muledeer, eoe_covs_20w$whitetaileddeer, eoe_covs_20w$ungulate, eoe_covs_20w$big_deer, eoe_covs_20w$small_deer)
+  cov_21s_list <- list(eoe_covs_21s$lagomorphs, eoe_covs_21s$human, eoe_covs_21s$livestock, eoe_covs_21s$elk, eoe_covs_21s$moose, eoe_covs_21s$muledeer, eoe_covs_21s$whitetaileddeer, eoe_covs_21s$ungulate, eoe_covs_21s$big_deer, eoe_covs_21s$small_deer)
+  
+  #'  Adjust annual relative abundance based on season-specific covariate ranges
+  capped_covs_20s <- lapply(cov_20s_list, outliers, title = "Outliers")
+  names(capped_covs_20s) <- listnames
+  capped_covs_20s <- as.data.frame(capped_covs_20s)
+  
+  capped_covs_20w <- lapply(cov_20w_list, outliers, title = "Outliers")
+  names(capped_covs_20w) <- listnames
+  capped_covs_20w <- as.data.frame(capped_covs_20w)
+  
+  capped_covs_21s <- lapply(cov_21s_list, outliers, title = "Outliers")
+  names(capped_covs_21s) <- listnames
+  capped_covs_21s <- as.data.frame(capped_covs_21s)
+  
+  #'  Append adjusted relative abundance covariates to larger covariate data frame
+  eoe_covs_20s <- cbind(eoe_covs_20s, capped_covs_20s)
+  eoe_covs_20w <- cbind(eoe_covs_20w, capped_covs_20w)
+  eoe_covs_21s <- cbind(eoe_covs_21s, capped_covs_21s)
+  
+ 
+  #'  Save
+  write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.csv")
+  save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
+  
+  write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.csv")
+  save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
+  
+  write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.csv")
+  save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
   
