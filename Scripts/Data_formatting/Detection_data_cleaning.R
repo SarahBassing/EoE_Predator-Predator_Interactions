@@ -289,11 +289,11 @@
     filter(Date != "29-Sep-2020") %>%
     #'  Add dummy Setup column because missing for some reason
     mutate(Setup = "U or P") %>%
-    relocate(Setup, .after = "NewLocationID") #%>% mutate(NewLocationID = toupper(NewLocationID))
+    relocate(Setup, .after = "NewLocationID") 
   eoe21s_allT <- set_tzone(eoe21s_allT) %>%
     #'  Add dummy Setup column because missing for some reason
     mutate(Setup = "U or P") %>%
-    relocate(Setup, .after = "NewLocationID") #%>% mutate(NewLocationID = toupper(NewLocationID))
+    relocate(Setup, .after = "NewLocationID") 
   
   #'  Wolf Summer 2019
   load("./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
