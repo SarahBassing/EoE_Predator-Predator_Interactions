@@ -133,10 +133,10 @@
   (wbr_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bear_21s_umf, silent = TRUE)) 
   (wbr_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_bear_21s_umf, silent = TRUE))
   (wbr_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_bear_21s_umf, silent = TRUE))
-  (wbr_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bear_21s_umf, silent = TRUE)) #fail with lagomorphs
-  (wbr_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_bear_21s_umf, silent = TRUE)) #fail with lagomorphs
+  (wbr_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bear_21s_umf, silent = TRUE)) 
+  (wbr_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_bear_21s_umf, silent = TRUE)) #fails with lagomorphs
   wbr_21s_occ_fld <- fitList(wbr_21s_null1, wbr_21s_null2, wbr_21s_hab, wbr_21s_preydiversity, #wbr_21s_preygroups, 
-                             wbr_21s_anthromort, wbr_21s_anthrodist) #, wbr_21s_global1, wbr_21s_global2
+                             wbr_21s_anthromort, wbr_21s_anthrodist, wbr_21s_global1) #, wbr_21s_global2
   #' Model selection
   modSel(wbr_21s_occ_fld)
   summary(wbr_21s_anthromort) 
@@ -154,15 +154,14 @@
   (wb_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bob_20s_umf, silent = TRUE))
   (wb_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_bob_20s_umf, silent = TRUE))
   (wb_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_bob_20s_umf, silent = TRUE))
-  (wb_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bob_20s_umf, silent = TRUE)) #questionable coeffs
-  (wb_20s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_bob_20s_umf, silent = TRUE)) # fail
+  (wb_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bob_20s_umf, silent = TRUE)) #somewhat questionable intercepts/coeffs
+  (wb_20s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_bob_20s_umf, silent = TRUE)) #somewhat questionable intercepts
   wb_20s_occ_fld <- fitList(wb_20s_null1, wb_20s_null2, wb_20s_hab, wb_20s_preygroups, wb_20s_preydiversity,
-                            wb_20s_anthromort, wb_20s_anthrodist, wb_20s_global1) #, wb_20s_global2
+                            wb_20s_anthromort, wb_20s_anthrodist, wb_20s_global1, wb_20s_global2)
   #' Model selection
   modSel(wb_20s_occ_fld)
-  summary(wb_20s_preydiversity)  # global1 but questionable coeffs
-  summary(wb_20s_anthromort) # ranked very close second to prey diversity
-  wb_20s_top <- wb_20s_preydiversity
+  summary(wb_20s_global1)  
+  wb_20s_top <- wb_20s_global1
   
   ####  Wolf - Bobcat Summer 2021  ####
   #'  Review detection sub-models
@@ -176,15 +175,14 @@
   (wb_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bob_21s_umf, silent = TRUE)) #questionable coeffs
   (wb_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_bob_21s_umf, silent = TRUE))
   (wb_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_bob_21s_umf, silent = TRUE))
-  (wb_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bob_21s_umf, silent = TRUE)) #fail
-  (wb_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_bob_21s_umf, silent = TRUE)) #questionable coeffs
+  (wb_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_bob_21s_umf, silent = TRUE)) 
+  (wb_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_bob_21s_umf, silent = TRUE)) #questionable intercepts/coeffs
   wb_21s_occ_fld <- fitList(wb_21s_null1, wb_21s_null2, wb_21s_hab, wb_21s_preygroups, wb_21s_preydiversity, 
-                            wb_21s_anthromort, wb_21s_anthrodist, wb_21s_global2) #wb_21s_global1 
+                            wb_21s_anthromort, wb_21s_anthrodist, wb_21s_global1) #wb_21s_global2
   #' Model selection
   modSel(wb_21s_occ_fld)
-  summary(wb_21s_preydiversity) # top ranked model but somewhat questionable coeffs
-  summary(wb_21s_anthromort)
-  wb_21s_top <- wb_21s_anthromort
+  summary(wb_21s_global1) 
+  wb_21s_top <- wb_21s_global1
   
   
   ####  Wolf - Coyote Summer 2020  ####
@@ -194,18 +192,18 @@
   #'  Run occupancy models using best supported detection sub-model
   (wc_20s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_coy_20s_umf, silent = TRUE))
   (wc_20s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_coy_20s_umf, silent = TRUE))
-  (wc_20s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_coy_20s_umf, silent = TRUE)) #questionable coeffs
-  (wc_20s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_coy_20s_umf, silent = TRUE)) #questionable coeffs
-  (wc_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_coy_20s_umf, silent = TRUE)) #fail
-  (wc_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_coy_20s_umf, silent = TRUE)) #questionable coeffs
-  (wc_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_coy_20s_umf, silent = TRUE)) #questionable coeffs
+  (wc_20s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_coy_20s_umf, silent = TRUE)) #questionable intercepts/coeffs
+  (wc_20s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_coy_20s_umf, silent = TRUE)) #questionable intercepts/coeffs
+  (wc_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_coy_20s_umf, silent = TRUE)) #questionable intercepts/coeffs
+  (wc_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_coy_20s_umf, silent = TRUE)) #fail
+  (wc_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_coy_20s_umf, silent = TRUE)) #questionable intercepts/coeffs
   (wc_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_coy_20s_umf, silent = TRUE)) #fail
   (wc_20s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_coy_20s_umf, silent = TRUE)) #fail
-  wc_20s_occ_fld <- fitList(wc_20s_null1, wc_20s_null2, wc_20s_hab, wc_20s_preygroups, #wc_20s_preydiversity,
-                            wc_20s_anthromort, wc_20s_anthrodist) #wc_20s_global1, wc_20s_global2
+  wc_20s_occ_fld <- fitList(wc_20s_null1, wc_20s_null2, wc_20s_hab, wc_20s_preygroups, wc_20s_preydiversity,
+                            wc_20s_anthrodist) #wc_20s_anthromort, wc_20s_global1, wc_20s_global2
   #' Model selection
   modSel(wc_20s_occ_fld)
-  summary(wc_20s_preygroups) 
+  summary(wc_20s_preygroups) # BUT QUESTIONABLE COEFFS for all models but null models
   wc_20s_top <- wc_20s_preygroups
   
   ####  Wolf - Coyote Summer 2021  ####
@@ -217,17 +215,17 @@
   (wc_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_coy_21s_umf, silent = TRUE))
   (wc_21s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_coy_21s_umf, silent = TRUE))
   (wc_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_coy_21s_umf, silent = TRUE))  
-  (wc_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_coy_21s_umf, silent = TRUE))  #questionable coeffs without lagomorphs
+  (wc_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_coy_21s_umf, silent = TRUE))  #questionable intercepts/coeffs without lagomorphs
   (wc_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_coy_21s_umf, silent = TRUE))
   (wc_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_coy_21s_umf, silent = TRUE)) #questionable coeffs
   (wc_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_coy_21s_umf, silent = TRUE)) #questionable coeffs
-  (wc_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_coy_21s_umf, silent = TRUE)) #questionable coeffs
+  (wc_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_coy_21s_umf, silent = TRUE)) #questionable intercepts/coeffs
   wc_21s_occ_fld <- fitList(wc_21s_null1, wc_21s_null2, wc_21s_hab, wc_21s_preygroups, wc_21s_preydiversity,
                             wc_21s_anthromort, wc_21s_anthrodist, wc_21s_global1, wc_21s_global2) 
   #' Model selection
   modSel(wc_21s_occ_fld)
   summary(wc_21s_global2)
-  summary(wc_21s_preygroups) # global models ranked better but all had questionable coefficient estimates
+  summary(wc_21s_preygroups) # global & preydiversity models ranked better but all had questionable coefficient estimates
   wc_21s_top <- wc_21s_preygroups
   
   
@@ -260,18 +258,18 @@
   (wl_21s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, wolf_lion_21s_umf, silent = TRUE))
   (wl_21s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_lion_21s_umf, silent = TRUE))
   (wl_21s_hab <- occuMulti(detFormulas_setup, occFormulas_hab, wolf_lion_21s_umf, silent = TRUE))
-  (wl_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_lion_21s_umf, silent = TRUE))
+  (wl_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_lion_21s_umf, silent = TRUE)) #questionable coeffs
   (wl_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_lion_21s_umf, silent = TRUE)) 
   (wl_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_lion_21s_umf, silent = TRUE)) 
   (wl_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_lion_21s_umf, silent = TRUE)) #questionable coeffs
-  (wl_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_lion_21s_umf, silent = TRUE)) #fail
-  (wl_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_lion_21s_umf, silent = TRUE)) #fail
+  (wl_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, wolf_lion_21s_umf, silent = TRUE)) #questionable coeffs
+  (wl_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, wolf_lion_21s_umf, silent = TRUE)) #questionable coeffs but could be real
   wl_21s_occ_fld <- fitList(wl_21s_null1, wl_21s_null2, wl_21s_hab, wl_21s_preygroups, wl_21s_preydiversity, 
-                            wl_21s_anthromort, wl_21s_anthrodist)#, wl_21s_global1, wl_21s_global2) 
+                            wl_21s_anthromort, wl_21s_anthrodist, wl_21s_global1, wl_21s_global2) 
   #' Model selection
   modSel(wl_21s_occ_fld)
-  summary(wl_21s_anthromort)  # anthrodist model ranked better but had questionable coefficient estimates
-  wl_21s_top <- wl_21s_anthromort
+  summary(wl_21s_anthrodist)  # but had questionable coefficient estimates
+  wl_21s_top <- wl_21s_anthrodist
   
   
   ####  Detection Sub-Model Selection V2  ####
@@ -301,7 +299,7 @@
   (lbr_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, lion_bear_20s_umf, silent = TRUE)) 
   (lbr_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, lion_bear_20s_umf, silent = TRUE)) 
   (lbr_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, lion_bear_20s_umf, silent = TRUE))
-  (lbr_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, lion_bear_20s_umf, silent = TRUE)) #questionable coeffs
+  (lbr_20s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, lion_bear_20s_umf, silent = TRUE)) 
   (lbr_20s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, lion_bear_20s_umf, silent = TRUE)) #questionable coeffs
   lbr_20s_occ_fld <- fitList(lbr_20s_null1, lbr_20s_null2, lbr_20s_hab, lbr_20s_preygroups, lbr_20s_preydiversity, 
                              lbr_20s_anthromort, lbr_20s_anthrodist, lbr_20s_global1, lbr_20s_global2) 
@@ -319,13 +317,13 @@
   (lbr_21s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, lion_bear_21s_umf, silent = TRUE))
   (lbr_21s_hab <- occuMulti(detFormulas_setup, occFormulas_hab, lion_bear_21s_umf, silent = TRUE))
   (lbr_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, lion_bear_21s_umf, silent = TRUE)) #questionable coeffs
-  (lbr_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, lion_bear_21s_umf, silent = TRUE)) #questionable coeffs
-  (lbr_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, lion_bear_21s_umf, silent = TRUE)) 
+  (lbr_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, lion_bear_21s_umf, silent = TRUE)) #fail
+  (lbr_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, lion_bear_21s_umf, silent = TRUE)) #fail 
   (lbr_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, lion_bear_21s_umf, silent = TRUE))
-  (lbr_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, lion_bear_21s_umf, silent = TRUE)) #questionable coeffs
+  (lbr_21s_global1 <- occuMulti(detFormulas_setup, occFormula_global1, lion_bear_21s_umf, silent = TRUE)) #fail
   (lbr_21s_global2 <- occuMulti(detFormulas_setup, occFormula_global2, lion_bear_21s_umf, silent = TRUE)) #fail
-  lbr_21s_occ_fld <- fitList(lbr_21s_null1, lbr_21s_null2, lbr_21s_hab, lbr_21s_preygroups, lbr_21s_preydiversity, 
-                             lbr_21s_anthromort, lbr_21s_anthrodist, lbr_21s_global1) #, lbr_21s_global2   
+  lbr_21s_occ_fld <- fitList(lbr_21s_null1, lbr_21s_null2, lbr_21s_hab, lbr_21s_preygroups, #lbr_21s_preydiversity, 
+                             lbr_21s_anthrodist) #lbr_21s_anthromort, lbr_21s_global1, lbr_21s_global2   
   #' Model selection
   modSel(lbr_21s_occ_fld)
   summary(lbr_21s_hab)
@@ -362,17 +360,17 @@
   (lb_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, lion_bob_21s_umf, silent = TRUE))
   (lb_21s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, lion_bob_21s_umf, silent = TRUE))
   (lb_21s_preygroups <- occuMulti(detFormulas_trail, occFormulas_preygroups, lion_bob_21s_umf, silent = TRUE)) 
-  (lb_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, lion_bob_21s_umf, silent = TRUE)) 
+  (lb_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, lion_bob_21s_umf, silent = TRUE)) #fail
   (lb_21s_anthromort <- occuMulti(detFormulas_trail, occFormulas_anthromort, lion_bob_21s_umf, silent = TRUE)) 
-  (lb_21s_anthrodist <- occuMulti(detFormulas_trail, occFormulas_anthrodist, lion_bob_21s_umf, silent = TRUE)) #fail
+  (lb_21s_anthrodist <- occuMulti(detFormulas_trail, occFormulas_anthrodist, lion_bob_21s_umf, silent = TRUE)) 
   (lb_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, lion_bob_21s_umf, silent = TRUE)) 
   (lb_21s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, lion_bob_21s_umf, silent = TRUE)) #fail
-  lb_21s_occ_fld <- fitList(lb_21s_null1, lb_21s_null2, lb_21s_hab, lb_21s_preygroups, lb_21s_preydiversity, 
-                             lb_21s_anthromort, lb_21s_global1)   #lb_21s_anthrodist, lb_21s_global2 
+  lb_21s_occ_fld <- fitList(lb_21s_null1, lb_21s_null2, lb_21s_hab, lb_21s_preygroups, #lb_21s_preydiversity, 
+                             lb_21s_anthromort, lb_21s_anthrodist, lb_21s_global1)   #lb_21s_global2 
   #' Model selection
   modSel(lb_21s_occ_fld)
-  summary(lb_21s_hab) # but nothing is actually significant other than intercepts?!?!?!
-  lb_21s_top <- lb_21s_hab
+  summary(lb_21s_anthrodist) 
+  lb_21s_top <- lb_21s_anthrodist
   
   
   ####  Lion - Coyote Summer 2020  ####
@@ -388,13 +386,13 @@
   (lc_20s_anthromort <- occuMulti(detFormulas_trail, occFormulas_anthromort, lion_coy_20s_umf, silent = TRUE)) 
   (lc_20s_anthrodist <- occuMulti(detFormulas_trail, occFormulas_anthrodist, lion_coy_20s_umf, silent = TRUE)) 
   (lc_20s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, lion_coy_20s_umf, silent = TRUE)) 
-  (lc_20s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, lion_coy_20s_umf, silent = TRUE)) # questionable coeffs
+  (lc_20s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, lion_coy_20s_umf, silent = TRUE)) # fail
   lc_20s_occ_fld <- fitList(lc_20s_null1, lc_20s_null2, lc_20s_hab, lc_20s_preygroups, #lc_20s_preydiversity, 
-                            lc_20s_anthromort, lc_20s_anthrodist, lc_20s_global1, lc_20s_global2) 
+                            lc_20s_anthromort, lc_20s_anthrodist, lc_20s_global1) #, lc_20s_global2
   #' Model selection
   modSel(lc_20s_occ_fld)
-  summary(lc_20s_global2)
-  lc_20s_top <- lc_20s_global2
+  summary(lc_20s_global1)
+  lc_20s_top <- lc_20s_global1
   
   ####  Lion - Coyote Summer 2021  ####
   #'  Review detection sub-models
@@ -414,8 +412,8 @@
                             lc_21s_anthromort, lc_21s_anthrodist, lc_21s_global1, lc_21s_global2)    
   #' Model selection
   modSel(lc_21s_occ_fld)
-  summary(lc_21s_preygroups) # global models actually ranked better but questionable coeffs
-  lc_21s_top <- lc_21s_preygroups
+  summary(lc_21s_global1) # global models actually ranked better but questionable coeffs
+  lc_21s_top <- lc_21s_global1
   
   
   ####  Bear - Bobcat Summer 2020  ####
@@ -436,8 +434,8 @@
                              brb_20s_anthromort, brb_20s_anthrodist, brb_20s_global1, brb_20s_global2) 
   #' Model selection
   modSel(brb_20s_occ_fld)
-  summary(brb_20s_hab) # anthrodist ranked higher but questionable coeffs
-  brb_20s_top <- brb_20s_hab
+  summary(brb_20s_anthrodist)    #BUT questionable coeffs, next best is habitat at deltaAIC 0.91
+  brb_20s_top <- brb_20s_anthrodist
   
   ####  Bear - Bobcat Summer 2021  ####
   #'  Review detection sub-models
@@ -448,13 +446,13 @@
   (brb_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, bear_bob_21s_umf, silent = TRUE))
   (brb_21s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, bear_bob_21s_umf, silent = TRUE))
   (brb_21s_preygroups <- occuMulti(detFormulas_trail, occFormulas_preygroups, bear_bob_21s_umf, silent = TRUE)) 
-  (brb_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, bear_bob_21s_umf, silent = TRUE)) #fail
+  (brb_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, bear_bob_21s_umf, silent = TRUE)) 
   (brb_21s_anthromort <- occuMulti(detFormulas_trail, occFormulas_anthromort, bear_bob_21s_umf, silent = TRUE)) 
   (brb_21s_anthrodist <- occuMulti(detFormulas_trail, occFormulas_anthrodist, bear_bob_21s_umf, silent = TRUE)) 
   (brb_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, bear_bob_21s_umf, silent = TRUE)) #questionable coeffs
-  (brb_21s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, bear_bob_21s_umf, silent = TRUE)) #fail
-  brb_21s_occ_fld <- fitList(brb_21s_null1, brb_21s_null2, brb_21s_hab, brb_21s_preygroups, #brb_21s_preydiversity, 
-                             brb_21s_anthromort, brb_21s_anthrodist, brb_21s_global1) #brb_21s_global2   
+  (brb_21s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, bear_bob_21s_umf, silent = TRUE)) #questionable intercepts/coeffs
+  brb_21s_occ_fld <- fitList(brb_21s_null1, brb_21s_null2, brb_21s_hab, brb_21s_preygroups, brb_21s_preydiversity, 
+                             brb_21s_anthromort, brb_21s_anthrodist, brb_21s_global1, brb_21s_global2)   
   #' Model selection
   modSel(brb_21s_occ_fld)
   summary(brb_21s_preygroups) 
@@ -479,8 +477,8 @@
                              brc_20s_anthromort, brc_20s_anthrodist) #, brc_20s_global1, brc_20s_global2) 
   #' Model selection
   modSel(brc_20s_occ_fld)
-  summary(brc_20s_anthromort) # anthrodist actually ranked better but questionable coeffs
-  brc_20s_top <- brc_20s_anthromort
+  summary(brc_20s_anthrodist) # anthrodist actually ranked better but questionable coeffs
+  brc_20s_top <- brc_20s_anthrodist
   
   ####  Bear - Coyote Summer 2021  ####
   #'  Review detection sub-models
@@ -494,14 +492,14 @@
   (brc_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, bear_coy_21s_umf, silent = TRUE)) #questionable coeffs
   (brc_21s_anthromort <- occuMulti(detFormulas_trail, occFormulas_anthromort, bear_coy_21s_umf, silent = TRUE)) 
   (brc_21s_anthrodist <- occuMulti(detFormulas_trail, occFormulas_anthrodist, bear_coy_21s_umf, silent = TRUE)) #questionable coeffs
-  (brc_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, bear_coy_21s_umf, silent = TRUE)) # fail
+  (brc_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, bear_coy_21s_umf, silent = TRUE)) # questionable coeffs
   (brc_21s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, bear_coy_21s_umf, silent = TRUE)) #questionable coeffs
   brc_21s_occ_fld <- fitList(brc_21s_null1, brc_21s_null2, brc_21s_hab, brc_21s_preygroups, brc_21s_preydiversity, 
-                             brc_21s_anthromort, brc_21s_anthrodist, brc_21s_global2) #brc_21s_global1, 
+                             brc_21s_anthromort, brc_21s_anthrodist, brc_21s_global1, brc_21s_global2) 
   #' Model selection
   modSel(brc_21s_occ_fld)
-  summary(brc_21s_global2) # but definitely questionable coeffs
-  brc_21s_top <- brc_21s_global2
+  summary(brc_21s_global1) # but questionable coeffs
+  brc_21s_top <- brc_21s_global1
   
   
   ####  Bobcat - Coyote Summer 2020  ####
@@ -525,7 +523,7 @@
   summary(bc_20s_preydiversity) 
   bc_20s_top <- bc_20s_preydiversity
   
-  ####  Bear - Coyote Summer 2021  ####
+  ####  Bobcat - Coyote Summer 2021  ####
   #'  Review detection sub-models
   choose_det_submod(det_submod, umf = bob_coy_21s_umf)  # trail
   
@@ -535,16 +533,16 @@
   (bc_21s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, bob_coy_21s_umf, silent = TRUE))
   (bc_21s_preygroups <- occuMulti(detFormulas_trail, occFormulas_preygroups, bob_coy_21s_umf, silent = TRUE)) 
   (bc_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, bob_coy_21s_umf, silent = TRUE)) 
-  (bc_21s_anthromort <- occuMulti(detFormulas_trail, occFormulas_anthromort, bob_coy_21s_umf, silent = TRUE)) 
+  (bc_21s_anthromort <- occuMulti(detFormulas_trail, occFormulas_anthromort, bob_coy_21s_umf, silent = TRUE)) #fail
   (bc_21s_anthrodist <- occuMulti(detFormulas_trail, occFormulas_anthrodist, bob_coy_21s_umf, silent = TRUE)) #questionable coeffs
-  (bc_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, bob_coy_21s_umf, silent = TRUE)) #questionable coeffs
-  (bc_21s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, bob_coy_21s_umf, silent = TRUE)) #questionable coeffs
+  (bc_21s_global1 <- occuMulti(detFormulas_trail, occFormula_global1, bob_coy_21s_umf, silent = TRUE)) #maybe questionable coeffs
+  (bc_21s_global2 <- occuMulti(detFormulas_trail, occFormula_global2, bob_coy_21s_umf, silent = TRUE)) #maybe questionable coeffs
   bc_21s_occ_fld <- fitList(bc_21s_null1, bc_21s_null2, bc_21s_hab, bc_21s_preygroups, bc_21s_preydiversity, 
-                            bc_21s_anthromort, bc_21s_anthrodist, bc_21s_global1, bc_21s_global2) 
+                            bc_21s_anthrodist, bc_21s_global1, bc_21s_global2) #bc_21s_anthromort, 
   #' Model selection
   modSel(bc_21s_occ_fld)
-  summary(bc_21s_preygroups)   # global models actually ranked better but questionable coeffs
-  bc_21s_top <- bc_21s_preygroups
+  summary(bc_21s_global2)   # but maybe questionable coeffs
+  bc_21s_top <- bc_21s_global2
   
   
   #' Save model outputs in one giant R image
@@ -616,20 +614,99 @@
   
   #'  Merge into larger data frames based on best supported model
   #'  Habitat models
-  occ_results_habitat <- rbind(lbr_21s_top, lb_21s_top, brb_20s_top, )
+  occ_results_habitat <- occ_lionbear_21s
   #'  Prey relative abundance by functional group
-  occ_results_preygroup <- rbind()
+  occ_results_preygroup <- rbind(occ_wolfcoy_20s, occ_wolfcoy_21s, occ_bearbob_21s)
   #'  Prey relative abundance by species
-  occ_results_preydiversity <- rbind(wb_20s_top, bc_20s_top)
+  occ_results_preydiversity <- occ_bobcoy_20s
   #'  Proxies for anthropogenic mortality risk
-  occ_results_anthromort <- rbind(occ_wolfbear_20s, occ_wolfbear_21s, occ_wolfbob_21s, occ_wolflion_21s, occ_bearcoy_20s)
+  occ_results_anthromort <- rbind(occ_wolfbear_20s, occ_wolfbear_21s, occ_lionbear_20s)
   #'  Proxies for anthropogenic disturbance
+  occ_results_anthrodist <- rbind(occ_wolflion_21s, occ_lionbob_20s, occ_lionbob_21s, occ_bearbob_20s, occ_bearcoy_20s)
   #'  Global model 1
+  occ_results_global1 <- rbind(occ_wolfbob_20s, occ_wolfbob_21s, occ_lioncoy_20s, occ_lioncoy_21s, occ_bearcoy_21s)
   #'  Global model 2
+  occ_results_global2 <- rbind(occ_wolflion_20s, occ_bobcoy_21s)
   
   
   ####  Spread results into wide format and rename  ####
-  #'  Anthropogenic mortality results
+  #'  Relative abundance of prey functional groups hypothesis results
+  results_occmod_wide_preygroup <- occ_results_preygroup %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
+    spread(Parameter, Est_SE_Pval) %>%
+    relocate("[Species 1] Elev", .after = "[Species 1] (Intercept)") %>%
+    relocate("[Species 2] Elev", .after = "[Species 2] (Intercept)") %>%
+    relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
+    relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
+    relocate("[Species 1] Nlagomorph", .after = "[Species 1] Nsmall_deer") %>%
+    relocate("[Species 2] Nlagomorph", .after = "[Species 2] Nsmall_deer") %>%
+    relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] Nlagomorph") %>%
+    relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
+    relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
+    relocate("[Species 1:Species 2] Nbig_deer", .after = "[Species 1:Species 2] PercForest") %>%
+    relocate("[Species 1:Species 2] Nsmall_deer", .after = "[Species 1:Species 2] Nbig_deer") %>%
+    relocate("[Species 1:Species 2] Nlagomorph", .after = "[Species 1:Species 2] Nsmall_deer") %>%
+    separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
+    separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
+    separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1] Nbig_deer", c("[Species 1] Large deer activity (SE)", "[Species 1] Large deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nbig_deer", c("[Species 2] Large deer activity (SE)", "[Species 2] Large deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nsmall_deer", c("[Species 1] Small deer activity (SE)", "[Species 1] Small deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nsmall_deer", c("[Species 2] Small deer activity (SE)", "[Species 2] Small deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nlagomorph", c("[Species 1] Lagomorph activity (SE)", "[Species 1] Lagomorph activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nlagomorph", c("[Species 2] Lagomorph activity (SE)", "[Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nbig_deer", c("[Species 1:Species 2] Large deer activity (SE)", "[Species 1:Species 2] Large deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nsmall_deer", c("[Species 1:Species 2] Small deer activity (SE)", "[Species 1:Species 2] Small deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nlagomorph", c("[Species 1:Species 2] Lagomorph activity (SE)", "[Species 1:Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
+  
+  
+  #'  Relative abundance of prey species hypothesis results
+  results_occmod_wide_preydiversity <- occ_results_preydiversity %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
+    spread(Parameter, Est_SE_Pval) #%>%
+    # relocate("[Species 1] Elev", .after = "[Species 1] (Intercept)") %>%
+    # relocate("[Species 2] Elev", .after = "[Species 2] (Intercept)") %>%
+    # relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
+    # relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
+    # relocate("[Species 1] Nlagomorph", .after = "[Species 1] Nsmall_deer") %>%
+    # relocate("[Species 2] Nlagomorph", .after = "[Species 2] Nsmall_deer") %>%
+    # relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] Nlagomorph") %>%
+    # relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
+    # relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
+    # relocate("[Species 1:Species 2] Nbig_deer", .after = "[Species 1:Species 2] PercForest") %>%
+    # relocate("[Species 1:Species 2] Nsmall_deer", .after = "[Species 1:Species 2] Nbig_deer") %>%
+    # relocate("[Species 1:Species 2] Nlagomorph", .after = "[Species 1:Species 2] Nsmall_deer") %>%
+    # separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
+    # separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
+    # separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
+    # separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
+    # separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
+    # separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
+    # separate("[Species 1] Nbig_deer", c("[Species 1] Large deer activity (SE)", "[Species 1] Large deer activity Pval"), sep = "_") %>%
+    # separate("[Species 2] Nbig_deer", c("[Species 2] Large deer activity (SE)", "[Species 2] Large deer activity Pval"), sep = "_") %>%
+    # separate("[Species 1] Nsmall_deer", c("[Species 1] Small deer activity (SE)", "[Species 1] Small deer activity Pval"), sep = "_") %>%
+    # separate("[Species 2] Nsmall_deer", c("[Species 2] Small deer activity (SE)", "[Species 2] Small deer activity Pval"), sep = "_") %>%
+    # separate("[Species 1] Nlagomorph", c("[Species 1] Lagomorph activity (SE)", "[Species 1] Lagomorph activity Pval"), sep = "_") %>%
+    # separate("[Species 2] Nlagomorph", c("[Species 2] Lagomorph activity (SE)", "[Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    # separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
+    # separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
+    # separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
+    # separate("[Species 1:Species 2] Nbig_deer", c("[Species 1:Species 2] Large deer activity (SE)", "[Species 1:Species 2] Large deer activity Pval"), sep = "_") %>%
+    # separate("[Species 1:Species 2] Nsmall_deer", c("[Species 1:Species 2] Small deer activity (SE)", "[Species 1:Species 2] Small deer activity Pval"), sep = "_") %>%
+    # separate("[Species 1:Species 2] Nlagomorph", c("[Species 1:Species 2] Lagomorph activity (SE)", "[Species 1:Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    # arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
+  
+  
+  #'  Anthropogenic mortality hypothesis results
   results_occmod_wide_anthromort <- occ_results_anthromort %>%
     unite(Est_SE, Estimate, SE, sep = " ") %>%
     unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
@@ -659,3 +736,44 @@
     separate("[Species 1:Species 2] Dist2Burbs", c("[Species 1:Species 2] Distance to Suburban (SE)", "[Species 1:Species 2] Distance to Suburban Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] Nlivestock", c("[Species 1:Species 2] Livestock activity (SE)", "[Species 1:Species 2] Livestock activity Pval"), sep = "_") %>%
     arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
+  
+  #'  Anthropogenic disturbance hypothesis results
+  results_occmod_wide_anthrodist <- occ_results_anthrodist %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
+    spread(Parameter, Est_SE_Pval) %>%
+    relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] PercForest") %>%
+    relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
+    relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
+    relocate("[Species 1:Species 2] logNearestRd", .after = "[Species 1:Species 2] PercForest") %>%
+    relocate("[Species 1:Species 2] Nhuman", .after = "[Species 1:Species 2] logNearestRd") %>%
+    relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
+    relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
+    separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
+    separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
+    separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1] logNearestRd", c("[Species 1] log(Nearest Road) (SE)", "[Species 1] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 2] logNearestRd", c("[Species 2] log(Nearest Road) (SE)", "[Species 2] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 1] Nhuman", c("[Species 1] Human activity (SE)", "[Species 1] Human activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nhuman", c("[Species 2] Human activity (SE)", "[Species 2] Human activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] logNearestRd", c("[Species 1:Species 2] log(Nearest Road) (SE)", "[Species 1:Species 2] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nhuman", c("[Species 1:Species 2] Human activity (SE)", "[Species 1:Species 2] Human activity Pval"), sep = "_") %>%
+    arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
+  
+  
+  
+  
+  
+  
+  #'  Save!
+  write.csv(results_occmod_wide_preygroup, paste0("./Outputs/Tables/CoOcc_OccProb_PreyGroup_wide_", Sys.Date(), ".csv"))
+  write.csv(results_occmod_wide_preydiversity, paste0("./Outputs/Tables/CoOcc_OccProb_PreyDiversity_wide_", Sys.Date(), ".csv"))
+  write.csv(results_occmod_wide_anthromort, paste0("./Outputs/Tables/CoOcc_OccProb_AnthroMort_wide_", Sys.Date(), ".csv"))
+  write.csv(results_occmod_wide_anthrodist, paste0("./Outputs/Tables/CoOcc_OccProb_AnthroDisturbance_wide_", Sys.Date(), ".csv"))
+  
