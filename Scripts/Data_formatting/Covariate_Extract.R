@@ -21,6 +21,7 @@
   library(tidyverse)
   library(ggplot2)
   library(grid)
+  library(MASS)
   
   #'  ----------------
   ####  Spatial data  ####
@@ -371,6 +372,48 @@
     labs(fill="") +
     ggtitle("Relative abundance of livestock at Ungulate vs Predator cameras") +
     annotation_custom(maxlivestock)
+  
+  #'  Box-Cox transformation of relative abundance data
+  boxcox_transform <- function(dat) {
+    #'  Add 1 to all values so no zeros in data set
+    dat1 <- dat + 1
+    hist(dat1)
+    
+    #'  Find optimal lambda (tuning parameter) for Box-Cox transformation
+    bc <- boxcox(lm(dat1 ~ 1))
+    (lambda <- bc$x[which.max(bc$y)])
+    
+    #'  Transform data using Box-Cox transformation and optimal lambda
+    newdat <- (dat1^lambda-1)/lambda
+    
+    #'  Visualize
+    hist(newdat)
+    mod_bctrans <- lm(((dat1^lambda-1)/lambda) ~ 1)
+    #'  QQplot of residuals (are they normal or at least more normal?)
+    qqnorm(mod_bctrans$residuals, main = "boxcox data")
+    qqline(mod_bctrans$residuals)
+    
+    sqrt_dat <- lm(sqrt(dat) ~ 1)
+    hist(sqrt(dat))
+    qqnorm(sqrt_dat$residuals, main = "sqare root data")
+    qqline(sqrt_dat$residuals)
+
+    log_dat <- lm(log(dat1) ~ 1)
+    hist(log(dat + 1))
+    qqnorm(log_dat$residuals, main = "log data")
+    qqline(log_dat$residuals)
+    
+    return(newdat)
+  }
+  covs <- eoe_covs_20s
+  covs$lagomorphs_adj <- boxcox_transform(covs$lagomorphs) # nothing helps
+  covs$human_adj <- boxcox_transform(covs$human) # log seems best but major tails
+  covs$elk_adj <- boxcox_transform(covs$elk) # sqrt seems best but major tails
+  covs$moose_adj <- boxcox_transform(covs$moose) # sqrt seems best but major tails
+  covs$muledeer_adj <- boxcox_transform(covs$muledeer) # nothing helps
+  covs$whitetailedeer_adj <- boxcox_transform(covs$whitetaileddeer) # sqrt & log do equally OK but major tails
+  covs$big_deer_adj <- boxcox_transform(covs$big_deer) # sqrt seems best but major tails
+  covs$small_deer_adj <- boxcox_transform(covs$small_deer) # sqrt seems best but major tails
   
   
   #'  Identify outliers in covariate data and cap at 99th percentile value
