@@ -164,7 +164,7 @@
       #'  Create one column per species
       spread(Species, n_dets) %>%
       rowwise() %>%
-      #'  Add domestic animals to human count (except cattle)
+      #'  Aggrigate relative abundance data into funcitonal groups
       mutate(human_plus = sum(human, cat_domestic, dog_domestic, horse, na.rm = TRUE),
              ungulate = sum(elk, moose, muledeer, whitetaileddeer, na.rm = TRUE),
              big_deer = sum(elk, moose, na.rm = TRUE),
@@ -267,157 +267,203 @@
   spread_of_covariate_data(eoe_covs_21s, season = "Summer 2021")
   
   
-  #'  Relative abundance data based on camera setup (ungulate vs predator cams)
-  bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, lagomorphs)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(bunnies)
-  maxbunnies <- grobTree(textGrob("max count = 71 (U)", x=0.60,  y=0.95, hjust=0,
-                              gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(bunnies, aes(x = lagomorphs, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of lagomorphs at Ungulate vs Predator cameras") +
-    annotation_custom(maxbunnies)
+  # ####  Is there a difference in relative abund by camera setup?  ####  
+  # bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #   dplyr::select(c(NewLocationID, lagomorphs)) %>%
+  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #          setup = factor(setup, levels = c("U", "P"))) %>%
+  #   dplyr::select(-NewLocationID)
+  # table(bunnies)
+  # maxbunnies <- grobTree(textGrob("max count = 71 (U)", x=0.60,  y=0.95, hjust=0,
+  #                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  # ggplot(bunnies, aes(x = lagomorphs, fill = setup)) +
+  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #   labs(fill="") +
+  #   ggtitle("Relative abundance of lagomorphs at Ungulate vs Predator cameras") +
+  #   annotation_custom(maxbunnies)
+  # 
+  # ppl <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #   dplyr::select(c(NewLocationID, human)) %>%
+  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #          setup = factor(setup, levels = c("U", "P"))) %>%
+  #   dplyr::select(-NewLocationID)
+  # table(ppl)
+  # maxppl <- grobTree(textGrob("max count = 136 (P)", x=0.60,  y=0.95, hjust=0,
+  #                           gp=gpar(col="red", fontsize=13, fontface="italic")))
+  # ggplot(ppl, aes(x = human, fill = setup)) +
+  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #   labs(fill="") +
+  #   ggtitle("Relative abundance of humans at Ungulate vs Predator cameras") +
+  #   annotation_custom(maxppl)
+  # 
+  # elk <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #   dplyr::select(c(NewLocationID, elk)) %>%
+  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #          setup = factor(setup, levels = c("U", "P"))) %>%
+  #   dplyr::select(-NewLocationID)
+  # table(elk)
+  # maxelk <- grobTree(textGrob("max count = 145 (P)", x=0.60,  y=0.95, hjust=0,
+  #                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  # ggplot(elk, aes(x = elk, fill = setup)) +
+  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #   labs(fill="") +
+  #   ggtitle("Relative abundance of elk at Ungulate vs Predator cameras") +
+  #   annotation_custom(maxelk)
+  # 
+  # md <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #   dplyr::select(c(NewLocationID, muledeer)) %>%
+  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #          setup = factor(setup, levels = c("U", "P"))) %>%
+  #   dplyr::select(-NewLocationID)
+  # table(md)
+  # maxmd <- grobTree(textGrob("max count = 64 (U)", x=0.60,  y=0.95, hjust=0,
+  #                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  # ggplot(md, aes(x = muledeer, fill = setup)) +
+  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #   labs(fill="") +
+  #   ggtitle("Relative abundance of mule deer at Ungulate vs Predator cameras") +
+  #   annotation_custom(maxmd)
+  # 
+  # wtd <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #   dplyr::select(c(NewLocationID, whitetaileddeer)) %>%
+  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #          setup = factor(setup, levels = c("U", "P"))) %>%
+  #   dplyr::select(-NewLocationID)
+  # table(wtd)
+  # maxwtd <- grobTree(textGrob("max count = 225 (P)", x=0.60,  y=0.95, hjust=0,
+  #                            gp=gpar(col="red", fontsize=13, fontface="italic")))
+  # ggplot(wtd, aes(x = whitetaileddeer, fill = setup)) +
+  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #   labs(fill="") +
+  #   ggtitle("Relative abundance of white-tails at Ungulate vs Predator cameras") +
+  #   annotation_custom(maxwtd)
+  # 
+  # moose <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #   dplyr::select(c(NewLocationID, moose)) %>%
+  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #          setup = factor(setup, levels = c("U", "P"))) %>%
+  #   dplyr::select(-NewLocationID)
+  # table(moose)
+  # maxmoose <- grobTree(textGrob("max count = 44 (U)", x=0.60,  y=0.95, hjust=0,
+  #                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  # ggplot(moose, aes(x = moose, fill = setup)) +
+  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #   labs(fill="") +
+  #   ggtitle("Relative abundance of moose at Ungulate vs Predator cameras") +
+  #   annotation_custom(maxmoose)
+  # 
+  # livestock <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #   dplyr::select(c(NewLocationID, livestock)) %>%
+  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #          setup = factor(setup, levels = c("U", "P"))) %>%
+  #   dplyr::select(-NewLocationID)
+  # table(livestock)
+  # maxlivestock <- grobTree(textGrob("max count = 284 (U/P)", x=0.60,  y=0.95, hjust=0,
+  #                                   gp=gpar(col="red", fontsize=13, fontface="italic")))
+  # ggplot(livestock, aes(x = livestock, fill = setup)) +
+  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 10) +
+  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #   labs(fill="") +
+  #   ggtitle("Relative abundance of livestock at Ungulate vs Predator cameras") +
+  #   annotation_custom(maxlivestock)
   
-  ppl <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, human)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(ppl)
-  maxppl <- grobTree(textGrob("max count = 136 (P)", x=0.60,  y=0.95, hjust=0,
-                            gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(ppl, aes(x = human, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of humans at Ungulate vs Predator cameras") +
-    annotation_custom(maxppl)
-  
-  elk <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, elk)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(elk)
-  maxelk <- grobTree(textGrob("max count = 145 (P)", x=0.60,  y=0.95, hjust=0,
-                              gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(elk, aes(x = elk, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of elk at Ungulate vs Predator cameras") +
-    annotation_custom(maxelk)
-  
-  md <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, muledeer)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(md)
-  maxmd <- grobTree(textGrob("max count = 64 (U)", x=0.60,  y=0.95, hjust=0,
-                              gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(md, aes(x = muledeer, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of mule deer at Ungulate vs Predator cameras") +
-    annotation_custom(maxmd)
-  
-  wtd <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, whitetaileddeer)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(wtd)
-  maxwtd <- grobTree(textGrob("max count = 225 (P)", x=0.60,  y=0.95, hjust=0,
-                             gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(wtd, aes(x = whitetaileddeer, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of white-tails at Ungulate vs Predator cameras") +
-    annotation_custom(maxwtd)
-  
-  moose <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, moose)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(moose)
-  maxmoose <- grobTree(textGrob("max count = 44 (U)", x=0.60,  y=0.95, hjust=0,
-                              gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(moose, aes(x = moose, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of moose at Ungulate vs Predator cameras") +
-    annotation_custom(maxmoose)
-  
-  livestock <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, livestock)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(livestock)
-  maxlivestock <- grobTree(textGrob("max count = 284 (U/P)", x=0.60,  y=0.95, hjust=0,
-                                    gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(livestock, aes(x = livestock, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 10) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of livestock at Ungulate vs Predator cameras") +
-    annotation_custom(maxlivestock)
-  
-  #'  Box-Cox transformation of relative abundance data
-  boxcox_transform <- function(dat) {
+  #'  -------------------------------------
+  ####  Transform relative abundance data  ####
+  #'  -------------------------------------
+  #'  Function to test the Box-Cox transformation, square-root transformation,
+  #'  and log transformation on each relative abundance data set
+  transform_dat <- function(dat) {
     #'  Add 1 to all values so no zeros in data set
     dat1 <- dat + 1
-    hist(dat1)
+    hist(dat + 1)
     
     #'  Find optimal lambda (tuning parameter) for Box-Cox transformation
-    bc <- boxcox(lm(dat1 ~ 1))
-    (lambda <- bc$x[which.max(bc$y)])
-    
+    bc <- boxcox(dat1 ~ 1)
+    print(lambda <- bc$x[which.max(bc$y)])
+
     #'  Transform data using Box-Cox transformation and optimal lambda
-    newdat <- (dat1^lambda-1)/lambda
-    
+    bxcxdat <- round((dat1^lambda-1)/lambda, 2)
+
     #'  Visualize
-    hist(newdat)
+    hist(bxcxdat)
     mod_bctrans <- lm(((dat1^lambda-1)/lambda) ~ 1)
     #'  QQplot of residuals (are they normal or at least more normal?)
     qqnorm(mod_bctrans$residuals, main = "boxcox data")
     qqline(mod_bctrans$residuals)
     
+    #'  Inverse hyperbolic sine transformation
+    ihs_dat <- lm(log(dat + sqrt(dat^2 + 1)) ~ 1)
+    hist(log(dat + sqrt(dat^2 + 1)))
+    qqnorm(ihs_dat$residuals, main = "inverse hyperbolic sine data")
+    qqline(ihs_dat$residuals)
+    ihsdat <- round(log(dat + sqrt(dat^2 + 1)), 2)
+
+    #'  Is square rooting the data any better?
     sqrt_dat <- lm(sqrt(dat) ~ 1)
     hist(sqrt(dat))
     qqnorm(sqrt_dat$residuals, main = "sqare root data")
     qqline(sqrt_dat$residuals)
+    sqrtdat <- round(sqrt(dat), 2)
 
+    #'  What about logging it?
     log_dat <- lm(log(dat1) ~ 1)
     hist(log(dat + 1))
-    qqnorm(log_dat$residuals, main = "log data")
+    qqnorm(log_dat$residuals, main = "log data + 1")
     qqline(log_dat$residuals)
-    
-    return(newdat)
+    logdat1 <- round(log(dat1), 2)
+
+    # return(bxcxdat)
+    # return(ihsdat)
+    return(sqrtdat)   #  Currently square-root transforming them all
+    # return(logdat1)
   }
   covs <- eoe_covs_20s
-  covs$lagomorphs_adj <- boxcox_transform(covs$lagomorphs) # nothing helps
-  covs$human_adj <- boxcox_transform(covs$human) # log seems best but major tails
-  covs$elk_adj <- boxcox_transform(covs$elk) # sqrt seems best but major tails
-  covs$moose_adj <- boxcox_transform(covs$moose) # sqrt seems best but major tails
-  covs$muledeer_adj <- boxcox_transform(covs$muledeer) # nothing helps
-  covs$whitetailedeer_adj <- boxcox_transform(covs$whitetaileddeer) # sqrt & log do equally OK but major tails
-  covs$big_deer_adj <- boxcox_transform(covs$big_deer) # sqrt seems best but major tails
-  covs$small_deer_adj <- boxcox_transform(covs$small_deer) # sqrt seems best but major tails
+  # covs <- eoe_covs_21s
+  covs$lagomorphs_adj <- transform_dat(covs$lagomorphs) # 2020 all are very terrible, 2021 IHS or log better but definitely not normal
+  covs$human_adj <- transform_dat(covs$human) # 20/21 IHS or log seem better but definitely not normal
+  covs$human_motorized_adj <- transform_dat(covs$human_motorized) # 20/21 all are pretty terrible
+  covs$elk_adj <- transform_dat(covs$elk) # 20/21 sqrt seems best but major tails
+  covs$moose_adj <- transform_dat(covs$moose) # 20/21 sqrt seems best but definitely not normal
+  covs$muledeer_adj <- transform_dat(covs$muledeer) # 2020 all are very terrible, 2021 all are slightly better but definitely  not normal
+  covs$whitetailedeer_adj <- transform_dat(covs$whitetaileddeer) # 20/21 sqrt seems best but major tails
+  covs$big_deer_adj <- transform_dat(covs$big_deer) # 20/21 sqrt seems best but major tails
+  covs$small_deer_adj <- transform_dat(covs$small_deer) # 2020 sqrt seems best but major tails, Box-Cox seems best but still tails
+  
+  #'  List heavily skewed covaraites (relative abundance data)
+  listnames <- c("lagomorphsT", "humanT", "human_motorizedT", "livestockT", "elkT", "mooseT", "muledeerT", "whitetaileddeerT", "ungulateT", "big_deerT", "small_deerT")
+  cov_20s_list <- list(eoe_covs_20s$lagomorphs, eoe_covs_20s$human, eoe_covs_20s$human_motorized, eoe_covs_20s$livestock, eoe_covs_20s$elk, eoe_covs_20s$moose, eoe_covs_20s$muledeer, eoe_covs_20s$whitetaileddeer, eoe_covs_20s$ungulate, eoe_covs_20s$big_deer, eoe_covs_20s$small_deer)
+  cov_20w_list <- list(eoe_covs_20w$lagomorphs, eoe_covs_20w$human, eoe_covs_20w$human_motorized, eoe_covs_20w$livestock, eoe_covs_20w$elk, eoe_covs_20w$moose, eoe_covs_20w$muledeer, eoe_covs_20w$whitetaileddeer, eoe_covs_20w$ungulate, eoe_covs_20w$big_deer, eoe_covs_20w$small_deer)
+  cov_21s_list <- list(eoe_covs_21s$lagomorphs, eoe_covs_21s$human, eoe_covs_21s$human_motorized, eoe_covs_21s$livestock, eoe_covs_21s$elk, eoe_covs_21s$moose, eoe_covs_21s$muledeer, eoe_covs_21s$whitetaileddeer, eoe_covs_21s$ungulate, eoe_covs_21s$big_deer, eoe_covs_21s$small_deer)
+  
+  #'  Transform annual relative abundance data
+  transf_covs_20s <- lapply(cov_20s_list, transform_dat)
+  names(transf_covs_20s) <- listnames
+  transf_covs_20s <- as.data.frame(transf_covs_20s)
+  
+  transf_covs_20w <- lapply(cov_20w_list, transform_dat)
+  names(transf_covs_20w) <- listnames
+  transf_covs_20w <- as.data.frame(transf_covs_20w)
+  
+  transf_covs_21s <- lapply(cov_21s_list, transform_dat)
+  names(transf_covs_21s) <- listnames
+  transf_covs_21s <- as.data.frame(transf_covs_21s)
+  
+  #'  Append adjusted relative abundance covariates to larger covariate data frame
+  eoe_covs_20s <- cbind(eoe_covs_20s, transf_covs_20s)
+  eoe_covs_20w <- cbind(eoe_covs_20w, transf_covs_20w)
+  eoe_covs_21s <- cbind(eoe_covs_21s, transf_covs_21s)
   
   
-  #'  Identify outliers in covariate data and cap at 99th percentile value
-  outliers <- function(cov, title) { 
+  #'  -----------------------------------------------------------------
+  ####  Identify outliers and cap covariates at 99th percentile value  ####
+  #'  -----------------------------------------------------------------
+  outliers <- function(cov, title) {
     #'  Summarize predicted values
     hist(cov, breaks = 100, main = title)
     boxplot(cov, main = title)
@@ -428,7 +474,7 @@
     #'  Identify the 1% most extreme values and set to 99th percentile value
     extremevalues <- as.data.frame(cov) %>%
       mutate(outlier = ifelse(cov > quant, "outlier", "not_outlier"),
-             adjusted_cov = ifelse(outlier == "outlier", quant, cov), 
+             adjusted_cov = ifelse(outlier == "outlier", quant, cov),
              adjusted_cov = round(adjusted_cov, 0))
     #'  How many covariate values are above the 99th percentile?
     outlier <- extremevalues[extremevalues$outlier == "outlier",]
@@ -436,7 +482,7 @@
     print(nrow(outlier))
     #'  What percentage of observations are being forced to 99th percentile value
     print(nrow(outlier)/nrow(extremevalues))
-    
+
     #'  Return these adjusted values
     adjusted_cov <- extremevalues$adjusted_cov
     return(adjusted_cov)
@@ -448,92 +494,92 @@
   #' moose$moose_adj <- outliers(moose$moose, "Moose outliers")
   #' md$muledeer_adj <- outliers(md$muledeer, "Mule deer outliers")
   #' wtd$whitetaileddeer_adj <- outliers(wtd$whitetaileddeer, "White-tailed deer outliers")
-  
+
   #'  List heavily skewed covaraites (relative abundance data)
-  listnames <- c("lagomorphs99", "human99", "livestock99", "elk99", "moose99", "muledeer99", "whitetaileddeer99", "ungulate99", "big_deer99", "small_deer99")
-  cov_20s_list <- list(eoe_covs_20s$lagomorphs, eoe_covs_20s$human, eoe_covs_20s$livestock, eoe_covs_20s$elk, eoe_covs_20s$moose, eoe_covs_20s$muledeer, eoe_covs_20s$whitetaileddeer, eoe_covs_20s$ungulate, eoe_covs_20s$big_deer, eoe_covs_20s$small_deer)
-  cov_20w_list <- list(eoe_covs_20w$lagomorphs, eoe_covs_20w$human, eoe_covs_20w$livestock, eoe_covs_20w$elk, eoe_covs_20w$moose, eoe_covs_20w$muledeer, eoe_covs_20w$whitetaileddeer, eoe_covs_20w$ungulate, eoe_covs_20w$big_deer, eoe_covs_20w$small_deer)
-  cov_21s_list <- list(eoe_covs_21s$lagomorphs, eoe_covs_21s$human, eoe_covs_21s$livestock, eoe_covs_21s$elk, eoe_covs_21s$moose, eoe_covs_21s$muledeer, eoe_covs_21s$whitetaileddeer, eoe_covs_21s$ungulate, eoe_covs_21s$big_deer, eoe_covs_21s$small_deer)
-  
+  listnames <- c("lagomorphs99", "human99", "human_motorized99", "livestock99", "elk99", "moose99", "muledeer99", "whitetaileddeer99", "ungulate99", "big_deer99", "small_deer99")
+  cov_20s_list <- list(eoe_covs_20s$lagomorphs, eoe_covs_20s$human, eoe_covs_20s$human_motorized, eoe_covs_20s$livestock, eoe_covs_20s$elk, eoe_covs_20s$moose, eoe_covs_20s$muledeer, eoe_covs_20s$whitetaileddeer, eoe_covs_20s$ungulate, eoe_covs_20s$big_deer, eoe_covs_20s$small_deer)
+  cov_20w_list <- list(eoe_covs_20w$lagomorphs, eoe_covs_20w$human, eoe_covs_20w$human_motorized, eoe_covs_20w$livestock, eoe_covs_20w$elk, eoe_covs_20w$moose, eoe_covs_20w$muledeer, eoe_covs_20w$whitetaileddeer, eoe_covs_20w$ungulate, eoe_covs_20w$big_deer, eoe_covs_20w$small_deer)
+  cov_21s_list <- list(eoe_covs_21s$lagomorphs, eoe_covs_21s$human, eoe_covs_21s$human_motorized, eoe_covs_21s$livestock, eoe_covs_21s$elk, eoe_covs_21s$moose, eoe_covs_21s$muledeer, eoe_covs_21s$whitetaileddeer, eoe_covs_21s$ungulate, eoe_covs_21s$big_deer, eoe_covs_21s$small_deer)
+
   #'  Adjust annual relative abundance based on season-specific covariate ranges
   capped_covs_20s <- lapply(cov_20s_list, outliers, title = "Outliers")
   names(capped_covs_20s) <- listnames
   capped_covs_20s <- as.data.frame(capped_covs_20s)
-  
+
   capped_covs_20w <- lapply(cov_20w_list, outliers, title = "Outliers")
   names(capped_covs_20w) <- listnames
   capped_covs_20w <- as.data.frame(capped_covs_20w)
-  
+
   capped_covs_21s <- lapply(cov_21s_list, outliers, title = "Outliers")
   names(capped_covs_21s) <- listnames
   capped_covs_21s <- as.data.frame(capped_covs_21s)
-  
+
   #'  Append adjusted relative abundance covariates to larger covariate data frame
   eoe_covs_20s <- cbind(eoe_covs_20s, capped_covs_20s)
   eoe_covs_20w <- cbind(eoe_covs_20w, capped_covs_20w)
   eoe_covs_21s <- cbind(eoe_covs_21s, capped_covs_21s)
-  
-  
-  #'  Visualize capped relative abundance data based on camera setup
-  bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, lagomorphs99)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(bunnies)
-  maxbunnies <- grobTree(textGrob("max count = 41 (U/P)", x=0.60,  y=0.95, hjust=0,
-                                  gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(bunnies, aes(x = lagomorphs99, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of lagomorphs at Ungulate vs Predator cameras") +
-    annotation_custom(maxbunnies)
-  
-  ppl <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, human99)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(ppl)
-  maxppl <- grobTree(textGrob("max count = 35 (P)", x=0.60,  y=0.95, hjust=0,
-                              gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(ppl, aes(x = human99, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of humans at Ungulate vs Predator cameras") +
-    annotation_custom(maxppl)
-  
-  elk <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, elk99)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(elk)
-  maxelk <- grobTree(textGrob("max count = 55 (U/P)", x=0.60,  y=0.95, hjust=0,
-                              gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(elk, aes(x = elk99, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of elk at Ungulate vs Predator cameras") +
-    annotation_custom(maxelk)
-  
-  livestock <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, livestock99)) %>%
-    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-           setup = factor(setup, levels = c("U", "P"))) %>%
-    dplyr::select(-NewLocationID)
-  table(livestock)
-  maxlivestock <- grobTree(textGrob("max count = 91 (U/P)", x=0.60,  y=0.95, hjust=0,
-                              gp=gpar(col="red", fontsize=13, fontface="italic")))
-  ggplot(livestock, aes(x = livestock99, fill = setup)) +
-    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 2) +
-    scale_fill_manual(values=c("#69b3a2", "#404080")) +
-    labs(fill="") +
-    ggtitle("Relative abundance of livestock at Ungulate vs Predator cameras") +
-    annotation_custom(maxlivestock)
+
+
+  #' #'  Visualize capped relative abundance data based on camera setup
+  #' bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, lagomorphs99)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(bunnies)
+  #' maxbunnies <- grobTree(textGrob("max count = 41 (U/P)", x=0.60,  y=0.95, hjust=0,
+  #'                                 gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(bunnies, aes(x = lagomorphs99, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of lagomorphs at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxbunnies)
+  #' 
+  #' ppl <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, human99)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(ppl)
+  #' maxppl <- grobTree(textGrob("max count = 35 (P)", x=0.60,  y=0.95, hjust=0,
+  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(ppl, aes(x = human99, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of humans at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxppl)
+  #' 
+  #' elk <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, elk99)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(elk)
+  #' maxelk <- grobTree(textGrob("max count = 55 (U/P)", x=0.60,  y=0.95, hjust=0,
+  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(elk, aes(x = elk99, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of elk at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxelk)
+  #' 
+  #' livestock <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, livestock99)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(livestock)
+  #' maxlivestock <- grobTree(textGrob("max count = 91 (U/P)", x=0.60,  y=0.95, hjust=0,
+  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(livestock, aes(x = livestock99, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 2) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of livestock at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxlivestock)
   
  
   ####  Save  ###
