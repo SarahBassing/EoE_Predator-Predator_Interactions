@@ -152,18 +152,16 @@
   (wb_20s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_bob_20s_umf, silent = TRUE))
   (wb_20s_hab <- occuMulti(detFormulas_setup, occFormulas_hab, wolf_bob_20s_umf, silent = TRUE))
   (wb_20s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_bob_20s_umf, silent = TRUE))
-  (wb_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bob_20s_umf, silent = TRUE))#somewhat questionable intercepts/coeffs
+  (wb_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bob_20s_umf, silent = TRUE))
   (wb_20s_anthro <- occuMulti(detFormulas_setup, occFormulas_anthro, wolf_bob_20s_umf, silent = TRUE))
-  # (wb_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_bob_20s_umf, silent = TRUE))
-  # (wb_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_bob_20s_umf, silent = TRUE))
-  (wb_20s_global1 <- occuMulti(detFormulas_setup, occFormulas_global1, wolf_bob_20s_umf, silent = TRUE)) #somewhat questionable intercepts/coeffs
-  (wb_20s_global2 <- occuMulti(detFormulas_setup, occFormulas_global2, wolf_bob_20s_umf, silent = TRUE)) #somewhat questionable intercepts
+  (wb_20s_global1 <- occuMulti(detFormulas_setup, occFormulas_global1, wolf_bob_20s_umf, silent = TRUE, method = "L-BFGS-B", control = list(maxit = 10000))) 
+  (wb_20s_global2 <- occuMulti(detFormulas_setup, occFormulas_global2, wolf_bob_20s_umf, silent = TRUE, method = "L-BFGS-B", control = list(maxit = 10000))) 
   wb_20s_occ_fld <- fitList(wb_20s_null1, wb_20s_null2, wb_20s_hab, wb_20s_preygroups, wb_20s_preydiversity,
-                            wb_20s_anthro, wb_20s_global1, wb_20s_global2) #wb_20s_anthromort, wb_20s_anthrodist, 
+                            wb_20s_anthro, wb_20s_global1, wb_20s_global2) 
   #' Model selection
   modSel(wb_20s_occ_fld)
-  summary(wb_20s_global1)  
-  wb_20s_top <- wb_20s_global1
+  summary(wb_20s_global2)  
+  wb_20s_top <- wb_20s_global2
   
   ####  Wolf - Bobcat Summer 2021  ####
   #'  Review detection sub-models
@@ -173,19 +171,19 @@
   (wb_21s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_bob_21s_umf, silent = TRUE))
   (wb_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_bob_21s_umf, silent = TRUE))
   (wb_21s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_bob_21s_umf, silent = TRUE))
-  (wb_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_bob_21s_umf, silent = TRUE))
-  (wb_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bob_21s_umf, silent = TRUE, control = list(maxit = 10000))) 
+  (wb_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_bob_21s_umf, silent = TRUE)) #, starts=c(-1, 1, 0.5, 0.5, 0.5, 2.5, 0.5, 0.5, 0.5, 0.5, -0.1, 2.5, 0.5, -1, 0.5, -0.5, -1, -3.1, -2.5, -2.5,-2, -2.5)
+  (wb_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bob_21s_umf, silent = TRUE)) 
   (wb_21s_anthro <- occuMulti(detFormulas_setup, occFormulas_anthro, wolf_bob_21s_umf, silent = TRUE))
   # (wb_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_bob_21s_umf, silent = TRUE))
   # (wb_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_bob_21s_umf, silent = TRUE))
-  (wb_21s_global1 <- occuMulti(detFormulas_setup, occFormulas_global1, wolf_bob_21s_umf, silent = TRUE)) #questionable intercepts/coeffs
-  (wb_21s_global2 <- occuMulti(detFormulas_setup, occFormulas_global2, wolf_bob_21s_umf, silent = TRUE)) #questionable intercepts/coeffs
+  (wb_21s_global1 <- occuMulti(detFormulas_setup, occFormulas_global1, wolf_bob_21s_umf, silent = TRUE, control = list(maxit = 10000))) 
+  (wb_21s_global2 <- occuMulti(detFormulas_setup, occFormulas_global2, wolf_bob_21s_umf, silent = TRUE, method = "L-BFGS-B", control = list(maxit = 10000))) #questionable intercepts/coeffs
   wb_21s_occ_fld <- fitList(wb_21s_null1, wb_21s_null2, wb_21s_hab, wb_21s_preygroups, wb_21s_preydiversity, 
-                            wb_21s_anthro, wb_21s_global1) #wb_21s_global2 #wb_21s_anthromort, wb_21s_anthrodist, 
+                            wb_21s_anthro, wb_21s_global1, wb_21s_global2)  #wb_21s_anthromort, wb_21s_anthrodist, 
   #' Model selection
   modSel(wb_21s_occ_fld)
-  summary(wb_21s_global1) 
-  wb_21s_top <- wb_21s_global1
+  summary(wb_21s_global2) 
+  wb_21s_top <- wb_21s_global2
   
   
   ####  Wolf - Coyote Summer 2020  ####
@@ -195,22 +193,20 @@
   #'  Run occupancy models using best supported detection sub-model
   (wc_20s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_coy_20s_umf, silent = TRUE))
   (wc_20s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_coy_20s_umf, silent = TRUE))
-  (wc_20s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_coy_20s_umf, silent = TRUE)) #questionable intercepts/coeffs
-  (wc_20s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_coy_20s_umf, silent = TRUE)) #questionable intercepts/coeffs
-  (wc_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_coy_20s_umf, silent = TRUE)) #questionable intercepts/coeffs
-  (wc_20s_anthro <- occuMulti(detFormulas_setup, occFormulas_anthro, wolf_coy_20s_umf, silent = TRUE, control = list(maxit = 10000))) #questionable intercepts
-  # (wc_20s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_coy_20s_umf, silent = TRUE)) #fail
-  # (wc_20s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_coy_20s_umf, silent = TRUE)) #questionable intercepts/coeffs
-  (wc_20s_global1 <- occuMulti(detFormulas_setup, occFormulas_global1, wolf_coy_20s_umf, silent = TRUE, method = "L-BFGS-B", control = list(maxit = 10000))) #fail
-  (wc_20s_global2 <- occuMulti(detFormulas_setup, occFormulas_global2, wolf_coy_20s_umf, silent = TRUE, method = "L-BFGS-B", control = list(maxit = 10000))) #fail
-  wc_20s_occ_fld <- fitList(wc_20s_null1, wc_20s_null2, wc_20s_hab, wc_20s_preygroups, wc_20s_preydiversity,
-                            wc_20s_anthro) #wc_20s_global1, wc_20s_global2 #wc_20s_anthromort, wc_20s_anthrodist
+  (wc_20s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_coy_20s_umf, silent = TRUE)) #extreme int/coeffs but providing start values doesn't change coeffs #, starts = c(-3, 2, 2.5, -1, -0.5, -1, 3, -2, -2.5, -2, 1.5, 1.5, -2, 1.5, 1.5)
+  (wc_20s_preygroups <- occuMulti(detFormulas_trail, occFormulas_preygroups, wolf_coy_20s_umf, silent = TRUE)) #fails even with starting values, maxit, and different optimizer
+  (wc_20s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, wolf_coy_20s_umf, silent = TRUE)) #fails even with starting values, maxit, and different optimizer
+  (wc_20s_anthro <- occuMulti(detFormulas_trail, occFormulas_anthro, wolf_coy_20s_umf, silent = TRUE)) #, starts = c(-2.5, 2, 1, 1.5, 1, -2, 1, 1, 0.1, -1, -1, -1, 2, 1, 2, -2, 1, -1.5, -1.5, 2, -1, -2, 1.5, 1, -1, 1.2, 1)
+  (wc_20s_global1 <- occuMulti(detFormulas_trail, occFormulas_global1, wolf_coy_20s_umf, silent = TRUE)) #fail even with starting values, maxit, and different optimizer
+  (wc_20s_global2 <- occuMulti(detFormulas_trail, occFormulas_global2, wolf_coy_20s_umf, silent = TRUE)) #fail even with starting values, maxit, and different optimizer
+  wc_20s_occ_fld <- fitList(wc_20s_null1, wc_20s_null2, wc_20s_hab, #wc_20s_preygroups, wc_20s_preydiversity,
+                            wc_20s_anthro) #wc_20s_global1, wc_20s_global2 
   #' Model selection
   modSel(wc_20s_occ_fld)
   summary(wc_20s_anthro) 
   wc_20s_top <- wc_20s_anthro
   
-  ####  Wolf - Coyote Summer 2021  ####
+  ####  Wolf - Coyote Summer 2021  ####     LEFT OFF HERE!!!!!
   #'  Review detection sub-models
   choose_det_submod_wolf(det_submod, umf = wolf_coy_21s_umf)  # trail
   
@@ -218,13 +214,13 @@
   (wc_21s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_coy_21s_umf, silent = TRUE))
   (wc_21s_null2 <- occuMulti(detFormulas_trail, occFormulas_null2, wolf_coy_21s_umf, silent = TRUE))
   (wc_21s_hab <- occuMulti(detFormulas_trail, occFormulas_hab, wolf_coy_21s_umf, silent = TRUE))
-  (wc_21s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_coy_21s_umf, silent = TRUE))  
-  (wc_21s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_coy_21s_umf, silent = TRUE))  #questionable intercepts/coeffs without lagomorphs
-  (wc_21s_anthro <- occuMulti(detFormulas_setup, occFormulas_anthro, wolf_coy_21s_umf, silent = TRUE))
-  # (wc_21s_anthromort <- occuMulti(detFormulas_setup, occFormulas_anthromort, wolf_coy_21s_umf, silent = TRUE))
+  (wc_21s_preygroups <- occuMulti(detFormulas_trail, occFormulas_preygroups, wolf_coy_21s_umf, silent = TRUE))  
+  (wc_21s_preydiversity <- occuMulti(detFormulas_trail, occFormulas_preydiversity, wolf_coy_21s_umf, silent = TRUE, starts = c(rep(0.5, 30))))  #questionable intercepts/coeffs without lagomorphs
+  (wc_21s_anthro <- occuMulti(detFormulas_trail, occFormulas_anthro, wolf_coy_21s_umf, silent = TRUE))
+  # (wc_21s_anthromort <- occuMulti(detFormulas_trail, occFormulas_anthromort, wolf_coy_21s_umf, silent = TRUE))
   # (wc_21s_anthrodist <- occuMulti(detFormulas_setup, occFormulas_anthrodist, wolf_coy_21s_umf, silent = TRUE)) #questionable coeffs
-  (wc_21s_global1 <- occuMulti(detFormulas_setup, occFormulas_global1, wolf_coy_21s_umf, silent = TRUE)) #questionable coeffs
-  (wc_21s_global2 <- occuMulti(detFormulas_setup, occFormulas_global2, wolf_coy_21s_umf, silent = TRUE)) #questionable intercepts/coeffs
+  (wc_21s_global1 <- occuMulti(detFormulas_trail, occFormulas_global1, wolf_coy_21s_umf, silent = TRUE)) #questionable coeffs
+  (wc_21s_global2 <- occuMulti(detFormulas_trail, occFormulas_global2, wolf_coy_21s_umf, silent = TRUE)) #questionable intercepts/coeffs
   wc_21s_occ_fld <- fitList(wc_21s_null1, wc_21s_null2, wc_21s_hab, wc_21s_preygroups, wc_21s_preydiversity,
                             wc_21s_anthro, wc_21s_global1, wc_21s_global2) #wc_21s_anthromort, wc_21s_anthrodist, 
   #' Model selection
