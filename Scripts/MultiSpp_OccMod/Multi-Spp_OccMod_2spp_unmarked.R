@@ -592,22 +592,52 @@
   
   #'  Merge into larger data frames based on best supported model
   #'  Habitat models
-  occ_results_habitat <- occ_lionbear_21s
+  occ_results_habitat <- rbind(occ_wolfbear_20s, occ_lionbear_21s, occ_lionbob_21s, occ_bearbob_20s) #wbr_20s_hab, lbr_21s_hab, lb_21s_hab, brb_20s_hab
   #'  Prey relative abundance by functional group
-  occ_results_preygroup <- rbind(occ_wolfcoy_20s, occ_wolfcoy_21s, occ_bearbob_21s)
+  occ_results_preygroup <- occ_bearbob_21s #brb_21s_preygroups
   #'  Prey relative abundance by species
-  occ_results_preydiversity <- occ_bobcoy_20s
-  #'  Proxies for anthropogenic mortality risk
-  occ_results_anthromort <- rbind(occ_wolfbear_20s, occ_wolfbear_21s, occ_lionbear_20s)
-  #'  Proxies for anthropogenic disturbance
-  occ_results_anthrodist <- rbind(occ_wolflion_21s, occ_lionbob_20s, occ_lionbob_21s, occ_bearbob_20s, occ_bearcoy_20s)
+  occ_results_preydiversity <- occ_bobcoy_20s #bc_20s_preydiversity
+  #'  Proxies for anthropogenic risk and disturbance
+  occ_results_anthro <- rbind(occ_wolfbear_21s, occ_wolfcoy_20s, occ_wolflion_21s, occ_lionbob_20s, occ_bearcoy_20s) #wbr_21s_anthro, wc_20s_anthro, wl_21s_anthro, lb_20s_anthro, brc_20s_anthro
   #'  Global model 1
-  occ_results_global1 <- rbind(occ_wolfbob_20s, occ_wolfbob_21s, occ_lioncoy_20s, occ_lioncoy_21s, occ_bearcoy_21s)
+  occ_results_global1 <- rbind(occ_wolfbob_21s, occ_lioncoy_21s, occ_bearcoy_21s, occ_bobcoy_21s) #wb_21s_global1, lc_21s_global1, brc_21s_global1, bc_21s_global1
   #'  Global model 2
-  occ_results_global2 <- rbind(occ_wolflion_20s, occ_bobcoy_21s)
+  occ_results_global2 <- rbind(occ_wolfbob_20s, occ_wolfcoy_21s, occ_wolflion_20s, occ_lionbear_20s, occ_lioncoy_20s) #wb_20s_global2, wc_21s_global2, wl_20s_global2, lbr_20s_global2, lc_20s_global2
+  #'  Merge all results together
+  occ_results_allmodels <- rbind(occ_wolfbear_20s, occ_lionbear_21s, occ_lionbob_21s, 
+                                 occ_bearbob_20s,occ_bearbob_21s, occ_bobcoy_20s, 
+                                 occ_wolfbear_21s, occ_wolfcoy_20s, occ_wolflion_21s, 
+                                 occ_lionbob_20s, occ_bearcoy_20s, occ_wolfbob_21s, 
+                                 occ_lioncoy_21s, occ_bearcoy_21s, occ_bobcoy_21s,
+                                 occ_wolfbob_20s, occ_wolfcoy_21s, occ_wolflion_20s, 
+                                 occ_lionbear_20s, occ_lioncoy_20s) 
+    
   
   
   ####  Spread results into wide format and rename  ####
+  #'  Habitat filtering hypothesis results
+  results_occmod_wide_habitat <- occ_results_habitat %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
+    spread(Parameter, Est_SE_Pval) %>%
+    relocate("[Species 1] Elev", .after = "[Species 1] (Intercept)") %>%
+    relocate("[Species 2] Elev", .after = "[Species 2] (Intercept)") %>%
+    relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
+    relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
+    relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] PercForest") %>%
+    relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
+    relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
+    separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
+    separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
+    separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
+    arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
+  
   #'  Relative abundance of prey functional groups hypothesis results
   results_occmod_wide_preygroup <- occ_results_preygroup %>%
     unite(Est_SE, Estimate, SE, sep = " ") %>%
@@ -650,42 +680,50 @@
   results_occmod_wide_preydiversity <- occ_results_preydiversity %>%
     unite(Est_SE, Estimate, SE, sep = " ") %>%
     unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
-    spread(Parameter, Est_SE_Pval) #%>%
-    # relocate("[Species 1] Elev", .after = "[Species 1] (Intercept)") %>%
-    # relocate("[Species 2] Elev", .after = "[Species 2] (Intercept)") %>%
-    # relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
-    # relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
-    # relocate("[Species 1] Nlagomorph", .after = "[Species 1] Nsmall_deer") %>%
-    # relocate("[Species 2] Nlagomorph", .after = "[Species 2] Nsmall_deer") %>%
-    # relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] Nlagomorph") %>%
-    # relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
-    # relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
-    # relocate("[Species 1:Species 2] Nbig_deer", .after = "[Species 1:Species 2] PercForest") %>%
-    # relocate("[Species 1:Species 2] Nsmall_deer", .after = "[Species 1:Species 2] Nbig_deer") %>%
-    # relocate("[Species 1:Species 2] Nlagomorph", .after = "[Species 1:Species 2] Nsmall_deer") %>%
-    # separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
-    # separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
-    # separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
-    # separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
-    # separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
-    # separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
-    # separate("[Species 1] Nbig_deer", c("[Species 1] Large deer activity (SE)", "[Species 1] Large deer activity Pval"), sep = "_") %>%
-    # separate("[Species 2] Nbig_deer", c("[Species 2] Large deer activity (SE)", "[Species 2] Large deer activity Pval"), sep = "_") %>%
-    # separate("[Species 1] Nsmall_deer", c("[Species 1] Small deer activity (SE)", "[Species 1] Small deer activity Pval"), sep = "_") %>%
-    # separate("[Species 2] Nsmall_deer", c("[Species 2] Small deer activity (SE)", "[Species 2] Small deer activity Pval"), sep = "_") %>%
-    # separate("[Species 1] Nlagomorph", c("[Species 1] Lagomorph activity (SE)", "[Species 1] Lagomorph activity Pval"), sep = "_") %>%
-    # separate("[Species 2] Nlagomorph", c("[Species 2] Lagomorph activity (SE)", "[Species 2] Lagomorph activity Pval"), sep = "_") %>%
-    # separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
-    # separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
-    # separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
-    # separate("[Species 1:Species 2] Nbig_deer", c("[Species 1:Species 2] Large deer activity (SE)", "[Species 1:Species 2] Large deer activity Pval"), sep = "_") %>%
-    # separate("[Species 1:Species 2] Nsmall_deer", c("[Species 1:Species 2] Small deer activity (SE)", "[Species 1:Species 2] Small deer activity Pval"), sep = "_") %>%
-    # separate("[Species 1:Species 2] Nlagomorph", c("[Species 1:Species 2] Lagomorph activity (SE)", "[Species 1:Species 2] Lagomorph activity Pval"), sep = "_") %>%
-    # arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
+    spread(Parameter, Est_SE_Pval) %>%
+    relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
+    relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
+    relocate("[Species 1] Nlagomorph", .after = "[Species 1] Nwtd") %>%
+    relocate("[Species 2] Nlagomorph", .after = "[Species 2] Nwtd") %>%
+    relocate("[Species 1] Nmd", .after = "[Species 1] Nmoose") %>%
+    relocate("[Species 2] Nmd", .after = "[Species 2] Nmoose") %>%
+    relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] Nlagomorph") %>%
+    relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
+    relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
+    relocate("[Species 1:Species 2] Nelk", .after = "[Species 1:Species 2] PercForest") %>%
+    relocate("[Species 1:Species 2] Nmoose", .after = "[Species 1:Species 2] Nelk") %>%
+    relocate("[Species 1:Species 2] Nmd", .after = "[Species 1:Species 2] Nmoose") %>%
+    relocate("[Species 1:Species 2] Nwtd", .after = "[Species 1:Species 2] Nmd") %>%
+    relocate("[Species 1:Species 2] Nlagomorph", .after = "[Species 1:Species 2] Nwtd") %>%
+    separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
+    separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
+    separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1] Nelk", c("[Species 1] Elk activity (SE)", "[Species 1] Elk activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nelk", c("[Species 2] Elk activity (SE)", "[Species 2] Elk activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nmoose", c("[Species 1] Moose activity (SE)", "[Species 1] Moose activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nmoose", c("[Species 2] Moose activity (SE)", "[Species 2] Moose activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nmd", c("[Species 1] Mule deer activity (SE)", "[Species 1] Mule deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nmd", c("[Species 2] Mule deer activity (SE)", "[Species 2] Mule deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nwtd", c("[Species 1] White-tailed deer activity (SE)", "[Species 1] White-tailed deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nwtd", c("[Species 2] White-tailed deer activity (SE)", "[Species 2] White-tailed deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nlagomorph", c("[Species 1] Lagomorph activity (SE)", "[Species 1] Lagomorph activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nlagomorph", c("[Species 2] Lagomorph activity (SE)", "[Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nelk", c("[Species 1:Species 2] Elk activity (SE)", "[Species 1:Species 2] Elk activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nmoose", c("[Species 1:Species 2] Moose activity (SE)", "[Species 1:Species 2] Moose activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nmd", c("[Species 1:Species 2] Mule deer activity (SE)", "[Species 1:Species 2] Mule deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nwtd", c("[Species 1:Species 2] White-tailed deer activity (SE)", "[Species 1:Species 2] White-tailed deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nlagomorph", c("[Species 1:Species 2] Lagomorph activity (SE)", "[Species 1:Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
   
   
-  #'  Anthropogenic mortality hypothesis results
-  results_occmod_wide_anthromort <- occ_results_anthromort %>%
+  #'  Anthropogenic hypothesis results
+  results_occmod_wide_anthro <- occ_results_anthro %>%
     unite(Est_SE, Estimate, SE, sep = " ") %>%
     unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
     spread(Parameter, Est_SE_Pval) %>%
@@ -693,7 +731,9 @@
     relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
     relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
     relocate("[Species 1:Species 2] Dist2Burbs", .after = "[Species 1:Species 2] PercForest") %>%
-    relocate("[Species 1:Species 2] Nlivestock", .after = "[Species 1:Species 2] Dist2Burbs") %>%
+    relocate("[Species 1:Species 2] logNearestRd", .after = "[Species 1:Species 2] Dist2Burbs") %>%
+    relocate("[Species 1:Species 2] Nhuman", .after = "[Species 1:Species 2] logNearestRd") %>%
+    relocate("[Species 1:Species 2] Nlivestock", .after = "[Species 1:Species 2] Nhuman") %>%
     relocate("[Species 1] Elev", .after = "[Species 1] (Intercept)") %>%
     relocate("[Species 2] Elev", .after = "[Species 2] (Intercept)") %>%
     relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
@@ -706,52 +746,229 @@
     separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
     separate("[Species 1] Dist2Burbs", c("[Species 1] Distance to Suburban (SE)", "[Species 1] Distance to Suburban Pval"), sep = "_") %>%
     separate("[Species 2] Dist2Burbs", c("[Species 2] Distance to Suburban (SE)", "[Species 2] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 1] logNearestRd", c("[Species 1] log(Nearest Road) (SE)", "[Species 1] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 2] logNearestRd", c("[Species 2] log(Nearest Road) (SE)", "[Species 2] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 1] Nhuman", c("[Species 1] Human activity (SE)", "[Species 1] Human activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nhuman", c("[Species 2] Human activity (SE)", "[Species 2] Human activity Pval"), sep = "_") %>%
     separate("[Species 1] Nlivestock", c("[Species 1] Livestock activity (SE)", "[Species 1] Livestock activity Pval"), sep = "_") %>%
     separate("[Species 2] Nlivestock", c("[Species 2] Livestock activity (SE)", "[Species 2] Livestock activity Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] Dist2Burbs", c("[Species 1:Species 2] Distance to Suburban (SE)", "[Species 1:Species 2] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] logNearestRd", c("[Species 1:Species 2] log(Nearest Road) (SE)", "[Species 1:Species 2] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nhuman", c("[Species 1:Species 2] Human activity (SE)", "[Species 1:Species 2] Human activity Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] Nlivestock", c("[Species 1:Species 2] Livestock activity (SE)", "[Species 1:Species 2] Livestock activity Pval"), sep = "_") %>%
     arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
   
-  #'  Anthropogenic disturbance hypothesis results
-  results_occmod_wide_anthrodist <- occ_results_anthrodist %>%
+  
+  #'  Global model #1 with relative abundance of prey functional groups
+  results_occmod_wide_global1 <- occ_results_global1 %>%
     unite(Est_SE, Estimate, SE, sep = " ") %>%
     unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
     spread(Parameter, Est_SE_Pval) %>%
-    relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] PercForest") %>%
-    relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
-    relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
-    relocate("[Species 1:Species 2] logNearestRd", .after = "[Species 1:Species 2] PercForest") %>%
-    relocate("[Species 1:Species 2] Nhuman", .after = "[Species 1:Species 2] logNearestRd") %>%
+    relocate("[Species 1] Elev", .after = "[Species 1] (Intercept)") %>%
+    relocate("[Species 2] Elev", .after = "[Species 2] (Intercept)") %>%
     relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
     relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
+    relocate("[Species 1] Nbig_deer", .after = "[Species 1] Nlivestock") %>%
+    relocate("[Species 2] Nbig_deer", .after = "[Species 2] Nlivestock") %>%
+    relocate("[Species 1] Nlagomorph", .after = "[Species 1] Nsmall_deer") %>%
+    relocate("[Species 2] Nlagomorph", .after = "[Species 2] Nsmall_deer") %>%
+    relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] Nlagomorph") %>%
+    relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
+    relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
+    relocate("[Species 1:Species 2] Dist2Burbs", .after = "[Species 1:Species 2] PercForest") %>%
+    relocate("[Species 1:Species 2] logNearestRd", .after = "[Species 1:Species 2] Dist2Burbs") %>%
+    relocate("[Species 1:Species 2] Nhuman", .after = "[Species 1:Species 2] logNearestRd") %>%
+    relocate("[Species 1:Species 2] Nlivestock", .after = "[Species 1:Species 2] Nhuman") %>%
+    relocate("[Species 1:Species 2] Nbig_deer", .after = "[Species 1:Species 2] Nlivestock") %>%
+    relocate("[Species 1:Species 2] Nsmall_deer", .after = "[Species 1:Species 2] Nbig_deer") %>%
+    relocate("[Species 1:Species 2] Nlagomorph", .after = "[Species 1:Species 2] Nsmall_deer") %>%
     separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
     separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
     separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
     separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
     separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
     separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1] Dist2Burbs", c("[Species 1] Distance to Suburban (SE)", "[Species 1] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 2] Dist2Burbs", c("[Species 2] Distance to Suburban (SE)", "[Species 2] Distance to Suburban Pval"), sep = "_") %>%
     separate("[Species 1] logNearestRd", c("[Species 1] log(Nearest Road) (SE)", "[Species 1] log(Nearest Road) Pval"), sep = "_") %>%
     separate("[Species 2] logNearestRd", c("[Species 2] log(Nearest Road) (SE)", "[Species 2] log(Nearest Road) Pval"), sep = "_") %>%
     separate("[Species 1] Nhuman", c("[Species 1] Human activity (SE)", "[Species 1] Human activity Pval"), sep = "_") %>%
     separate("[Species 2] Nhuman", c("[Species 2] Human activity (SE)", "[Species 2] Human activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nlivestock", c("[Species 1] Livestock activity (SE)", "[Species 1] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nlivestock", c("[Species 2] Livestock activity (SE)", "[Species 2] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nbig_deer", c("[Species 1] Large deer activity (SE)", "[Species 1] Large deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nbig_deer", c("[Species 2] Large deer activity (SE)", "[Species 2] Large deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nsmall_deer", c("[Species 1] Small deer activity (SE)", "[Species 1] Small deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nsmall_deer", c("[Species 2] Small deer activity (SE)", "[Species 2] Small deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nlagomorph", c("[Species 1] Lagomorph activity (SE)", "[Species 1] Lagomorph activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nlagomorph", c("[Species 2] Lagomorph activity (SE)", "[Species 2] Lagomorph activity Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Dist2Burbs", c("[Species 1:Species 2] Distance to Suburban (SE)", "[Species 1:Species 2] Distance to Suburban Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] logNearestRd", c("[Species 1:Species 2] log(Nearest Road) (SE)", "[Species 1:Species 2] log(Nearest Road) Pval"), sep = "_") %>%
     separate("[Species 1:Species 2] Nhuman", c("[Species 1:Species 2] Human activity (SE)", "[Species 1:Species 2] Human activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nlivestock", c("[Species 1:Species 2] Livestock activity (SE)", "[Species 1:Species 2] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nbig_deer", c("[Species 1:Species 2] Large deer activity (SE)", "[Species 1:Species 2] Large deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nsmall_deer", c("[Species 1:Species 2] Small deer activity (SE)", "[Species 1:Species 2] Small deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nlagomorph", c("[Species 1:Species 2] Lagomorph activity (SE)", "[Species 1:Species 2] Lagomorph activity Pval"), sep = "_") %>%
     arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
   
   
+  #'  Global model #2 with relative abundance of individual prey species
+  results_occmod_wide_global2 <- occ_results_global2 %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
+    spread(Parameter, Est_SE_Pval) %>%
+    relocate("[Species 1] Elev", .after = "[Species 1] (Intercept)") %>%
+    relocate("[Species 2] Elev", .after = "[Species 2] (Intercept)") %>%
+    relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
+    relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
+    relocate("[Species 1] Nlagomorph", .after = "[Species 1] Nwtd") %>%
+    relocate("[Species 2] Nlagomorph", .after = "[Species 2] Nwtd") %>%
+    relocate("[Species 1] Nmd", .after = "[Species 1] Nmoose") %>%
+    relocate("[Species 2] Nmd", .after = "[Species 2] Nmoose") %>%
+    relocate("[Species 1] Nelk", .after = "[Species 1] Nlivestock") %>%
+    relocate("[Species 2] Nelk", .after = "[Species 2] Nlivestock") %>%
+    relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] Nlagomorph") %>%
+    relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
+    relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
+    relocate("[Species 1:Species 2] Dist2Burbs", .after = "[Species 1:Species 2] PercForest") %>%
+    relocate("[Species 1:Species 2] logNearestRd", .after = "[Species 1:Species 2] Dist2Burbs") %>%
+    relocate("[Species 1:Species 2] Nhuman", .after = "[Species 1:Species 2] logNearestRd") %>%
+    relocate("[Species 1:Species 2] Nlivestock", .after = "[Species 1:Species 2] Nhuman") %>%
+    relocate("[Species 1:Species 2] Nelk", .after = "[Species 1:Species 2] Nlivestock") %>%
+    relocate("[Species 1:Species 2] Nmoose", .after = "[Species 1:Species 2] Nelk") %>%
+    relocate("[Species 1:Species 2] Nmd", .after = "[Species 1:Species 2] Nmoose") %>%
+    relocate("[Species 1:Species 2] Nwtd", .after = "[Species 1:Species 2] Nmd") %>%
+    relocate("[Species 1:Species 2] Nlagomorph", .after = "[Species 1:Species 2] Nwtd") %>%
+    separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
+    separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
+    separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1] Dist2Burbs", c("[Species 1] Distance to Suburban (SE)", "[Species 1] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 2] Dist2Burbs", c("[Species 2] Distance to Suburban (SE)", "[Species 2] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 1] logNearestRd", c("[Species 1] log(Nearest Road) (SE)", "[Species 1] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 2] logNearestRd", c("[Species 2] log(Nearest Road) (SE)", "[Species 2] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 1] Nhuman", c("[Species 1] Human activity (SE)", "[Species 1] Human activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nhuman", c("[Species 2] Human activity (SE)", "[Species 2] Human activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nlivestock", c("[Species 1] Livestock activity (SE)", "[Species 1] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nlivestock", c("[Species 2] Livestock activity (SE)", "[Species 2] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nelk", c("[Species 1] Elk activity (SE)", "[Species 1] Elk activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nelk", c("[Species 2] Elk activity (SE)", "[Species 2] Elk activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nmoose", c("[Species 1] Moose activity (SE)", "[Species 1] Moose activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nmoose", c("[Species 2] Moose activity (SE)", "[Species 2] Moose activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nmd", c("[Species 1] Mule deer activity (SE)", "[Species 1] Mule deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nmd", c("[Species 2] Mule deer activity (SE)", "[Species 2] Mule deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nwtd", c("[Species 1] White-tailed deer activity (SE)", "[Species 1] White-tailed deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nwtd", c("[Species 2] White-tailed deer activity (SE)", "[Species 2] White-tailed deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nlagomorph", c("[Species 1] Lagomorph activity (SE)", "[Species 1] Lagomorph activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nlagomorph", c("[Species 2] Lagomorph activity (SE)", "[Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Dist2Burbs", c("[Species 1:Species 2] Distance to Suburban (SE)", "[Species 1:Species 2] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] logNearestRd", c("[Species 1:Species 2] log(Nearest Road) (SE)", "[Species 1:Species 2] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nhuman", c("[Species 1:Species 2] Human activity (SE)", "[Species 1:Species 2] Human activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nlivestock", c("[Species 1:Species 2] Livestock activity (SE)", "[Species 1:Species 2] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nelk", c("[Species 1:Species 2] Elk activity (SE)", "[Species 1:Species 2] Elk activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nmoose", c("[Species 1:Species 2] Moose activity (SE)", "[Species 1:Species 2] Moose activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nmd", c("[Species 1:Species 2] Mule deer activity (SE)", "[Species 1:Species 2] Mule deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nwtd", c("[Species 1:Species 2] White-tailed deer activity (SE)", "[Species 1:Species 2] White-tailed deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nlagomorph", c("[Species 1:Species 2] Lagomorph activity (SE)", "[Species 1:Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
   
   
+  #'  OH MY GOD ALL OF THEM COMBINED INTO ONE CRAZY PLOT
+  results_occmod_wide_allmodels <- occ_results_allmodels %>%
+    unite(Est_SE, Estimate, SE, sep = " ") %>%
+    unite(Est_SE_Pval, Est_SE, Pval, sep = "_") %>%
+    spread(Parameter, Est_SE_Pval) %>%
+    relocate("[Species 1] Elev", .after = "[Species 1] (Intercept)") %>%
+    relocate("[Species 2] Elev", .after = "[Species 2] (Intercept)") %>%
+    relocate("[Species 1] PercForest", .after = "[Species 1] Elev") %>%
+    relocate("[Species 2] PercForest", .after = "[Species 2] Elev") %>%
+    relocate("[Species 1] Nbig_deer", .after = "[Species 1] Nlivestock") %>%
+    relocate("[Species 2] Nbig_deer", .after = "[Species 2] Nlivestock") %>%
+    relocate("[Species 1] Nsmall_deer", .after = "[Species 1] Nbig_deer") %>%
+    relocate("[Species 2] Nsmall_deer", .after = "[Species 2] Nbig_deer") %>%
+    relocate("[Species 1] Nlagomorph", .after = "[Species 1] Nwtd") %>%
+    relocate("[Species 2] Nlagomorph", .after = "[Species 2] Nwtd") %>%
+    relocate("[Species 1] Nmd", .after = "[Species 1] Nmoose") %>%
+    relocate("[Species 2] Nmd", .after = "[Species 2] Nmoose") %>%
+    relocate("[Species 1] Nelk", .after = "[Species 1] Nsmall_deer") %>%
+    relocate("[Species 2] Nelk", .after = "[Species 2] Nsmall_deer") %>%
+    relocate("[Species 1:Species 2] (Intercept)", .after = "[Species 2] Nlagomorph") %>%
+    relocate("[Species 1:Species 2] Elev", .after = "[Species 1:Species 2] (Intercept)") %>%
+    relocate("[Species 1:Species 2] PercForest", .after = "[Species 1:Species 2] Elev") %>%
+    relocate("[Species 1:Species 2] Dist2Burbs", .after = "[Species 1:Species 2] PercForest") %>%
+    relocate("[Species 1:Species 2] logNearestRd", .after = "[Species 1:Species 2] Dist2Burbs") %>%
+    relocate("[Species 1:Species 2] Nhuman", .after = "[Species 1:Species 2] logNearestRd") %>%
+    relocate("[Species 1:Species 2] Nlivestock", .after = "[Species 1:Species 2] Nhuman") %>%
+    relocate("[Species 1:Species 2] Nbig_deer", .after = "[Species 1:Species 2] Nlivestock") %>%
+    relocate("[Species 1:Species 2] Nsmall_deer", .after = "[Species 1:Species 2] Nbig_deer") %>%
+    relocate("[Species 1:Species 2] Nelk", .after = "[Species 1:Species 2] Nsmall_deer") %>%
+    relocate("[Species 1:Species 2] Nmoose", .after = "[Species 1:Species 2] Nelk") %>%
+    relocate("[Species 1:Species 2] Nmd", .after = "[Species 1:Species 2] Nmoose") %>%
+    relocate("[Species 1:Species 2] Nwtd", .after = "[Species 1:Species 2] Nmd") %>%
+    relocate("[Species 1:Species 2] Nlagomorph", .after = "[Species 1:Species 2] Nwtd") %>%
+    separate("[Species 1] (Intercept)", c("[Species 1] Intercept (SE)", "[Species 1] Intercept Pval"), sep = "_") %>%
+    separate("[Species 2] (Intercept)", c("[Species 2] Intercept (SE)", "[Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1] Elev", c("[Species 1] Elevation (SE)", "[Species 1] Elevation Pval"), sep = "_") %>%
+    separate("[Species 2] Elev", c("[Species 2] Elevation (SE)", "[Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1] PercForest", c("[Species 1] Percent Forest (SE)", "[Species 1] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 2] PercForest", c("[Species 2] Percent Forest (SE)", "[Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1] Dist2Burbs", c("[Species 1] Distance to Suburban (SE)", "[Species 1] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 2] Dist2Burbs", c("[Species 2] Distance to Suburban (SE)", "[Species 2] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 1] logNearestRd", c("[Species 1] log(Nearest Road) (SE)", "[Species 1] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 2] logNearestRd", c("[Species 2] log(Nearest Road) (SE)", "[Species 2] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 1] Nhuman", c("[Species 1] Human activity (SE)", "[Species 1] Human activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nhuman", c("[Species 2] Human activity (SE)", "[Species 2] Human activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nlivestock", c("[Species 1] Livestock activity (SE)", "[Species 1] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nlivestock", c("[Species 2] Livestock activity (SE)", "[Species 2] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nbig_deer", c("[Species 1] Large deer activity (SE)", "[Species 1] Large deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nbig_deer", c("[Species 2] Large deer activity (SE)", "[Species 2] Large deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nsmall_deer", c("[Species 1] Small deer activity (SE)", "[Species 1] Small deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nsmall_deer", c("[Species 2] Small deer activity (SE)", "[Species 2] Small deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nelk", c("[Species 1] Elk activity (SE)", "[Species 1] Elk activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nelk", c("[Species 2] Elk activity (SE)", "[Species 2] Elk activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nmoose", c("[Species 1] Moose activity (SE)", "[Species 1] Moose activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nmoose", c("[Species 2] Moose activity (SE)", "[Species 2] Moose activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nmd", c("[Species 1] Mule deer activity (SE)", "[Species 1] Mule deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nmd", c("[Species 2] Mule deer activity (SE)", "[Species 2] Mule deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nwtd", c("[Species 1] White-tailed deer activity (SE)", "[Species 1] White-tailed deer activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nwtd", c("[Species 2] White-tailed deer activity (SE)", "[Species 2] White-tailed deer activity Pval"), sep = "_") %>%
+    separate("[Species 1] Nlagomorph", c("[Species 1] Lagomorph activity (SE)", "[Species 1] Lagomorph activity Pval"), sep = "_") %>%
+    separate("[Species 2] Nlagomorph", c("[Species 2] Lagomorph activity (SE)", "[Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] (Intercept)", c("[Species 1:Species 2] Intercept (SE)", "[Species 1:Species 2] Intercept Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Elev", c("[Species 1:Species 2] Elev (SE)", "[Species 1:Species 2] Elevation Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] PercForest", c("[Species 1:Species 2] Percent Forest (SE)", "[Species 1:Species 2] Percent Forest Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Dist2Burbs", c("[Species 1:Species 2] Distance to Suburban (SE)", "[Species 1:Species 2] Distance to Suburban Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] logNearestRd", c("[Species 1:Species 2] log(Nearest Road) (SE)", "[Species 1:Species 2] log(Nearest Road) Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nhuman", c("[Species 1:Species 2] Human activity (SE)", "[Species 1:Species 2] Human activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nlivestock", c("[Species 1:Species 2] Livestock activity (SE)", "[Species 1:Species 2] Livestock activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nbig_deer", c("[Species 1:Species 2] Large deer activity (SE)", "[Species 1:Species 2] Large deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nsmall_deer", c("[Species 1:Species 2] Small deer activity (SE)", "[Species 1:Species 2] Small deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nelk", c("[Species 1:Species 2] Elk activity (SE)", "[Species 1:Species 2] Elk activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nmoose", c("[Species 1:Species 2] Moose activity (SE)", "[Species 1:Species 2] Moose activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nmd", c("[Species 1:Species 2] Mule deer activity (SE)", "[Species 1:Species 2] Mule deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nwtd", c("[Species 1:Species 2] White-tailed deer activity (SE)", "[Species 1:Species 2] White-tailed deer activity Pval"), sep = "_") %>%
+    separate("[Species 1:Species 2] Nlagomorph", c("[Species 1:Species 2] Lagomorph activity (SE)", "[Species 1:Species 2] Lagomorph activity Pval"), sep = "_") %>%
+    arrange(match(Species1, c("bear", "bobcat", "coyote", "lion", "wolf")))
   
   
   #'  Save!
+  write.csv(results_occmod_wide_habitat, paste0("./Outputs/Tables/CoOcc_OccProb_Habitat_wide_", Sys.Date(), ".csv"))
   write.csv(results_occmod_wide_preygroup, paste0("./Outputs/Tables/CoOcc_OccProb_PreyGroup_wide_", Sys.Date(), ".csv"))
   write.csv(results_occmod_wide_preydiversity, paste0("./Outputs/Tables/CoOcc_OccProb_PreyDiversity_wide_", Sys.Date(), ".csv"))
-  write.csv(results_occmod_wide_anthromort, paste0("./Outputs/Tables/CoOcc_OccProb_AnthroMort_wide_", Sys.Date(), ".csv"))
-  write.csv(results_occmod_wide_anthrodist, paste0("./Outputs/Tables/CoOcc_OccProb_AnthroDisturbance_wide_", Sys.Date(), ".csv"))
+  write.csv(results_occmod_wide_anthro, paste0("./Outputs/Tables/CoOcc_OccProb_Anthro_wide_", Sys.Date(), ".csv"))
+  write.csv(results_occmod_wide_global1, paste0("./Outputs/Tables/CoOcc_OccProb_GlobalPreyGroup_wide_", Sys.Date(), ".csv"))
+  write.csv(results_occmod_wide_global2, paste0("./Outputs/Tables/CoOcc_OccProb_GlobalPreyDiversity_wide_", Sys.Date(), ".csv"))
+  write.csv(results_occmod_wide_allmodels, paste0("./Outputs/Tables/CoOcc_OccProb_AllModels_wide_", Sys.Date(), ".csv"))
+
   
