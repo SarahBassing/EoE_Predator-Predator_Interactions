@@ -30,7 +30,8 @@
   library(stringr)
   
   #'  Source script that formats detection and covariate data for unmarked
-  source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_unmarked.R")
+  # source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_unmarked.R")
+  source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_unmarked_predatorcams_only.R")
   
   
   ####  Multi-Species Occupancy models  ####
@@ -57,6 +58,7 @@
   detFormulas_setup <- c("~Setup", "~Setup") 
   detFormulas_height <- c("~Height", "~Height")
   detFormulas_wolfact <- c("~wolf_activity", "~wolf_activity") 
+  detFormulas_effort <- c("~effort", "~effort")
   
   ####  OCCUPANCY SUBMODEL  ####
   #'  Null models
@@ -93,29 +95,31 @@
   #'  Function run and compare detection sub-models for each species pairing
   choose_det_submod_wolf <- function(det_submod, umf) {
     print(det_trail <- occuMulti(det_submod[[1]], occFormulas_null2, umf, silent = TRUE))
-    print(det_setup <- occuMulti(det_submod[[2]], occFormulas_null2, umf, silent = TRUE))
+    # print(det_setup <- occuMulti(det_submod[[2]], occFormulas_null2, umf, silent = TRUE))
     print(det_height <- occuMulti(det_submod[[3]], occFormulas_null2, umf, silent = TRUE))
+    print(det_effort <- occuMulti(det_submod[[4]], occFormulas_null2, umf, silent = TRUE))
     #' List of fitted models
-    det_fld <- fitList(det_trail, det_setup, det_height) 
+    det_fld <- fitList(det_trail, det_height, det_effort) #det_setup, 
+    
     #' Model selection
     print(modSel(det_fld))
   }
-  det_submod <- list(detFormulas_trail, detFormulas_setup, detFormulas_height)
+  det_submod <- list(detFormulas_trail, detFormulas_setup, detFormulas_height, detFormulas_effort)
   
   
   ####  Wolf - Bear Summer 2020  ####
   #'  Review detection sub-models
-  choose_det_submod_wolf(det_submod, umf = wolf_bear_20s_umf)  # setup
+  choose_det_submod_wolf(det_submod, umf = wolf_bear_20s_umf)  # effort (P only) setup (P/U)
   
   #'  Run occupancy models using best supported detection sub-model
-  (wbr_20s_null1 <- occuMulti(detFormulas_setup, occFormulas_null1, wolf_bear_20s_umf, silent = TRUE))
-  (wbr_20s_null2 <- occuMulti(detFormulas_setup, occFormulas_null2, wolf_bear_20s_umf, silent = TRUE))
-  (wbr_20s_hab <- occuMulti(detFormulas_setup, occFormulas_hab, wolf_bear_20s_umf, silent = TRUE))
-  (wbr_20s_preygroups <- occuMulti(detFormulas_setup, occFormulas_preygroups, wolf_bear_20s_umf, silent = TRUE))
-  (wbr_20s_preydiversity <- occuMulti(detFormulas_setup, occFormulas_preydiversity, wolf_bear_20s_umf, silent = TRUE))
-  (wbr_20s_anthro <- occuMulti(detFormulas_setup, occFormulas_anthro, wolf_bear_20s_umf, silent = TRUE))
-  (wbr_20s_global1 <- occuMulti(detFormulas_setup, occFormulas_global1, wolf_bear_20s_umf, silent = TRUE)) #, method = "L-BFGS-B", control = list(maxit = 10000)
-  (wbr_20s_global2 <- occuMulti(detFormulas_setup, occFormulas_global2, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_null1 <- occuMulti(detFormulas_effort, occFormulas_null1, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_null2 <- occuMulti(detFormulas_effort, occFormulas_null2, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_hab <- occuMulti(detFormulas_effort, occFormulas_hab, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_preygroups <- occuMulti(detFormulas_effort, occFormulas_preygroups, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_preydiversity <- occuMulti(detFormulas_effort, occFormulas_preydiversity, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_anthro <- occuMulti(detFormulas_effort, occFormulas_anthro, wolf_bear_20s_umf, silent = TRUE))
+  (wbr_20s_global1 <- occuMulti(detFormulas_effort, occFormulas_global1, wolf_bear_20s_umf, silent = TRUE)) #, method = "L-BFGS-B", control = list(maxit = 10000)
+  (wbr_20s_global2 <- occuMulti(detFormulas_effort, occFormulas_global2, wolf_bear_20s_umf, silent = TRUE))
   wbr_20s_occ_fld <- fitList(wbr_20s_null1, wbr_20s_null2, wbr_20s_hab, wbr_20s_preygroups, wbr_20s_preydiversity, 
                              wbr_20s_anthro, wbr_20s_global1, wbr_20s_global2)  
   #' Model selection
@@ -186,7 +190,7 @@
   
   ####  Wolf - Coyote Summer 2020  ####
   #'  Review detection sub-models
-  choose_det_submod_wolf(det_submod, umf = wolf_coy_20s_umf)  # trail
+  choose_det_submod_wolf(det_submod, umf = wolf_coy_20s_umf)  # trail (P/U)
   
   #'  Run occupancy models using best supported detection sub-model
   (wc_20s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_coy_20s_umf, silent = TRUE))
@@ -206,7 +210,7 @@
   
   ####  Wolf - Coyote Summer 2021  ####     
   #'  Review detection sub-models
-  choose_det_submod_wolf(det_submod, umf = wolf_coy_21s_umf)  # trail
+  choose_det_submod_wolf(det_submod, umf = wolf_coy_21s_umf)  # trail (P/U, P only)
   
   #'  Run occupancy models using best supported detection sub-model
   (wc_21s_null1 <- occuMulti(detFormulas_trail, occFormulas_null1, wolf_coy_21s_umf, silent = TRUE))
