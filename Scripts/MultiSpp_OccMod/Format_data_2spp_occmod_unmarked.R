@@ -39,6 +39,7 @@
   load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
   
+  #'  Reformat camera deployment data
   format_cam_station <- function(cams, season) {
     cams <- dplyr::select(cams, c("NewLocationID", "Lat", "Long")) %>%
       mutate(GMU = str_extract(NewLocationID, "[^_]+"),
@@ -65,6 +66,7 @@
   load("./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
   # source("./Scripts/Data_Formatting/Covariate_Extract.R")
   
+
   #'  Scale and format site-level covariates
   format_covs <- function(cams, covs, rm_rows) {
     #'  Join camera data with extracted covariate data
@@ -124,13 +126,8 @@
     #'  Identify which sites have missing data for distance & height covariates
     ung_cams <- formatted[formatted$Setup == "ungualte",]
     pred_cams <- formatted[formatted$Setup == "predator",]
-    # noDist <- which(is.na(formatted$Distance)); print(noDist)
     noHgt_ung <- which(is.na(ung_cams$Height)); print(noHgt_ung)
     noHgt_pred <- which(is.na(pred_cams$Height)); print(noHgt_pred)
-    
-    #'  Replace missing values with mean once covariates are z-transformed
-    # formatted$Distance[is.na(formatted$Distance),] <- 0
-    # formatted$Height[is.na(formatted$Height),] <- 0   
     
     return(formatted)
   }
