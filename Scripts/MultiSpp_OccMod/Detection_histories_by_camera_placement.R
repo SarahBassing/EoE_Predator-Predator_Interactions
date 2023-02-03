@@ -45,11 +45,6 @@
   cams_eoe20w <- format_cam_station(eoe_probcams_20w, season = "Wtr20")
   cams_eoe21s <- format_cam_station(eoe_probcams_21s, season = "Smr21") 
   
-  # load("./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
-  # load("./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
-  # load("./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
-  
-  
   #'  ----------------------------------------------------
   ####  Summary of detection events by camera deployment  ####
   #'  ----------------------------------------------------
@@ -62,40 +57,64 @@
       full_join(cams, by = "NewLocationID") %>%
       mutate(ndets = rowSums(.[2:11], na.rm = T),
              Setup = factor(Setup, levels = c("ungulate", "predator")),
-             CameraFacing = factor(CameraFacing, levels =c("random", "road", "trail"))) %>%
+             CameraFacing = factor(CameraFacing, levels = c("random", "road", "trail"))) %>%
       rowwise() %>%
       mutate(det = max(c_across(2:11), na.rm = T)) %>%
       dplyr::select(c(Setup, CameraFacing, det, ndets)) %>%
       filter(det != "-Inf")
     
-    #'  Table data by camera set up and trail type
+    #'  Calculate percentage of data by camera setup and location
     print(sppseason)
-    det_by_setup <- dplyr::select(dets, c(Setup, det))
-    print(table(det_by_setup))
+    det_by_setup <- dplyr::select(dets, c(Setup, det)) %>%                                    
+      group_by(Setup, det) %>%
+      summarise(n_dets = table(det)) %>% ungroup() %>%
+      group_by(det) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(Setup) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(det_by_setup)
     print(ggplot(dets, aes(x = det, fill = Setup)) +
       geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
       scale_fill_manual(values=c("#69b3a2", "#404080")) +
       labs(fill="") +
       ggtitle(paste(sppseason, "detections by camera deployment")))
     
-    det_bytrailtype <- dplyr::select(dets, c(CameraFacing, det))
-    print(table(det_bytrailtype))
+    det_bytrailtype <- dplyr::select(dets, c(CameraFacing, det)) %>%                                    
+      group_by(CameraFacing, det) %>%
+      summarise(n_dets = table(det)) %>% ungroup() %>%
+      group_by(det) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(CameraFacing) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(det_bytrailtype)
     print(ggplot(dets, aes(x = det, fill = CameraFacing)) +
       geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
       scale_fill_manual(values=c("#69b3a2", "#404080", "#F8C8DC")) +
       labs(fill="") +
       ggtitle(paste(sppseason, "detections by camera deployment")))
     
-    ndet_by_setup <- dplyr::select(dets, c(Setup, ndets))
-    print(table(ndet_by_setup))
+    ndet_by_setup <- dplyr::select(dets, c(Setup, ndets)) %>%                                    
+      group_by(Setup, ndets) %>%
+      summarise(n_dets = table(ndets)) %>% ungroup() %>%
+      group_by(ndets) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(Setup) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(ndet_by_setup)
     print(ggplot(dets, aes(x = ndets, fill = Setup)) +
       geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
       scale_fill_manual(values=c("#69b3a2", "#404080")) +
       labs(fill="") +
       ggtitle(paste("Sum of", sppseason, "detections by camera deployment")))
     
-    ndet_bytrailtype <- dplyr::select(dets, c(CameraFacing, ndets))
-    print(table(ndet_bytrailtype))
+    ndet_bytrailtype <- dplyr::select(dets, c(CameraFacing, ndets)) %>%                                    
+      group_by(CameraFacing, ndets) %>%
+      summarise(n_dets = table(ndets)) %>% ungroup() %>%
+      group_by(ndets) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(CameraFacing) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(ndet_bytrailtype)
     print(ggplot(dets, aes(x = ndets, fill = CameraFacing)) +
       geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
       scale_fill_manual(values=c("#69b3a2", "#404080", "#F8C8DC")) +
@@ -107,19 +126,94 @@
   wolf20s <- detection_by_placement(DH_eoe20s_predators[[5]][[1]], cams = cams_eoe20s, sppseason = "Wolf Smr20")
   wolf21s <- detection_by_placement(DH_eoe21s_predators[[5]][[1]], cams = cams_eoe21s, sppseason = "Wolf Smr21")
   coy20s <- detection_by_placement(DH_eoe20s_predators[[3]][[1]], cams = cams_eoe20s, sppseason = "Coyote Smr20")
-  coy20s <- detection_by_placement(DH_eoe21s_predators[[3]][[1]], cams = cams_eoe21s, sppseason = "Coyote Smr21")
+  coy21s <- detection_by_placement(DH_eoe21s_predators[[3]][[1]], cams = cams_eoe21s, sppseason = "Coyote Smr21")
   lion20s <- detection_by_placement(DH_eoe20s_predators[[4]][[1]], cams = cams_eoe20s, sppseason = "Lion Smr20")
-  lion20s <- detection_by_placement(DH_eoe21s_predators[[4]][[1]], cams = cams_eoe21s, sppseason = "Lion Smr21")
+  lion21s <- detection_by_placement(DH_eoe21s_predators[[4]][[1]], cams = cams_eoe21s, sppseason = "Lion Smr21")
   bear20s <- detection_by_placement(DH_eoe20s_predators[[1]][[1]], cams = cams_eoe20s, sppseason = "Bear Smr20")
-  bear20s <- detection_by_placement(DH_eoe21s_predators[[1]][[1]], cams = cams_eoe21s, sppseason = "Bear Smr21")
+  bear21s <- detection_by_placement(DH_eoe21s_predators[[1]][[1]], cams = cams_eoe21s, sppseason = "Bear Smr21")
   bob20s <- detection_by_placement(DH_eoe20s_predators[[2]][[1]], cams = cams_eoe20s, sppseason = "Bobcat Smr20")
-  bob20s <- detection_by_placement(DH_eoe21s_predators[[2]][[1]], cams = cams_eoe21s, sppseason = "Bobcat Smr21")
+  bob21s <- detection_by_placement(DH_eoe21s_predators[[2]][[1]], cams = cams_eoe21s, sppseason = "Bobcat Smr21")
   
   
   #### table human detections, then make plots  ###
-  
+  load("./Data/Relative abundance data/EoE_RelativeN_30minElapsed_SamplingOcc.RData")
 
-  
+  human_detection_by_placement <- function(dets, cams, sppseason) {
+    humans <- dets %>%
+      filter(Species == "human") %>%
+      group_by(NewLocationID) %>%
+      mutate(ndets = sum(n_dets)) %>%
+      slice(1L) %>%
+      ungroup() %>%
+      full_join(cams, by = "NewLocationID") %>%
+      mutate(det = ifelse(is.na(ndets), 0, 1),
+             ndets = ifelse(is.na(ndets), 0, ndets),
+             Setup = factor(Setup, levels = c("ungulate", "predator")),
+             CameraFacing = factor(CameraFacing, levels =c("random", "road", "trail"))) %>%
+      dplyr::select(c(NewLocationID, Setup, CameraFacing, ndets, det)) 
+    
+    #'  Table data by camera set up and trail type
+    print(sppseason)
+    det_by_setup <- dplyr::select(humans, c(Setup, det)) %>%                                    
+      group_by(Setup, det) %>%
+      summarise(n_dets = table(det)) %>% ungroup() %>%
+      group_by(det) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(Setup) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(det_by_setup)
+    print(ggplot(humans, aes(x = det, fill = Setup)) +
+            geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+            scale_fill_manual(values=c("#69b3a2", "#404080")) +
+            labs(fill="") +
+            ggtitle(paste(sppseason, "detections by camera deployment")))
+    
+    det_bytrailtype <- dplyr::select(humans, c(CameraFacing, det)) %>%                                    
+      group_by(CameraFacing, det) %>%
+      summarise(n_dets = table(det)) %>% ungroup() %>%
+      group_by(det) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(CameraFacing) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(det_bytrailtype)
+    print(ggplot(humans, aes(x = det, fill = CameraFacing)) +
+            geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+            scale_fill_manual(values=c("#69b3a2", "#404080", "#F8C8DC")) +
+            labs(fill="") +
+            ggtitle(paste(sppseason, "detections by camera deployment")))
+    
+    ndet_by_setup <- dplyr::select(humans, c(Setup, ndets)) %>%                                    
+      group_by(Setup, ndets) %>%
+      summarise(n_dets = table(ndets)) %>% ungroup() %>%
+      group_by(ndets) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(Setup) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(ndet_by_setup)
+    print(ggplot(humans, aes(x = ndets, fill = Setup)) +
+            geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 5) +
+            scale_fill_manual(values=c("#69b3a2", "#404080")) +
+            labs(fill="") +
+            ggtitle(paste("Sum of", sppseason, "detections by camera deployment")))
+    
+    ndet_bytrailtype <- dplyr::select(humans, c(CameraFacing, ndets)) %>%                                    
+      group_by(CameraFacing, ndets) %>%
+      summarise(n_dets = table(ndets)) %>% ungroup() %>%
+      group_by(ndets) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(CameraFacing) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(ndet_bytrailtype)
+    print(ggplot(humans, aes(x = ndets, fill = CameraFacing)) +
+            geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 5) +
+            scale_fill_manual(values=c("#69b3a2", "#404080", "#F8C8DC")) +
+            labs(fill="") +
+            ggtitle(paste("Sum of", sppseason, "detections by camera deployment")))
+    
+    return(humans)
+  }
+  humans20s <- human_detection_by_placement(eoe_30min_sampocc_list[[1]], cams = cams_eoe20s, sppseason = "Human Smr20")
+  humans21s <- human_detection_by_placement(eoe_30min_sampocc_list[[3]], cams = cams_eoe21s, sppseason = "Human Smr21")
   
   
   
