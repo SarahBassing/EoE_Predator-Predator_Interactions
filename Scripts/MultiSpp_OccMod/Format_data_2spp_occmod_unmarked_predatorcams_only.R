@@ -174,6 +174,7 @@
   stations_eoe20s[82:90,1:4]
   DH_eoe20s_predators[[1]][[1]][82:90,1:3]
   
+  
   #'  Correlation matrix to check for collinearity among continuous variables
   #'  Note: the species-specific total mortality and area-weighted mortality are 
   #'  highly correlated (1 or -1) so ignore those coefficients
@@ -351,6 +352,67 @@
                                 listnames = c("bobcat", "coyote"), sitecovs = stations_eoe20w, srvycovs = srvy_covs_eoe20w)
   bob_coy_21s_umf <- umf_setup(dh_spp1 = DH_eoe21s_predators[[2]][[1]], dh_spp2 = DH_eoe21s_predators[[3]][[1]], 
                                 listnames = c("bobcat", "coyote"), sitecovs = stations_eoe21s, srvycovs = srvy_covs_eoe21s)
+  
+  
+  #'  -----------------------
+  ####  Covariate mean & SD  ####
+  #'  -----------------------
+  #'  Save covariate mean & SD used for scaling (needed for plotting later on)
+  mean_sd_covs <- function(cams, covs, rm_rows) {
+    #'  Join camera data with extracted covariate data
+    cam_covs <- full_join(cams, covs)
+    #'  Remove rows where camera was inoperable the entire season - covariates at 
+    #'  these sites shouldn't be included when scaling since they don't contribute
+    #'  to detection data
+    cam_covs <- cam_covs[-rm_rows,]
+    scaling_params <- transmute(cam_covs,
+                                NewLocationID = as.factor(NewLocationID),
+                                Season = as.factor(Season),
+                                GMU = as.factor(GMU),
+                                CameraFacing = as.factor(CameraFacing),
+                                Setup = as.factor(Setup),
+                                Target = as.factor(Target),
+                                Habitat = as.factor(HabLayer_30m2),
+                                Height_mu = mean(CameraHeight_M), Height_sd = sd(CameraHeight_M),
+                                PercForest_mu = mean(perc_forest), PercForest_sd = sd(perc_forest), 
+                                Elev_mu = mean(Elevation__10m2), Elev_sd = sd(Elevation__10m2),
+                                Dist2Burbs_mu = mean(Dist2Suburbs), Dist2Burbs_sd = sd(Dist2Suburbs),
+                                logDist2Burbs_mu = mean(log(Dist2Suburbs+1)), logDist2Burbs_sd = sd(log(Dist2Suburbs+1)),
+                                Dist2Rrl_mu = mean(Dist2Rural), Dist2Rrl_sd = sd(Dist2Rural),
+                                NearestRd_mu = mean(dist2rd), NearestRd_sd = sd(dist2rd),
+                                logNearestRd_mu = mean(log(dist2rd+1)), logNearestRd_sd = sd(log(dist2rd+1)),
+                                MinGroupSize_mu = mean(avg_min_group_size), MinGroupSize_sd = sd(avg_min_group_size), 
+                                Nelk_mu = mean(elk), Nelk_sd = sd(elk),    
+                                Nhuman_mu = mean(human), Nhuman_sd = sd(human),
+                                Nhumanplus_mu = mean(human_plus), Nhumanplus_sd = sd(human_plus),
+                                Nmotorized_mu = mean(human_motorized), Nmotorized_sd = sd(human_motorized),
+                                Nlagomorph_mu = mean(lagomorphs), Nlagomorph_sd = sd(lagomorphs),
+                                Nlivestock_mu = mean(livestock), Nlivestock_sd = sd(livestock),
+                                Nmoose_mu = mean(moose), Nmoose_sd = sd(moose),
+                                Nmd_mu = mean(muledeer), Nmd_sd = sd(muledeer),
+                                Nwtd_mu = mean(whitetaileddeer), Nwtd_sd = sd(whitetaileddeer),
+                                Nungulate_mu = mean(ungulate), Nungulate_sd = sd(ungulate),
+                                Nbig_deer_mu = mean(big_deer), Nbig_deer_sd = sd(big_deer),
+                                Nsmall_deer_mu = mean(small_deer), Nsmall_deer_sd = sd(small_deer),
+                                Bear_mort_n_mu = mean(Bear_mort_n), Bear_mort_n_sd = sd(Bear_mort_n), 
+                                Bear_mort_km2_mu = mean(Bear_mort_km2), Bear_mort_km2_sd = sd(Bear_mort_km2),
+                                Bob_mort_n_mu = mean(Bob_mort_n), Bob_mort_n_sd = sd(Bob_mort_n), 
+                                Bob_mort_km2_mu = mean(Bob_mort_km2), Bob_mort_km2_sd = sd(Bob_mort_km2),
+                                Lion_mort_n_mu = mean(Lion_mort_n), Lion_mort_n_sd = sd(Lion_mort_n), 
+                                Lion_mort_km2_mu = mean(Lion_mort_km2), Lion_mort_km2_sd = sd(Lion_mort_km2),
+                                Wolf_mort_n_mu = mean(Wolf_mort_n), Wolf_mort_n_sd = sd(Wolf_mort_n), 
+                                Wolf_mort_km2_mu = mean(Wolf_mort_km2), Wolf_mort_km2_sd = sd(Wolf_mort_km2)
+    )%>%
+      arrange(NewLocationID)
+    return(scaling_params)
+  }
+  stations_musd_eoe20s <- mean_sd_covs(cams_eoe20s, covs = eoe_covs_20s, rm_rows = rm_rows_eoe20s) 
+  stations_musd_eoe20w <- mean_sd_covs(cams_eoe20w, covs = eoe_covs_20w, rm_rows = rm_rows_eoe20w) 
+  stations_musd_eoe21s <- mean_sd_covs(cams_eoe21s, covs = eoe_covs_21s, rm_rows = rm_rows_eoe21s) 
+  
+  # save(stations_musd_eoe20s, file = "./Data/Covariates_extracted/Covariate_Mean&SD_EoE20s.RData")
+  # save(stations_musd_eoe20w, file = "./Data/Covariates_extracted/Covariate_Mean&SD_EoE20w.RData")
+  # save(stations_musd_eoe21s, file = "./Data/Covariates_extracted/Covariate_Mean&SD_EoE21s.RData")
   
   
   #'  Fin
