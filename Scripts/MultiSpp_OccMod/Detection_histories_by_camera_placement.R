@@ -216,6 +216,100 @@
   humans21s <- human_detection_by_placement(eoe_30min_sampocc_list[[3]], cams = cams_eoe21s, sppseason = "Human Smr21")
   
   
+  #'  Table species pairings
+  paired_detections <- function(detsA, detsB, cams, spp1, spp2) {
+    #'  Count number of detections of spp 1 & indicate if ever detected at site
+    spp1_dets <- as.data.frame(detsA) %>%
+      rownames_to_column(var = "NewLocationID") %>%
+      full_join(cams, by = "NewLocationID") %>%
+      mutate(spp1 = spp1,
+             ndetsA = rowSums(.[2:11], na.rm = T),
+             Setup = factor(Setup, levels = c("ungulate", "predator")),
+             CameraFacing = factor(CameraFacing, levels = c("random", "road", "trail"))) %>%
+      rowwise() %>%
+      mutate(detA = max(c_across(2:11), na.rm = T)) %>%
+      dplyr::select(c(NewLocationID, Setup, CameraFacing, detA, ndetsA)) %>%
+      filter(detA != "-Inf")
+    #'  Count number of detections of spp2 & indicate if ever detected at site
+    spp2_dets <- as.data.frame(detsB) %>%
+      rownames_to_column(var = "NewLocationID") %>%
+      full_join(cams, by = "NewLocationID") %>%
+      mutate(spp1 = spp2,
+             ndetsB = rowSums(.[2:11], na.rm = T),
+             Setup = factor(Setup, levels = c("ungulate", "predator")),
+             CameraFacing = factor(CameraFacing, levels = c("random", "road", "trail"))) %>%
+      rowwise() %>%
+      mutate(detB = max(c_across(2:11), na.rm = T)) %>%
+      dplyr::select(c(NewLocationID, Setup, CameraFacing, detB, ndetsB)) %>%
+      filter(detB != "-Inf")
+    #'  Merge into single data frame & note if both species detected at same site
+    spppair_dets <- full_join(spp1_dets, spp2_dets, by = c("NewLocationID", "Setup", "CameraFacing")) %>%
+      mutate(detAB = sum(detA, detB, na.rm = T))
+    #'  Create column with categories for each species, both, or none detected at a site
+    det2spp_by_setup <- as.data.frame(spppair_dets) %>%
+      dplyr::select(c(Setup, detA, detB, detAB)) %>%
+      mutate(spp_dets = ifelse(detAB == 2, "both", detAB),
+             spp_dets = ifelse(detA == 1 & detB == 0, spp1, spp_dets),
+             spp_dets = ifelse(detA == 0 & detB == 1, spp2, spp_dets),
+             spp_dets = ifelse(detAB == 0, "none", spp_dets)) %>%
+      dplyr::select(Setup, spp_dets) %>%
+      group_by(Setup, spp_dets) %>%
+      #'  Count number of detections in each grouping
+      summarize(n = n()) %>%
+      #'  Ignore sites where neither species were detected
+      filter(spp_dets != "none") %>%
+      #'  Calculate percentage of detections of individual species and both species
+      #'  across sites where detections occurred
+      mutate(prec_dets = n / sum(n),
+             prec_dets = round(prec_dets, 3)) %>%
+      ungroup()
+    print(det2spp_by_setup)
+  }
+  wolfbear_20s <- paired_detections(detsA = DH_eoe20s_predators[[5]][[1]], detsB = DH_eoe20s_predators[[1]][[1]], 
+                                    cams = cams_eoe20s, spp1 = "wolf", spp2 = "bear")
+  wolfbear_21s <- paired_detections(detsA = DH_eoe21s_predators[[5]][[1]], detsB = DH_eoe21s_predators[[1]][[1]], 
+                                    cams = cams_eoe21s, spp1 = "wolf", spp2 = "bear")
+  wolfbob_20s <- paired_detections(detsA = DH_eoe20s_predators[[5]][[1]], detsB = DH_eoe20s_predators[[2]][[1]], 
+                                   cams = cams_eoe20s, spp1 = "wolf", spp2 = "bobcat")
+  wolfbob_21s <- paired_detections(detsA = DH_eoe21s_predators[[5]][[1]], detsB = DH_eoe21s_predators[[2]][[1]], 
+                                   cams = cams_eoe21s, spp1 = "wolf", spp2 = "bobcat")
+  wolfcoy_20s <- paired_detections(detsA = DH_eoe20s_predators[[5]][[1]], detsB = DH_eoe20s_predators[[3]][[1]], 
+                                   cams = cams_eoe20s, spp1 = "wolf", spp2 = "coyote")
+  wolfcoy_21s <- paired_detections(detsA = DH_eoe21s_predators[[5]][[1]], detsB = DH_eoe21s_predators[[3]][[1]], 
+                                   cams = cams_eoe21s, spp1 = "wolf", spp2 = "coyote")
+  wolflion_20s <- paired_detections(detsA = DH_eoe20s_predators[[5]][[1]], detsB = DH_eoe20s_predators[[4]][[1]], 
+                                    cams = cams_eoe20s, spp1 = "wolf", spp2 = "lion")
+  wolflion_21s <- paired_detections(detsA = DH_eoe21s_predators[[5]][[1]], detsB = DH_eoe21s_predators[[4]][[1]], 
+                                    cams = cams_eoe21s, spp1 = "wolf", spp2 = "lion")
+  lionbear_20s <- paired_detections(detsA = DH_eoe20s_predators[[4]][[1]], detsB = DH_eoe20s_predators[[1]][[1]], 
+                                    cams = cams_eoe20s, spp1 = "lion", spp2 = "bear")
+  lionbear_21s <- paired_detections(detsA = DH_eoe21s_predators[[4]][[1]], detsB = DH_eoe21s_predators[[1]][[1]], 
+                                    cams = cams_eoe21s, spp1 = "lion", spp2 = "bear")
+  lionbob_20s <- paired_detections(detsA = DH_eoe20s_predators[[4]][[1]], detsB = DH_eoe20s_predators[[2]][[1]], 
+                                   cams = cams_eoe20s, spp1 = "lion", spp2 = "bobcat")
+  lionbob_21s <- paired_detections(detsA = DH_eoe21s_predators[[4]][[1]], detsB = DH_eoe21s_predators[[2]][[1]], 
+                                   cams = cams_eoe21s, spp1 = "lion", spp2 = "bobcat")
+  lioncoy_20s <- paired_detections(detsA = DH_eoe20s_predators[[4]][[1]], detsB = DH_eoe20s_predators[[3]][[1]], 
+                                    cams = cams_eoe20s, spp1 = "lion", spp2 = "coyote")
+  lioncoy_21s <- paired_detections(detsA = DH_eoe21s_predators[[4]][[1]], detsB = DH_eoe21s_predators[[3]][[1]], 
+                                    cams = cams_eoe21s, spp1 = "lion", spp2 = "coyote")
+  bearbob_20s <- paired_detections(detsA = DH_eoe20s_predators[[1]][[1]], detsB = DH_eoe20s_predators[[2]][[1]], 
+                                    cams = cams_eoe20s, spp1 = "bear", spp2 = "bobcat")
+  bearbob_21s <- paired_detections(detsA = DH_eoe21s_predators[[1]][[1]], detsB = DH_eoe21s_predators[[2]][[1]], 
+                                    cams = cams_eoe21s, spp1 = "bear", spp2 = "bobcat")
+  bearcoy_20s <- paired_detections(detsA = DH_eoe20s_predators[[1]][[1]], detsB = DH_eoe20s_predators[[3]][[1]], 
+                                   cams = cams_eoe20s, spp1 = "bear", spp2 = "coyote")
+  bearcoy_21s <- paired_detections(detsA = DH_eoe21s_predators[[1]][[1]], detsB = DH_eoe21s_predators[[3]][[1]], 
+                                   cams = cams_eoe21s, spp1 = "bear", spp2 = "coyote")
+  bobcoy_20s <- paired_detections(detsA = DH_eoe20s_predators[[2]][[1]], detsB = DH_eoe20s_predators[[3]][[1]], 
+                                   cams = cams_eoe20s, spp1 = "bobcat", spp2 = "coyote")
+  bobcoy_21s <- paired_detections(detsA = DH_eoe21s_predators[[2]][[1]], detsB = DH_eoe21s_predators[[3]][[1]], 
+                                   cams = cams_eoe21s, spp1 = "bobcat", spp2 = "coyote")
+    
+  
+  
+  
+    
   
   
   
