@@ -118,33 +118,258 @@
     
     return(sppX_df)
   }
-  #'  Predict cond. occupancy for each pairwise interaction over range of cattle activity
+  #'  Predict cond. occupancy for each pairwise interaction over range of covariate values
   #'  NOTE: setting all other continuous variables to 0 (their mean value) and 
-  #'  setting categorical variables as either 0 or 1
-  #'  For elk, study area = 0 (NE) because there were so few detections in OK
-  #'  For md, wtd, and moose, study area = 1 (OK) b/c that is where the bulk of
-  #'  cattle activity occurred and there were sufficient detections of these species
-  #'  "pub" variable set to active grazing allotments (1)
-  sppX_wolf_coy_20s <- spp_interactions_g(wc_20s_top, elev = 0, forest = 0, 
-                                            dist2sub = 0, nearestrd = 0, elk = 0, 
-                                            human = scaled_human[[1]][,2], bunny = 0, cow = 0, moose = 0, 
-                                            md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
-                                            spp1 = "wolf", spp2 = "coyote", cov = scaled_human[[1]][,1])
+  #'  setting categorical variables (if any) as either 0 or 1
+  #'  Indexing: first list [[1]] = 2020 data, [[2]] = 2021 data; 
+  #'            second list [1] = raw covariate data, [2] = scaled covariate data
   
-  sppX_wolf_coy_21s <- spp_interactions_g(wc_21s_top, elev = 0, forest = 0, 
-                                          dist2sub = 0, nearestrd = 0, elk = 0, 
-                                          human = scaled_human[[2]][,2], bunny = 0, cow = 0, moose = 0, 
-                                          md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
-                                          spp1 = "wolf", spp2 = "coyote", cov = scaled_human[[2]][,1])
+  ####  Predict co-occurrence across covariate values  ####
+  #####  Wolf-Bobcat predictions  #####
+  #' 2020 significant covariate predictions
+  wb_nearestrd_20s <- spp_interactions_g(wb_20s_top, elev = 0, forest = 0, dist2sub = 0, 
+                                       nearestrd = scaled_lognearestrd[[1]][,2], 
+                                       elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
+                                       md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
+                                       spp1 = "wolf", spp2 = "bobcat", cov = scaled_lognearestrd[[1]][,1])
+  wb_dist2burbs_20s <- spp_interactions_g(wb_20s_top, elev = 0, forest = 0,
+                                          dist2sub = scaled_dist2burbs[[1]][,2], 
+                                          nearestrd = 0, elk = 0, human = 0, bunny = 0, 
+                                          cow = 0, moose = 0, md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
+                                          spp1 = "wolf", spp2 = "bobcat", cov = scaled_dist2burbs[[1]][,1])
+  wb_livestock_20s <- spp_interactions_g(wb_20s_top, elev = 0, forest = 0, dist2sub = 0, 
+                                         nearestrd = 0, elk = 0, human = 0, bunny = 0, 
+                                         cow = scaled_livestock[[1]][,2], moose = 0, 
+                                         md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
+                                         spp1 = "wolf", spp2 = "bobcat", cov = scaled_livestock[[1]][,1])
+  #' 2021 significant covariate predictions
+  wb_bunnies_21s <- spp_interactions_g(wb_21s_top, elev = 0, forest = 0, dist2sub = 0, 
+                                       nearestrd = 0, elk = 0, human = 0, bunny = scaled_lagomorph[[2]][,2], 
+                                       cow = 0, moose = 0, md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
+                                       spp1 = "wolf", spp2 = "bobcat", cov = scaled_lagomorph[[2]][,1])
+  
+  #####  Wolf-Lion Predictions  #####
+  #' 2020 significant covariate predictions
+  wl_elev_20s <- spp_interactions_g(wl_20s_top, elev = scaled_elev[[1]][,2], forest = 0, dist2sub = 0, 
+                                    nearestrd = 0, elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
+                                    md = 0, wtd = 0, bigdeer = 0, smdeer = 0, spp1 = "wolf", 
+                                    spp2 = "lion", cov = scaled_elev[[1]][,1])
+  #' 2021 significant covariate predictions
+  wl_nearestrd_21s <- spp_interactions_g(wl_21s_top, elev = 0, forest = 0, dist2sub = 0, 
+                                       nearestrd = scaled_lognearestrd[[2]][,2], 
+                                       elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
+                                       md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
+                                       spp1 = "wolf", spp2 = "lion", cov = scaled_lognearestrd[[2]][,1])
+  wl_elev_21s <- spp_interactions_g(wl_21s_top, elev = scaled_elev[[2]][,2], forest = 0, dist2sub = 0, 
+                                    nearestrd = 0, elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
+                                    md = 0, wtd = 0, bigdeer = 0, smdeer = 0, spp1 = "wolf", 
+                                    spp2 = "lion", cov = scaled_elev[[2]][,1])
   
   
-  #'  Plot co-occ
-  tst <- sppX_wolf_coy_20s %>% 
+  #####  Wolf-Coyote Predictions  #####
+  #' 2020 significant covariate predictions
+  wc_dist2burbs_20s <- spp_interactions_g(wc_20s_top, elev = 0, forest = 0,
+                                          dist2sub = scaled_dist2burbs[[1]][,2], 
+                                          nearestrd = 0, elk = 0, human = 0, bunny = 0, 
+                                          cow = 0, moose = 0, md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
+                                          spp1 = "wolf", spp2 = "coyote", cov = scaled_dist2burbs[[1]][,1])
+  wc_elev_20s <- spp_interactions_g(wc_20s_top, elev = scaled_elev[[1]][,2], forest = 0, dist2sub = 0, 
+                                    nearestrd = 0, elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
+                                    md = 0, wtd = 0, bigdeer = 0, smdeer = 0, spp1 = "wolf", 
+                                    spp2 = "coyote", cov = scaled_elev[[1]][,1])
+  #' 2021 significant covariate predictions
+  wc_elev_21s <- spp_interactions_g(wc_21s_top, elev = scaled_elev[[2]][,2], forest = 0, dist2sub = 0, 
+                                    nearestrd = 0, elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
+                                    md = 0, wtd = 0, bigdeer = 0, smdeer = 0, spp1 = "wolf", 
+                                    spp2 = "coyote", cov = scaled_elev[[2]][,1])
+  wc_bigdeer_21s <- spp_interactions_g(wc_21s_top, elev = 0, forest = 0, dist2sub = 0, 
+                                       nearestrd = 0, elk = 0, human = 0, bunny = 0, cow = 0, 
+                                       moose = 0, md = 0, wtd = 0, bigdeer = scaled_bigdeer[[2]][,2], smdeer = 0,
+                                       spp1 = "wolf", spp2 = "coyote", cov = scaled_bigdeer[[2]][,1])
+  wc_bunnies_21s <- spp_interactions_g(wc_21s_top, elev = 0, forest = 0, dist2sub = 0, 
+                                       nearestrd = 0, elk = 0, human = 0, bunny = scaled_lagomorph[[2]][,2], 
+                                       cow = 0, moose = 0, md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
+                                       spp1 = "wolf", spp2 = "coyote", cov = scaled_lagomorph[[2]][,1])
+  wc_nearestrd_21s <- spp_interactions_g(wc_21s_top, elev = 0, forest = 0, dist2sub = 0,
+                                         nearestrd = scaled_lognearestrd[[2]][,2], 
+                                         elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
+                                         md = 0, wtd = 0, bigdeer = 0, smdeer = 0, spp1 = "wolf", 
+                                         spp2 = "coyote", cov = scaled_lognearestrd[[2]][,1])
+  
+  #####  Lion-Coyote Predictions  #####
+  #'  2020 significant covariate predictions
+  lc_dist2burbs_20s <- spp_interactions_g(lc_20s_top, elev = 0, forest = 0,
+                                          dist2sub = scaled_dist2burbs[[1]][,2], 
+                                          nearestrd = 0, elk = 0, human = 0, bunny = 0, 
+                                          cow = 0, moose = 0, md = 0, wtd = 0, bigdeer = 0, smdeer = 0,
+                                          spp1 = "lion", spp2 = "coyote", cov = scaled_dist2burbs[[1]][,1])
+  lc_nearestrd_20s <- spp_interactions_g(lc_20s_top, elev = 0, forest = 0, dist2sub = 0,
+                                         nearestrd = scaled_lognearestrd[[1]][,2], 
+                                         elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
+                                         md = 0, wtd = 0, bigdeer = 0, smdeer = 0, spp1 = "lion", 
+                                         spp2 = "coyote", cov = scaled_lognearestrd[[1]][,1])
+  lc_wtd_20s <- spp_interactions_g(lc_20s_top, elev = 0, forest = 0, dist2sub = 0, 
+                                   nearestrd = 0, elk = 0, human = 0, bunny = 0, cow = 0, 
+                                   moose = 0, md = 0, wtd = scaled_wtd[[1]][,2], bigdeer = 0, smdeer = 0,
+                                   spp1 = "lion", spp2 = "coyote", cov = scaled_wtd[[1]][,1])
+  lc_elev_20s <- spp_interactions_g(lc_20s_top, elev = scaled_elev[[1]][,2], forest = 0,
+                                    dist2sub = 0, nearestrd = 0, elk = 0, human = 0, 
+                                    bunny = 0, cow = 0, moose = 0, md = 0, wtd = 0, 
+                                    bigdeer = 0, smdeer = 0, spp1 = "lion", spp2 = "coyote", 
+                                    cov = scaled_elev[[1]][,1])
+  
+  #'  2021 significant covariate predictions
+  lc_nearestrd_21s <- spp_interactions_g(lc_21s_top, elev = 0, forest = 0, dist2sub = 0,
+                                         nearestrd = scaled_lognearestrd[[2]][,2], 
+                                         elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
+                                         md = 0, wtd = 0, bigdeer = 0, smdeer = 0, spp1 = "lion", 
+                                         spp2 = "coyote", cov = scaled_lognearestrd[[2]][,1])
+  
+  
+  
+  
+  
+  ####  Co-occurrence Figures  ####
+  #####  Wolf-Bobcat Plots  #####
+  #'  2020 co-occurrence 
+  wb_dist2burbs_20s_predict <- wb_dist2burbs_20s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("bobcat absent", "bobcat present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "bobcat" = "Bobcat") 
+  wb_dist2burbs_20s_facet <- ggplot(wb_dist2burbs_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Distance to urban/suburban area (m)") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of proximity to human settelement on wolf - bobcat co-occurrence 2020")
+  wb_dist2burbs_20s_facet
+  
+  wb_nearestrd_20s_predict <- wb_nearestrd_20s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("bobcat absent", "bobcat present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "bobcat" = "Bobcat") 
+  wb_nearestrd_20s_facet <- ggplot(wb_nearestrd_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Log distance to nearest road") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of log distance to nearest road on wolf - bobcat co-occurrence 2020")
+  wb_nearestrd_20s_facet
+  
+  wb_livestock_20s_predict <- wb_livestock_20s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("bobcat absent", "bobcat present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "bobcat" = "Bobcat") 
+  wb_livestock_20s_facet <- ggplot(wb_livestock_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Livestock detections") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of livestock activity on wolf - bobcat co-occurrence 2020")
+  wb_livestock_20s_facet
+  
+  #'  2021 co-occurrence
+  wb_bunnies_21s_predict <- wb_bunnies_21s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("bobcat absent", "bobcat present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "bobcat" = "Bobcat") 
+  wb_bunnies_21s_facet <- ggplot(wb_bunnies_21s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Lagomorph detections") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of lagomorph activity on wolf - bobcat co-occurrence 2021")
+  wb_bunnies_21s_facet
+  
+  #####  Wolf-Lion Plots  #####
+  #'  2020 co-occurrence
+  wl_elev_20s_predict <- wl_elev_20s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("lion absent", "lion present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "lion" = "Lion") 
+  wl_elev_20s_facet <- ggplot(wl_elev_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "lion absent" = "Lion absent", "lion present" = "Lion present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "lion absent" = "Lion absent", "lion present" = "Lion present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Elevation (m)") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of elevation on wolf - lion co-occurrence 2020")
+  wl_elev_20s_facet
+  
+  #'  2021 co-occurrence
+  wl_nearestrd_21s_predict <- wl_nearestrd_21s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("lion absent", "lion present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "lion" = "Lion") 
+  wl_nearestrd_21s_facet <- ggplot(wl_nearestrd_21s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "lion absent" = "Lion absent", "lion present" = "Lion present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "lion absent" = "Lion absent", "lion present" = "Lion present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Log distance to nearest road") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of log distance to nearest road on wolf - lion co-occurrence 2021")
+  wl_nearestrd_21s_facet
+  
+  #####  Wolf-Coyote Plots  #####
+  #'  2020 co-occurrence
+  wc_dist2burbs_20s_predict <- wc_dist2burbs_20s %>% 
     mutate(InterXSpp = gsub( " .*$", "", Interaction ),
            InterX = gsub(".* ", "", Interaction),
            Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "wolf absent", "wolf present")))
   newlabs <- c("wolf" = "Wolf", "coyote" = "Coyote") 
-  tst_facet <- ggplot(tst, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+  wc_dist2burbs_20s_facet <- ggplot(wc_dist2burbs_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
     geom_line(size = 1) +
     scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
                                    "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
@@ -155,8 +380,203 @@
     theme_bw() +
     facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
     theme(legend.position="bottom") +
-    xlab("Human activity (human detections/day)") + 
+    xlab("Distance to urban/suburban area (m)") + 
     ylab("Conditional occupancy") +
-    ggtitle("Effect of human activity on wolf - coyote co-occurrence")
-  tst_facet
+    ggtitle("Effect of proximity to human settelement on wolf - coyote co-occurrence 2020")
+  wc_dist2burbs_20s_facet
+  
+  wc_elev_20s_predict <- wc_elev_20s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "coyote" = "Coyote") 
+  wc_elev_20s_facet <- ggplot(wc_elev_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Elevation (m)") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of elevation on wolf - coyote co-occurrence 2020")
+  wc_elev_20s_facet
+  
+  #'  2021 co-occurrence
+  wc_bunnies_21s_predict <- wc_bunnies_21s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "coyote" = "Coyote") 
+  wc_bunnies_21s_facet <- ggplot(wc_bunnies_21s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Lagomorph detections") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of lagomorph detections on wolf - coyote co-occurrence 2021")
+  wc_bunnies_21s_facet
+  
+  wc_elev_21s_predict <- wc_elev_21s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "coyote" = "Coyote") 
+  wc_elev_21s_facet <- ggplot(wc_elev_21s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Elevation (m)") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of elevation on wolf - coyote co-occurrence 2021")
+  wc_elev_21s_facet
+  
+  wc_bigdeer_21s_predict <- wc_bigdeer_21s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "wolf absent", "wolf present")))
+  newlabs <- c("wolf" = "Wolf", "coyote" = "Coyote") 
+  wc_bigdeer_21s_facet <- ggplot(wc_bigdeer_21s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("wolf absent" = "Wolf absent", "wolf present" = "Wolf present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Elk and moose detections") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of elk and moose detections on wolf - coyote co-occurrence 2021")
+  wc_bigdeer_21s_facet
+  
+  #####  Lion-Coyote Plots  #####
+  #'  2020 co-occurrence
+  lc_dist2burbs_20s_predict <- lc_dist2burbs_20s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "lion absent", "lion present")))
+  newlabs <- c("lion" = "Lion", "coyote" = "Coyote") 
+  lc_dist2burbs_20s_facet <- ggplot(lc_dist2burbs_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Distance to urban/suburban area (m)") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of proximity to human settelement on wolf - coyote co-occurrence 2020")
+  lc_dist2burbs_20s_facet
+  
+  lc_nearestrd_20s_predict <- lc_nearestrd_20s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "lion absent", "lion present")))
+  newlabs <- c("lion" = "Lion", "coyote" = "Coyote") 
+  lc_nearestrd_20s_facet <- ggplot(lc_nearestrd_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Log distance to nearest road") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of log distance to nearest road on lion - coyote co-occurrence 2020")
+  lc_nearestrd_20s_facet
+  
+  lc_wtd_20s_predict <- lc_wtd_20s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "lion absent", "lion present")))
+  newlabs <- c("lion" = "Lion", "coyote" = "Coyote") 
+  lc_wtd_20s_facet <- ggplot(lc_wtd_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("White-tailed Deer Detections") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of white-tailed deer activity on wolf - coyote co-occurrence 2020")
+  lc_wtd_20s_facet
+  
+  lc_elev_20s_predict <- lc_elev_20s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "lion absent", "lion present")))
+  newlabs <- c("lion" = "Lion", "coyote" = "Coyote") 
+  lc_elev_20s_facet <- ggplot(lc_elev_20s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Elevation (m)") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of elevation on wolf - coyote co-occurrence 2020")
+  lc_elev_20s_facet
+  
+  #'  2021 co-occurrence 
+  lc_nearestrd_21s_predict <- lc_nearestrd_21s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "lion absent", "lion present")))
+  newlabs <- c("lion" = "Lion", "coyote" = "Coyote") 
+  lc_nearestrd_21s_facet <- ggplot(lc_nearestrd_21s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("lion absent" = "Lion absent", "lion present" = "Lion present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Log distance to nearest road") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of log distance to nearest road on lion - coyote co-occurrence 2021")
+  lc_nearestrd_21s_facet
+  
+  
   
