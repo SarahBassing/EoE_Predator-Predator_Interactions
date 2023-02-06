@@ -225,6 +225,14 @@
                                          md = 0, wtd = 0, bigdeer = 0, smdeer = 0, spp1 = "lion", 
                                          spp2 = "coyote", cov = scaled_lognearestrd[[2]][,1])
   
+  #####  Bobcat-Coyote Predictions  #####
+  #'  2021 significant covariate predictions
+  bc_human_21s <- spp_interactions_g(bc_21s_top, elev = 0, forest = 0, dist2sub = 0, 
+                                   nearestrd = 0, elk = 0, human = scaled_human[[2]][,2], 
+                                   bunny = 0, cow = 0, moose = 0, md = 0, wtd = 0, 
+                                   bigdeer = 0, smdeer = 0, spp1 = "bobcat", spp2 = "coyote", 
+                                   cov = scaled_human[[2]][,1])
+  
   
   
   
@@ -578,5 +586,26 @@
     ggtitle("Effect of log distance to nearest road on lion - coyote co-occurrence 2021")
   lc_nearestrd_21s_facet
   
-  
+  #####  Bobcat-Coyote Plot  #####
+  #'  2021 co-occurrence
+  bc_human_21s_predict <- bc_human_21s %>% 
+    mutate(InterXSpp = gsub( " .*$", "", Interaction ),
+           InterX = gsub(".* ", "", Interaction),
+           Interaction = factor(Interaction, levels = c("coyote absent", "coyote present", "bobcat absent", "bobcat present")))
+  newlabs <- c("bobcat" = "Bobcat", "coyote" = "Coyote") 
+  lc_human_20s_facet <- ggplot(bc_human_21s_predict, aes(x = Cov, y = Predicted, group = Interaction, colour = Interaction)) +
+    geom_line(size = 1) +
+    scale_colour_bright(labels = c("bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present", 
+                                   "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    geom_ribbon(aes(ymin=lower, ymax = upper, fill = Interaction), linetype = 0, alpha =0.5) +
+    scale_fill_bright(labels = c("bobcat absent" = "Bobcat absent", "bobcat present" = "Bobcat present", 
+                                 "coyote absent" = "Coyote absent", "coyote present" = "Coyote present"), name = "Species Interaction") +
+    ylim(0, 1) +
+    theme_bw() +
+    facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
+    theme(legend.position="bottom") +
+    xlab("Human Detections") + 
+    ylab("Conditional occupancy") +
+    ggtitle("Effect of human activity on bobcat - coyote co-occurrence 2020")
+  lc_human_20s_facet
   
