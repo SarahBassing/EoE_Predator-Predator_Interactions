@@ -85,14 +85,14 @@
     
     #'  Predict conditional occupancy when spp2 is absent
     spp2_absent <- predict(mod, type = "state", species = spp1, cond = no_spp2,
-                           newdata = cov_df, se.fit = TRUE, nsims = 10^4) %>%    #change to 10^5 when doing it for real
+                           newdata = cov_df, se.fit = TRUE, nsims = 10^5) %>%    #change to 10^5 when doing it for real
       mutate(Species = spp1,
              Interaction = paste0(spp2, " absent"),
              Cov = cov) %>% 
       bind_cols(cov_df)
     #'  Predict conditional occupancy when spp2 is present
     spp2_present <- predict(mod, type = "state", species = spp1, cond = spp2,
-                            newdata = cov_df, se.fit = TRUE, nsims = 10^4) %>%   #change to 10^5 when doing it for real
+                            newdata = cov_df, se.fit = TRUE, nsims = 10^5) %>%   #change to 10^5 when doing it for real
       mutate(Species = spp1,
              Interaction = paste0(spp2, " present"),
              Cov = cov) %>% 
@@ -100,14 +100,14 @@
     
     #'  Predict conditional occupancy when spp1 is absent
     spp1_absent <- predict(mod, type = "state", species = spp2, cond = no_spp1,
-                           newdata = cov_df, se.fit = TRUE, nsims = 10^4) %>%    #change to 10^5 when doing it for real
+                           newdata = cov_df, se.fit = TRUE, nsims = 10^5) %>%    #change to 10^5 when doing it for real
       mutate(Species = spp2,
              Interaction = paste0(spp1, " absent"),
              Cov = cov) %>% 
       bind_cols(cov_df)
     #'  Predict conditional occupancy when spp1 is present
     spp1_present <- predict(mod, type = "state", species = spp2, cond = spp1,
-                            newdata = cov_df, se.fit = TRUE, nsims = 10^4) %>%   #change to 10^5 when doing it for real
+                            newdata = cov_df, se.fit = TRUE, nsims = 10^5) %>%   #change to 10^5 when doing it for real
       mutate(Species = spp2,
              Interaction = paste0(spp1, " present"),
              Cov = cov) %>% 
@@ -208,7 +208,7 @@
                                          elk = 0, human = 0, bunny = 0, cow = 0, moose = 0, 
                                          md = 0, wtd = 0, bigdeer = 0, smdeer = 0, spp1 = "lion", 
                                          spp2 = "coyote", cov = scaled_lognearestrd[[1]][,1])
-  lc_wtd_20s <- spp_interactions_g(lc_20s_top, elev = 0, forest = 0, dist2sub = 0, 
+  lc_wtd_20s <- spp_interactions_g(lc_20s_top, elev = 0, forest = 0, dist2sub = 0, #1.71 = 75% quantile for elev
                                    nearestrd = 0, elk = 0, human = 0, bunny = 0, cow = 0, 
                                    moose = 0, md = 0, wtd = scaled_wtd[[1]][,2], bigdeer = 0, smdeer = 0,
                                    spp1 = "lion", spp2 = "coyote", cov = scaled_wtd[[1]][,1])
@@ -277,7 +277,7 @@
     theme_bw() +
     facet_wrap(~Species, scales = "free_y", labeller = as_labeller(newlabs)) +
     theme(legend.position="bottom") +
-    xlab("Log distance to nearest road") + 
+    xlab("log distance to nearest road (m)") + 
     ylab("Conditional occupancy") +
     ggtitle("Effect of log distance to nearest road on wolf - bobcat co-occurrence 2020")
   wb_nearestrd_20s_facet
@@ -498,7 +498,7 @@
     theme(legend.position="bottom") +
     xlab("Distance to urban/suburban area (m)") + 
     ylab("Conditional occupancy") +
-    ggtitle("Effect of proximity to human settelement on wolf - coyote co-occurrence 2020")
+    ggtitle("Effect of proximity to human settelement on lion - coyote co-occurrence 2020")
   lc_dist2burbs_20s_facet
   
   lc_nearestrd_20s_predict <- lc_nearestrd_20s %>% 
@@ -540,7 +540,7 @@
     theme(legend.position="bottom") +
     xlab("White-tailed Deer Detections") + 
     ylab("Conditional occupancy") +
-    ggtitle("Effect of white-tailed deer activity on wolf - coyote co-occurrence 2020")
+    ggtitle("Effect of white-tailed deer activity on lion - coyote co-occurrence 2020 \nat high elevation sites")
   lc_wtd_20s_facet
   
   lc_elev_20s_predict <- lc_elev_20s %>% 
@@ -561,7 +561,7 @@
     theme(legend.position="bottom") +
     xlab("Elevation (m)") + 
     ylab("Conditional occupancy") +
-    ggtitle("Effect of elevation on wolf - coyote co-occurrence 2020")
+    ggtitle("Effect of elevation on lion - coyote co-occurrence 2020")
   lc_elev_20s_facet
   
   #'  2021 co-occurrence 
