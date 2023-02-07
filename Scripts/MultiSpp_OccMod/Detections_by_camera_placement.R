@@ -45,6 +45,11 @@
   cams_eoe20w <- format_cam_station(eoe_probcams_20w, season = "Wtr20")
   cams_eoe21s <- format_cam_station(eoe_probcams_21s, season = "Smr21") 
   
+  #'  Load relative abundance indices
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
+  
   #'  ----------------------------------------------------
   ####  Summary of detection events by camera deployment  ####
   #'  ----------------------------------------------------
@@ -307,9 +312,62 @@
                                    cams = cams_eoe21s, spp1 = "bobcat", spp2 = "coyote")
     
   
-  
-  
+  ####  Relative abundance by camera setup  ####
+  prey_detection_by_placement <- function(ra, spp, cams, sppseason) {
+    #'  Select necessary covariate data
+    ra <- dplyr::select(ra, c("NewLocationID", spp))
+    #'  Sum relative abundance per camera and indicate if 1 or more detection occurred
+    relative_n <- as.data.frame(ra) %>%
+      full_join(cams, by = "NewLocationID") %>%
+      mutate(n = .[,2],
+             Setup = factor(Setup, levels = c("ungulate", "predator")),
+             CameraFacing = factor(CameraFacing, levels = c("random", "road", "trail"))) %>%
+      rowwise() %>%
+      mutate(det = ifelse(n > 0, 1, 0)) %>%
+      dplyr::select(c(Setup, CameraFacing, det, n)) 
     
+    #'  Calculate percentage of data by camera setup
+    #'  Binary detection of prey at any point in time per season
+    print(sppseason)
+    det_by_setup <- dplyr::select(relative_n, c(Setup, det)) %>%                                    
+      group_by(Setup, det) %>%
+      summarise(n_dets = table(det)) %>% ungroup() %>%
+      group_by(det) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(Setup) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(det_by_setup)
+    print(ggplot(relative_n, aes(x = det, fill = Setup)) +
+            geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+            scale_fill_manual(values=c("#69b3a2", "#404080")) +
+            labs(fill="") +
+            ggtitle(paste(sppseason, "detections by camera deployment")))
+    
+    #'  Relative abundance of prey at each camera
+    n_by_setup <- dplyr::select(relative_n, c(Setup, n)) %>%                                    
+      group_by(Setup, n) %>%
+      summarise(n_dets = table(n)) %>% ungroup() %>%
+      group_by(n) %>%
+      mutate(`percent of 0s or 1s` = n_dets/sum(n_dets)) %>% ungroup() %>%
+      group_by(Setup) %>%
+      mutate(`percent of U vs P dets` = n_dets/sum(n_dets)) %>% ungroup()
+    print(n_by_setup)
+    print(ggplot(relative_n, aes(x = n, fill = Setup)) +
+            geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 2) +
+            scale_fill_manual(values=c("#69b3a2", "#404080")) +
+            labs(fill="") +
+            ggtitle(paste(sppseason, "relative abundance by camera deployment")))
+  }
+  elk_20s <- prey_detection_by_placement(eoe_covs_20s, spp = "elk", cams = cams_eoe20s, sppseason = "Elk Summer 2020")
+  elk_21s <- prey_detection_by_placement(eoe_covs_21s, spp = "elk", cams = cams_eoe21s, sppseason = "Elk Summer 2021")
+  moose_20s <- prey_detection_by_placement(eoe_covs_20s, spp = "moose", cams = cams_eoe20s, sppseason = "Moose Summer 2020")
+  moose_21s <- prey_detection_by_placement(eoe_covs_21s, spp = "moose", cams = cams_eoe21s, sppseason = "Moose Summer 2021")
+  md_20s <- prey_detection_by_placement(eoe_covs_20s, spp = "muledeer", cams = cams_eoe20s, sppseason = "Mule Deer Summer 2020")
+  md_21s <- prey_detection_by_placement(eoe_covs_21s, spp = "muledeer", cams = cams_eoe21s, sppseason = "Mule Deer Summer 2021")
+  wtd_20s <- prey_detection_by_placement(eoe_covs_20s, spp = "whitetaileddeer", cams = cams_eoe20s, sppseason = "White-tailed Deer Summer 2020")
+  wtd_21s <- prey_detection_by_placement(eoe_covs_21s, spp = "whitetaileddeer", cams = cams_eoe21s, sppseason = "White-tailed Deer Summer 2021")
+  bunnies_20s <- prey_detection_by_placement(eoe_covs_20s, spp = "lagomorphs", cams = cams_eoe20s, sppseason = "Lagomorphs Summer 2020")
+  bunnies_21s <- prey_detection_by_placement(eoe_covs_21s, spp = "lagomorphs", cams = cams_eoe21s, sppseason = "Lagomorphs Summer 2021")
   
   
   
