@@ -488,6 +488,29 @@
     ggtitle("IDFG Cameras for EoE Project: GMU 10A") +
     theme_bw()
   
+  #'  Map camera locations, excluding problematic ones
+  cams_reproj_noprobs <- cams_reproj[cams_reproj$NewLocationID != "UNKNOWN",]
+  cam_locs <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
+    scale_fill_manual(values=c("#88CCEE", "#AA4499", "#DDCC77")) +
+    geom_sf(data = cams_reproj_noprobs[cams_reproj_noprobs$Season == "Summer 2021",], shape = 16) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("Camera trap locations") +
+    coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
+    theme_bw() 
+  ggsave(filename = "./Outputs/Figures/camera_locations_Smr2021_map.png", plot = cam_locs, 
+         dpi = 300, device = 'tiff', compression = 'lzw') 
+  
+  GMU_map <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
+    scale_fill_manual(values=c("#88CCEE", "#AA4499", "#DDCC77")) +
+    guides(fill=guide_legend(title="GMU")) +
+    theme_bw() +
+    theme(legend.position = "none")
+  ggsave(filename = "./Outputs/Figures/GMU_map.png", plot = GMU_map, 
+         dpi = 300, device = 'tiff', compression = 'lzw') 
   
   #'  Map wolf locations
   #'  By season of last deployment (most deployed all three seasons)
