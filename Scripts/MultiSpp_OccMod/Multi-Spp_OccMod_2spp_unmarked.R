@@ -33,7 +33,6 @@
   # source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_unmarked.R")
   source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_unmarked_predatorcams_only.R")
   
-  
   ####  Multi-Species Occupancy models  ####
   #'  ==================================
   #'  Multi-species occupancy model --> occuMulti (pg 83) in unmarked manual
@@ -533,7 +532,7 @@
   
   #' Save model outputs in one giant R image
   save.image(file = "./Outputs/MultiSpp_OccMod_Outputs/MultiSpp_CoOcc_Models_2spp_PredatorCamsOnly.RData")
-  
+  browseURL("https://youtu.be/nfWlot6h_JM")
   
   #'  ------------------
   ####  Summary tables  ####
