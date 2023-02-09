@@ -228,10 +228,12 @@
       rownames_to_column(var = "NewLocationID") %>%
       full_join(cams, by = "NewLocationID") %>%
       mutate(spp1 = spp1,
+             #'  Count number of sampling occasions with at least one detection
              ndetsA = rowSums(.[2:11], na.rm = T),
              Setup = factor(Setup, levels = c("ungulate", "predator")),
              CameraFacing = factor(CameraFacing, levels = c("random", "road", "trail"))) %>%
       rowwise() %>%
+      #'  Record whether a camera had at least one detection over entire season
       mutate(detA = max(c_across(2:11), na.rm = T)) %>%
       dplyr::select(c(NewLocationID, Setup, CameraFacing, detA, ndetsA)) %>%
       filter(detA != "-Inf")
@@ -240,10 +242,12 @@
       rownames_to_column(var = "NewLocationID") %>%
       full_join(cams, by = "NewLocationID") %>%
       mutate(spp1 = spp2,
+             #'  Count number of sampling occasions with at least one detection
              ndetsB = rowSums(.[2:11], na.rm = T),
              Setup = factor(Setup, levels = c("ungulate", "predator")),
              CameraFacing = factor(CameraFacing, levels = c("random", "road", "trail"))) %>%
       rowwise() %>%
+      #'  Record whether a camera had at least one detection over entire season
       mutate(detB = max(c_across(2:11), na.rm = T)) %>%
       dplyr::select(c(NewLocationID, Setup, CameraFacing, detB, ndetsB)) %>%
       filter(detB != "-Inf")
@@ -262,7 +266,7 @@
       #'  Count number of detections in each grouping
       summarize(n = n()) %>%
       #'  Ignore sites where neither species were detected
-      filter(spp_dets != "none") %>%
+      # filter(spp_dets != "none") %>%
       #'  Calculate percentage of detections of individual species and both species
       #'  across sites where detections occurred
       mutate(prec_dets = n / sum(n),
