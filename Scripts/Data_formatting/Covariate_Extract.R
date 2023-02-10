@@ -164,7 +164,7 @@
       #'  Create one column per species
       spread(Species, n_dets) %>%
       rowwise() %>%
-      #'  Aggrigate relative abundance data into funcitonal groups
+      #'  Aggrigate relative abundance data into functional groups
       mutate(human_plus = sum(human, cat_domestic, dog_domestic, horse, na.rm = TRUE),
              ungulate = sum(elk, moose, muledeer, whitetaileddeer, na.rm = TRUE),
              big_deer = sum(elk, moose, na.rm = TRUE),
@@ -187,6 +187,33 @@
   RA_Smr20_df <- reformat_relativeN_data(eoe_dethr_list[[1]])
   RA_Wtr20_df <- reformat_relativeN_data(eoe_dethr_list[[2]])
   RA_Smr21_df <- reformat_relativeN_data(eoe_dethr_list[[3]])
+  
+  #'  Weight RA counts by sampling effort
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20w.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData")
+  weighted_RA <- function(RA, effort) {
+    effort <- dplyr::select(effort, c("NewLocationID", "ndays", "nhrs"))
+    ra_scaled_by_nhrs <- RA %>%
+      full_join(effort, by = "NewLocationID") %>%
+      mutate(elk_perday = round(elk/ndays, 3),
+             human_perday = round(human/ndays, 3),
+             human_perday = round(human_plus/ndays, 3),
+             human_motorized_perday = round(human_motorized/ndays, 3),
+             lagomorphs_perday = round(lagomorphs/ndays, 3),
+             livestock_perday = round(livestock/ndays, 3),
+             moose_perday = round(moose/ndays, 3),
+             muledeer_perday = round(muledeer/ndays, 3),
+             whitetaileddeer_perday = round(whitetaileddeer/ndays, 3),
+             ungulate_perday = round(ungulate/ndays, 3),
+             big_deer_perday = round(big_deer/ndays, 3),
+             small_deer_perday = round(small_deer/ndays, 3)) %>%
+      dplyr::select(-c("ndays", "nhrs"))
+    return(ra_scaled_by_nhrs)
+  }
+  RA_Smr20_df <- weighted_RA(RA_Smr20_df, effort = effort_20s)
+  RA_Wtr20_df <- weighted_RA(RA_Wtr20_df, effort = effort_20w)
+  RA_Smr21_df <- weighted_RA(RA_Smr21_df, effort = effort_21s)
   
   
   #'  ----------------------------------
@@ -261,6 +288,27 @@
     hist(covs$ungulate, breaks =  20, main = paste("Frequency of ungulate activity at cameras\n", season))
     hist(covs$big_deer, breaks = 20, main = paste("Frequency of elk & moose activity at cameras\n", season))
     hist(covs$small_deer, breaks = 20, main = paste("Frequency of mule deer & white-tail activity at cameras\n", season))
+  }
+  spread_of_covariate_data(eoe_covs_20s, season = "Summer 2020")
+  spread_of_covariate_data(eoe_covs_20w, season = "Winter 2020-2021")
+  spread_of_covariate_data(eoe_covs_21s, season = "Summer 2021")
+  
+  spread_of_covariate_data <- function(covs, season) {
+    hist(covs$Elevation__10m2, main = paste("Frequency of elevation at cameras\n", season))
+    hist(covs$perc_forest, main = paste("Frequency of percent forest at cameras\n", season))
+    hist(covs$Dist2Suburbs, main = paste("Frequency of distance of camera to suburbs\n", season))
+    hist(log(covs$dist2rd), main = paste("Frequency of log distance of camera to nearest road\n", season))
+    hist(covs$elk_perday, main = paste("Frequency of elk activity at cameras\n", season))
+    hist(covs$human_perday, main = paste("Frequency of human activity at cameras\n", season))
+    hist(covs$human_motorized_perday, main = paste("Frequency of motorized vehicles at cameras\n", season))
+    hist(covs$lagomorphs_perday, main = paste("Frequency of lagomorph activity at cameras\n", season))
+    hist(covs$livestock_perday, main = paste("Frequency of livestock activity at cameras\n", season))
+    hist(covs$moose_perday, main = paste("Frequency of moose activity at cameras\n", season))
+    hist(covs$muledeer_perday, main = paste("Frequency of mule deer activity at cameras\n", season))
+    hist(covs$whitetaileddeer_perday, main = paste("Frequency of white-tailed deer activity at cameras\n", season))
+    hist(covs$ungulate_perday, main = paste("Frequency of ungulate activity at cameras\n", season))
+    hist(covs$big_deer_perday, main = paste("Frequency of elk & moose activity at cameras\n", season))
+    hist(covs$small_deer_perday, main = paste("Frequency of mule deer & white-tail activity at cameras\n", season))
   }
   spread_of_covariate_data(eoe_covs_20s, season = "Summer 2020")
   spread_of_covariate_data(eoe_covs_20w, season = "Winter 2020-2021")
