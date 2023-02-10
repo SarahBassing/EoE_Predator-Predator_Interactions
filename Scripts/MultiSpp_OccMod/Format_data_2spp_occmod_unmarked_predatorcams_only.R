@@ -118,18 +118,18 @@
                            NearestRd = scale(dist2rd),
                            logNearestRd = scale(log(dist2rd+1)),
                            MinGroupSize = scale(avg_min_group_size), 
-                           Nelk = scale(elk_perday),    
-                           Nhuman = scale(human_perday),
+                           Nelk = scale(elk),             # CHANGE RA TO _PERDAY VERSIONS FOR BAYESIAN REANALYSIS
+                           Nhuman = scale(human),
                            Nhumanplus = scale(human_plus),
-                           Nmotorized = scale(human_motorized_perday),
-                           Nlagomorph = scale(lagomorphs_perday),
-                           Nlivestock = scale(livestock_perday),
-                           Nmoose = scale(moose_perday),
-                           Nmd = scale(muledeer_perday),
-                           Nwtd = scale(whitetaileddeer_perday),
-                           Nungulate = scale(ungulate_perday),
-                           Nbig_deer = scale(big_deer_perday),
-                           Nsmall_deer = scale(small_deer_perday),
+                           Nmotorized = scale(human_motorized),
+                           Nlagomorph = scale(lagomorphs),
+                           Nlivestock = scale(livestock),
+                           Nmoose = scale(moose),
+                           Nmd = scale(muledeer),
+                           Nwtd = scale(whitetaileddeer),
+                           Nungulate = scale(ungulate),
+                           Nbig_deer = scale(big_deer),
+                           Nsmall_deer = scale(small_deer),
                            Bear_mort_n = scale(Bear_mort_n), 
                            Bear_mort_km2 = scale(Bear_mort_km2),
                            Bob_mort_n = scale(Bob_mort_n), 
@@ -382,18 +382,18 @@
                           NearestRd = dist2rd,
                           logNearestRd = log(dist2rd+1),
                           MinGroupSize = avg_min_group_size, 
-                          Nelk = elk_perday,    
-                          Nhuman = human_perday,
+                          Nelk = elk,    
+                          Nhuman = human,
                           Nhumanplus = human_plus,
-                          Nmotorized = human_motorized_perday,
-                          Nlagomorph = lagomorphs_perday,
-                          Nlivestock = livestock_perday,
-                          Nmoose = moose_perday,
-                          Nmd = muledeer_perday,
-                          Nwtd = whitetaileddeer_perday,
-                          Nungulate = ungulate_perday,
-                          Nbig_deer = big_deer_perday,
-                          Nsmall_deer = small_deer_perday,
+                          Nmotorized = human_motorized,
+                          Nlagomorph = lagomorphs,
+                          Nlivestock = livestock,
+                          Nmoose = moose,
+                          Nmd = muledeer,
+                          Nwtd = whitetaileddeer,
+                          Nungulate = ungulate,
+                          Nbig_deer = big_deer,
+                          Nsmall_deer = small_deer,
                           Bear_mort_n = Bear_mort_n, 
                           Bear_mort_km2 = Bear_mort_km2,
                           Bob_mort_n = Bob_mort_n, 
@@ -408,9 +408,9 @@
   stations_skinny_eoe20w <- unscaled_covs(cams_eoe20w, covs = eoe_covs_20w, rm_rows = rm_rows_eoe20w) 
   stations_skinny_eoe21s <- unscaled_covs(cams_eoe21s, covs = eoe_covs_21s, rm_rows = rm_rows_eoe21s) 
   
-  save(stations_skinny_eoe20s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20s_perday.RData")
-  save(stations_skinny_eoe20w, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20w_perday.RData")
-  save(stations_skinny_eoe21s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE21s_perday.RData")
+  # save(stations_skinny_eoe20s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20s.RData")
+  # save(stations_skinny_eoe20w, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20w.RData")
+  # save(stations_skinny_eoe21s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE21s.RData")
   
   
   #'  Fin
