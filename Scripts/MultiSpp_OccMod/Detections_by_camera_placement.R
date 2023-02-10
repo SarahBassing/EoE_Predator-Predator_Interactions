@@ -60,11 +60,11 @@
     dets <- as.data.frame(dets) %>%
       rownames_to_column(var = "NewLocationID") %>%
       full_join(cams, by = "NewLocationID") %>%
-      mutate(ndets = rowSums(.[2:11], na.rm = T),
+      mutate(ndets = rowSums(.[2:12], na.rm = T),
              Setup = factor(Setup, levels = c("ungulate", "predator")),
              CameraFacing = factor(CameraFacing, levels = c("random", "road", "trail"))) %>%
       rowwise() %>%
-      mutate(det = max(c_across(2:11), na.rm = T)) %>%
+      mutate(det = max(c_across(2:12), na.rm = T)) %>%
       dplyr::select(c(Setup, CameraFacing, det, ndets)) %>%
       filter(det != "-Inf")
     
@@ -229,12 +229,12 @@
       full_join(cams, by = "NewLocationID") %>%
       mutate(spp1 = spp1,
              #'  Count number of sampling occasions with at least one detection
-             ndetsA = rowSums(.[2:11], na.rm = T),
+             ndetsA = rowSums(.[2:12], na.rm = T),
              Setup = factor(Setup, levels = c("ungulate", "predator")),
              CameraFacing = factor(CameraFacing, levels = c("random", "road", "trail"))) %>%
       rowwise() %>%
       #'  Record whether a camera had at least one detection over entire season
-      mutate(detA = max(c_across(2:11), na.rm = T)) %>%
+      mutate(detA = max(c_across(2:12), na.rm = T)) %>%
       dplyr::select(c(NewLocationID, Setup, CameraFacing, detA, ndetsA)) %>%
       filter(detA != "-Inf")
     #'  Count number of detections of spp2 & indicate if ever detected at site
@@ -243,12 +243,12 @@
       full_join(cams, by = "NewLocationID") %>%
       mutate(spp1 = spp2,
              #'  Count number of sampling occasions with at least one detection
-             ndetsB = rowSums(.[2:11], na.rm = T),
+             ndetsB = rowSums(.[2:12], na.rm = T),
              Setup = factor(Setup, levels = c("ungulate", "predator")),
              CameraFacing = factor(CameraFacing, levels = c("random", "road", "trail"))) %>%
       rowwise() %>%
       #'  Record whether a camera had at least one detection over entire season
-      mutate(detB = max(c_across(2:11), na.rm = T)) %>%
+      mutate(detB = max(c_across(2:12), na.rm = T)) %>%
       dplyr::select(c(NewLocationID, Setup, CameraFacing, detB, ndetsB)) %>%
       filter(detB != "-Inf")
     #'  Merge into single data frame & note if both species detected at same site
