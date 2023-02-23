@@ -188,7 +188,10 @@
   RA_Wtr20_df <- reformat_relativeN_data(eoe_dethr_list[[2]])
   RA_Smr21_df <- reformat_relativeN_data(eoe_dethr_list[[3]])
   
-  #'  Weight RA counts by sampling effort
+  #'  Weight relative abundance by sampling effort
+  #'  Divide total number of hours with at least one detection (summed across season) 
+  #'  by the number of days camera was operating, i.e., the average number of hours
+  #'  per day at least one animal was detected
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20w.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData")
