@@ -1,13 +1,13 @@
-  #'  --------------------------------------------
-  #'  Format Data for 2-spp Occupancy Models 
+  #'  -------------------------------------------------
+  #'  Format Data for 2-spp Occupancy Models (for JAGS) 
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
-  #'  December 2022
-  #'  --------------------------------------------
+  #'  February 2023
+  #'  -------------------------------------------------
   #'  Script to format covariate data for multi-species occupancy models with 
   #'  EoE data. Focusing on black bear, bobcat, coyote, mountain lion, and wolf 
   #'  interactions. Cameras ran summer 2020, winter 2020-2021, and summer 2021 but
-  #'  focussing on summer data only. Co-occurrence models test whether predator
+  #'  focusing on summer data only. Co-occurrence models test whether predator
   #'  co-occurrence is non-independent and whether their occurrence, co-occurrence,
   #'  and detection are influenced by other variables of interest.
   #'  
