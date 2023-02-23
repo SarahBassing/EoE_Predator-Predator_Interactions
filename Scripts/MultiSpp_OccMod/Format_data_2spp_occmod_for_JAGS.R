@@ -68,13 +68,17 @@
   
   
   #'  Scale and format site-level covariates
-  format_covs <- function(cams, covs, rm_rows) {
+  format_covs <- function(cams_yr1, cams_yr2, covs_yr1, covs_yr2, rm_rows_yr1, rm_rows_yr2) {
     #'  Join camera data with extracted covariate data
-    cam_covs <- full_join(cams, covs)
+    cam_covs1 <- full_join(cams_yr1, covs_yr1) %>% arrange(NewLocationID)
+    cam_covs2 <- full_join(cams_yr2, covs_yr2) %>% arrange(NewLocationID)
     #'  Remove rows where camera was inoperable the entire season - covariates at 
     #'  these sites shouldn't be included when scaling since they don't contribute
     #'  to detection data
-    cam_covs <- cam_covs[-rm_rows,]
+    cam_covs1 <- cam_covs1[-rm_rows_yr1,]
+    cam_covs2 <- cam_covs2[-rm_rows_yr2,]
+    #'  Bind annual covariate data together
+    cam_covs <- rbind(cam_covs1, cam_covs2)
     #'  Rename, format, and scale as needed
     formatted <- transmute(cam_covs,
                            NewLocationID = as.factor(NewLocationID),
@@ -111,9 +115,7 @@
                            Lion_mort_n = scale(Lion_mort_n), 
                            Lion_mort_km2 = scale(Lion_mort_km2),
                            Wolf_mort_n = scale(Wolf_mort_n), 
-                           Wolf_mort_km2 = scale(Wolf_mort_km2)
-    ) %>%
-      arrange(NewLocationID) #NECESSARY TO MATCH DH's CAMERALOCATION ORDER
+                           Wolf_mort_km2 = scale(Wolf_mort_km2)) 
     
     #'  Adjust reference category for CameraFacing factors
     order_camfacing <- c("random", "trail", "road")
@@ -131,21 +133,16 @@
     return(formatted)
   }
   rm_rows_eoe20s <- c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 334, 346, 361, 371, 379, 380, 385, 433, 437, 439, 458, 493)
-  stations_eoe20s <- format_covs(cams_eoe20s, covs = eoe_covs_20s, rm_rows = rm_rows_eoe20s) %>%
+  rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 147, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
+  stations_eoe20s21s <- format_covs(cams_yr1 = cams_eoe20s, cams_yr2 = cams_eoe21s, 
+                                    covs_yr1 = eoe_covs_20s, covs_yr2 = eoe_covs_21s, 
+                                    rm_rows_yr1 = rm_rows_eoe20s, rm_rows_yr2 = rm_rows_eoe21s) %>%
     #'  Force values to 0 (mean when scaled) since scale() doesn't work when no variation in data
     mutate(Lion_mort_km2 = 0)
-  
-  rm_rows_eoe20w <- c(7, 16, 32, 43, 123, 138, 195, 215, 227, 242, 252, 268)
-  stations_eoe20w <- format_covs(cams_eoe20w, covs = eoe_covs_20w, rm_rows = rm_rows_eoe20w) %>%
-    mutate(Wolf_mort_km2 = 0)
-  
-  rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 147, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
-  stations_eoe21s <- format_covs(cams_eoe21s, covs = eoe_covs_21s, rm_rows = rm_rows_eoe21s) %>%
-    mutate(Lion_mort_km2 = 0)
-  
+
   #'  Double check things are ordered correctly
-  stations_eoe21s[82:90,1:4]
-  DH_eoe21s_predators[[1]][[1]][82:90,1:3]
+  stations_eoe20s21s[82:90,1:4]
+  DH_eoe20s_predators[[1]][[1]][82:90,1:3]
   
   #'  Correlation matrix to check for collinearity among continuous variables
   #'  Note: the species-specific total mortality and area-weighted mortality are 
@@ -158,24 +155,19 @@
     print(corr_all)
     return(corr_all)
   }
-  camera_station_list <- list(stations_eoe20s, stations_eoe20w, stations_eoe21s)
-  cov_corr_matrix <- lapply(camera_station_list, corr_matrix, firstcol = 8, lastcol = 35)
-  #'  Dist2Suburbs & Dist2Rural moderately correlated (r ranged 0.58 - 0.64 depending on year)
-  #'  Dist2Suburbs & mortality correlated for most species and years (r values included 0.62, -0.87, etc.)
-  #'  Nhuman and Nmotorized correlated in winter (0.59 - 0.6)
-  #'  WTD/day & ELK/day correlated in Smr20 (0.67); WTD/day & bigdeer/day correlated Smr20 (0.65)
-  #'  ELK/day & smalldeer/day correlated Smr20 (0.67); smalldeer/day & bigdeer/day correlated (0.65)
-  summer_stations <- rbind(stations_eoe20s, stations_eoe21s)
-  cov_corr_matrix <- corr_matrix(summer_stations, firstcol = 8, lastcol = 35) 
-  #'  WTD, ELK, big vs small deer correlation go away when both summers combined
+  cov_corr_matrix <- corr_matrix(stations_eoe20s21s, firstcol = 8, lastcol = 35)
+  
   
   #'  ---------------------------
   ####  Survey-level covariates  ####
   #'  ---------------------------
   #'  Load survey-level data
   load("Data/Wolf count data/count_eoe20s_wolf.RData")
-  load("Data/Wolf count data/count_eoe20w_wolf.RData")
+  # load("Data/Wolf count data/count_eoe20w_wolf.RData")
   load("Data/Wolf count data/count_eoe21s_wolf.RData")
+  
+  count_eoe20s21s_wolf <- rbind(count_eoe20s_wolf[[1]], count_eoe21s_wolf[[1]])
+  count_eoe20s21s_effort <- rbind(count_eoe20s_wolf[[2]], count_eoe21s_wolf[[2]])
   
   #'  Scale survey-level covariates
   scale_srvy_cov <- function(time_covs) {
@@ -190,31 +182,38 @@
     return(scaled)
   }
   #'  Note: rm_rows have already been removed when generated in Detection_histories_for_occmod.R
-  wolf_activity_eoe20s <- scale_srvy_cov(count_eoe20s_wolf[[1]])
-  wolf_activity_eoe20w <- scale_srvy_cov(count_eoe20w_wolf[[1]])
-  wolf_activity_eoe21s <- scale_srvy_cov(count_eoe21s_wolf[[1]])
+  wolf_activity_eoe20s21s <- scale_srvy_cov(count_eoe20s21s_wolf)
+  # wolf_activity_eoe20s <- scale_srvy_cov(count_eoe20s_wolf[[1]])
+  # wolf_activity_eoe20w <- scale_srvy_cov(count_eoe20w_wolf[[1]])
+  # wolf_activity_eoe21s <- scale_srvy_cov(count_eoe21s_wolf[[1]])
   
-  effort_eoe20s <- scale_srvy_cov(count_eoe20s_wolf[[2]])
-  effort_eoe20w <- scale_srvy_cov(count_eoe20w_wolf[[2]])
-  effort_eoe21s <- scale_srvy_cov(count_eoe21s_wolf[[2]])
+  effort_eoe20s21s <- scale_srvy_cov(count_eoe20s21s_effort)
+  # effort_eoe20s <- scale_srvy_cov(count_eoe20s_wolf[[2]])
+  # effort_eoe20w <- scale_srvy_cov(count_eoe20w_wolf[[2]])
+  # effort_eoe21s <- scale_srvy_cov(count_eoe21s_wolf[[2]])
   
   #'  Create list of survey level covariates for unmarked 
-  srvy_covs_eoe20s <- list(wolf_activity = wolf_activity_eoe20s, effort = effort_eoe20s)
-  srvy_covs_eoe20w <- list(wolf_activity = wolf_activity_eoe20w, effort = effort_eoe20w)
-  srvy_covs_eoe21s <- list(wolf_activity = wolf_activity_eoe21s, effort = effort_eoe21s)
+  srvy_covs_eoe20s21s <- list(wolf_activity = wolf_activity_eoe20s21s, effort = effort_eoe20s21s)
+  # srvy_covs_eoe20s <- list(wolf_activity = wolf_activity_eoe20s, effort = effort_eoe20s)
+  # srvy_covs_eoe20w <- list(wolf_activity = wolf_activity_eoe20w, effort = effort_eoe20w)
+  # srvy_covs_eoe21s <- list(wolf_activity = wolf_activity_eoe21s, effort = effort_eoe21s)
   
   
   #'  -----------------------
   ####  Covariate mean & SD  ####
   #'  -----------------------
   #'  Save unscaled covariates after specific rows have been excluded (needed for plotting later on)
-  unscaled_covs <- function(cams, covs, rm_rows) {
+  unscaled_covs <- function(cams_yr1, cams_yr2, covs_yr1, covs_yr2, rm_rows_yr1, rm_rows_yr2) {
     #'  Join camera data with extracted covariate data
-    cam_covs <- full_join(cams, covs)
+    cam_covs1 <- full_join(cams_yr1, covs_yr1) %>% arrange(NewLocationID)
+    cam_covs2 <- full_join(cams_yr2, covs_yr2) %>% arrange(NewLocationID)
     #'  Remove rows where camera was inoperable the entire season - covariates at 
     #'  these sites shouldn't be included when scaling since they don't contribute
     #'  to detection data
-    cam_covs <- cam_covs[-rm_rows,]
+    cam_covs1 <- cam_covs1[-rm_rows_yr1,]
+    cam_covs2 <- cam_covs2[-rm_rows_yr2,]
+    #'  Bind annual covariate data together
+    cam_covs <- rbind(cam_covs1, cam_covs2)
     cam_covs <- transmute(cam_covs,
                           NewLocationID = as.factor(NewLocationID),
                           Season = as.factor(Season),
@@ -253,9 +252,14 @@
                           Wolf_mort_km2 = Wolf_mort_km2) %>%
       return(cam_covs)
   }
-  stations_skinny_eoe20s <- unscaled_covs(cams_eoe20s, covs = eoe_covs_20s, rm_rows = rm_rows_eoe20s) 
-  stations_skinny_eoe20w <- unscaled_covs(cams_eoe20w, covs = eoe_covs_20w, rm_rows = rm_rows_eoe20w) 
-  stations_skinny_eoe21s <- unscaled_covs(cams_eoe21s, covs = eoe_covs_21s, rm_rows = rm_rows_eoe21s) 
+  stations_skinny_eoe20s21s <- unscaled_covs(cams_yr1 = cams_eoe20s, cams_yr2 = cams_eoe21s, 
+                                             covs_yr1 = eoe_covs_20s, covs_yr2 = eoe_covs_21s, 
+                                             rm_rows_yr1 = rm_rows_eoe20s, rm_rows_yr2 = rm_rows_eoe21s)
+  # save(stations_skinny_eoe20s21s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20s21s.RData")
+  
+  # stations_skinny_eoe20s <- unscaled_covs(cams_eoe20s, covs = eoe_covs_20s, rm_rows = rm_rows_eoe20s) 
+  # stations_skinny_eoe20w <- unscaled_covs(cams_eoe20w, covs = eoe_covs_20w, rm_rows = rm_rows_eoe20w) 
+  # stations_skinny_eoe21s <- unscaled_covs(cams_eoe21s, covs = eoe_covs_21s, rm_rows = rm_rows_eoe21s) 
   
   # save(stations_skinny_eoe20s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20s.RData")
   # save(stations_skinny_eoe20w, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20w.RData")
