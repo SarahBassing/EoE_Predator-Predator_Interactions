@@ -168,6 +168,9 @@
   
   count_eoe20s21s_wolf <- rbind(count_eoe20s_wolf[[1]], count_eoe21s_wolf[[1]])
   count_eoe20s21s_effort <- rbind(count_eoe20s_wolf[[2]], count_eoe21s_wolf[[2]])
+  #'  Replace NAs in sampling effort with 0 - these sites truly were not surveyed
+  #'  during those sampling occasions so survey really is 0
+  count_eoe20s21s_effort <- replace(count_eoe20s21s_effort, is.na(count_eoe20s21s_effort), 0)
   
   #'  Scale survey-level covariates
   scale_srvy_cov <- function(time_covs) {
