@@ -185,8 +185,8 @@
   #####  Bundle detection history and covariate data  ####
   #'  -------------------------------------------------
   #'  Function to bundle detection and covariate data
-  bundle_data <- function(obs_array, psi_covs, psi_inxs, rho_covs, rho_inxs, sites, 
-                          surveys, ncats) {
+  bundle_data <- function(obs_array, psi_covs, psi_inxs, rho_covs, rho_inxs, 
+                          sites, surveys, ncats) {
     #'  List all data streams together
     bundled <- list(y = obs_array, psi_covs = psi_covs, psi_inxs_covs = psi_inxs,
                     rho_covs = rho_covs, rho_inxs_cov = rho_inxs, nsites = sites,
@@ -250,6 +250,21 @@
   #'    4. review model summary and any parameters that didn't converge well
   #'    5. save results
   #'    6. model selection
-
+  
+  ####  Coyote-Bobcat Models  ####
+  #'  ------------------------
+  inits.coy.bob <- function(){list(z = zinits[[6]])}
+  
+  #'  Habitat model: psi = setup, elevation, forest; p = effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(habitat).R")
+  start.time = Sys.time()
+  coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(habitat)_p(effort).txt",
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(coy.bob.hab$summary)
+  which(coy.bob.hab.summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.hab$samples)
+  save(coy.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(habitat)_p(effort).RData")
   
   
