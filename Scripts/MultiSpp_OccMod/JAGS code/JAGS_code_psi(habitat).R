@@ -74,16 +74,52 @@
         lsv[i,4] <- exp(psi12[i])
       
         for(j in 1:nsurveys) {
-          #'  Detection matrix (OS = observation state, TS = true state)
+          #'  Detection matrix (i, j, OS = observation state, TS = true state)
           #'  rdm = rho detection matrix; each row sums to 1
           #'  OS along rows, TS, along columns
           #'  True state = 00
-          
+          rdm[i, j, 1, 1] <- 1  # ----------------------------------- OS = none
+          rdm[i, j, 2, 1] <- 0  # ----------------------------------- OS = Spp1
+          rdm[i, j, 3, 1] <- 0  # ----------------------------------- OS = Spp2
+          rdm[i, j, 4, 1] <- 0  # ----------------------------------- OS = both
+      
           #'  True state = 10
+          rdm[i, j, 1, 2] <- 1  # ----------------------------------- OS = none
+          rdm[i, j, 2, 2] <- exp(rho1[i, j])  # --------------------- OS = Spp1
+          rdm[i, j, 3, 2] <- 0  # ----------------------------------- OS = Spp2
+          rdm[i, j, 4, 2] <- 0  # ----------------------------------- OS = both
       
           #'  True state = 01
+          rdm[i, j, 1, 3] <- 1  # ----------------------------------- OS = none
+          rdm[i, j, 2, 3] <- 0  # ----------------------------------- OS = Spp1
+          rdm[i, j, 3, 3] <- exp(rho2[i, j])  # --------------------- OS = Spp2
+          rdm[i, j, 4, 3] <- 0  # ----------------------------------- OS = both
       
           #'  True state = 11
+          rdm[i, j, 1, 4] <- 1  # ----------------------------------- OS = none
+          rdm[i, j, 2, 4] <- exp(rho12[i, j])  # -------------------- OS = Spp1
+          rdm[i, j, 3, 4] <- exp(rho21[i, j])  # -------------------- OS = Spp2
+          rdm[i, j, 4, 4] <- exp(rho12[i, j] + rho21[i, j])  # ------ OS = both
+        }
+      
+        #'  3. Define linear models for each fundamental parameter that governs the cell probs (lsv & rdm)
+        #'  These are my natural parameters (f1, f2, f12)!
+        #'  Linear models for the occupancy parameters on the logit scale
+        #'  Covariate order: Intercept + Setup + Elevation + Forest
+        psi1[i] <- betaSpp1*psi_covs[i,1] + betaSpp1*psi_covs[i,2] + betaSpp1*psi_covs[i,3] + betaSpp1*psi_covs[i,4]
+        psi2[i] <- betaSpp2*psi_covs[i,1] + betaSpp2*psi_covs[i,2] + betaSpp2*psi_covs[i,3] + betaSpp2*psi_covs[i,4]
+          
+        #'  Linear models for species co-occurrence
+        psi12[i] <- betaSpp12*psi_inxs_covs[i,1] + betaSpp12*psi_inxs_covs[i,2] + betaSpp12*psi_inxs_covs[i,3] + betaSpp12*psi_inxs_covs[i,4]
+      
+        #'  Linear models for detection parameters
+        for(j in 1:nsurveys) {
+          #'  Basesline detection linear predictors: Intercept + Sampling Effort
+          rho1[i, j] <- alphaSpp1*rho_covs[i, j, 1] + alphaSpp1*rho_covs[i, j, 5]
+          rho2[i, j] <- alphaSpp2*rho_covs[i, j, 1] + alphaSpp2*rho_covs[i, j, 5] 
+          #'  Asymetric interaciton between both species (currently just using baseline probabilities but could use rho_inxs_covs)
+          rho12[i, j] <- rho1[i, j]
+          rho21[i, j] <- rho2[i, j]
         }
       }
       
