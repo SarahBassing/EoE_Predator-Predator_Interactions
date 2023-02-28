@@ -21,6 +21,8 @@
       betaSpp2 <- logit(mean.psi2)
       
       #'  First order psi slopes
+      #'  Keep in mind this will generate priors for all nfirst_order_psi covariates 
+      #'  even if don't need them all in the model
       for(fo_psi in 2:nfirst_order_psi) {
         betaSpp1[fo_psi] ~ dnorm(0, 0.001)
         betaSpp2[fo_psi] ~ dnorm(0, 0.001)
@@ -114,23 +116,17 @@
       
         #'  Linear models for detection parameters
         for(j in 1:nsurveys) {
-          #'  Basesline detection linear predictors: Intercept + Sampling Effort
-          rho1[i, j] <- alphaSpp1*rho_covs[i, j, 1] + alphaSpp1*rho_covs[i, j, 5]
-          rho2[i, j] <- alphaSpp2*rho_covs[i, j, 1] + alphaSpp2*rho_covs[i, j, 5] 
+          #'  Basesline detection linear predictors: Intercept + Setup + Sampling Effort
+          rho1[i, j] <- alphaSpp1*rho_covs[i, j, 1] + alphaSpp1*rho_covs[i, j, 3] + alphaSpp1*rho_covs[i, j, 5]
+          rho2[i, j] <- alphaSpp2*rho_covs[i, j, 1] + alphaSpp2*rho_covs[i, j, 3] + alphaSpp2*rho_covs[i, j, 5] 
           #'  Asymetric interaciton between both species (currently just using baseline probabilities but could use rho_inxs_covs)
           rho12[i, j] <- rho1[i, j]
           rho21[i, j] <- rho2[i, j]
         }
       }
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
+      ####  Derived parameters  ####
+      #'  ----------------------
+      #'  TBD
       }
       ")
