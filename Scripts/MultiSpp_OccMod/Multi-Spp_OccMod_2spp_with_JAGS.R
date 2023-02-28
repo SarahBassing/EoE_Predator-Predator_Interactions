@@ -32,9 +32,9 @@
   source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_for_JAGS.R")
   
   
-  #'  -------------------------------
-  ####  Bundle detection histories  ####
-  #'  ------------------------------
+  #'  ----------------------------
+  ####  Pair detection histories  ####
+  #'  ----------------------------
   #'  Combine annual detection histories
   all_detections <- function(dh1, dh2) {
     dh1 <- dh1[[1]]
@@ -51,16 +51,16 @@
     
     return(dh)
   }
-  DH_bear <- all_detections(DH_eoe20s_predators[[1]], DH_eoe20s_predators[[1]])
-  DH_bob <- all_detections(DH_eoe20s_predators[[2]], DH_eoe20s_predators[[2]])
-  DH_coy <- all_detections(DH_eoe20s_predators[[3]], DH_eoe20s_predators[[3]])
-  DH_lion <- all_detections(DH_eoe20s_predators[[4]], DH_eoe20s_predators[[4]])
-  DH_wolf <- all_detections(DH_eoe20s_predators[[5]], DH_eoe20s_predators[[5]])
+  DH_bear <- all_detections(DH_eoe20s_predators[[1]], DH_eoe21s_predators[[1]])
+  DH_bob <- all_detections(DH_eoe20s_predators[[2]], DH_eoe21s_predators[[2]])
+  DH_coy <- all_detections(DH_eoe20s_predators[[3]], DH_eoe21s_predators[[3]])
+  DH_lion <- all_detections(DH_eoe20s_predators[[4]], DH_eoe21s_predators[[4]])
+  DH_wolf <- all_detections(DH_eoe20s_predators[[5]], DH_eoe21s_predators[[5]])
   
-  #'  Bundle species detection histories into an array (site x survey x species)
+  #'  Combine species detection histories into an array (site x survey x species)
   detection_array <- function(spp1, spp2, name1, name2) {
     #'  List detection histories
-    spp12_DH <- list(DH_wolf, DH_bear)
+    spp12_DH <- list(spp1, spp2)
     #'  Name lists based on specific species pairing
     names(spp12_DH) <- c(name1, name2)
     #'  Format list into a 3D array
@@ -68,12 +68,12 @@
     
     return(spp12_array)
   }
-  wolf_bear_DH <- detection_array(DH_wolf, spp2 = DH_bear, name1 = "wolf", name2 = "bear")
-  wolf_coy_DH <- detection_array(DH_wolf, spp2 = DH_coy, name1 = "wolf", name2 = "coyote")
-  wolf_lion_DH <- detection_array(DH_wolf, spp2 = DH_lion, name1 = "wolf", name2 = "lion")
-  lion_bear_DH <- detection_array(DH_lion, spp2 = DH_bear, name1 = "lion", name2 = "bear")
-  lion_bob_DH <- detection_array(DH_lion, spp2 = DH_bob, name1 = "lion", name2 = "bobcat")
-  coy_bob_DH <- detection_array(DH_coy, spp2 = DH_bob, name1 = "coyote", name2 = "bobcat")
+  wolf_bear_DH <- detection_array(spp1 = DH_wolf, spp2 = DH_bear, name1 = "wolf", name2 = "bear")
+  wolf_coy_DH <- detection_array(spp1 = DH_wolf, spp2 = DH_coy, name1 = "wolf", name2 = "coyote")
+  wolf_lion_DH <- detection_array(spp1 = DH_wolf, spp2 = DH_lion, name1 = "wolf", name2 = "lion")
+  lion_bear_DH <- detection_array(spp1 = DH_lion, spp2 = DH_bear, name1 = "lion", name2 = "bear")
+  lion_bob_DH <- detection_array(spp1 = DH_lion, spp2 = DH_bob, name1 = "lion", name2 = "bobcat")
+  coy_bob_DH <- detection_array(spp1 = DH_coy, spp2 = DH_bob, name1 = "coyote", name2 = "bobcat")
   
   #'  List 2-species detection arrays together for faster formatting below
   DH_array_list <- list(wolf_bear_DH, wolf_coy_DH, wolf_lion_DH, lion_bear_DH, lion_bob_DH, coy_bob_DH)
@@ -89,9 +89,10 @@
   #'  Number of possible community states (species interactions): 00, 10, 01, 11
   ncat <- 2^nspecies
   
-  #####  Format Detection Histories  ####
+  #####  Format detection histories  ####
+  #'  --------------------------------
   #'  Function to convert 3D detection array into 2D multi-species detection history
-  detection_state <- function(array_list) {
+  observation_state <- function(array_list) {
     #'  Merge species-specific observations into single 2-species observation state
     #'  (e.g., 00, 01, NANA) for each site and survey occasion
     ycat <- apply(array_list, c(1,2), paste, collapse = "")
@@ -105,11 +106,12 @@
     ycat <- apply(ycat, 2, as.numeric)
     return(ycat)
   }
-  multi_spp_DH_list <- lapply(DH_array_list, detection_state)
+  multi_spp_DH_list <- lapply(DH_array_list, observation_state)
   names(multi_spp_DH_list) <- c("wolf_bear_HD", "wolf_coy_DH", "wolf_lion_DH", 
                                 "lion_bear_DH", "lion_bob_DH", "coy_bob_DH")
   
   #####  Format covariate data  ####
+  #'  ---------------------------
   #'  Format site-level covariates for detection sub-model
   det_covs <- stations_eoe20s21s %>%
     mutate(CameraFacing = as.factor(CameraFacing),
@@ -118,8 +120,8 @@
   table(det_covs[,"CameraFacing"])
   table(det_covs[,"Setup"])
   
-  #'  Matrix for first order occupancy (psi|no second spp): main effects
-  psi_covs <- matrix(NA, ncol = 15, nrow = nsites)
+  ######  First order occupancy (psi|no second spp)  ####
+  psi_covs <- matrix(NA, ncol = 16, nrow = nsites)
   psi_covs[,1] <- 1
   psi_covs[,2] <- det_covs$Setup
   psi_covs[,3] <- stations_eoe20s21s$Elev
@@ -135,19 +137,119 @@
   psi_covs[,13] <- stations_eoe20s21s$logNearestRd
   psi_covs[,14] <- stations_eoe20s21s$Nhuman
   psi_covs[,15] <- stations_eoe20s21s$Nlivestock
+  psi_covs[,16] <- stations_eoe20s21s$NewLocationID
   head(psi_covs)
 
+  ######  Second order occupancy (psi): 2-way interactions  ####
+  psi_inxs_covs <- matrix(NA, ncol = 16, nrow = nsites)
+  psi_inxs_covs[,1] <- 1
+  psi_inxs_covs[,2] <- det_covs$Setup
+  psi_inxs_covs[,3] <- stations_eoe20s21s$Elev
+  psi_inxs_covs[,4] <- stations_eoe20s21s$PercForest
+  psi_inxs_covs[,5] <- stations_eoe20s21s$Nsmall_deer
+  psi_inxs_covs[,6] <- stations_eoe20s21s$Nbig_deer
+  psi_inxs_covs[,7] <- stations_eoe20s21s$Nelk
+  psi_inxs_covs[,8] <- stations_eoe20s21s$Nmoose
+  psi_inxs_covs[,9] <- stations_eoe20s21s$Nmd
+  psi_inxs_covs[,10] <- stations_eoe20s21s$Nwtd
+  psi_inxs_covs[,11] <- stations_eoe20s21s$Nlagomorph
+  psi_inxs_covs[,12] <- stations_eoe20s21s$Dist2Burbs
+  psi_inxs_covs[,13] <- stations_eoe20s21s$logNearestRd
+  psi_inxs_covs[,14] <- stations_eoe20s21s$Nhuman
+  psi_inxs_covs[,15] <- stations_eoe20s21s$Nlivestock
+  psi_inxs_covs[,16] <- stations_eoe20s21s$NewLocationID
+  head(psi_inxs_covs)
+  
+  ######  First order detection (rho|no second spp)  ####
+  rho_covs <- array(NA, dim = c(nsites, nsurveys, 5)) # last digit is number of covariates + intercept
+  rho_covs[,,1] <- 1
+  rho_covs[,,2] <- det_covs$CameraFacing
+  rho_covs[,,3] <- det_covs$Setup
+  rho_covs[,,4] <- det_covs$Height
+  rho_covs[,,5] <- effort_eoe20s21s
+  head(rho_covs)
+  
+  ######  Second order detection (rho): 2-way interactions  ####
+  rho_inxs_covs <- array(NA, dim = c(nsites, nsurveys, 5))
+  rho_inxs_covs[,,1] <- 1
+  rho_inxs_covs[,,2] <- det_covs$CameraFacing
+  rho_inxs_covs[,,3] <- det_covs$Setup
+  rho_inxs_covs[,,4] <- det_covs$Height
+  rho_inxs_covs[,,5] <- effort_eoe20s21s
+  head(rho_inxs_covs)
   
   
+  #'  -----------------------------------
+  ####  Data and MCMC settings for JAGS  ####
+  #'  -----------------------------------
+  #####  Bundle detection history and covariate data  ####
+  #'  -------------------------------------------------
+  #'  Function to bundle detection and covariate data
+  bundle_data <- function(obs_array, psi_covs, psi_inxs, rho_covs, rho_inxs, sites, 
+                          surveys, ncats) {
+    #'  List all data streams together
+    bundled <- list(y = obs_array, psi_covs = psi_covs, psi_inxs_covs = psi_inxs,
+                    rho_covs = rho_covs, rho_inxs_cov = rho_inxs, nsites = sites,
+                    nsurveys = surveys, nfirst_order_psi = ncol(psi_covs),
+                    nsecond_order_psi = ncol(psi_inxs), nfirst_order_rho = dim(rho_covs)[3],
+                    nsecond_order_rho = dim(rho_inxs)[3], ncat = ncats)
+    #'  Summarize to make sure it looks right
+    str(bundled)
+    return(bundled)
+  }
+  #'  Run list of 2-species detection histories through function
+  bundled_pred_list <- lapply(multi_spp_DH_list, bundle_data, psi_covs = psi_covs,
+                              psi_inxs = psi_inxs_covs, rho_covs = rho_covs, 
+                              rho_inxs = rho_inxs_covs, sites = nsites, 
+                              surveys = nsurveys, ncats = ncat)
   
   
-  
-  
-  
+  #####  Initial values for model  ####
+  #'  -----------------------------
+  #'  Naive occupancy for each species at each site (site x spp matrix)
+  initial_z <- function(bundled_dh) {
+    #'  Naive occupancy for each species at each site (site x spp matrix)
+    zinit <- apply(bundled_dh, c(1, 3), sum, na.rm = TRUE)
+    zinit[zinit > 1] <- 1
+    #'  Collapse 2-species detection state into 4 categories
+    zcat <- apply(zinit, 1, paste, collapse = "")
+    zcat[zcat == "00"] <- 1
+    zcat[zcat == "10"] <- 2
+    zcat[zcat == "01"] <- 3
+    zcat[zcat == "11"] <- 4
+    #'  Make z numeric again
+    zcat <- as.numeric(zcat)
     
+    return(zcat)
+  }
+  zinits <- lapply(DH_array_list, initial_z)
+  names(zinits) <- c("wolf_bear_zcat", "wolf_coy_zcat", "wolf_lion_zcat", 
+                     "lion_bear_zcat", "lion_bob_zcat", "coy_bob_zcat")
+  
+  #####  Parameters monitored  ####
+  #'  -------------------------
+  params <- c("betaSpp1", "betaSpp2", "betaSpp12", "alphaSpp1", "alphaSpp2", "alphaSpp12", 
+              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z")
+  
+  #####  MCMC settings  ####
+  #'  ------------------
+  nc <- 3
+  ni <- 50000
+  nb <- 20000
+  nt <- 3
+  na <- 10000
   
   
-  
-  
+  #'  -------------------
+  ####  RUN JAGS MODELS  ####
+  #'  -------------------
+  #'  For each predator pairing:
+  #'    1. set initial values with correct detection data,
+  #'    2. source and run each model in JAGS
+  #'    3. visually inspect traceplots
+  #'    4. review model summary and any parameters that didn't converge well
+  #'    5. save results
+  #'    6. model selection
+
   
   
