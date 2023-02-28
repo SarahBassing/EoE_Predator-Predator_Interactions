@@ -25,10 +25,14 @@
   library(stringr)
   library(tidyverse)
   
-  #'  Load detection histories
+  #'  Load and bind annual detection histories
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
-  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20w_predators.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
+  dh1 <- DH_eoe20s_predators[[1]][[1]]
+  dh2 <- DH_eoe21s_predators[[1]][[1]]
+  newcols <- c("occ1", "occ2", "occ3", "occ4", "occ5", "occ6", "occ7", "occ8", "occ9", "occ10", "occ11")
+  colnames(dh1) <- newcols; colnames(dh2) <- newcols
+  dh <- rbind(dh1, dh2) 
   
   #'  Load camera station and covariate data
   cams_eoe_long <- read.csv("./Data/IDFG camera data/cams_eoe_long.csv") %>%
@@ -141,8 +145,11 @@
     mutate(Lion_mort_km2 = 0)
 
   #'  Double check things are ordered correctly
+  nrow(stations_eoe20s21s); nrow(dh)
   stations_eoe20s21s[82:90,1:4]
-  DH_eoe20s_predators[[1]][[1]][82:90,1:3]
+  dh[82:90,1:3]
+  stations_eoe20s21s[1000:1008,1:4]
+  dh[1000:1008,1:3]
   
   #'  Correlation matrix to check for collinearity among continuous variables
   #'  Note: the species-specific total mortality and area-weighted mortality are 
@@ -171,6 +178,7 @@
   #'  Replace NAs in sampling effort with 0 - these sites truly were not surveyed
   #'  during those sampling occasions so survey really is 0
   count_eoe20s21s_effort <- replace(count_eoe20s21s_effort, is.na(count_eoe20s21s_effort), 0)
+  nrow(count_eoe20s21s_effort)
   
   #'  Scale survey-level covariates
   scale_srvy_cov <- function(time_covs) {
