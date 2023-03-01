@@ -121,62 +121,62 @@
   table(det_covs[,"Setup"])
   
   ######  First order occupancy (psi|no second spp)  ####
-  psi_covs <- matrix(NA, ncol = 16, nrow = nsites)
-  psi_covs[,1] <- 1
-  psi_covs[,2] <- det_covs$Setup
-  psi_covs[,3] <- stations_eoe20s21s$Elev
-  psi_covs[,4] <- stations_eoe20s21s$PercForest
-  psi_covs[,5] <- stations_eoe20s21s$Nsmall_deer
-  psi_covs[,6] <- stations_eoe20s21s$Nbig_deer
-  psi_covs[,7] <- stations_eoe20s21s$Nelk
-  psi_covs[,8] <- stations_eoe20s21s$Nmoose
-  psi_covs[,9] <- stations_eoe20s21s$Nmd
-  psi_covs[,10] <- stations_eoe20s21s$Nwtd
-  psi_covs[,11] <- stations_eoe20s21s$Nlagomorph
-  psi_covs[,12] <- stations_eoe20s21s$Dist2Burbs
-  psi_covs[,13] <- stations_eoe20s21s$logNearestRd
-  psi_covs[,14] <- stations_eoe20s21s$Nhuman
-  psi_covs[,15] <- stations_eoe20s21s$Nlivestock
-  psi_covs[,16] <- stations_eoe20s21s$NewLocationID
-  head(psi_covs)
+  psi_cov <- matrix(NA, ncol = 16, nrow = nsites)
+  psi_cov[,1] <- 1
+  psi_cov[,2] <- det_covs$Setup
+  psi_cov[,3] <- stations_eoe20s21s$Elev
+  psi_cov[,4] <- stations_eoe20s21s$PercForest
+  psi_cov[,5] <- stations_eoe20s21s$Nsmall_deer
+  psi_cov[,6] <- stations_eoe20s21s$Nbig_deer
+  psi_cov[,7] <- stations_eoe20s21s$Nelk
+  psi_cov[,8] <- stations_eoe20s21s$Nmoose
+  psi_cov[,9] <- stations_eoe20s21s$Nmd
+  psi_cov[,10] <- stations_eoe20s21s$Nwtd
+  psi_cov[,11] <- stations_eoe20s21s$Nlagomorph
+  psi_cov[,12] <- stations_eoe20s21s$Dist2Burbs
+  psi_cov[,13] <- stations_eoe20s21s$logNearestRd
+  psi_cov[,14] <- stations_eoe20s21s$Nhuman
+  psi_cov[,15] <- stations_eoe20s21s$Nlivestock
+  psi_cov[,16] <- as.numeric(factor(stations_eoe20s21s$NewLocationID), levels = stations_eoe20s21s$NewLocationID)
+  head(psi_cov)
 
   ######  Second order occupancy (psi): 2-way interactions  ####
-  psi_inxs_covs <- matrix(NA, ncol = 16, nrow = nsites)
-  psi_inxs_covs[,1] <- 1
-  psi_inxs_covs[,2] <- det_covs$Setup
-  psi_inxs_covs[,3] <- stations_eoe20s21s$Elev
-  psi_inxs_covs[,4] <- stations_eoe20s21s$PercForest
-  psi_inxs_covs[,5] <- stations_eoe20s21s$Nsmall_deer
-  psi_inxs_covs[,6] <- stations_eoe20s21s$Nbig_deer
-  psi_inxs_covs[,7] <- stations_eoe20s21s$Nelk
-  psi_inxs_covs[,8] <- stations_eoe20s21s$Nmoose
-  psi_inxs_covs[,9] <- stations_eoe20s21s$Nmd
-  psi_inxs_covs[,10] <- stations_eoe20s21s$Nwtd
-  psi_inxs_covs[,11] <- stations_eoe20s21s$Nlagomorph
-  psi_inxs_covs[,12] <- stations_eoe20s21s$Dist2Burbs
-  psi_inxs_covs[,13] <- stations_eoe20s21s$logNearestRd
-  psi_inxs_covs[,14] <- stations_eoe20s21s$Nhuman
-  psi_inxs_covs[,15] <- stations_eoe20s21s$Nlivestock
-  psi_inxs_covs[,16] <- stations_eoe20s21s$NewLocationID
-  head(psi_inxs_covs)
+  psi_inxs_cov <- matrix(NA, ncol = 16, nrow = nsites)
+  psi_inxs_cov[,1] <- 1
+  psi_inxs_cov[,2] <- det_covs$Setup
+  psi_inxs_cov[,3] <- stations_eoe20s21s$Elev
+  psi_inxs_cov[,4] <- stations_eoe20s21s$PercForest
+  psi_inxs_cov[,5] <- stations_eoe20s21s$Nsmall_deer
+  psi_inxs_cov[,6] <- stations_eoe20s21s$Nbig_deer
+  psi_inxs_cov[,7] <- stations_eoe20s21s$Nelk
+  psi_inxs_cov[,8] <- stations_eoe20s21s$Nmoose
+  psi_inxs_cov[,9] <- stations_eoe20s21s$Nmd
+  psi_inxs_cov[,10] <- stations_eoe20s21s$Nwtd
+  psi_inxs_cov[,11] <- stations_eoe20s21s$Nlagomorph
+  psi_inxs_cov[,12] <- stations_eoe20s21s$Dist2Burbs
+  psi_inxs_cov[,13] <- stations_eoe20s21s$logNearestRd
+  psi_inxs_cov[,14] <- stations_eoe20s21s$Nhuman
+  psi_inxs_cov[,15] <- stations_eoe20s21s$Nlivestock
+  psi_inxs_cov[,16] <- as.numeric(factor(stations_eoe20s21s$NewLocationID), levels = stations_eoe20s21s$NewLocationID)
+  head(psi_inxs_cov)
   
   ######  First order detection (rho|no second spp)  ####
-  rho_covs <- array(NA, dim = c(nsites, nsurveys, 5)) # last digit is number of covariates + intercept
-  rho_covs[,,1] <- 1
-  rho_covs[,,2] <- det_covs$CameraFacing
-  rho_covs[,,3] <- det_covs$Setup
-  rho_covs[,,4] <- det_covs$Height
-  rho_covs[,,5] <- effort_eoe20s21s
-  head(rho_covs)
+  rho_cov <- array(NA, dim = c(nsites, nsurveys, 5)) # last digit is number of covariates + intercept
+  rho_cov[,,1] <- 1
+  rho_cov[,,2] <- det_covs$CameraFacing
+  rho_cov[,,3] <- det_covs$Setup
+  rho_cov[,,4] <- det_covs$Height
+  rho_cov[,,5] <- effort_eoe20s21s
+  head(rho_cov)
   
   ######  Second order detection (rho): 2-way interactions  ####
-  rho_inxs_covs <- array(NA, dim = c(nsites, nsurveys, 5))
-  rho_inxs_covs[,,1] <- 1
-  rho_inxs_covs[,,2] <- det_covs$CameraFacing
-  rho_inxs_covs[,,3] <- det_covs$Setup
-  rho_inxs_covs[,,4] <- det_covs$Height
-  rho_inxs_covs[,,5] <- effort_eoe20s21s
-  head(rho_inxs_covs)
+  rho_inxs_cov <- array(NA, dim = c(nsites, nsurveys, 5))
+  rho_inxs_cov[,,1] <- 1
+  rho_inxs_cov[,,2] <- det_covs$CameraFacing
+  rho_inxs_cov[,,3] <- det_covs$Setup
+  rho_inxs_cov[,,4] <- det_covs$Height
+  rho_inxs_cov[,,5] <- effort_eoe20s21s
+  head(rho_inxs_cov)
   
   
   #'  -----------------------------------
@@ -186,22 +186,26 @@
   #'  -------------------------------------------------
   #'  Function to bundle detection and covariate data
   bundle_data <- function(obs_array, psi_covs, psi_inxs, rho_covs, rho_inxs, 
-                          sites, surveys, ncats) {
-    #'  List all data streams together
-    bundled <- list(y = obs_array, psi_covs = psi_covs, psi_inxs_covs = psi_inxs,
-                    rho_covs = rho_covs, rho_inxs_cov = rho_inxs, nsites = sites,
-                    nsurveys = surveys, nfirst_order_psi = ncol(psi_covs),
-                    nsecond_order_psi = ncol(psi_inxs), nfirst_order_rho = dim(rho_covs)[3],
-                    nsecond_order_rho = dim(rho_inxs)[3], ncat = ncats)
+                          sites, surveys, psi_1order, psi_2order, rho_1order, 
+                          rho_2order, ncats, uniquesites) {
+    #'  list all pieces of data together
+    bundled <- list(y = obs_array, psi_cov = psi_covs, psi_inxs_cov = psi_inxs,
+                    rho_cov = rho_covs, rho_inxs_cov = rho_inxs, nsites = sites,
+                    nsurveys = surveys, nfirst_order_psi = ncol(psi_1order), 
+                    nsecond_order_psi = ncol(psi_2order), 
+                    nfirst_order_rho = dim(rho_1order)[3], 
+                    nsecond_order_rho = rho_2order, ncat = ncats, uniquesites = uniquesites)
     #'  Summarize to make sure it looks right
     str(bundled)
     return(bundled)
   }
-  #'  Run list of 2-species detection histories through function
-  bundled_pred_list <- lapply(multi_spp_DH_list, bundle_data, psi_covs = psi_covs,
-                              psi_inxs = psi_inxs_covs, rho_covs = rho_covs, 
-                              rho_inxs = rho_inxs_covs, sites = nsites, 
-                              surveys = nsurveys, ncats = ncat)
+  bundled_pred_list <- lapply(multi_spp_DH_list, bundle_data, psi_covs = psi_cov, 
+                               psi_inxs = psi_inxs_cov, rho_covs = rho_cov, 
+                               rho_inxs = rho_inxs_cov, sites = nsites, 
+                               surveys = nsurveys, psi_1order = psi_cov, 
+                               psi_2order = psi_inxs_cov, rho_1order = rho_cov, 
+                               rho_2order = 1, ncats = ncat, 
+                               uniquesites = unique(psi_cov[,16])) #rho_inxs_cov
   
   
   #####  Initial values for model  ####
@@ -229,16 +233,21 @@
   #####  Parameters monitored  ####
   #'  -------------------------
   params <- c("betaSpp1", "betaSpp2", "betaSpp12", "alphaSpp1", "alphaSpp2", "alphaSpp12", 
-              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z")
+              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z") # sigma
   
   #####  MCMC settings  ####
   #'  ------------------
-  nc <- 3
-  ni <- 50000
-  nb <- 20000
-  nt <- 3
-  na <- 10000
+  # nc <- 3
+  # ni <- 5000
+  # nb <- 1000
+  # nt <- 5
+  # na <- 500
   
+  nc <- 3
+  ni <- 15000
+  nb <- 5000
+  nt <- 5
+  na <- 1500
   
   #'  -------------------
   ####  RUN JAGS MODELS  ####
@@ -251,20 +260,49 @@
   #'    5. save results
   #'    6. model selection
   
+  ####  Wolf-Coyote Models  ####
+  #'  ----------------------
+  inits.wolf.coy <- function(){list(z = zinits[[2]])}
+  
+  #'  Anthro model: psi & psix = setup, elevation, forest, dist2suburbs, lognearestrd, human, livestock; p = setup, effort
+  source("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_anthro)_p(setup_effort).txt")
+  start.time = Sys.time()
+  wolf.coy.anthro <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_anthro)_p(setup_effort).txt",
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = FALSE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.coy.anthro$summary)
+  which(wolf.coy.anthro$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.anthro$samples)
+  save(wolf.coy.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_anthro)_p(setup_effort).RData")
+  
+  
   ####  Coyote-Bobcat Models  ####
   #'  ------------------------
   inits.coy.bob <- function(){list(z = zinits[[6]])}
   
-  #'  Habitat model: psi = setup, elevation, forest; p = effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(habitat).R")
+  #'  Habitat model: psi = setup, elevation, forest; p = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(habitat)_p(effort)_v2.R")
   start.time = Sys.time()
   coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(habitat)_p(effort).txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(habitat)_p(effort).txt",
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = FALSE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.hab$summary)
-  which(coy.bob.hab.summary[,"Rhat"] > 1.1)
+  which(coy.bob.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.hab$samples)
   save(coy.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(habitat)_p(effort).RData")
+  
+  #'  Prey diversity model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, lagomorph; p = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity)_p(setup_effort).R")
+  start.time = Sys.time()
+  coy.bob.preydiversity <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity)_p(setup_effort).txt",
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = FALSE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(coy.bob.preydiversity$summary)
+  which(coy.bob.preydiversity$summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.preydiversity$samples)
+  save(coy.bob.preydiversity, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preydiversity)_p(setup_effort).RData")
   
   
