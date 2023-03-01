@@ -8,7 +8,7 @@
   #'  basic habitat features influence that relationship.
   #'  ------------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/psi(habitat)_p(effort).txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(habitat)_p(effort).txt', "
       model{
       
       ####  Define priors  ####
@@ -70,10 +70,10 @@
       for(i in 1:nsites) {
         #'  Latent stete probabilities in latent state vector (lsv)
         #'  Probabilities for each state (ncat)
-        lsv[i,1] <- 1
-        lsv[i,2] <- exp(psi1[i])
-        lsv[i,3] <- exp(psi2[i])
-        lsv[i,4] <- exp(psi12[i])
+        lsv[i,1] <- 1  # -------------------------------------------- 00
+        lsv[i,2] <- exp(psi1[i])  # --------------------------------- 10
+        lsv[i,3] <- exp(psi2[i])  # --------------------------------- 01
+        lsv[i,4] <- exp(psi12[i]) # --------------------------------- 11
       
         for(j in 1:nsurveys) {
           #'  Detection matrix (i, j, OS = observation state, TS = true state)
@@ -108,17 +108,17 @@
         #'  These are my natural parameters (f1, f2, f12)!
         #'  Linear models for the occupancy parameters on the logit scale
         #'  Covariate order: Intercept + Setup + Elevation + Forest
-        psi1[i] <- betaSpp1*psi_covs[i,1] + betaSpp1*psi_covs[i,2] + betaSpp1*psi_covs[i,3] + betaSpp1*psi_covs[i,4]
-        psi2[i] <- betaSpp2*psi_covs[i,1] + betaSpp2*psi_covs[i,2] + betaSpp2*psi_covs[i,3] + betaSpp2*psi_covs[i,4]
+        psi1[i] <- betaSpp1[1]*psi_covs[i,1] + betaSpp1[2]*psi_covs[i,2] + betaSpp1[3]*psi_covs[i,3] + betaSpp1[4]*psi_covs[i,4]
+        psi2[i] <- betaSpp2[1]*psi_covs[i,1] + betaSpp2[2]*psi_covs[i,2] + betaSpp2[3]*psi_covs[i,3] + betaSpp2[4]*psi_covs[i,4]
           
         #'  Linear models for species co-occurrence
-        psi12[i] <- betaSpp12*psi_inxs_covs[i,1] + betaSpp12*psi_inxs_covs[i,2] + betaSpp12*psi_inxs_covs[i,3] + betaSpp12*psi_inxs_covs[i,4]
+        psi12[i] <- betaSpp12[1]*psi_inxs_covs[i,1] + betaSpp12[2]*psi_inxs_covs[i,2] + betaSpp12[3]*psi_inxs_covs[i,3] + betaSpp12[4]*psi_inxs_covs[i,4]
       
         #'  Linear models for detection parameters
         for(j in 1:nsurveys) {
           #'  Basesline detection linear predictors: Intercept + Setup + Sampling Effort
-          rho1[i, j] <- alphaSpp1*rho_covs[i, j, 1] + alphaSpp1*rho_covs[i, j, 3] + alphaSpp1*rho_covs[i, j, 5]
-          rho2[i, j] <- alphaSpp2*rho_covs[i, j, 1] + alphaSpp2*rho_covs[i, j, 3] + alphaSpp2*rho_covs[i, j, 5] 
+          rho1[i, j] <- alphaSpp1[1]*rho_covs[i, j, 1] + alphaSpp1[2]*rho_covs[i, j, 3] + alphaSpp1[3]*rho_covs[i, j, 5]
+          rho2[i, j] <- alphaSpp2[1]*rho_covs[i, j, 1] + alphaSpp2[2]*rho_covs[i, j, 3] + alphaSpp2[3]*rho_covs[i, j, 5] 
           #'  Asymetric interaciton between both species (currently just using baseline probabilities but could use rho_inxs_covs)
           rho12[i, j] <- rho1[i, j]
           rho21[i, j] <- rho2[i, j]
