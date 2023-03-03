@@ -26,8 +26,8 @@
             betaSpp2[fo_psi] ~ dnorm(0, 0.1)
           }
     
-          #'  Second order psi priors                   # so occupancy intercepts
-          for(so_psi in 1:nsecond_order_psi){
+          #'  Second order psi priors                   # so occupancy intercepts (nsecond_order_psi)
+          for(so_psi in 1:9){
             betaSpp12[so_psi] ~ dnorm(0, 0.1)
           }
       
@@ -140,4 +140,5 @@
             }
           }
         }
-        ")
+        ", fill=TRUE)
+  sink()
