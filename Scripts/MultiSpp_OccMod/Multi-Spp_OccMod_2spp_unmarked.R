@@ -71,7 +71,7 @@
   #'  small deer = mule & white-tailed deer; lagomorph = hares & rabbits)
   occFormulas_preygroups <- c("~Elev + PercForest + Nbig_deer + Nsmall_deer + Nlagomorph", "~Elev + PercForest + Nbig_deer + Nsmall_deer + Nlagomorph", "~Elev + PercForest + Nbig_deer + Nsmall_deer + Nlagomorph")
   
-  #'  Relative abundance of prey species (captures ful diversity of ungulate prey)
+  #'  Relative abundance of prey species (captures full diversity of ungulate prey)
   occFormulas_preydiversity <- c("~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Nlagomorph", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Nlagomorph", "~Elev + PercForest + Nelk + Nmoose + Nmd + Nwtd + Nlagomorph")
   
   #'  Anthropogenic factors
