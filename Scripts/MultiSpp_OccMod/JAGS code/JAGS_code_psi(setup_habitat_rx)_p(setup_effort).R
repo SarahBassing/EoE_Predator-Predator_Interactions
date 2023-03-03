@@ -21,16 +21,15 @@
           mean.psiSpp1[1] ~ dunif(0, 1)               
           mean.psiSpp2[1] ~ dunif(0, 1)
           
-          for(fo_psi in 2:4){                         # fo occupancy slopes (nfirst_order_psi should go through 16 but want to exclude most)
+          for(fo_psi in 2:4){                         # fo occupancy slopes (nfirst_order_psi)
             betaSpp1[fo_psi] ~ dnorm(0, 0.1)
             betaSpp2[fo_psi] ~ dnorm(0, 0.1)
           }
     
-          #' #'  Second order psi priors                   # so occupancy intercepts
-          #' for(so_psi in 1:nsecond_order_psi){
-          #'   betaSpp12[so_psi] ~ dnorm(0, 0.1)
-          #'   betaSpp13[so_psi] ~ dnorm(0, 0.1)
-          #' }
+          #'  Second order psi priors                   # so occupancy intercepts (nsecond_order_psi)
+          for(so_psi in 1:4){
+            betaSpp12[so_psi] ~ dnorm(0, 0.1)
+          }
       
           #'  First order detection priors (rho)
           alphaSpp1[1] <- logit(mean.pSpp1)           # fo detection intercepts 
@@ -46,14 +45,20 @@
           #'  Second order detection priors (rho)
           #'  none for now
       
-          #'  Random effect for site
-          for(site in 1:uniquesites) {
-            eta[site] ~ dnorm(0, tau)
+          #'  Random effect for site   -------------- do I make separate random effects for each species & interaction? do I put it on detection too?
+          for(site in 1:length(uniquesites)) {
+            etaSpp1[site] ~ dnorm(0, tauSpp1)
+            etaSpp2[site] ~ dnorm(0, tauSpp2)
+            etaSpp12[site] ~ dnorm(0, tauSpp12)
           }
       
           #'  Hyperpriors for random effect
-          sigma ~ dunif(0, 10)
-          tau <- pow(sigma, -2)
+          sigmaSpp1 ~ dunif(0, 10)
+          sigmaSpp2 ~ dunif(0, 10)
+          sigmaSpp12 ~ dunif(0, 10)
+          tauSpp1 <- pow(sigmaSpp1, -2)
+          tauSpp2 <- pow(sigmaSpp2, -2)
+          tauSpp12 <- pow(sigmaSpp12, -2)
               
           
           ####  Define Likelihood  ####
@@ -131,11 +136,11 @@
             
             #'  ...for states Spp1, Spp2, Spp3
             #'  Covariate order: Intercept + Setup + Elevation + Forest
-            psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + eta[psi_cov[i,16]]
-            psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + eta[psi_cov[i,16]]
+            psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + etaSpp1[psi_cov[i,16]]
+            psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + etaSpp2[psi_cov[i,16]]
         
             #'  ...for states Spp12
-            psiSpp12[i] <- 0 #betaSpp12[1]*psi_inxs_cov[i,1] 
+            psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + etaSpp12[psi_cov[i,16]]
         
             #'  Linear models for the detection parameters on the logit scale
             for(j in 1:nsurveys) {
@@ -143,11 +148,12 @@
               rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,2] + alphaSpp1[2]*rho_cov[i,j,3]
               rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,2] + alphaSpp2[2]*rho_cov[i,j,3]
         
-              #'  Asymetric interactirons between all 3 species
+              #'  Asymetric interactions between both species
               #'  Currently forcing interactions to equal detection probs above
               rhoSpp12[i, j] <- rhoSpp1[i, j]
               rhoSpp21[i, j] <- rhoSpp2[i, j]
             }
           }
         }
-        ")
+        ", fill=TRUE)
+  sink()
