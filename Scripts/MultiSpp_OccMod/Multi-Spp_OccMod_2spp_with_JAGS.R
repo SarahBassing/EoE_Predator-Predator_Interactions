@@ -137,7 +137,7 @@
   psi_cov[,13] <- stations_eoe20s21s$logNearestRd
   psi_cov[,14] <- stations_eoe20s21s$Nhuman
   psi_cov[,15] <- stations_eoe20s21s$Nlivestock
-  psi_cov[,16] <- as.numeric(factor(stations_eoe20s21s$NewLocationID), levels = stations_eoe20s21s$NewLocationID)
+  psi_cov[,16] <- stations_eoe20s21s$NewLocationID
   head(psi_cov)
 
   ######  Second order occupancy (psi): 2-way interactions  ####
@@ -157,7 +157,7 @@
   psi_inxs_cov[,13] <- stations_eoe20s21s$logNearestRd
   psi_inxs_cov[,14] <- stations_eoe20s21s$Nhuman
   psi_inxs_cov[,15] <- stations_eoe20s21s$Nlivestock
-  psi_inxs_cov[,16] <- as.numeric(factor(stations_eoe20s21s$NewLocationID), levels = stations_eoe20s21s$NewLocationID)
+  psi_inxs_cov[,16] <- stations_eoe20s21s$NewLocationID
   head(psi_inxs_cov)
   
   ######  First order detection (rho|no second spp)  ####
@@ -194,7 +194,8 @@
                     nsurveys = surveys, nfirst_order_psi = ncol(psi_1order), 
                     nsecond_order_psi = ncol(psi_2order), 
                     nfirst_order_rho = dim(rho_1order)[3], 
-                    nsecond_order_rho = rho_2order, ncat = ncats, uniquesites = uniquesites)
+                    nsecond_order_rho = rho_2order, ncat = ncats, 
+                    uniquesites = as.numeric(factor(uniquesites), levels = uniquesites))
     #'  Summarize to make sure it looks right
     str(bundled)
     return(bundled)
@@ -204,8 +205,8 @@
                                rho_inxs = rho_inxs_cov, sites = nsites, 
                                surveys = nsurveys, psi_1order = psi_cov, 
                                psi_2order = psi_inxs_cov, rho_1order = rho_cov, 
-                               rho_2order = 1, ncats = ncat, 
-                               uniquesites = unique(psi_cov[,16])) #rho_inxs_cov
+                               rho_2order = rho_inxs_cov, ncats = ncat, 
+                               uniquesites = unique(psi_cov[,16])) 
   
   
   #####  Initial values for model  ####
@@ -233,21 +234,22 @@
   #####  Parameters monitored  ####
   #'  -------------------------
   params <- c("betaSpp1", "betaSpp2", "betaSpp12", "alphaSpp1", "alphaSpp2", "alphaSpp12", 
-              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z") # sigma
+              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z") # "alphaSpp12", "alphaSpp21"
+              # "sigmaSpp1", "sigmaSpp2", "sigmaSpp12") # remove sigmas if no random effect
   
   #####  MCMC settings  ####
   #'  ------------------
-  # nc <- 3
-  # ni <- 5000
-  # nb <- 1000
-  # nt <- 5
-  # na <- 500
-  
   nc <- 3
-  ni <- 15000
-  nb <- 5000
+  ni <- 5000
+  nb <- 1000
   nt <- 5
-  na <- 1500
+  na <- 500
+  
+  # nc <- 3
+  # ni <- 15000
+  # nb <- 5000
+  # nt <- 5
+  # na <- 1500
   
   #'  -------------------
   ####  RUN JAGS MODELS  ####
@@ -269,7 +271,7 @@
   start.time = Sys.time()
   wolf.coy.anthro <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_anthro)_p(setup_effort).txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = FALSE)
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.anthro$summary)
   which(wolf.coy.anthro$summary[,"Rhat"] > 1.1)
@@ -282,23 +284,27 @@
   inits.coy.bob <- function(){list(z = zinits[[6]])}
   
   #'  Habitat model: psi = setup, elevation, forest; p = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(habitat)_p(effort)_v2.R")
+  # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(habitat)_p(effort)_v2.R")
+  # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
   start.time = Sys.time()
   coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(habitat)_p(effort).txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = FALSE)
+                      # "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(habitat)_p(effort).txt",
+                      # "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
+                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.hab$summary)
   which(coy.bob.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.hab$samples)
-  save(coy.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(habitat)_p(effort).RData")
+  save(coy.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_habitat_rx)_px(setup_effort).RData") #coybob_psi(setup_habitat_rx)_p(setup_effort) #coybob_psi(habitat)_p(effort).RData
   
   #'  Prey diversity model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, lagomorph; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.preydiversity <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity)_p(setup_effort).txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = FALSE)
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.preydiversity$summary)
   which(coy.bob.preydiversity$summary[,"Rhat"] > 1.1)
