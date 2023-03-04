@@ -122,6 +122,16 @@
     
     return(predicted_probabilities)
   }
+  #####  Wolf-Coyote co-occurrence  ####
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  wolf.coy.preydiversity <- wolf.coy.anthro
+  wolf.coy.elev.pred <- predict_occupancy(mod = wolf.coy.preydiversity, ncat = 4, npoints = 1000,
+                                          focal_cov = stations_skinny_eoe20s21s$Elev,
+                                          psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0, 0), cov_index = 3)
+  wolf.coy.lago.pred <- predict_occupancy(mod = wolf.coy.preydiversity, ncat = 4, npoints = 1000,
+                                          focal_cov = stations_skinny_eoe20s21s$Nlagomorph,
+                                          psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0, 0), cov_index = 9)
+  
   
   #####  Coyote-Bobcat co-occurrence  ####
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_habitat_rx)_px(setup_effort).RData")
@@ -137,71 +147,92 @@
   ####  Plot co-occurrence probabilities  ####
   #'  ------------------------------------
   #'  Function to plot marginal probabilities
-  marginal_prob_plots <- function(focal_cov, npoints, marg, covariate_name, spp1, spp2, plotit = T) {
+  marginal_prob_plots <- function(focal_cov, marg, covariate_name, spp1, spp2, plotit = T) { #npoints, 
     
-    #'  Create range of covariate values to plot
-    r <- range(focal_cov)
-    mean.cov <- mean(focal_cov)
-    sd.cov <- sd(focal_cov)
-    cov.pred.orig <- seq(r[1], r[2], length.out = npoints)
-    #'  Scale new data to be consistent with data used in model
-    cov.pred <- (cov.pred.orig - mean.cov) / sd.cov
-    
+    #' #'  Create range of covariate values to plot
+    #' r <- range(focal_cov)
+    #' mean.cov <- mean(focal_cov)
+    #' sd.cov <- sd(focal_cov)
+    #' cov.pred.orig <- seq(r[1], r[2], length.out = npoints)
+    #' #'  Scale new data to be consistent with data used in model
+    #' cov.pred <- (cov.pred.orig - mean.cov) / sd.cov
+    #' 
     #'  Plot marginal probability for each species
-    matplot(cov.pred.orig, marg[,,"mean"],
+    matplot(focal_cov, marg[,,"mean"],
             type = "l", lty = 1:2, lwd = 3, col = 1:2, frame = FALSE, xlab = covariate_name,
             ylab = "Marginal occupancy probability", ylim = c(0, max(marg[,,"upper"])),
             main = paste("Marginal Occupancy for", spp1, "and", spp2))
     #'  Add CRIs
     for(i in 1:2) {
-      polygon(c(cov.pred.orig, rev(cov.pred.orig)), c(marg[,i,"lower"], rev(marg[,i,"upper"])),
+      polygon(c(focal_cov, rev(focal_cov)), c(marg[,i,"lower"], rev(marg[,i,"upper"])),
               border = NA, col = adjustcolor(i, alpha = 0.2))
     }
     legend("bottom", c(spp1, spp2), lwd = 3, lty = 1:2, col = 1:2, horiz = TRUE, bty = "n")
   }
-  marginal_prob_plots(focal_cov = stations_skinny_eoe20s21s$Elev, npoints = 1000,
-                      marg = coy.bob.elev.pred[[1]],
-                      covariate_name = "Elevation (m)", spp1 = "Coyote", spp2 = "Bobcat")
-  
-  
+  #####  Wolf-Coyote marginal occupancy  ####
+  marginal_prob_plots(focal_cov = wolf.coy.elev.pred[[3]], #stations_skinny_eoe20s21s$Elev, npoints = 1000,
+                      marg = wolf.coy.elev.pred[[1]], covariate_name = "Elevation (m)", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  marginal_prob_plots(focal_cov = wolf.coy.lago.pred[[3]], #stations_skinny_eoe20s21s$Nlagomorph, npoints = 1000,
+                      marg = wolf.coy.lago.pred[[1]], covariate_name = "Lagomorph activity", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  #####  Coyote-Bobcat marginal occupancy  ####
+  marginal_prob_plots(focal_cov = coy.bob.elev.pred[[3]], #stations_skinny_eoe20s21s$Elev, npoints = 1000,
+                      marg = coy.bob.elev.pred[[1]], covariate_name = "Elevation (m)", 
+                      spp1 = "Coyote", spp2 = "Bobcat")
+  marginal_prob_plots(focal_cov = coy.bob.forest.pred[[3]], #stations_skinny_eoe20s21s$PercForest, npoints = 1000,
+                      marg = coy.bob.forest.pred[[1]], covariate_name = "Percent forest", 
+                      spp1 = "Coyote", spp2 = "Bobcat")
   
   
   #'  Function to plot conditional probabilities
-  conditional_prob_plot <- function(focal_cov, npoints, cond, covariate_name, spp1, spp2, plotit = T) {
+  conditional_prob_plot <- function(focal_cov, cond, covariate_name, spp1, spp2, plotit = T) { #npoints, 
     
-    #'  Create range of covariate values to plot
-    r <- range(focal_cov)
-    mean.cov <- mean(focal_cov)
-    sd.cov <- sd(focal_cov)
-    cov.pred.orig <- seq(r[1], r[2], length.out = npoints)
-    #'  Scale new data to be consistent with data used in model
-    cov.pred <- (cov.pred.orig - mean.cov) / sd.cov
+    #' #'  Create range of covariate values to plot
+    #' r <- range(focal_cov)
+    #' mean.cov <- mean(focal_cov)
+    #' sd.cov <- sd(focal_cov)
+    #' cov.pred.orig <- seq(r[1], r[2], length.out = npoints)
+    #' #'  Scale new data to be consistent with data used in model
+    #' cov.pred <- (cov.pred.orig - mean.cov) / sd.cov
     
     #'  Plot conditional probabilities of occupancy
     op <- par(mfrow = c(1,2))
-    matplot(cov.pred.orig, cond[,1:2,"mean"],
+    matplot(focal_cov, cond[,1:2,"mean"],
             type = "l", lty = 1:2, lwd = 3, col = 1:2, frame = FALSE,
             xlab = covariate_name, ylab = "Occupancy probability",
             ylim = c(0, 1), main = spp1)
     for(i in 1:2){
-      polygon(c(cov.pred.orig, rev(cov.pred.orig)), c(cond[,i,"lower"], rev(cond[,i,"upper"])),
+      polygon(c(focal_cov, rev(focal_cov)), c(cond[,i,"lower"], rev(cond[,i,"upper"])),
               border = NA, col = adjustcolor(i, alpha = 0.2))
     }
     legend("bottomright", c("alone", paste("given", spp2)), lwd = 3, lty = 1:3, col = 1:3, bty = 'n', cex = 1.5)
     
-    matplot(cov.pred.orig, cond[,3:4,"mean"],
+    matplot(focal_cov, cond[,3:4,"mean"],
             type = "l", lty = 1:2, lwd = 3, col = 1:2, frame = FALSE,
             xlab = covariate_name, ylab = "Occupancy probability",
             ylim = c(0, 1), main = spp2)
     for(i in 1:2){
-      polygon(c(cov.pred.orig, rev(cov.pred.orig)), c(cond[,i+2,"lower"], rev(cond[,i+2,"upper"])),
+      polygon(c(focal_cov, rev(focal_cov)), c(cond[,i+2,"lower"], rev(cond[,i+2,"upper"])),
               border = NA, col = adjustcolor(i, alpha = 0.2))
     }
     legend("bottomright", c("alone", paste("given", spp1)), lwd = 3, lty = 1:3, col = 1:3, bty = 'n', cex = 1.5)
     par(op)
   }
-  conditional_prob_plot(focal_cov = stations_skinny_eoe20s21s$Elev, npoints = 1000,
-                        covariate_name = "Percent Forest Cover", cond = coy.bob.elev.pred[[2]],
+  #####  Wolf-Coyote conditional occupancy  ####
+  conditional_prob_plot(focal_cov = wolf.coy.elev.pred[[3]], #stations_skinny_eoe20s21s$Elev, npoints = 1000,
+                        covariate_name = "Elevation", cond = wolf.coy.elev.pred[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  conditional_prob_plot(focal_cov = wolf.coy.lago.pred[[3]], #stations_skinny_eoe20s21s$Nlagomorph, npoints = 1000,
+                        covariate_name = "Lagomorph activity", cond = wolf.coy.lago.pred[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  
+  #####  Coyote-Bobcat conditional occupancy  ####
+  conditional_prob_plot(focal_cov = stations_skinny_eoe20s21s$Elev, #npoints = 1000,
+                        covariate_name = "Elevation", cond = coy.bob.elev.pred[[2]],
+                        spp1 = "coyote", spp2 = "bobcat")
+  conditional_prob_plot(focal_cov = stations_skinny_eoe20s21s$PercForest, #npoints = 1000,
+                        covariate_name = "Percent Forest Cover", cond = coy.bob.forest.pred[[2]],
                         spp1 = "coyote", spp2 = "bobcat")
   
   
