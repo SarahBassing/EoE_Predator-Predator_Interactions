@@ -207,6 +207,7 @@
                                psi_2order = psi_inxs_cov, rho_1order = rho_cov, 
                                rho_2order = rho_inxs_cov, ncats = ncat, 
                                uniquesites = unique(psi_cov[,16])) 
+  save(bundled_pred_list, file = "./Data/MultiSpp_OccMod_Outputs/bundled_predator_data_list.RData")
   
   
   #####  Initial values for model  ####
@@ -233,23 +234,23 @@
   
   #####  Parameters monitored  ####
   #'  -------------------------
-  params <- c("betaSpp1", "betaSpp2", "betaSpp12", "alphaSpp1", "alphaSpp2", "alphaSpp12", 
-              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z") # "alphaSpp12", "alphaSpp21"
-              # "sigmaSpp1", "sigmaSpp2", "sigmaSpp12") # remove sigmas if no random effect
+  params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", #"alphaSpp12", "alphaSpp21",
+              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z", "sigma") 
+              #"sigmaSpp1", "sigmaSpp2", "sigmaSpp12") # remove sigmas if no random effect
   
   #####  MCMC settings  ####
   #'  ------------------
-  nc <- 3
-  ni <- 5000
-  nb <- 1000
-  nt <- 5
-  na <- 500
-  
   # nc <- 3
-  # ni <- 15000
-  # nb <- 5000
+  # ni <- 5000
+  # nb <- 1000
   # nt <- 5
-  # na <- 1500
+  # na <- 500
+  
+  nc <- 3
+  ni <- 20000
+  nb <- 10000
+  nt <- 1
+  na <- 1000
   
   #'  -------------------
   ####  RUN JAGS MODELS  ####
@@ -266,17 +267,17 @@
   #'  ----------------------
   inits.wolf.coy <- function(){list(z = zinits[[2]])}
   
-  #'  Anthro model: psi & psix = setup, elevation, forest, dist2suburbs, lognearestrd, human, livestock; p = setup, effort
-  source("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_anthro)_p(setup_effort).txt")
+  #'  Prey diversity model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, lagomorph; p = setup, effort, and interaction term
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).R")
   start.time = Sys.time()
-  wolf.coy.anthro <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_anthro)_p(setup_effort).txt",
+  wolf.coy.preydiversity <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).txt",
                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.coy.anthro$summary)
-  which(wolf.coy.anthro$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.coy.anthro$samples)
-  save(wolf.coy.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_anthro)_p(setup_effort).RData")
+  print(wolf.coy.preydiversity$summary)
+  which(wolf.coy.preydiversity$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.preydiversity$samples)
+  save(wolf.coy.preydiversity, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preydiversity_rx)_px(setup_effort).RData")
   
   
   ####  Coyote-Bobcat Models  ####
@@ -299,7 +300,7 @@
   mcmcplot(coy.bob.hab$samples)
   save(coy.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_habitat_rx)_px(setup_effort).RData") #coybob_psi(setup_habitat_rx)_p(setup_effort) #coybob_psi(habitat)_p(effort).RData
   
-  #'  Prey diversity model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, lagomorph; p = setup, effort
+  #'  Prey diversity model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, lagomorph; p = setup, effort, and interaction term
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.preydiversity <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
