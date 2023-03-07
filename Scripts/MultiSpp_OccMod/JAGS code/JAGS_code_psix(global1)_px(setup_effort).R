@@ -132,8 +132,8 @@
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
             #'  Intercept + Setup + Sampling Effort
-            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,2] + alphaSpp1[2]*rho_cov[i,j,3]
-            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,2] + alphaSpp2[2]*rho_cov[i,j,3]
+            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5]
+            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5]
           
             #'  Asymetric interactirons between all 3 species
             #'  Currently forcing interactions to equal detection probs above
