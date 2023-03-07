@@ -151,13 +151,13 @@
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
             #'  Intercept + Setup + Sampling Effort
-            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,2] + alphaSpp1[2]*rho_cov[i,j,3]
-            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,2] + alphaSpp2[2]*rho_cov[i,j,3]
+            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5]
+            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5]
         
             #'  Asymetric interactirons between all 3 species
             #'  Currently forcing interactions to equal detection probs above
-            rhoSpp12[i, j] <- rhoSpp1[i, j] #+ alphaSpp12[1]*rho_inxs_cov[i,j,1] + alphaSpp12[2]*rho_inxs_cov[i,j,2] + alphaSpp12[3]*rho_inxs_cov[i,j,3]
-            rhoSpp21[i, j] <- rhoSpp2[i, j] #+ alphaSpp21[1]*rho_inxs_cov[i,j,1] + alphaSpp21[2]*rho_inxs_cov[i,j,2] + alphaSpp21[3]*rho_inxs_cov[i,j,3]
+            rhoSpp12[i, j] <- rhoSpp1[i, j] #+ alphaSpp12[1]*rho_inxs_cov[i,j,1] + alphaSpp12[2]*rho_inxs_cov[i,j,3] + alphaSpp12[3]*rho_inxs_cov[i,j,5]
+            rhoSpp21[i, j] <- rhoSpp2[i, j] #+ alphaSpp21[1]*rho_inxs_cov[i,j,1] + alphaSpp21[2]*rho_inxs_cov[i,j,3] + alphaSpp21[3]*rho_inxs_cov[i,j,5]
           }
         }
       }
