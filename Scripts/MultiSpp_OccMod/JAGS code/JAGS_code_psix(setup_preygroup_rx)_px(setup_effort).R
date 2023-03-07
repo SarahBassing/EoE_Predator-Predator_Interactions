@@ -48,14 +48,17 @@
           alphaSpp21[so_rho] ~ dnorm(0, 0.1)
         }
           
-        #' #'  Random effect for site   -------------- do I make separate random effects for each species & interaction? do I put it on detection too?
-        #' for(site in 1:length(uniquesites)) {
+        #'  Random effect for site   -------------- do I make separate random effects for each species & interaction? do I put it on detection too?
+        for(site in 1:length(uniquesites)) {
+          eta[site] ~ dnorm(0, tau)
         #'   etaSpp1[site] ~ dnorm(0, tauSpp1)
         #'   etaSpp2[site] ~ dnorm(0, tauSpp2)
         #'   etaSpp12[site] ~ dnorm(0, tauSpp12)
-        #' }
-        #' 
-        #' #'  Hyperpriors for random effect
+        }
+         
+        #'  Hyperpriors for random effect
+        sigma ~ dunif(0, 10)
+        tau <- pow(sigma, -2)
         #' sigmaSpp1 ~ dunif(0, 10)
         #' sigmaSpp2 ~ dunif(0, 10)
         #' sigmaSpp12 ~ dunif(0, 10)
@@ -139,23 +142,24 @@
                 
           #'  ...for states Spp1, Spp2, Spp3
           #'  Covariate order: Intercept + Setup + Elevation + Forest + SmallDeer + BigDeer + Lagomorph
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,5] + betaSpp1[6]*psi_cov[i,6] + betaSpp1[7]*psi_cov[i,11] #+ etaSpp1[psi_cov[i,16]]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] + betaSpp2[6]*psi_cov[i,6] + betaSpp2[7]*psi_cov[i,11] #+ etaSpp2[psi_cov[i,16]]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,5] + betaSpp1[6]*psi_cov[i,6] + betaSpp1[7]*psi_cov[i,11] + eta[psi_cov[i,16]] #+ etaSpp1[psi_cov[i,16]]
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] + betaSpp2[6]*psi_cov[i,6] + betaSpp2[7]*psi_cov[i,11] + eta[psi_cov[i,16]] #+ etaSpp2[psi_cov[i,16]]
             
           #'  ...for states Spp12
-          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,5] + betaSpp12[6]*psi_inxs_cov[i,6] + betaSpp12[7]*psi_inxs_cov[i,11] #+ etaSpp12[psi_inxs_cov[i,16]]
+          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,5] + betaSpp12[6]*psi_inxs_cov[i,6] + betaSpp12[7]*psi_inxs_cov[i,11] + eta[psi_inxs_cov[i,16]] #+ etaSpp12[psi_inxs_cov[i,16]]
             
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
             #'  Intercept + Setup + Sampling Effort
-            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,2] + alphaSpp1[2]*rho_cov[i,j,3]
-            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,2] + alphaSpp2[2]*rho_cov[i,j,3]
+            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5]
+            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5]
             
             #'  Asymetric interactions between both species
             #'  Intercept + Setup + Sampling Effort
-            rhoSpp12[i, j] <- rhoSpp1[i, j] + alphaSpp12[1]*rho_inxs_cov[i,j,1] + alphaSpp12[2]*rho_inxs_cov[i,j,2] + alphaSpp12[3]*rho_inxs_cov[i,j,3]
-            rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21[1]*rho_inxs_cov[i,j,1] + alphaSpp21[2]*rho_inxs_cov[i,j,2] + alphaSpp21[3]*rho_inxs_cov[i,j,3]
+            rhoSpp12[i, j] <- rhoSpp1[i, j] #+ alphaSpp12[1]*rho_inxs_cov[i,j,1] + alphaSpp12[2]*rho_inxs_cov[i,j,3] + alphaSpp12[3]*rho_inxs_cov[i,j,5]
+            rhoSpp21[i, j] <- rhoSpp2[i, j] #+ alphaSpp21[1]*rho_inxs_cov[i,j,1] + alphaSpp21[2]*rho_inxs_cov[i,j,3] + alphaSpp21[3]*rho_inxs_cov[i,j,5]
           }
         }
       }
       ", fill=TRUE)
+  sink()
