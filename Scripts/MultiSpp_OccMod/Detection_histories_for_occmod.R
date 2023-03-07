@@ -231,26 +231,15 @@
   rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 147, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
   DH_eoe21s_predators <- lapply(spp_smr, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_eoe21s, oc = 11)
     
-  #' #'  Save seasonal detection histories
-  #' save(DH_eoe20s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
-  #' save(DH_eoe20w_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20w_predators.RData")
-  #' save(DH_eoe21s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
-  
-
+   
+  #'  -----------------------
+  ####  Max Count of Wolves  ####
+  #'  -----------------------
   #'  Count number of wolf detections per sampling occasion
   count_eoe20s_wolf <- DH(spp = "wolf", dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-07-01", y = "count", rm_rows = rm_rows_eoe20s,oc = 11)  
   count_eoe20w_wolf <- DH(spp = "wolf", dets = eoe20w_det_events, cam_probs = eoe20w_probs, start_date = "2020-12-01", y = "count", rm_rows = rm_rows_eoe20w,oc = 9)  
   count_eoe21s_wolf <- DH(spp = "wolf", dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "count", rm_rows = rm_rows_eoe21s, oc = 11)
   
-  #' #'  Save seasonal wolf detection data
-  #' save(count_eoe20s_wolf, file = "./Data/Wolf count data/count_eoe20s_wolf.RData")
-  #' save(count_eoe20w_wolf, file = "./Data/Wolf count data/count_eoe20w_wolf.RData")
-  #' save(count_eoe21s_wolf, file = "./Data/Wolf count data/count_eoe21s_wolf.RData")
-  
-  
-  #'  -----------------------
-  ####  Max Count of Wolves  ####
-  #'  -----------------------
   #'  Count maximum number of wolves detected in a single image per detection event
   #'  at each camera, then find the average to represent the average minimum group
   #'  size detected at each camera
@@ -287,13 +276,10 @@
   min_group_size_eoe20w <- avg_min_group_size(eoe20w_dets, stations = eoe_probcams_20w, elapsed_time = 300)
   min_group_size_eoe21s <- avg_min_group_size(eoe21s_dets, stations = eoe_probcams_21s, elapsed_time = 300)
   
-  #' #'  Save minimum group size counts
-  #' save(min_group_size_eoe20s, file = "./Data/Wolf count data/min_group_size_eoe20s.RData")
-  #' save(min_group_size_eoe20w, file = "./Data/Wolf count data/min_group_size_eoe20w.RData")
-  #' save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
   
-  
+  #'  -------------------
   ####  Sampling effort  ####
+  #'  -------------------
   #'  Count number of operational days and hours per camera
   sampling_effort <- function(dh) {
     #' Number of days per sampling occasion each camera was operational
@@ -316,7 +302,23 @@
     mutate(ndays = rowSums(.[2:10], na.rm = T),
            nhrs = ndays*24) 
   
-  #' #' Save sampling effort
+  
+  #' #'  --------
+  #' ####  SAVE  ####
+  #' #'  --------
+  #' #'  Seasonal detection histories
+  #' save(DH_eoe20s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
+  #' save(DH_eoe20w_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20w_predators.RData")
+  #' save(DH_eoe21s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
+  #' #'  Seasonal wolf detection data
+  #' save(count_eoe20s_wolf, file = "./Data/Wolf count data/count_eoe20s_wolf.RData")
+  #' save(count_eoe20w_wolf, file = "./Data/Wolf count data/count_eoe20w_wolf.RData")
+  #' save(count_eoe21s_wolf, file = "./Data/Wolf count data/count_eoe21s_wolf.RData")
+  #' #'  Minimum group size counts
+  #' save(min_group_size_eoe20s, file = "./Data/Wolf count data/min_group_size_eoe20s.RData")
+  #' save(min_group_size_eoe20w, file = "./Data/Wolf count data/min_group_size_eoe20w.RData")
+  #' save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
+  #' #' Sampling effort
   #' save(effort_20s, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
   #' save(effort_20w, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20w.RData")
   #' save(effort_21s, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData")
