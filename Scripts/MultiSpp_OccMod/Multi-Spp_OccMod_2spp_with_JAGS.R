@@ -107,7 +107,7 @@
     return(ycat)
   }
   multi_spp_DH_list <- lapply(DH_array_list, observation_state)
-  names(multi_spp_DH_list) <- c("wolf_bear_HD", "wolf_coy_DH", "wolf_lion_DH", 
+  names(multi_spp_DH_list) <- c("wolf_bear_DH", "wolf_coy_DH", "wolf_lion_DH", 
                                 "lion_bear_DH", "lion_bob_DH", "coy_bob_DH")
   
   #####  Format covariate data  ####
@@ -194,7 +194,7 @@
                     nsurveys = surveys, nfirst_order_psi = ncol(psi_1order), 
                     nsecond_order_psi = ncol(psi_2order), 
                     nfirst_order_rho = dim(rho_1order)[3], 
-                    nsecond_order_rho = rho_2order, ncat = ncats, 
+                    nsecond_order_rho = dim(rho_2order)[3], ncat = ncats, #rho_2order
                     uniquesites = as.numeric(factor(uniquesites), levels = uniquesites))
     #'  Summarize to make sure it looks right
     str(bundled)
@@ -247,10 +247,10 @@
   # na <- 500
   
   nc <- 3
-  ni <- 20000
-  nb <- 10000
+  ni <- 25000
+  nb <- 15000
   nt <- 1
-  na <- 1000
+  na <- 5000
   
   #'  -------------------
   ####  RUN JAGS MODELS  ####
@@ -266,6 +266,30 @@
   ####  Wolf-Coyote Models  ####
   #'  ----------------------
   inits.wolf.coy <- function(){list(z = zinits[[2]])}
+  
+  #'  Habitat model: psi & psix = setup, elevation, forest; p = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  start.time = Sys.time()
+  wolf.coy.hab <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                                 "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+                                 n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.coy.hab$summary)
+  which(wolf.coy.hab$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.hab$samples)
+  save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_habitat_rx)_px(setup_effort).RData")
+  
+  #'  Prey groups model: psi & psix = setup, elevation, forest, small deer, big deer, lagomorph; p = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort).R")
+  start.time = Sys.time()
+  wolf.coy.preygroup <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort).txt",
+                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.coy.preygroup$summary)
+  which(wolf.coy.preygroup$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.preygroup$samples)
+  save(wolf.coy.preygroup, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preygroup_rx)_px(setup_effort).RData")
   
   #'  Prey diversity model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, lagomorph; p = setup, effort, and interaction term
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).R")
