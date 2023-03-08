@@ -207,7 +207,7 @@
                                psi_2order = psi_inxs_cov, rho_1order = rho_cov, 
                                rho_2order = rho_inxs_cov, ncats = ncat, 
                                uniquesites = unique(psi_cov[,16])) 
-  save(bundled_pred_list, file = "./Data/MultiSpp_OccMod_Outputs/bundled_predator_data_list.RData")
+  # save(bundled_pred_list, file = "./Data/MultiSpp_OccMod_Outputs/bundled_predator_data_list.RData")
   
   
   #####  Initial values for model  ####
@@ -262,6 +262,24 @@
   #'    4. review model summary and any parameters that didn't converge well
   #'    5. save results
   #'    6. model selection
+  
+  ####  Wolf-Lion Models  ####
+  #'  ----------------------
+  inits.wolf.lion <- function(){list(z = zinits[[3]])}
+  
+  #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human, livestock; px = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  start.time = Sys.time()
+  wolf.lion.anthro <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.anthro$summary)
+  which(wolf.lion.anthro$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.anthro$samples)
+  save(wolf.lion.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_anthro_rx)_px(setup_effort).RData")
+  
+  
   
   ####  Wolf-Coyote Models  ####
   #'  ----------------------
