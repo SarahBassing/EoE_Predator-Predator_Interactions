@@ -1,5 +1,5 @@
   #'  ---------------------------------
-  #'  Calculate CPO for model seleciton
+  #'  Calculate CPO for model selection
   #'  ---------------------------------
   #'  Attempt at calculating CPO based on code written by Mason Fidino
   #'  https://github.com/mfidino/dcom/blob/master/calculate_cpo.R
