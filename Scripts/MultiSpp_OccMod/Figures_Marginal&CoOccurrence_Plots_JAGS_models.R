@@ -123,24 +123,77 @@
     return(predicted_probabilities)
   }
   #####  Wolf-Coyote co-occurrence  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preydiversity_rx)_px(setup_effort).RData")
-  wolf.coy.preydiversity <- wolf.coy.anthro
-  wolf.coy.elev.pred <- predict_occupancy(mod = wolf.coy.preydiversity, ncat = 4, npoints = 1000,
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preygroup_rx)_px(setup_effort).RData") 
+  wolf.coy.smdeer.pred1 <- predict_occupancy(mod = wolf.coy.preygroup, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$Nsmall_deer,
+                                             psi_cov = c(1, 1, 0, 0, 0, 0, 0), cov_index = 5)
+  wolf.coy.bgdeer.pred1 <- predict_occupancy(mod = wolf.coy.preygroup, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$Nbig_deer,
+                                             psi_cov = c(1, 1, 0, 0, 0, 0, 0), cov_index = 6)
+  wolf.coy.smdeer.pred0 <- predict_occupancy(mod = wolf.coy.preygroup, ncat = 4, npoints = 500,
+                                           focal_cov = stations_skinny_eoe20s21s$Nsmall_deer,
+                                           psi_cov = c(1, 0, 0, 0, 0, 0, 0), cov_index = 5)
+  wolf.coy.bgdeer.pred0 <- predict_occupancy(mod = wolf.coy.preygroup, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$Nbig_deer,
+                                             psi_cov = c(1, 0, 0, 0, 0, 0, 0), cov_index = 6)
+  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_anthro_rx)_px(setup_effort).RData")
+  # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_anthro_rx)_px(setup_effort)_predatorcams_only.RData")
+  wolf.coy.elev.pred1 <- predict_occupancy(mod = wolf.coy.anthro, ncat = 4, npoints = 500,
                                           focal_cov = stations_skinny_eoe20s21s$Elev,
-                                          psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0, 0), cov_index = 3)
-  wolf.coy.lago.pred <- predict_occupancy(mod = wolf.coy.preydiversity, ncat = 4, npoints = 1000,
-                                          focal_cov = stations_skinny_eoe20s21s$Nlagomorph,
-                                          psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0, 0), cov_index = 9)
+                                          psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0), cov_index = 3)
+  wolf.coy.distrd.pred1 <- predict_occupancy(mod = wolf.coy.anthro, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$logNearestRd,
+                                          psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0), cov_index = 6)
+  wolf.coy.cattle.pred1 <- predict_occupancy(mod = wolf.coy.anthro, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Nlivestock,
+                                          psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0), cov_index = 8)
+  wolf.coy.elev.pred0 <- predict_occupancy(mod = wolf.coy.anthro, ncat = 4, npoints = 500,
+                                           focal_cov = stations_skinny_eoe20s21s$Elev,
+                                           psi_cov = c(1, 0, 0, 0, 0, 0, 0, 0), cov_index = 3)
+  wolf.coy.distrd.pred0 <- predict_occupancy(mod = wolf.coy.anthro, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$logNearestRd,
+                                             psi_cov = c(1, 0, 0, 0, 0, 0, 0, 0), cov_index = 6)
+  wolf.coy.cattle.pred0 <- predict_occupancy(mod = wolf.coy.anthro, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$Nlivestock,
+                                             psi_cov = c(1, 0, 0, 0, 0, 0, 0, 0), cov_index = 8)
+  
+  #####  Wolf-Lion co-occurrence  ####
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_anthro_rx)_px(setup_effort).RData")
+  wolf.lion.elev.pred1 <- predict_occupancy(mod = wolf.lion.anthro, ncat = 4, npoints = 500,
+                                           focal_cov = stations_skinny_eoe20s21s$Elev,
+                                           psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0), cov_index = 3)
+  wolf.lion.distrd.pred1 <- predict_occupancy(mod = wolf.lion.anthro, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$logNearestRd,
+                                             psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0), cov_index = 6)
+  wolf.lion.cattle.pred1 <- predict_occupancy(mod = wolf.lion.anthro, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$Nlivestock,
+                                             psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0), cov_index = 8)
+  wolf.lion.elev.pred0 <- predict_occupancy(mod = wolf.lion.anthro, ncat = 4, npoints = 500,
+                                           focal_cov = stations_skinny_eoe20s21s$Elev,
+                                           psi_cov = c(1, 0, 0, 0, 0, 0, 0, 0), cov_index = 3)
+  wolf.lion.distrd.pred0 <- predict_occupancy(mod = wolf.lion.anthro, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$logNearestRd,
+                                             psi_cov = c(1, 0, 0, 0, 0, 0, 0, 0), cov_index = 6)
+  wolf.lion.cattle.pred0 <- predict_occupancy(mod = wolf.lion.anthro, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$Nlivestock,
+                                             psi_cov = c(1, 0, 0, 0, 0, 0, 0, 0), cov_index = 8)
   
   
   #####  Coyote-Bobcat co-occurrence  ####
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_habitat_rx)_px(setup_effort).RData")
-  coy.bob.elev.pred <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 1000,
+  coy.bob.elev.pred1 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
                                          focal_cov = stations_skinny_eoe20s21s$Elev,
                                          psi_cov = c(1, 1, 0, 0), cov_index = 3)
-  coy.bob.forest.pred <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 1000,
+  coy.bob.forest.pred1 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
                                            focal_cov = stations_skinny_eoe20s21s$PercForest,
                                            psi_cov = c(1, 1, 0, 0), cov_index = 4)
+  coy.bob.elev.pred0 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Elev,
+                                          psi_cov = c(1, 0, 0, 0), cov_index = 3)
+  coy.bob.forest.pred0 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
+                                            focal_cov = stations_skinny_eoe20s21s$PercForest,
+                                            psi_cov = c(1, 0, 0, 0), cov_index = 4)
   
   
   
@@ -148,15 +201,6 @@
   #'  ------------------------------------
   #'  Function to plot marginal probabilities
   marginal_prob_plots <- function(focal_cov, marg, covariate_name, spp1, spp2, plotit = T) { #npoints, 
-    
-    #' #'  Create range of covariate values to plot
-    #' r <- range(focal_cov)
-    #' mean.cov <- mean(focal_cov)
-    #' sd.cov <- sd(focal_cov)
-    #' cov.pred.orig <- seq(r[1], r[2], length.out = npoints)
-    #' #'  Scale new data to be consistent with data used in model
-    #' cov.pred <- (cov.pred.orig - mean.cov) / sd.cov
-    #' 
     #'  Plot marginal probability for each species
     matplot(focal_cov, marg[,,"mean"],
             type = "l", lty = 1:2, lwd = 3, col = 1:2, frame = FALSE, xlab = covariate_name,
@@ -169,33 +213,79 @@
     }
     legend("bottom", c(spp1, spp2), lwd = 3, lty = 1:2, col = 1:2, horiz = TRUE, bty = "n")
   }
+  #####  Wolf-Lion marginal occupancy  ####
+  #'  Anthropogenic model
+  marginal_prob_plots(focal_cov = wolf.lion.elev.pred1[[3]], 
+                      marg = wolf.lion.elev.pred1[[1]], covariate_name = "Elevation (m)", 
+                      spp1 = "Wolf", spp2 = "Lion")
+  marginal_prob_plots(focal_cov = wolf.lion.distrd.pred1[[3]], 
+                      marg = wolf.lion.distrd.pred1[[1]], covariate_name = "log distance to neareast road", 
+                      spp1 = "Wolf", spp2 = "Lion")
+  marginal_prob_plots(focal_cov = wolf.lion.cattle.pred1[[3]], 
+                      marg = wolf.lion.cattle.pred1[[1]], covariate_name = "Cattle activity", 
+                      spp1 = "Wolf", spp2 = "Lion")
+  marginal_prob_plots(focal_cov = wolf.lion.elev.pred0[[3]], 
+                      marg = wolf.lion.elev.pred0[[1]], covariate_name = "Elevation (m)", 
+                      spp1 = "Wolf", spp2 = "Lion")
+  marginal_prob_plots(focal_cov = wolf.lion.distrd.pred0[[3]], 
+                      marg = wolf.lion.distrd.pred0[[1]], covariate_name = "log distance to neareast road", 
+                      spp1 = "Wolf", spp2 = "Lion")
+  marginal_prob_plots(focal_cov = wolf.lion.cattle.pred0[[3]], 
+                      marg = wolf.lion.cattle.pred0[[1]], covariate_name = "Cattle activity", 
+                      spp1 = "Wolf", spp2 = "Lion")
+  
   #####  Wolf-Coyote marginal occupancy  ####
-  marginal_prob_plots(focal_cov = wolf.coy.elev.pred[[3]], #stations_skinny_eoe20s21s$Elev, npoints = 1000,
-                      marg = wolf.coy.elev.pred[[1]], covariate_name = "Elevation (m)", 
+  #'  Prey group model
+  marginal_prob_plots(focal_cov = wolf.coy.smdeer.pred1[[3]], 
+                      marg = wolf.coy.smdeer.pred1[[1]], covariate_name = "Deer activity", 
                       spp1 = "Wolf", spp2 = "Coyote")
-  marginal_prob_plots(focal_cov = wolf.coy.lago.pred[[3]], #stations_skinny_eoe20s21s$Nlagomorph, npoints = 1000,
-                      marg = wolf.coy.lago.pred[[1]], covariate_name = "Lagomorph activity", 
+  marginal_prob_plots(focal_cov = wolf.coy.bgdeer.pred1[[3]], 
+                      marg = wolf.coy.bgdeer.pred1[[1]], covariate_name = "Elk/moose activity", 
                       spp1 = "Wolf", spp2 = "Coyote")
+  marginal_prob_plots(focal_cov = wolf.coy.smdeer.pred0[[3]], 
+                      marg = wolf.coy.smdeer.pred0[[1]], covariate_name = "Deer activity", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  marginal_prob_plots(focal_cov = wolf.coy.bgdeer.pred0[[3]], 
+                      marg = wolf.coy.bgdeer.pred0[[1]], covariate_name = "Elk/moose activity", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  
+  #'  Anthropogenic model
+  marginal_prob_plots(focal_cov = wolf.coy.elev.pred1[[3]], 
+                      marg = wolf.coy.elev.pred1[[1]], covariate_name = "Elevation (m)", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  marginal_prob_plots(focal_cov = wolf.coy.distrd.pred1[[3]], 
+                      marg = wolf.coy.distrd.pred1[[1]], covariate_name = "log distance to neareast road", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  marginal_prob_plots(focal_cov = wolf.coy.cattle.pred1[[3]], 
+                      marg = wolf.coy.cattle.pred1[[1]], covariate_name = "Cattle activity", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  marginal_prob_plots(focal_cov = wolf.coy.elev.pred0[[3]], 
+                      marg = wolf.coy.elev.pred0[[1]], covariate_name = "Elevation (m)", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  marginal_prob_plots(focal_cov = wolf.coy.distrd.pred0[[3]], 
+                      marg = wolf.coy.distrd.pred0[[1]], covariate_name = "log distance to neareast road", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  marginal_prob_plots(focal_cov = wolf.coy.cattle.pred0[[3]], 
+                      marg = wolf.coy.cattle.pred0[[1]], covariate_name = "Cattle activity", 
+                      spp1 = "Wolf", spp2 = "Coyote")
+  
   #####  Coyote-Bobcat marginal occupancy  ####
-  marginal_prob_plots(focal_cov = coy.bob.elev.pred[[3]], #stations_skinny_eoe20s21s$Elev, npoints = 1000,
-                      marg = coy.bob.elev.pred[[1]], covariate_name = "Elevation (m)", 
+  marginal_prob_plots(focal_cov = coy.bob.elev.pred1[[3]], 
+                      marg = coy.bob.elev.pred1[[1]], covariate_name = "Elevation (m)", 
                       spp1 = "Coyote", spp2 = "Bobcat")
-  marginal_prob_plots(focal_cov = coy.bob.forest.pred[[3]], #stations_skinny_eoe20s21s$PercForest, npoints = 1000,
-                      marg = coy.bob.forest.pred[[1]], covariate_name = "Percent forest", 
+  marginal_prob_plots(focal_cov = coy.bob.forest.pred1[[3]], 
+                      marg = coy.bob.forest.pred1[[1]], covariate_name = "Percent forest", 
+                      spp1 = "Coyote", spp2 = "Bobcat")
+  marginal_prob_plots(focal_cov = coy.bob.elev.pred0[[3]], 
+                      marg = coy.bob.elev.pred0[[1]], covariate_name = "Elevation (m)", 
+                      spp1 = "Coyote", spp2 = "Bobcat")
+  marginal_prob_plots(focal_cov = coy.bob.forest.pred0[[3]], 
+                      marg = coy.bob.forest.pred0[[1]], covariate_name = "Percent forest", 
                       spp1 = "Coyote", spp2 = "Bobcat")
   
   
   #'  Function to plot conditional probabilities
   conditional_prob_plot <- function(focal_cov, cond, covariate_name, spp1, spp2, plotit = T) { #npoints, 
-    
-    #' #'  Create range of covariate values to plot
-    #' r <- range(focal_cov)
-    #' mean.cov <- mean(focal_cov)
-    #' sd.cov <- sd(focal_cov)
-    #' cov.pred.orig <- seq(r[1], r[2], length.out = npoints)
-    #' #'  Scale new data to be consistent with data used in model
-    #' cov.pred <- (cov.pred.orig - mean.cov) / sd.cov
-    
     #'  Plot conditional probabilities of occupancy
     op <- par(mfrow = c(1,2))
     matplot(focal_cov, cond[,1:2,"mean"],
@@ -219,20 +309,76 @@
     legend("bottomright", c("alone", paste("given", spp1)), lwd = 3, lty = 1:3, col = 1:3, bty = 'n', cex = 1.5)
     par(op)
   }
+  #####  Wolf-Lion conditional occupancy  ####
+  #'  Anthropogenic model
+  conditional_prob_plot(focal_cov = wolf.lion.elev.pred1[[3]], 
+                        covariate_name = "Elevation", cond = wolf.lion.pred1[[2]],
+                        spp1 = "wolf", spp2 = "lion")
+  conditional_prob_plot(focal_cov = wolf.lion.distrd.pred1[[3]], 
+                        covariate_name = "log distance to nearest road", cond = wolf.lion.distrd.pred1[[2]],
+                        spp1 = "wolf", spp2 = "lion")
+  conditional_prob_plot(focal_cov = wolf.lion.cattle.pred1[[3]], 
+                        covariate_name = "Cattle activity", cond = wolf.lion.cattle.pred1[[2]],
+                        spp1 = "wolf", spp2 = "lion")
+  conditional_prob_plot(focal_cov = wolf.lion.elev.pred0[[3]], 
+                        covariate_name = "Elevation", cond = wolf.lion.elev.pred0[[2]],
+                        spp1 = "wolf", spp2 = "lion")
+  conditional_prob_plot(focal_cov = wolf.lion.distrd.pred0[[3]], 
+                        covariate_name = "log distance to nearest road", cond = wolf.lion.distrd.pred0[[2]],
+                        spp1 = "wolf", spp2 = "lion")
+  conditional_prob_plot(focal_cov = wolf.lion.cattle.pred0[[3]], 
+                        covariate_name = "Cattle activity", cond = wolf.lion.cattle.pred0[[2]],
+                        spp1 = "wolf", spp2 = "lion")
+  
+  
   #####  Wolf-Coyote conditional occupancy  ####
-  conditional_prob_plot(focal_cov = wolf.coy.elev.pred[[3]], #stations_skinny_eoe20s21s$Elev, npoints = 1000,
-                        covariate_name = "Elevation", cond = wolf.coy.elev.pred[[2]],
+  #'  Prey group model
+  conditional_prob_plot(focal_cov = wolf.coy.smdeer.pred1[[3]], 
+                        covariate_name = "Deer activity", cond = wolf.coy.smdeer.pred1[[2]],
                         spp1 = "wolf", spp2 = "coyote")
-  conditional_prob_plot(focal_cov = wolf.coy.lago.pred[[3]], #stations_skinny_eoe20s21s$Nlagomorph, npoints = 1000,
-                        covariate_name = "Lagomorph activity", cond = wolf.coy.lago.pred[[2]],
+  conditional_prob_plot(focal_cov = wolf.bgdeer.distrd.pred1[[3]], 
+                        covariate_name = "Elk/moose activity", cond = wolf.bgdeer.distrd.pred1[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  conditional_prob_plot(focal_cov = wolf.smdeer.cattle.pred1[[3]], 
+                        covariate_name = "Deer activity", cond = wolf.smdeer.cattle.pred1[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  conditional_prob_plot(focal_cov = wolf.bgdeer.elev.pred0[[3]], 
+                        covariate_name = "Elk/moose activity", cond = wolf.bgdeer.elev.pred0[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  
+  #'  Anthropogenic model
+  conditional_prob_plot(focal_cov = wolf.coy.elev.pred1[[3]], 
+                        covariate_name = "Elevation", cond = wolf.coy.elev.pred1[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  conditional_prob_plot(focal_cov = wolf.coy.distrd.pred1[[3]], 
+                        covariate_name = "log distance to nearest road", cond = wolf.coy.distrd.pred1[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  conditional_prob_plot(focal_cov = wolf.coy.cattle.pred1[[3]], 
+                        covariate_name = "Cattle activity", cond = wolf.coy.cattle.pred1[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  conditional_prob_plot(focal_cov = wolf.coy.elev.pred0[[3]], 
+                        covariate_name = "Elevation", cond = wolf.coy.elev.pred0[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  conditional_prob_plot(focal_cov = wolf.coy.distrd.pred0[[3]], 
+                        covariate_name = "log distance to nearest road", cond = wolf.coy.distrd.pred0[[2]],
+                        spp1 = "wolf", spp2 = "coyote")
+  conditional_prob_plot(focal_cov = wolf.coy.cattle.pred0[[3]], 
+                        covariate_name = "Cattle activity", cond = wolf.coy.cattle.pred0[[2]],
                         spp1 = "wolf", spp2 = "coyote")
   
   #####  Coyote-Bobcat conditional occupancy  ####
-  conditional_prob_plot(focal_cov = stations_skinny_eoe20s21s$Elev, #npoints = 1000,
-                        covariate_name = "Elevation", cond = coy.bob.elev.pred[[2]],
+  #'  Habitat model
+  conditional_prob_plot(focal_cov = coy.bob.elev.pred1[[3]],
+                        covariate_name = "Elevation", cond = coy.bob.elev.pred1[[2]],
                         spp1 = "coyote", spp2 = "bobcat")
-  conditional_prob_plot(focal_cov = stations_skinny_eoe20s21s$PercForest, #npoints = 1000,
-                        covariate_name = "Percent Forest Cover", cond = coy.bob.forest.pred[[2]],
+  conditional_prob_plot(focal_cov = coy.bob.forest.pred1[[3]],
+                        covariate_name = "Percent Forest Cover", cond = coy.bob.forest.pred1[[2]],
+                        spp1 = "coyote", spp2 = "bobcat")
+  conditional_prob_plot(focal_cov = coy.bob.elev.pred0[[3]],
+                        covariate_name = "Elevation", cond = coy.bob.elev.pred0[[2]],
+                        spp1 = "coyote", spp2 = "bobcat")
+  conditional_prob_plot(focal_cov = coy.bob.forest.pred0[[3]], 
+                        covariate_name = "Percent Forest Cover", cond = coy.bob.forest.pred0[[2]],
                         spp1 = "coyote", spp2 = "bobcat")
   
   
