@@ -43,10 +43,12 @@
         }
         
         #'  Second order detection priors (rho)
-        for(so_rho in 1:3) {
-          alphaSpp12[so_rho] ~ dnorm(0, 0.1)
-          alphaSpp21[so_rho] ~ dnorm(0, 0.1)
-        }
+        alphaSpp12 ~ dnorm(0, 0.1)
+        alphaSpp21 ~ dnorm(0, 0.1)
+        # for(so_rho in 1:3) {
+        #   alphaSpp12[so_rho] ~ dnorm(0, 0.1)
+        #   alphaSpp21[so_rho] ~ dnorm(0, 0.1)
+        # }
       
         #'  Random effect for site   -------------- do I make separate random effects for each species & interaction? do I put it on detection too?
         for(site in 1:length(uniquesites)) {
@@ -137,7 +139,7 @@
           }
             
           #'  3. Define linear models for each fundamental parameter that governs the cell probs
-          #'  These are my natural parameters (f1, f2, f3, f12, f13, f23, f123)!
+          #'  These are my natural parameters (f1, f2, f12)!
           #'  Linear models for the occupancy parameters on the logit scale
             
           #'  ...for states Spp1, Spp2, Spp3
@@ -154,10 +156,10 @@
             rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5]
             rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5]
         
-            #'  Asymetric interactirons between all 3 species
-            #'  Currently forcing interactions to equal detection probs above
-            rhoSpp12[i, j] <- rhoSpp1[i, j] #+ alphaSpp12[1]*rho_inxs_cov[i,j,1] + alphaSpp12[2]*rho_inxs_cov[i,j,3] + alphaSpp12[3]*rho_inxs_cov[i,j,5]
-            rhoSpp21[i, j] <- rhoSpp2[i, j] #+ alphaSpp21[1]*rho_inxs_cov[i,j,1] + alphaSpp21[2]*rho_inxs_cov[i,j,3] + alphaSpp21[3]*rho_inxs_cov[i,j,5]
+            #'  Asymetric interactions between both species
+            #'  Intercept
+            rhoSpp12[i, j] <- rhoSpp1[i, j] + alphaSpp12*rho_inxs_cov[i,j,1] #+ alphaSpp12[1]*rho_inxs_cov[i,j,1] + alphaSpp12[2]*rho_inxs_cov[i,j,3] + alphaSpp12[3]*rho_inxs_cov[i,j,5]
+            rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21*rho_inxs_cov[i,j,1] #+ alphaSpp21[1]*rho_inxs_cov[i,j,1] + alphaSpp21[2]*rho_inxs_cov[i,j,3] + alphaSpp21[3]*rho_inxs_cov[i,j,5]
           }
         }
       }
