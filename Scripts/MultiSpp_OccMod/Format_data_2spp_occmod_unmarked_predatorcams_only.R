@@ -118,7 +118,7 @@
                            NearestRd = scale(dist2rd),
                            logNearestRd = scale(log(dist2rd+1)),
                            MinGroupSize = scale(avg_min_group_size), 
-                           Nelk = scale(elk),             # CHANGE RA TO _PERDAY VERSIONS FOR BAYESIAN REANALYSIS
+                           Nelk = scale(elk),             
                            Nhuman = scale(human),
                            Nhumanplus = scale(human_plus),
                            Nmotorized = scale(human_motorized),
@@ -142,7 +142,6 @@
       arrange(NewLocationID) #NECESSARY TO MATCH DH's CAMERALOCATION ORDER
     
     #'  Adjust reference category for CameraFacing factors
-    # order_camfacing <- c("random", "trail", "road")
     order_camfacing <- c("trail", "road")
     formatted <- formatted %>%
       mutate(
@@ -175,7 +174,7 @@
   DH_eoe20s_predators[[1]][[1]][82:90,1:3]
   
   
-  #'  Correlation matrix to check for collinearity among continuous variables
+  #'  Correlation matrix to check for colinearity among continuous variables
   #'  Note: the species-specific total mortality and area-weighted mortality are 
   #'  highly correlated (1 or -1) so ignore those coefficients
   #'  Warnings are due to variables with no variation (Lion and Wolf mort km2 data)
