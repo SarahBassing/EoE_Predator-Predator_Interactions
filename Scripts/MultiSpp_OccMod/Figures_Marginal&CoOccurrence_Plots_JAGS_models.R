@@ -336,14 +336,14 @@
   conditional_prob_plot(focal_cov = wolf.coy.smdeer.pred1[[3]], 
                         covariate_name = "Deer activity", cond = wolf.coy.smdeer.pred1[[2]],
                         spp1 = "wolf", spp2 = "coyote")
-  conditional_prob_plot(focal_cov = wolf.bgdeer.distrd.pred1[[3]], 
-                        covariate_name = "Elk/moose activity", cond = wolf.bgdeer.distrd.pred1[[2]],
+  conditional_prob_plot(focal_cov = wolf.coy.bgdeer.pred1[[3]], 
+                        covariate_name = "Elk/moose activity", cond = wolf.coy.bgdeer.pred1[[2]],
                         spp1 = "wolf", spp2 = "coyote")
-  conditional_prob_plot(focal_cov = wolf.smdeer.cattle.pred1[[3]], 
-                        covariate_name = "Deer activity", cond = wolf.smdeer.cattle.pred1[[2]],
+  conditional_prob_plot(focal_cov = wolf.coy.smdeer.pred0[[3]], 
+                        covariate_name = "Deer activity", cond = wolf.coy.smdeer.pred0[[2]],
                         spp1 = "wolf", spp2 = "coyote")
-  conditional_prob_plot(focal_cov = wolf.bgdeer.elev.pred0[[3]], 
-                        covariate_name = "Elk/moose activity", cond = wolf.bgdeer.elev.pred0[[2]],
+  conditional_prob_plot(focal_cov = wolf.coy.bgdeer.pred0[[3]], 
+                        covariate_name = "Elk/moose activity", cond = wolf.coy.bgdeer.pred0[[2]],
                         spp1 = "wolf", spp2 = "coyote")
   
   #'  Anthropogenic model
