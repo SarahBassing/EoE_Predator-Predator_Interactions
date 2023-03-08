@@ -21,12 +21,12 @@
         mean.psiSpp1[1] ~ dunif(0, 1)               
         mean.psiSpp2[1] ~ dunif(0, 1)
           
-        for(fo_psi in 2:9){                         # fo occupancy slopes (nfirst_order_psi should go through 16 but want to exclude most)
+        for(fo_psi in 2:9){                         # fo occupancy slopes 
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
     
-        #'  Second order psi priors                   # so occupancy intercepts (nsecond_order_psi)
+        #'  Second order psi priors                 # so occupancy intercepts 
         for(so_psi in 1:9){
           betaSpp12[so_psi] ~ dnorm(0, 0.1)
         }
@@ -37,7 +37,7 @@
         mean.pSpp1 ~ dunif(0, 1)                    
         mean.pSpp2 ~ dunif(0, 1)
           
-        for(fo_rho in 2:3){          # fo detection slopes (nfirst_order_rho)
+        for(fo_rho in 2:3){                         # fo detection slopes 
           alphaSpp1[fo_rho] ~ dnorm(0, 0.1)  
           alphaSpp2[fo_rho] ~ dnorm(0, 0.1)
         }
