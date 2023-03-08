@@ -43,10 +43,12 @@
         }
           
         #'  Second order detection priors (rho)
-        for(so_rho in 1:3) {
-          alphaSpp12[so_rho] ~ dnorm(0, 0.1)
-          alphaSpp21[so_rho] ~ dnorm(0, 0.1)
-        }
+        alphaSpp12 ~ dnorm(0, 0.1)
+        alphaSpp21 ~ dnorm(0, 0.1)
+        # for(so_rho in 1:3) {
+        #   alphaSpp12[so_rho] ~ dnorm(0, 0.1)
+        #   alphaSpp21[so_rho] ~ dnorm(0, 0.1)
+        # }
         
         #'  Random effect for site   -------------- do I make separate random effects for each species & interaction? do I put it on detection too?
         for(site in 1:length(uniquesites)) {
@@ -137,7 +139,7 @@
           }
               
           #'  3. Define linear models for each fundamental parameter that governs the cell probs
-          #'  These are my natural parameters (f1, f2, f3, f12, f13, f23, f123)!
+          #'  These are my natural parameters (f1, f2, f12)!
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2, Spp3
@@ -145,7 +147,7 @@
           psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + eta[psi_cov[i,16]]
           psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + eta[psi_cov[i,16]]
           
-          #'  ...for states Spp12
+          #'  ...for state Spp12
           psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + eta[psi_cov[i,16]]
           
           #'  Linear models for the detection parameters on the logit scale
@@ -155,9 +157,9 @@
             rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5]
           
             #'  Asymetric interactions between both species
-            #'  Intercept + Setup + Sampling Effort
-            rhoSpp12[i, j] <- rhoSpp1[i, j] #+ alphaSpp12[1]*rho_inxs_cov[i,j,1] + alphaSpp12[2]*rho_inxs_cov[i,j,3] + alphaSpp12[3]*rho_inxs_cov[i,j,5]
-            rhoSpp21[i, j] <- rhoSpp2[i, j] #+ alphaSpp21[1]*rho_inxs_cov[i,j,1] + alphaSpp21[2]*rho_inxs_cov[i,j,3] + alphaSpp21[3]*rho_inxs_cov[i,j,5]
+            #'  Intercept 
+            rhoSpp12[i, j] <- rhoSpp1[i, j] + alphaSpp12*rho_inxs_cov[i,j,1] #+ alphaSpp12[1]*rho_inxs_cov[i,j,1] + alphaSpp12[2]*rho_inxs_cov[i,j,3] + alphaSpp12[3]*rho_inxs_cov[i,j,5]
+            rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21*rho_inxs_cov[i,j,1] #+ alphaSpp21[1]*rho_inxs_cov[i,j,1] + alphaSpp21[2]*rho_inxs_cov[i,j,3] + alphaSpp21[3]*rho_inxs_cov[i,j,5]
           }
         }
       }
