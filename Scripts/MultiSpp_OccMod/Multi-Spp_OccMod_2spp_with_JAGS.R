@@ -234,18 +234,12 @@
   
   #####  Parameters monitored  ####
   #'  -------------------------
-  params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", #"alphaSpp12", "alphaSpp21",
-              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z", "sigma") 
-              #"sigmaSpp1", "sigmaSpp2", "sigmaSpp12") # remove sigmas if no random effect
+  params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
+              "alphaSpp12", "alphaSpp21","sigmaSpp1", "sigmaSpp2",
+              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z") 
   
   #####  MCMC settings  ####
   #'  ------------------
-  # nc <- 3
-  # ni <- 5000
-  # nb <- 1000
-  # nt <- 5
-  # na <- 500
-  
   nc <- 3
   ni <- 25000
   nb <- 15000
@@ -272,7 +266,7 @@
   start.time = Sys.time()
   wolf.lion.anthro <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
-                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.anthro$summary)
   which(wolf.lion.anthro$summary[,"Rhat"] > 1.1)
@@ -290,7 +284,7 @@
   start.time = Sys.time()
   wolf.coy.hab <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
                                  "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-                                 n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                                 n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.hab$summary)
   which(wolf.coy.hab$summary[,"Rhat"] > 1.1)
@@ -302,7 +296,7 @@
   start.time = Sys.time()
   wolf.coy.preygroup <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort).txt",
-                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.preygroup$summary)
   which(wolf.coy.preygroup$summary[,"Rhat"] > 1.1)
@@ -314,7 +308,7 @@
   start.time = Sys.time()
   wolf.coy.preydiversity <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params, 
                                  "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).txt",
-                                 n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                                 n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.preydiversity$summary)
   which(wolf.coy.preydiversity$summary[,"Rhat"] > 1.1)
@@ -326,7 +320,7 @@
   start.time = Sys.time()
   wolf.coy.anthro <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
-                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.anthro$summary)
   which(wolf.coy.anthro$summary[,"Rhat"] > 1.1)
@@ -338,7 +332,7 @@
   start.time = Sys.time()
   wolf.coy.global1 <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global1)_px(setup_effort).txt",
-                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.global1$summary)
   which(wolf.coy.global1$summary[,"Rhat"] > 1.1)
@@ -350,7 +344,7 @@
   start.time = Sys.time()
   wolf.coy.global2 <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global2)_px(setup_effort).txt",
-                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.global2$summary)
   which(wolf.coy.global2$summary[,"Rhat"] > 1.1)
@@ -368,7 +362,7 @@
   start.time = Sys.time()
   coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.hab$summary)
   which(coy.bob.hab$summary[,"Rhat"] > 1.1)
@@ -380,7 +374,7 @@
   start.time = Sys.time()
   coy.bob.preygroup <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort).txt",
-                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.preygroup$summary)
   which(coy.bob.preygroup$summary[,"Rhat"] > 1.1)
@@ -392,7 +386,7 @@
   start.time = Sys.time()
   coy.bob.preydiversity <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.preydiversity$summary)
   which(coy.bob.preydiversity$summary[,"Rhat"] > 1.1)
@@ -404,7 +398,7 @@
   start.time = Sys.time()
   coy.bob.anthro <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
-                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.anthro$summary)
   which(coy.bob.anthro$summary[,"Rhat"] > 1.1)
@@ -416,7 +410,7 @@
   start.time = Sys.time()
   coy.bob.global1 <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global1)_px(setup_effort).txt",
-                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.global1$summary)
   which(coy.bob.global1$summary[,"Rhat"] > 1.1)
@@ -428,7 +422,7 @@
   start.time = Sys.time()
   coy.bob.global2 <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global2)_px(setup_effort).txt",
-                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.global2$summary)
   which(coy.bob.global2$summary[,"Rhat"] > 1.1)
