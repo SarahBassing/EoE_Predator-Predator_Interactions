@@ -1,5 +1,5 @@
   #'  ------------------------------------
-  #'  Prey diversity model
+  #'  Prey diversity model - no lagomorphs
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  February 2023
@@ -21,13 +21,13 @@
         mean.psiSpp1[1] ~ dunif(0, 1)               
         mean.psiSpp2[1] ~ dunif(0, 1)
           
-        for(fo_psi in 2:10){                         # fo occupancy slopes 
+        for(fo_psi in 2:9){                         # fo occupancy slopes 
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
     
         #'  Second order psi priors                 # so occupancy intercepts 
-        for(so_psi in 1:10){
+        for(so_psi in 1:9){
           betaSpp12[so_psi] ~ dnorm(0, 0.1)
         }
       
@@ -137,12 +137,12 @@
           #'  Linear models for the occupancy parameters on the logit scale
             
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Elk[7] + Moose[8] + Mule deer[9] + White-tailed deer[10] + Livestock[15] + Lagomorph[11]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,7] + betaSpp1[6]*psi_cov[i,8] + betaSpp1[7]*psi_cov[i,9] + betaSpp1[8]*psi_cov[i,10] + betaSpp1[9]*psi_cov[i,15] + betaSpp1[10]*psi_cov[i,11] + etaSpp1[psi_cov[i,16]]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,7] + betaSpp2[6]*psi_cov[i,8] + betaSpp2[7]*psi_cov[i,9] + betaSpp2[8]*psi_cov[i,10] + betaSpp2[9]*psi_cov[i,15] + betaSpp2[10]*psi_cov[i,11] + etaSpp2[psi_cov[i,16]]
+          #'  Covariate order: Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Elk[7] + Moose[8] + Mule deer[9] + White-tailed deer[10] + Livestock[15]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,7] + betaSpp1[6]*psi_cov[i,8] + betaSpp1[7]*psi_cov[i,9] + betaSpp1[8]*psi_cov[i,10] + betaSpp1[9]*psi_cov[i,15] + etaSpp1[psi_cov[i,16]]
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,7] + betaSpp2[6]*psi_cov[i,8] + betaSpp2[7]*psi_cov[i,9] + betaSpp2[8]*psi_cov[i,10] + betaSpp2[9]*psi_cov[i,15] + etaSpp2[psi_cov[i,16]]
         
           #'  ...for state Spp12
-          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,7] + betaSpp12[6]*psi_inxs_cov[i,8] + betaSpp12[7]*psi_inxs_cov[i,9] + betaSpp12[8]*psi_inxs_cov[i,10] + betaSpp12[9]*psi_inxs_cov[i,15] + betaSpp12[10]*psi_inxs_cov[i,11]  
+          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,7] + betaSpp12[6]*psi_inxs_cov[i,8] + betaSpp12[7]*psi_inxs_cov[i,9] + betaSpp12[8]*psi_inxs_cov[i,10] + betaSpp12[9]*psi_inxs_cov[i,15]  
         
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
