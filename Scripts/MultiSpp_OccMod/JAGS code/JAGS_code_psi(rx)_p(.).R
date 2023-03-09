@@ -23,6 +23,18 @@
           alphaSpp2 <- logit(mean.pSpp2)
           mean.pSpp1 ~ dunif(0, 1)                    
           mean.pSpp2 ~ dunif(0, 1)
+      
+          #'  Random effect for site   
+          for(site in 1:length(uniquesites)) {
+            etaSpp1[site] ~ dnorm(0, tauSpp1)
+            etaSpp2[site] ~ dnorm(0, tauSpp2)
+          }
+    
+          #'  Hyperpriors for random effect
+          sigmaSpp1 ~ dunif(0, 10)
+          sigmaSpp2 ~ dunif(0, 10)
+          tauSpp1 <- pow(sigmaSpp1, -2)
+          tauSpp2 <- pow(sigmaSpp2, -2)
           
           ####  Define Likelihood  ####
           #'  =====================
@@ -63,14 +75,14 @@
             for(j in 1:nsurveys) {
               #'  Probabilities for each detection array, held in rho detection matrix (rdm) 
               #'  where OS = observed state, TS = true state and each row sums to 1. 
-              #'  Exponentiating log odds so rdm holds estimates on probability scale.???
+              #'  Exponentiating log odds so rdm holds estimates on probability scale.
               #'  Reminder - this model assumes NO false positives in the data so
               #'  probability is 0 when OS x TS combinations are not possible.
               #'  Mmmk don't freak out over this section!
               #'  Example 1: when only Spp1 is observed and only Spp1 is truly 
               #'  present, the detection probability is rhoSpp1.
               #'  Example 2: when only Spp1 is observed by in reality Spp1 & Spp2
-              #'  are truly present, the detection probability is 
+              #'  are truly present, the detection probability is rhoSpp12.
               #'  True state = unoccupied (z = 1 --> 000)
               rdm[i, j, 1, 1] <- 1 # ------------------------------------ OS = unoccupied
               rdm[i, j, 2, 1] <- 0 # ------------------------------------ OS = Spp1 present
@@ -94,25 +106,25 @@
             }
               
             #'  3. Define linear models for each fundamental parameter that governs the cell probs
-            #'  These are my natural parameters (f1, f2, f3, f12, f13, f23, f123)!
+            #'  These are my natural parameters (f1, f2, f12)!
             #'  Linear models for the occupancy parameters on the logit scale
               
-            #'  ...for states Spp1, Spp2, Spp3
-            #'  Covariate order: Intercept + Setup + Elevation + Forest
-            psiSpp1[i] <- betaSpp1*psi_cov[i,1] 
-            psiSpp2[i] <- betaSpp2*psi_cov[i,1] 
+            #'  ...for states Spp1, Spp2
+            #'  Covariate order: Intercept + random effect for site
+            psiSpp1[i] <- betaSpp1*psi_cov[i,1]  + etaSpp1[psi_cov[i,16]]
+            psiSpp2[i] <- betaSpp2*psi_cov[i,1]  + etaSpp1[psi_cov[i,16]]
           
-            #'  ...for states Spp12
+            #'  ...for state Spp12
             psiSpp12[i] <- 0
           
             #'  Linear models for the detection parameters on the logit scale
             for(j in 1:nsurveys) {
-              #'  Intercept + Setup + Sampling Effort
+              #'  Intercept
               rhoSpp1[i, j] <- alphaSpp1*rho_cov[i,j,1] 
               rhoSpp2[i, j] <- alphaSpp2*rho_cov[i,j,1] 
           
               #'  Asymetric interactions between both species
-              #'  Intercept + Setup + Sampling Effort
+              #'  Fixing to be same as species-sepcific detection probability
               rhoSpp12[i, j] <- rhoSpp1[i, j] 
               rhoSpp21[i, j] <- rhoSpp2[i, j] 
             }
