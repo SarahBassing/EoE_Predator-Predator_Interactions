@@ -1,5 +1,5 @@
   #'  ----------------------------------------------------
-  #'  Relative abundance of prey groups with random effect - no lagomorphs on spp1|-spp2
+  #'  Relative abundance of prey groups - lagomorph effect on psiSpp2 and psiSpp12
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  February 2023
@@ -8,7 +8,7 @@
   #'  basic habitat features influence that relationship.
   #'  ----------------------------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_nobunnySpp1.txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_bunnySpp2.txt', "
       model{
             
         #### Define Priors  ####
@@ -29,7 +29,7 @@
         }
         
         #'  Second order psi priors                 # so occupancy intercepts 
-        for(so_psi in 1:7){
+        for(so_psi in 1:8){
           betaSpp12[so_psi] ~ dnorm(0, 0.1)
         }
           
