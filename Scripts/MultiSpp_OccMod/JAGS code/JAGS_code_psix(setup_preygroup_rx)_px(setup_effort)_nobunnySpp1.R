@@ -21,10 +21,10 @@
         mean.psiSpp1[1] ~ dunif(0, 1)               
         mean.psiSpp2[1] ~ dunif(0, 1)
               
-        for(fo_psi in 2:6){                         # fo occupancy slopes for Spp1
+        for(fo_psi in 2:7){                         # fo occupancy slopes for Spp1
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
         }
-        for(fo_psi in 2:7){                         # fo occupancy slopes for Spp2
+        for(fo_psi in 2:8){                         # fo occupancy slopes for Spp2
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
         
@@ -52,23 +52,17 @@
         #   alphaSpp21[so_rho] ~ dnorm(0, 0.1)
         # }
           
-        #'  Random effect for site   -------------- do I make separate random effects for each species & interaction? do I put it on detection too?
+        #'  Random effect for site   
         for(site in 1:length(uniquesites)) {
-          eta[site] ~ dnorm(0, tau)
-        #'   etaSpp1[site] ~ dnorm(0, tauSpp1)
-        #'   etaSpp2[site] ~ dnorm(0, tauSpp2)
-        #'   etaSpp12[site] ~ dnorm(0, tauSpp12)
+          etaSpp1[site] ~ dnorm(0, tauSpp1)
+          etaSpp2[site] ~ dnorm(0, tauSpp2)
         }
-         
+
         #'  Hyperpriors for random effect
-        sigma ~ dunif(0, 10)
-        tau <- pow(sigma, -2)
-        #' sigmaSpp1 ~ dunif(0, 10)
-        #' sigmaSpp2 ~ dunif(0, 10)
-        #' sigmaSpp12 ~ dunif(0, 10)
-        #' tauSpp1 <- pow(sigmaSpp1, -2)
-        #' tauSpp2 <- pow(sigmaSpp2, -2)
-        #' tauSpp12 <- pow(sigmaSpp12, -2)
+        sigmaSpp1 ~ dunif(0, 10)
+        sigmaSpp2 ~ dunif(0, 10)
+        tauSpp1 <- pow(sigmaSpp1, -2)
+        tauSpp2 <- pow(sigmaSpp2, -2)
                   
               
         ####  Define Likelihood  ####
@@ -110,14 +104,14 @@
           for(j in 1:nsurveys) {
             #'  Probabilities for each detection array, held in rho detection matrix (rdm) 
             #'  where OS = observed state, TS = true state and each row sums to 1. 
-            #'  Exponentiating log odds so rdm holds estimates on probability scale.???
+            #'  Exponentiating log odds so rdm holds estimates on probability scale.
             #'  Reminder - this model assumes NO false positives in the data so
             #'  probability is 0 when OS x TS combinations are not possible.
             #'  Mmmk don't freak out over this section!
             #'  Example 1: when only Spp1 is observed and only Spp1 is truly 
             #'  present, the detection probability is rhoSpp1.
             #'  Example 2: when only Spp1 is observed by in reality Spp1 & Spp2
-            #'  are truly present, the detection probability is 
+            #'  are truly present, the detection probability is rhoSpp12.
             #'  True state = unoccupied (z = 1 --> 000)
             rdm[i, j, 1, 1] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 1] <- 0 # ------------------------------------ OS = Spp1 present
@@ -145,23 +139,23 @@
           #'  Linear models for the occupancy parameters on the logit scale
                 
           #'  ...for states Spp1, Spp2, Spp3
-          #'  Covariate order: Intercept + Setup + Elevation + Forest + SmallDeer + BigDeer + Lagomorph
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,5] + betaSpp1[6]*psi_cov[i,6] + eta[psi_cov[i,16]] #+ etaSpp1[psi_cov[i,16]]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] + betaSpp2[6]*psi_cov[i,6] + betaSpp2[7]*psi_cov[i,11] + eta[psi_cov[i,16]] #+ etaSpp2[psi_cov[i,16]]
+          #'  Covariate order: Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + SmallDeer[5] + BigDeer[6] + Livestock[15] + Lagomorph[11] (lagomorph excluded from psiSpp1)
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,5] + betaSpp1[6]*psi_cov[i,6] + betaSpp2[7]*psi_cov[i,15] + etaSpp1[psi_cov[i,16]]
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] + betaSpp2[6]*psi_cov[i,6] + betaSpp2[7]*psi_cov[i,15] + betaSpp2[8]*psi_cov[i,11] + etaSpp2[psi_cov[i,16]]
             
           #'  ...for state Spp12
-          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,5] + betaSpp12[6]*psi_inxs_cov[i,6] + betaSpp12[7]*psi_inxs_cov[i,11] + eta[psi_inxs_cov[i,16]] #+ etaSpp12[psi_inxs_cov[i,16]]
+          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,5] + betaSpp12[6]*psi_inxs_cov[i,6] + betaSpp12[7]*psi_inxs_cov[i,15] + betaSpp12[8]*psi_inxs_cov[i,11]
             
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
-            #'  Intercept + Setup + Sampling Effort
+            #'  Intercept[1] + Setup[3] + Sampling Effort[5]
             rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5]
             rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5]
             
             #'  Asymetric interactions between both species
             #'  Intercept 
-            rhoSpp12[i, j] <- rhoSpp1[i, j] + alphaSpp12*rho_inxs_cov[i,j,1] #+ alphaSpp12[1]*rho_inxs_cov[i,j,1] + alphaSpp12[2]*rho_inxs_cov[i,j,3] + alphaSpp12[3]*rho_inxs_cov[i,j,5]
-            rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21*rho_inxs_cov[i,j,1] #+ alphaSpp21[1]*rho_inxs_cov[i,j,1] + alphaSpp21[2]*rho_inxs_cov[i,j,3] + alphaSpp21[3]*rho_inxs_cov[i,j,5]
+            rhoSpp12[i, j] <- rhoSpp1[i, j] + alphaSpp12*rho_inxs_cov[i,j,1] 
+            rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21*rho_inxs_cov[i,j,1] 
           }
         }
       }
