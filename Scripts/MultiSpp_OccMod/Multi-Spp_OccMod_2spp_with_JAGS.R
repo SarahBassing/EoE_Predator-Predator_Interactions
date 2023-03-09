@@ -291,31 +291,31 @@
   mcmcplot(wolf.coy.hab$samples)
   save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_habitat_rx)_px(setup_effort).RData")
   
-  #'  Prey groups model: psi & psix = setup, elevation, forest, small deer, big deer, lagomorph; p = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort).R")
+  #'  Prey groups model: psi & psix = setup, elevation, forest, small deer, big deer, livestock, lagomorph; p = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_nobunnySpp1.R")
   start.time = Sys.time()
   wolf.coy.preygroup <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort).txt",
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_nobunnySpp1.txt",
                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.preygroup$summary)
   which(wolf.coy.preygroup$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.coy.preygroup$samples)
-  save(wolf.coy.preygroup, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preygroup_rx)_px(setup_effort).RData")
+  save(wolf.coy.preygroup, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preygroup_rx)_px(setup_effort)_nobunnySpp1.RData")
   
-  #'  Prey diversity model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, lagomorph; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).R")
+  #'  Prey diversity model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock, lagomorph; px = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_nobunnySpp1.R")
   start.time = Sys.time()
   wolf.coy.preydiversity <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params, 
-                                 "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).txt",
+                                 "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_nobunnySpp1.txt",
                                  n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.preydiversity$summary)
   which(wolf.coy.preydiversity$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.coy.preydiversity$samples)
-  save(wolf.coy.preydiversity, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  save(wolf.coy.preydiversity, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preydiversity_rx)_px(setup_effort)_nobunnySpp1.RData")
   
-  #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human, livestock; px = setup, effort
+  #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
   start.time = Sys.time()
   wolf.coy.anthro <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
