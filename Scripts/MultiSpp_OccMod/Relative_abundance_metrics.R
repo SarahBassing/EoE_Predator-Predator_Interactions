@@ -197,7 +197,7 @@
   #'  30-min elapsing between sequential images to define an independent event 
   unique_dets_per_occasion <- function(dets, elapsed_time, startDate, occlength) {
     #'  Generate unique detection events
-    det_events30 <- dets %>%
+    det_events <- dets %>%
       arrange(NewLocationID, posix_date_time) %>%
       #'  Indicate which 1 week sampling occasion each image belongs to 
       mutate(SamplingOccasion = 1 + as.numeric(Date - as.Date(startDate)) %/% occlength) %>%
