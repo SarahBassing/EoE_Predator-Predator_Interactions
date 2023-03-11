@@ -103,7 +103,7 @@
   #'  ------------------------
   ####  Additional data sets  ####
   #'  ------------------------
-  #'  Wolf data generated from camera detections
+  #####  Wolf data generated from camera detections  ####
   load("./Data/Wolf count data/count_eoe20s_wolf.RData")
   load("./Data/Wolf count data/min_group_size_eoe20s.RData") 
   
@@ -122,6 +122,7 @@
   min_group_size_eoe20w <- arrange_dat(min_group_size_eoe20w)
   min_group_size_eoe21s <- arrange_dat(min_group_size_eoe21s)
   
+  #####  Predator mortality data  ####
   #'  Mortality data provided by IDFG
   load("./Data/IDFG BGMR data/mort_preSmr20.RData")
   load("./Data/IDFG BGMR data/mort_preWtr20.RData")
@@ -155,68 +156,13 @@
     filter(GMU != "GMU1")
   mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
   
-  #'  Relative abundance index (prey & human activity)
+  
+  #####  Relative abundance index & species diversity indices  ####
+  #'  RA values generated with Relative_abundance_metrics.R script; species diversity 
+  #'  indices calculated from RA values in Species_diversity_indices.R script
   #'  Using Hour of Detection as RA index b/c highly correlated with other 
   #'  definitions of independent detection events and consistent with Ausband et al. in review
-  load("./Data/Relative abundance data/EoE_RelativeN_HrOfDetection.RData")
-  reformat_relativeN_data <- function(dat) {
-    RelativeN <- dat %>%
-      #'  Create one column per species
-      spread(Species, n_dets) %>%
-      rowwise() %>%
-      #'  Aggrigate relative abundance data into functional groups
-      mutate(human_plus = sum(human, cat_domestic, dog_domestic, horse, na.rm = TRUE),
-             ungulate = sum(elk, moose, muledeer, whitetaileddeer, na.rm = TRUE),
-             big_deer = sum(elk, moose, na.rm = TRUE),
-             small_deer = sum(muledeer, whitetaileddeer, na.rm = TRUE)) %>%
-      #'  Rename and drop columns
-      rename(livestock = cattle_cow) %>%
-      rename(lagomorphs = rabbit_hare) %>%
-      dplyr::select(-c(cat_domestic, dog_domestic, horse)) %>%
-      #'  Change all NAs introduced during spread to 0's (i.e., non-detection)
-      replace(is.na(.), 0) %>%
-      #'  Relocate columns so more intuitive order
-      relocate(human_plus, .after = human) %>%
-      relocate(lagomorphs, .before = moose) %>%
-      relocate(livestock, .before = moose) %>%
-      relocate(ungulate, .after = whitetaileddeer) %>%
-      relocate(big_deer, .after = ungulate) %>%
-      relocate(small_deer, .after = big_deer)
-    return(RelativeN)
-  }
-  RA_Smr20_df <- reformat_relativeN_data(eoe_dethr_list[[1]])
-  RA_Wtr20_df <- reformat_relativeN_data(eoe_dethr_list[[2]])
-  RA_Smr21_df <- reformat_relativeN_data(eoe_dethr_list[[3]])
-  
-  #'  Weight relative abundance by sampling effort
-  #'  Divide total number of hours with at least one detection (summed across season) 
-  #'  by the number of days camera was operating, i.e., the average number of hours
-  #'  per day at least one animal was detected
-  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
-  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20w.RData")
-  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData")
-  weighted_RA <- function(RA, effort) {
-    effort <- dplyr::select(effort, c("NewLocationID", "ndays", "nhrs"))
-    ra_scaled_by_nhrs <- RA %>%
-      full_join(effort, by = "NewLocationID") %>%
-      mutate(elk_perday = round(elk/ndays, 3),
-             human_perday = round(human/ndays, 3),
-             human_perday = round(human_plus/ndays, 3),
-             human_motorized_perday = round(human_motorized/ndays, 3),
-             lagomorphs_perday = round(lagomorphs/ndays, 3),
-             livestock_perday = round(livestock/ndays, 3),
-             moose_perday = round(moose/ndays, 3),
-             muledeer_perday = round(muledeer/ndays, 3),
-             whitetaileddeer_perday = round(whitetaileddeer/ndays, 3),
-             ungulate_perday = round(ungulate/ndays, 3),
-             big_deer_perday = round(big_deer/ndays, 3),
-             small_deer_perday = round(small_deer/ndays, 3)) %>%
-      dplyr::select(-c("ndays", "nhrs"))
-    return(ra_scaled_by_nhrs)
-  }
-  RA_Smr20_df <- weighted_RA(RA_Smr20_df, effort = effort_20s)
-  RA_Wtr20_df <- weighted_RA(RA_Wtr20_df, effort = effort_20w)
-  RA_Smr21_df <- weighted_RA(RA_Smr21_df, effort = effort_21s)
+  source("./Scripts/MultiSpp_OccMod/Species_diversity_indices.R")
   
   
   #'  ----------------------------------
@@ -264,11 +210,11 @@
      return(covs)
   }
   eoe_covs_20s <- cov_extract(locs_aea = cams_aea[[1]], locs_nad83 = cams_nad83[[1]], locs_hab_crs = cams_hab_crs[[1]], 
-                              min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df, relativeN = RA_Smr20_df)
+                              min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df, relativeN = spp_diversity_Smr20)
   eoe_covs_20w <- cov_extract(locs_aea = cams_aea[[2]], locs_nad83 = cams_nad83[[2]], locs_hab_crs = cams_hab_crs[[2]], 
-                              min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df, relativeN = RA_Wtr20_df)
+                              min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df, relativeN = spp_diversity_Wtr20)
   eoe_covs_21s <- cov_extract(locs_aea = cams_aea[[3]], locs_nad83 = cams_nad83[[3]], locs_hab_crs = cams_hab_crs[[3]], 
-                              min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df, relativeN = RA_Smr21_df)
+                              min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df, relativeN = spp_diversity_Smr21)
 
   
   #'  -------------------------
@@ -291,6 +237,8 @@
     hist(covs$ungulate, breaks =  20, main = paste("Frequency of ungulate activity at cameras\n", season))
     hist(covs$big_deer, breaks = 20, main = paste("Frequency of elk & moose activity at cameras\n", season))
     hist(covs$small_deer, breaks = 20, main = paste("Frequency of mule deer & white-tail activity at cameras\n", season))
+    hist(covs$SR, main = paste("Species richness at cameras\n", season))
+    hist(covs$H, main = paste("Frequency of Shannon's diversity index at cameras\n", season))
   }
   spread_of_covariate_data(eoe_covs_20s, season = "Summer 2020")
   spread_of_covariate_data(eoe_covs_20w, season = "Winter 2020-2021")
@@ -318,259 +266,259 @@
   spread_of_covariate_data(eoe_covs_21s, season = "Summer 2021")
   
   
-  # ####  Is there a difference in relative abund by camera setup?  ####  
-  # bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #   dplyr::select(c(NewLocationID, lagomorphs)) %>%
-  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #          setup = factor(setup, levels = c("U", "P"))) %>%
-  #   dplyr::select(-NewLocationID)
-  # table(bunnies)
-  # maxbunnies <- grobTree(textGrob("max count = 71 (U)", x=0.60,  y=0.95, hjust=0,
-  #                             gp=gpar(col="red", fontsize=13, fontface="italic")))
-  # ggplot(bunnies, aes(x = lagomorphs, fill = setup)) +
-  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #   labs(fill="") +
-  #   ggtitle("Relative abundance of lagomorphs at Ungulate vs Predator cameras") +
-  #   annotation_custom(maxbunnies)
-  # 
-  # ppl <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #   dplyr::select(c(NewLocationID, human)) %>%
-  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #          setup = factor(setup, levels = c("U", "P"))) %>%
-  #   dplyr::select(-NewLocationID)
-  # table(ppl)
-  # maxppl <- grobTree(textGrob("max count = 136 (P)", x=0.60,  y=0.95, hjust=0,
-  #                           gp=gpar(col="red", fontsize=13, fontface="italic")))
-  # ggplot(ppl, aes(x = human, fill = setup)) +
-  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
-  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #   labs(fill="") +
-  #   ggtitle("Relative abundance of humans at Ungulate vs Predator cameras") +
-  #   annotation_custom(maxppl)
-  # 
-  # elk <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #   dplyr::select(c(NewLocationID, elk)) %>%
-  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #          setup = factor(setup, levels = c("U", "P"))) %>%
-  #   dplyr::select(-NewLocationID)
-  # table(elk)
-  # maxelk <- grobTree(textGrob("max count = 145 (P)", x=0.60,  y=0.95, hjust=0,
-  #                             gp=gpar(col="red", fontsize=13, fontface="italic")))
-  # ggplot(elk, aes(x = elk, fill = setup)) +
-  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
-  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #   labs(fill="") +
-  #   ggtitle("Relative abundance of elk at Ungulate vs Predator cameras") +
-  #   annotation_custom(maxelk)
-  # 
-  # md <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #   dplyr::select(c(NewLocationID, muledeer)) %>%
-  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #          setup = factor(setup, levels = c("U", "P"))) %>%
-  #   dplyr::select(-NewLocationID)
-  # table(md)
-  # maxmd <- grobTree(textGrob("max count = 64 (U)", x=0.60,  y=0.95, hjust=0,
-  #                             gp=gpar(col="red", fontsize=13, fontface="italic")))
-  # ggplot(md, aes(x = muledeer, fill = setup)) +
-  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #   labs(fill="") +
-  #   ggtitle("Relative abundance of mule deer at Ungulate vs Predator cameras") +
-  #   annotation_custom(maxmd)
-  # 
-  # wtd <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #   dplyr::select(c(NewLocationID, whitetaileddeer)) %>%
-  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #          setup = factor(setup, levels = c("U", "P"))) %>%
-  #   dplyr::select(-NewLocationID)
-  # table(wtd)
-  # maxwtd <- grobTree(textGrob("max count = 225 (P)", x=0.60,  y=0.95, hjust=0,
-  #                            gp=gpar(col="red", fontsize=13, fontface="italic")))
-  # ggplot(wtd, aes(x = whitetaileddeer, fill = setup)) +
-  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
-  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #   labs(fill="") +
-  #   ggtitle("Relative abundance of white-tails at Ungulate vs Predator cameras") +
-  #   annotation_custom(maxwtd)
-  # 
-  # moose <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #   dplyr::select(c(NewLocationID, moose)) %>%
-  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #          setup = factor(setup, levels = c("U", "P"))) %>%
-  #   dplyr::select(-NewLocationID)
-  # table(moose)
-  # maxmoose <- grobTree(textGrob("max count = 44 (U)", x=0.60,  y=0.95, hjust=0,
-  #                             gp=gpar(col="red", fontsize=13, fontface="italic")))
-  # ggplot(moose, aes(x = moose, fill = setup)) +
-  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #   labs(fill="") +
-  #   ggtitle("Relative abundance of moose at Ungulate vs Predator cameras") +
-  #   annotation_custom(maxmoose)
-  # 
-  # livestock <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #   dplyr::select(c(NewLocationID, livestock)) %>%
-  #   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #          setup = factor(setup, levels = c("U", "P"))) %>%
-  #   dplyr::select(-NewLocationID)
-  # table(livestock)
-  # maxlivestock <- grobTree(textGrob("max count = 284 (U/P)", x=0.60,  y=0.95, hjust=0,
-  #                                   gp=gpar(col="red", fontsize=13, fontface="italic")))
-  # ggplot(livestock, aes(x = livestock, fill = setup)) +
-  #   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 10) +
-  #   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #   labs(fill="") +
-  #   ggtitle("Relative abundance of livestock at Ungulate vs Predator cameras") +
-  #   annotation_custom(maxlivestock)
-  
-  #'  -------------------------------------
-  ####  Transform relative abundance data  ####
-  #'  -------------------------------------
-  #'  Function to test the Box-Cox transformation, square-root transformation,
-  #'  and log transformation on each relative abundance data set
-  transform_dat <- function(dat) {
-    #'  Add 1 to all values so no zeros in data set
-    dat1 <- dat + 1
-    hist(dat + 1)
-    
-    #'  Find optimal lambda (tuning parameter) for Box-Cox transformation
-    bc <- boxcox(dat1 ~ 1)
-    print(lambda <- bc$x[which.max(bc$y)])
-
-    #'  Transform data using Box-Cox transformation and optimal lambda
-    bxcxdat <- round((dat1^lambda-1)/lambda, 2)
-
-    #'  Visualize
-    hist(bxcxdat)
-    mod_bctrans <- lm(((dat1^lambda-1)/lambda) ~ 1)
-    #'  QQplot of residuals (are they normal or at least more normal?)
-    qqnorm(mod_bctrans$residuals, main = "boxcox data")
-    qqline(mod_bctrans$residuals)
-    
-    #'  Inverse hyperbolic sine transformation
-    ihs_dat <- lm(log(dat + sqrt(dat^2 + 1)) ~ 1)
-    hist(log(dat + sqrt(dat^2 + 1)))
-    qqnorm(ihs_dat$residuals, main = "inverse hyperbolic sine data")
-    qqline(ihs_dat$residuals)
-    ihsdat <- round(log(dat + sqrt(dat^2 + 1)), 2)
-
-    #'  Is square rooting the data any better?
-    sqrt_dat <- lm(sqrt(dat) ~ 1)
-    hist(sqrt(dat))
-    qqnorm(sqrt_dat$residuals, main = "sqare root data")
-    qqline(sqrt_dat$residuals)
-    sqrtdat <- round(sqrt(dat), 2)
-
-    #'  What about logging it?
-    log_dat <- lm(log(dat1) ~ 1)
-    hist(log(dat + 1))
-    qqnorm(log_dat$residuals, main = "log data + 1")
-    qqline(log_dat$residuals)
-    logdat1 <- round(log(dat1), 2)
-
-    # return(bxcxdat)
-    # return(ihsdat)
-    return(sqrtdat)   #  Currently square-root transforming them all
-    # return(logdat1)
-  }
-  covs <- eoe_covs_20s
-  # covs <- eoe_covs_21s
-  covs$lagomorphs_adj <- transform_dat(covs$lagomorphs) # 2020 all are very terrible, 2021 IHS or log better but definitely not normal
-  covs$human_adj <- transform_dat(covs$human) # 20/21 IHS or log seem better but definitely not normal
-  covs$human_motorized_adj <- transform_dat(covs$human_motorized) # 20/21 all are pretty terrible
-  covs$elk_adj <- transform_dat(covs$elk) # 20/21 sqrt seems best but major tails
-  covs$moose_adj <- transform_dat(covs$moose) # 20/21 sqrt seems best but definitely not normal
-  covs$muledeer_adj <- transform_dat(covs$muledeer) # 2020 all are very terrible, 2021 all are slightly better but definitely  not normal
-  covs$whitetailedeer_adj <- transform_dat(covs$whitetaileddeer) # 20/21 sqrt seems best but major tails
-  covs$big_deer_adj <- transform_dat(covs$big_deer) # 20/21 sqrt seems best but major tails
-  covs$small_deer_adj <- transform_dat(covs$small_deer) # 2020 sqrt seems best but major tails, Box-Cox seems best but still tails
-  
-  #'  List heavily skewed covaraites (relative abundance data)
-  listnames <- c("lagomorphsT", "humanT", "human_motorizedT", "livestockT", "elkT", "mooseT", "muledeerT", "whitetaileddeerT", "ungulateT", "big_deerT", "small_deerT")
-  cov_20s_list <- list(eoe_covs_20s$lagomorphs, eoe_covs_20s$human, eoe_covs_20s$human_motorized, eoe_covs_20s$livestock, eoe_covs_20s$elk, eoe_covs_20s$moose, eoe_covs_20s$muledeer, eoe_covs_20s$whitetaileddeer, eoe_covs_20s$ungulate, eoe_covs_20s$big_deer, eoe_covs_20s$small_deer)
-  cov_20w_list <- list(eoe_covs_20w$lagomorphs, eoe_covs_20w$human, eoe_covs_20w$human_motorized, eoe_covs_20w$livestock, eoe_covs_20w$elk, eoe_covs_20w$moose, eoe_covs_20w$muledeer, eoe_covs_20w$whitetaileddeer, eoe_covs_20w$ungulate, eoe_covs_20w$big_deer, eoe_covs_20w$small_deer)
-  cov_21s_list <- list(eoe_covs_21s$lagomorphs, eoe_covs_21s$human, eoe_covs_21s$human_motorized, eoe_covs_21s$livestock, eoe_covs_21s$elk, eoe_covs_21s$moose, eoe_covs_21s$muledeer, eoe_covs_21s$whitetaileddeer, eoe_covs_21s$ungulate, eoe_covs_21s$big_deer, eoe_covs_21s$small_deer)
-  
-  #'  Transform annual relative abundance data
-  transf_covs_20s <- lapply(cov_20s_list, transform_dat)
-  names(transf_covs_20s) <- listnames
-  transf_covs_20s <- as.data.frame(transf_covs_20s)
-  
-  transf_covs_20w <- lapply(cov_20w_list, transform_dat)
-  names(transf_covs_20w) <- listnames
-  transf_covs_20w <- as.data.frame(transf_covs_20w)
-  
-  transf_covs_21s <- lapply(cov_21s_list, transform_dat)
-  names(transf_covs_21s) <- listnames
-  transf_covs_21s <- as.data.frame(transf_covs_21s)
-  
-  #'  Append adjusted relative abundance covariates to larger covariate data frame
-  eoe_covs_20s <- cbind(eoe_covs_20s, transf_covs_20s)
-  eoe_covs_20w <- cbind(eoe_covs_20w, transf_covs_20w)
-  eoe_covs_21s <- cbind(eoe_covs_21s, transf_covs_21s)
-  
-  
-  #'  -----------------------------------------------------------------
-  ####  Identify outliers and cap covariates at 99th percentile value  ####
-  #'  -----------------------------------------------------------------
-  outliers <- function(cov, title) {
-    #'  Summarize predicted values
-    hist(cov, breaks = 100, main = title)
-    boxplot(cov, main = title)
-    #'  What value represents the 99th percentile in the covariate values
-    quant <- quantile(cov, c(0.99), na.rm = TRUE)
-    #'  Print that value and maximum value
-    print(quant); print(max(cov, na.rm = TRUE))
-    #'  Identify the 1% most extreme values and set to 99th percentile value
-    extremevalues <- as.data.frame(cov) %>%
-      mutate(outlier = ifelse(cov > quant, "outlier", "not_outlier"),
-             adjusted_cov = ifelse(outlier == "outlier", quant, cov),
-             adjusted_cov = round(adjusted_cov, 0))
-    #'  How many covariate values are above the 99th percentile?
-    outlier <- extremevalues[extremevalues$outlier == "outlier",]
-    outlier <- filter(outlier, !is.na(outlier))
-    print(nrow(outlier))
-    #'  What percentage of observations are being forced to 99th percentile value
-    print(nrow(outlier)/nrow(extremevalues))
-
-    #'  Return these adjusted values
-    adjusted_cov <- extremevalues$adjusted_cov
-    return(adjusted_cov)
-  }
-  #' #'  Identify covariate outliers
-  #' bunnies$lagomorphs_adj <- outliers(bunnies$lagomorphs, "Lagomorph outliers")
-  #' ppl$humans_adj <- outliers(ppl$human, "Human outliers")
-  #' elk$elk_adj <- outliers(elk$elk, "Elk outliers")
-  #' moose$moose_adj <- outliers(moose$moose, "Moose outliers")
-  #' md$muledeer_adj <- outliers(md$muledeer, "Mule deer outliers")
-  #' wtd$whitetaileddeer_adj <- outliers(wtd$whitetaileddeer, "White-tailed deer outliers")
-
-  #'  List heavily skewed covaraites (relative abundance data)
-  listnames <- c("lagomorphs99", "human99", "human_motorized99", "livestock99", "elk99", "moose99", "muledeer99", "whitetaileddeer99", "ungulate99", "big_deer99", "small_deer99")
-  cov_20s_list <- list(eoe_covs_20s$lagomorphs, eoe_covs_20s$human, eoe_covs_20s$human_motorized, eoe_covs_20s$livestock, eoe_covs_20s$elk, eoe_covs_20s$moose, eoe_covs_20s$muledeer, eoe_covs_20s$whitetaileddeer, eoe_covs_20s$ungulate, eoe_covs_20s$big_deer, eoe_covs_20s$small_deer)
-  cov_20w_list <- list(eoe_covs_20w$lagomorphs, eoe_covs_20w$human, eoe_covs_20w$human_motorized, eoe_covs_20w$livestock, eoe_covs_20w$elk, eoe_covs_20w$moose, eoe_covs_20w$muledeer, eoe_covs_20w$whitetaileddeer, eoe_covs_20w$ungulate, eoe_covs_20w$big_deer, eoe_covs_20w$small_deer)
-  cov_21s_list <- list(eoe_covs_21s$lagomorphs, eoe_covs_21s$human, eoe_covs_21s$human_motorized, eoe_covs_21s$livestock, eoe_covs_21s$elk, eoe_covs_21s$moose, eoe_covs_21s$muledeer, eoe_covs_21s$whitetaileddeer, eoe_covs_21s$ungulate, eoe_covs_21s$big_deer, eoe_covs_21s$small_deer)
-
-  #'  Adjust annual relative abundance based on season-specific covariate ranges
-  capped_covs_20s <- lapply(cov_20s_list, outliers, title = "Outliers")
-  names(capped_covs_20s) <- listnames
-  capped_covs_20s <- as.data.frame(capped_covs_20s)
-
-  capped_covs_20w <- lapply(cov_20w_list, outliers, title = "Outliers")
-  names(capped_covs_20w) <- listnames
-  capped_covs_20w <- as.data.frame(capped_covs_20w)
-
-  capped_covs_21s <- lapply(cov_21s_list, outliers, title = "Outliers")
-  names(capped_covs_21s) <- listnames
-  capped_covs_21s <- as.data.frame(capped_covs_21s)
-
-  #'  Append adjusted relative abundance covariates to larger covariate data frame
-  eoe_covs_20s <- cbind(eoe_covs_20s, capped_covs_20s)
-  eoe_covs_20w <- cbind(eoe_covs_20w, capped_covs_20w)
-  eoe_covs_21s <- cbind(eoe_covs_21s, capped_covs_21s)
-
-
+  #' ####  Is there a difference in relative abund by camera setup?  ####
+  #' bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, lagomorphs)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(bunnies)
+  #' maxbunnies <- grobTree(textGrob("max count = 71 (U)", x=0.60,  y=0.95, hjust=0,
+  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(bunnies, aes(x = lagomorphs, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of lagomorphs at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxbunnies)
+  #' 
+  #' ppl <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, human)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(ppl)
+  #' maxppl <- grobTree(textGrob("max count = 136 (P)", x=0.60,  y=0.95, hjust=0,
+  #'                           gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(ppl, aes(x = human, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of humans at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxppl)
+  #' 
+  #' elk <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, elk)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(elk)
+  #' maxelk <- grobTree(textGrob("max count = 145 (P)", x=0.60,  y=0.95, hjust=0,
+  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(elk, aes(x = elk, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of elk at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxelk)
+  #' 
+  #' md <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, muledeer)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(md)
+  #' maxmd <- grobTree(textGrob("max count = 64 (U)", x=0.60,  y=0.95, hjust=0,
+  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(md, aes(x = muledeer, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of mule deer at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxmd)
+  #' 
+  #' wtd <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, whitetaileddeer)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(wtd)
+  #' maxwtd <- grobTree(textGrob("max count = 225 (P)", x=0.60,  y=0.95, hjust=0,
+  #'                            gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(wtd, aes(x = whitetaileddeer, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of white-tails at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxwtd)
+  #' 
+  #' moose <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, moose)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(moose)
+  #' maxmoose <- grobTree(textGrob("max count = 44 (U)", x=0.60,  y=0.95, hjust=0,
+  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(moose, aes(x = moose, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of moose at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxmoose)
+  #' 
+  #' livestock <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+  #'   dplyr::select(c(NewLocationID, livestock)) %>%
+  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+  #'          setup = factor(setup, levels = c("U", "P"))) %>%
+  #'   dplyr::select(-NewLocationID)
+  #' table(livestock)
+  #' maxlivestock <- grobTree(textGrob("max count = 284 (U/P)", x=0.60,  y=0.95, hjust=0,
+  #'                                   gp=gpar(col="red", fontsize=13, fontface="italic")))
+  #' ggplot(livestock, aes(x = livestock, fill = setup)) +
+  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 10) +
+  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
+  #'   labs(fill="") +
+  #'   ggtitle("Relative abundance of livestock at Ungulate vs Predator cameras") +
+  #'   annotation_custom(maxlivestock)
+  #' 
+  #' #'  -------------------------------------
+  #' ####  Transform relative abundance data  ####
+  #' #'  -------------------------------------
+  #' #'  Function to test the Box-Cox transformation, square-root transformation,
+  #' #'  and log transformation on each relative abundance data set
+  #' transform_dat <- function(dat) {
+  #'   #'  Add 1 to all values so no zeros in data set
+  #'   dat1 <- dat + 1
+  #'   hist(dat + 1)
+  #'   
+  #'   #'  Find optimal lambda (tuning parameter) for Box-Cox transformation
+  #'   bc <- boxcox(dat1 ~ 1)
+  #'   print(lambda <- bc$x[which.max(bc$y)])
+  #' 
+  #'   #'  Transform data using Box-Cox transformation and optimal lambda
+  #'   bxcxdat <- round((dat1^lambda-1)/lambda, 2)
+  #' 
+  #'   #'  Visualize
+  #'   hist(bxcxdat)
+  #'   mod_bctrans <- lm(((dat1^lambda-1)/lambda) ~ 1)
+  #'   #'  QQplot of residuals (are they normal or at least more normal?)
+  #'   qqnorm(mod_bctrans$residuals, main = "boxcox data")
+  #'   qqline(mod_bctrans$residuals)
+  #'   
+  #'   #'  Inverse hyperbolic sine transformation
+  #'   ihs_dat <- lm(log(dat + sqrt(dat^2 + 1)) ~ 1)
+  #'   hist(log(dat + sqrt(dat^2 + 1)))
+  #'   qqnorm(ihs_dat$residuals, main = "inverse hyperbolic sine data")
+  #'   qqline(ihs_dat$residuals)
+  #'   ihsdat <- round(log(dat + sqrt(dat^2 + 1)), 2)
+  #' 
+  #'   #'  Is square rooting the data any better?
+  #'   sqrt_dat <- lm(sqrt(dat) ~ 1)
+  #'   hist(sqrt(dat))
+  #'   qqnorm(sqrt_dat$residuals, main = "sqare root data")
+  #'   qqline(sqrt_dat$residuals)
+  #'   sqrtdat <- round(sqrt(dat), 2)
+  #' 
+  #'   #'  What about logging it?
+  #'   log_dat <- lm(log(dat1) ~ 1)
+  #'   hist(log(dat + 1))
+  #'   qqnorm(log_dat$residuals, main = "log data + 1")
+  #'   qqline(log_dat$residuals)
+  #'   logdat1 <- round(log(dat1), 2)
+  #' 
+  #'   # return(bxcxdat)
+  #'   # return(ihsdat)
+  #'   return(sqrtdat)   #  Currently square-root transforming them all
+  #'   # return(logdat1)
+  #' }
+  #' covs <- eoe_covs_20s
+  #' # covs <- eoe_covs_21s
+  #' covs$lagomorphs_adj <- transform_dat(covs$lagomorphs) # 2020 all are very terrible, 2021 IHS or log better but definitely not normal
+  #' covs$human_adj <- transform_dat(covs$human) # 20/21 IHS or log seem better but definitely not normal
+  #' covs$human_motorized_adj <- transform_dat(covs$human_motorized) # 20/21 all are pretty terrible
+  #' covs$elk_adj <- transform_dat(covs$elk) # 20/21 sqrt seems best but major tails
+  #' covs$moose_adj <- transform_dat(covs$moose) # 20/21 sqrt seems best but definitely not normal
+  #' covs$muledeer_adj <- transform_dat(covs$muledeer) # 2020 all are very terrible, 2021 all are slightly better but definitely  not normal
+  #' covs$whitetailedeer_adj <- transform_dat(covs$whitetaileddeer) # 20/21 sqrt seems best but major tails
+  #' covs$big_deer_adj <- transform_dat(covs$big_deer) # 20/21 sqrt seems best but major tails
+  #' covs$small_deer_adj <- transform_dat(covs$small_deer) # 2020 sqrt seems best but major tails, Box-Cox seems best but still tails
+  #' 
+  #' #'  List heavily skewed covaraites (relative abundance data)
+  #' listnames <- c("lagomorphsT", "humanT", "human_motorizedT", "livestockT", "elkT", "mooseT", "muledeerT", "whitetaileddeerT", "ungulateT", "big_deerT", "small_deerT")
+  #' cov_20s_list <- list(eoe_covs_20s$lagomorphs, eoe_covs_20s$human, eoe_covs_20s$human_motorized, eoe_covs_20s$livestock, eoe_covs_20s$elk, eoe_covs_20s$moose, eoe_covs_20s$muledeer, eoe_covs_20s$whitetaileddeer, eoe_covs_20s$ungulate, eoe_covs_20s$big_deer, eoe_covs_20s$small_deer)
+  #' cov_20w_list <- list(eoe_covs_20w$lagomorphs, eoe_covs_20w$human, eoe_covs_20w$human_motorized, eoe_covs_20w$livestock, eoe_covs_20w$elk, eoe_covs_20w$moose, eoe_covs_20w$muledeer, eoe_covs_20w$whitetaileddeer, eoe_covs_20w$ungulate, eoe_covs_20w$big_deer, eoe_covs_20w$small_deer)
+  #' cov_21s_list <- list(eoe_covs_21s$lagomorphs, eoe_covs_21s$human, eoe_covs_21s$human_motorized, eoe_covs_21s$livestock, eoe_covs_21s$elk, eoe_covs_21s$moose, eoe_covs_21s$muledeer, eoe_covs_21s$whitetaileddeer, eoe_covs_21s$ungulate, eoe_covs_21s$big_deer, eoe_covs_21s$small_deer)
+  #' 
+  #' #'  Transform annual relative abundance data
+  #' transf_covs_20s <- lapply(cov_20s_list, transform_dat)
+  #' names(transf_covs_20s) <- listnames
+  #' transf_covs_20s <- as.data.frame(transf_covs_20s)
+  #' 
+  #' transf_covs_20w <- lapply(cov_20w_list, transform_dat)
+  #' names(transf_covs_20w) <- listnames
+  #' transf_covs_20w <- as.data.frame(transf_covs_20w)
+  #' 
+  #' transf_covs_21s <- lapply(cov_21s_list, transform_dat)
+  #' names(transf_covs_21s) <- listnames
+  #' transf_covs_21s <- as.data.frame(transf_covs_21s)
+  #' 
+  #' #'  Append adjusted relative abundance covariates to larger covariate data frame
+  #' eoe_covs_20s <- cbind(eoe_covs_20s, transf_covs_20s)
+  #' eoe_covs_20w <- cbind(eoe_covs_20w, transf_covs_20w)
+  #' eoe_covs_21s <- cbind(eoe_covs_21s, transf_covs_21s)
+  #' 
+  #' 
+  #' #'  -----------------------------------------------------------------
+  #' ####  Identify outliers and cap covariates at 99th percentile value  ####
+  #' #'  -----------------------------------------------------------------
+  #' outliers <- function(cov, title) {
+  #'   #'  Summarize predicted values
+  #'   hist(cov, breaks = 100, main = title)
+  #'   boxplot(cov, main = title)
+  #'   #'  What value represents the 99th percentile in the covariate values
+  #'   quant <- quantile(cov, c(0.99), na.rm = TRUE)
+  #'   #'  Print that value and maximum value
+  #'   print(quant); print(max(cov, na.rm = TRUE))
+  #'   #'  Identify the 1% most extreme values and set to 99th percentile value
+  #'   extremevalues <- as.data.frame(cov) %>%
+  #'     mutate(outlier = ifelse(cov > quant, "outlier", "not_outlier"),
+  #'            adjusted_cov = ifelse(outlier == "outlier", quant, cov),
+  #'            adjusted_cov = round(adjusted_cov, 0))
+  #'   #'  How many covariate values are above the 99th percentile?
+  #'   outlier <- extremevalues[extremevalues$outlier == "outlier",]
+  #'   outlier <- filter(outlier, !is.na(outlier))
+  #'   print(nrow(outlier))
+  #'   #'  What percentage of observations are being forced to 99th percentile value
+  #'   print(nrow(outlier)/nrow(extremevalues))
+  #' 
+  #'   #'  Return these adjusted values
+  #'   adjusted_cov <- extremevalues$adjusted_cov
+  #'   return(adjusted_cov)
+  #' }
+  #' #' #'  Identify covariate outliers
+  #' #' bunnies$lagomorphs_adj <- outliers(bunnies$lagomorphs, "Lagomorph outliers")
+  #' #' ppl$humans_adj <- outliers(ppl$human, "Human outliers")
+  #' #' elk$elk_adj <- outliers(elk$elk, "Elk outliers")
+  #' #' moose$moose_adj <- outliers(moose$moose, "Moose outliers")
+  #' #' md$muledeer_adj <- outliers(md$muledeer, "Mule deer outliers")
+  #' #' wtd$whitetaileddeer_adj <- outliers(wtd$whitetaileddeer, "White-tailed deer outliers")
+  #' 
+  #' #'  List heavily skewed covaraites (relative abundance data)
+  #' listnames <- c("lagomorphs99", "human99", "human_motorized99", "livestock99", "elk99", "moose99", "muledeer99", "whitetaileddeer99", "ungulate99", "big_deer99", "small_deer99")
+  #' cov_20s_list <- list(eoe_covs_20s$lagomorphs, eoe_covs_20s$human, eoe_covs_20s$human_motorized, eoe_covs_20s$livestock, eoe_covs_20s$elk, eoe_covs_20s$moose, eoe_covs_20s$muledeer, eoe_covs_20s$whitetaileddeer, eoe_covs_20s$ungulate, eoe_covs_20s$big_deer, eoe_covs_20s$small_deer)
+  #' cov_20w_list <- list(eoe_covs_20w$lagomorphs, eoe_covs_20w$human, eoe_covs_20w$human_motorized, eoe_covs_20w$livestock, eoe_covs_20w$elk, eoe_covs_20w$moose, eoe_covs_20w$muledeer, eoe_covs_20w$whitetaileddeer, eoe_covs_20w$ungulate, eoe_covs_20w$big_deer, eoe_covs_20w$small_deer)
+  #' cov_21s_list <- list(eoe_covs_21s$lagomorphs, eoe_covs_21s$human, eoe_covs_21s$human_motorized, eoe_covs_21s$livestock, eoe_covs_21s$elk, eoe_covs_21s$moose, eoe_covs_21s$muledeer, eoe_covs_21s$whitetaileddeer, eoe_covs_21s$ungulate, eoe_covs_21s$big_deer, eoe_covs_21s$small_deer)
+  #' 
+  #' #'  Adjust annual relative abundance based on season-specific covariate ranges
+  #' capped_covs_20s <- lapply(cov_20s_list, outliers, title = "Outliers")
+  #' names(capped_covs_20s) <- listnames
+  #' capped_covs_20s <- as.data.frame(capped_covs_20s)
+  #' 
+  #' capped_covs_20w <- lapply(cov_20w_list, outliers, title = "Outliers")
+  #' names(capped_covs_20w) <- listnames
+  #' capped_covs_20w <- as.data.frame(capped_covs_20w)
+  #' 
+  #' capped_covs_21s <- lapply(cov_21s_list, outliers, title = "Outliers")
+  #' names(capped_covs_21s) <- listnames
+  #' capped_covs_21s <- as.data.frame(capped_covs_21s)
+  #' 
+  #' #'  Append adjusted relative abundance covariates to larger covariate data frame
+  #' eoe_covs_20s <- cbind(eoe_covs_20s, capped_covs_20s)
+  #' eoe_covs_20w <- cbind(eoe_covs_20w, capped_covs_20w)
+  #' eoe_covs_21s <- cbind(eoe_covs_21s, capped_covs_21s)
+  #' 
+  #'
   #' #'  Visualize capped relative abundance data based on camera setup
   #' bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
   #'   dplyr::select(c(NewLocationID, lagomorphs99)) %>%
