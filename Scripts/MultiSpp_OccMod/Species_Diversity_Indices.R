@@ -89,7 +89,7 @@
     #'  Species Richness (S)
     #'  --------------------
     #'  Sum number of unique species detected at each camera
-    SR_Smr20 <- RA_Smr20_df %>% 
+    SR <- RA %>% 
       dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
       mutate(elk_det = ifelse(elk > 0, 1, 0),
              livestock_det = ifelse(livestock > 0, 1, 0),
@@ -102,87 +102,53 @@
     #'  -----------------------------
     #'  Considers species richness and evenness (abundance of each species)
     #'  https://www.programmingr.com/shannon-diversity-index-the-diversity-function-in-r/
-    H_Smr20 <- as.data.frame(RA_Smr20_df) %>% 
+    Shannon <- as.data.frame(RA) %>% 
       dplyr::select(c("NewLocationID", "elk_perday", "livestock_perday", "moose_perday",
                       "muledeer_perday", "whitetaileddeer_perday")) %>%
       filter(!is.na(elk_perday))
     #' #'  Alternatively, use un-weighted RA index
     #' #'  FYI: H values are almost identical to those of weighted RA index
-    #' H_Smr20 <- as.data.frame(RA_Smr20_df) %>%
+    #' Shannon <- as.data.frame(RA) %>%
     #'   dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
     #'   filter(!is.na(elk))
   
     #'  Loop through each camera site to calculate H
     H <- c(NA)
-    for(i in 1:nrow(H_Smr20)) {
+    for(i in 1:nrow(Shannon)) {
       #'  Relative abundance of each species
-      n <- c(H_Smr20[i,2], H_Smr20[i,3], H_Smr20[i,4], H_Smr20[i,5], H_Smr20[i,6]) 
+      n <- c(Shannon[i,2], Shannon[i,3], Shannon[i,4], Shannon[i,5], Shannon[i,6]) 
       #'  Remove species that were not detected (RA = 0)
       n <- n[n != 0]
       #'  Calculate proportion of community each species represents
       N <- sum(n)
       p <- n/N
-      #'  Calculate Shannon's diversity index
+      #'  Calculate Shannon's diversity index (H)
       H[i] <- -sum(p * log(p))
     }
-    H_Smr20 <- cbind(H_Smr20, H) %>%
+    Shannon <- cbind(Shannon, H) %>%
       mutate(H = round(H, 5))
     
-    #'  Merge SR & H back with raw and weighted relative abundance indices
-    Spp_diversity_Smr20 <- full_join(SR_Smr20, H_Smr20, by = c("NewLocationID")) %>%
-      relocate(SR, .after = NewLocationID) %>%
-      relocate(H, .after = SR)
-    
     #'  List species detected most frequently at each camera
+    dominantSpp <- Shannon %>% dplyr::select(-c(NewLocationID, H)) %>%
+      rowwise() %>%
+      mutate(dominantprey = names(.)[which.max(c_across(everything()))]) %>%
+      dplyr::select(dominantprey) %>%
+      cbind(Shannon)
     
+    #'  Merge SR, H, and most frequently detected prey species with raw and 
+    #'  weighted relative abundance indices
+    Spp_diversity <- full_join(SR, dominantSpp, by = c("NewLocationID")) %>%
+      relocate(SR, .after = NewLocationID) %>%
+      relocate(H, .after = SR) %>%
+      relocate(dominantprey, .after = H) %>%
+      mutate(dominantprey = gsub("_perday", "", dominantprey)) %>%
+      dplyr::select(c(NewLocationID, SR, H, dominantprey)) %>%
+      full_join(RA, by = "NewLocationID")
+    
+    return(Spp_diversity)
   }
+  spp_diversity_Smr20 <- species_diversity(RA_Smr20_df)
+  spp_diversity_Wtr20 <- species_diversity(RA_Wtr20_df)
+  spp_diversity_Smr21 <- species_diversity(RA_Smr21_df)
   
-  
-  
-  #'  Species Richness (S)
-  #'  Sum number of unique species detected at each camera
-  SR_Smr20 <- RA_Smr20_df %>% 
-    dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
-    mutate(elk_det = ifelse(elk > 0, 1, 0),
-           livestock_det = ifelse(livestock > 0, 1, 0),
-           moose_det = ifelse(moose > 0, 1, 0),
-           muledeer_det = ifelse(muledeer > 0, 1, 0),
-           whitetaileddeer_det = ifelse(whitetaileddeer > 0, 1, 0),
-           SR = sum(elk_det, livestock_det, moose_det, muledeer_det, whitetaileddeer_det))
-  
-  #'  Shannon's diversity index (H)
-  #'  Considers species richness and evenness (abundance of each species)
-  H_Smr20 <- as.data.frame(RA_Smr20_df) %>% 
-    dplyr::select(c("NewLocationID", "elk_perday", "livestock_perday", "moose_perday",
-                    "muledeer_perday", "whitetaileddeer_perday")) %>%
-    filter(!is.na(elk_perday))
-  #' #'  Alternatively, use un-weighted RA index
-  #' #'  FYI: H values are almost identical to those of weighted RA index
-  #' H_Smr20 <- as.data.frame(RA_Smr20_df) %>%
-  #'   dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
-  #'   filter(!is.na(elk))
-  
-  #'  Loop through each camera site to calculate H
-  H <- c(NA)
-  for(i in 1:nrow(H_Smr20)) {
-    #'  Relative abundance of each species
-    n <- c(H_Smr20[i,2], H_Smr20[i,3], H_Smr20[i,4], H_Smr20[i,5], H_Smr20[i,6]) 
-    #'  Remove species that were not detected (RA = 0)
-    n <- n[n != 0]
-    #'  Calculate proportion of community each species represents
-    N <- sum(n)
-    p <- n/N
-    #'  Calculate Shannon's diversity index
-    H[i] <- -sum(p * log(p))
-  }
-  H_Smr20 <- cbind(H_Smr20, H) %>%
-    mutate(H = round(H, 5))
-  
-  #'  Merge SR & H back with raw and weighted relative abundance indices
-  Spp_diversity_Smr20 <- full_join(SR_Smr20, H_Smr20, by = c("NewLocationID")) %>%
-    relocate(SR, .after = NewLocationID) %>%
-    relocate(H, .after = SR)
-  
-  #'  List species detected most frequently at each camera
-  primarySpp_Smr20 <- H_Smr20 %>% dplyr::select(-H)
   
