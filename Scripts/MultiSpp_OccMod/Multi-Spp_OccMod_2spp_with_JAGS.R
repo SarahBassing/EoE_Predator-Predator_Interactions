@@ -126,8 +126,8 @@
   psi_cov[,2] <- det_covs$Setup
   psi_cov[,3] <- stations_eoe20s21s$Elev
   psi_cov[,4] <- stations_eoe20s21s$PercForest
-  psi_cov[,5] <- stations_eoe20s21s$Nsmall_deer
-  psi_cov[,6] <- stations_eoe20s21s$Nbig_deer
+  psi_cov[,5] <- stations_eoe20s21s$DomPrey #Nsmall_deer
+  psi_cov[,6] <- stations_eoe20s21s$SppDiversity #Nbig_deer
   psi_cov[,7] <- stations_eoe20s21s$Nelk
   psi_cov[,8] <- stations_eoe20s21s$Nmoose
   psi_cov[,9] <- stations_eoe20s21s$Nmd
@@ -146,8 +146,8 @@
   psi_inxs_cov[,2] <- det_covs$Setup
   psi_inxs_cov[,3] <- stations_eoe20s21s$Elev
   psi_inxs_cov[,4] <- stations_eoe20s21s$PercForest
-  psi_inxs_cov[,5] <- stations_eoe20s21s$Nsmall_deer
-  psi_inxs_cov[,6] <- stations_eoe20s21s$Nbig_deer
+  psi_inxs_cov[,5] <- stations_eoe20s21s$DomPrey #Nsmall_deer
+  psi_inxs_cov[,6] <- stations_eoe20s21s$SppDiversity #Nbig_deer
   psi_inxs_cov[,7] <- stations_eoe20s21s$Nelk
   psi_inxs_cov[,8] <- stations_eoe20s21s$Nmoose
   psi_inxs_cov[,9] <- stations_eoe20s21s$Nmd
@@ -241,10 +241,10 @@
   #####  MCMC settings  ####
   #'  ------------------
   nc <- 3
-  ni <- 25000
-  nb <- 15000
+  ni <- 10000 #25000
+  nb <- 5000 #15000
   nt <- 1
-  na <- 5000
+  na <- 500 #5000
   
   #'  -------------------
   ####  RUN JAGS MODELS  ####
@@ -291,11 +291,14 @@
   mcmcplot(wolf.coy.hab$samples)
   save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_habitat_rx)_px(setup_effort).RData")
   
-  #'  Prey groups model: psi & psix = setup, elevation, forest, small deer, big deer, livestock, lagomorph; p = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_bunnySpp2.R")
+  #'  Prey groups model: psi & psix = setup, elevation, forest, small deer, big deer, livestock, lagomorph; px = setup, effort
+  # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_bunnySpp2.R")
+  # psi & psix = setup, elevation, forest, dominant prey spp, species diversity, lagomorph; px = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_bunnySpp12.R")
   start.time = Sys.time()
   wolf.coy.preygroup <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_bunnySpp2.txt",
+                             # "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_bunnySpp2.txt",
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_bunnySpp12.txt",
                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.preygroup$summary)
