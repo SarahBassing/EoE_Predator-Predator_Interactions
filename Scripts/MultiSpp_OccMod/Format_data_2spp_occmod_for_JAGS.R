@@ -92,6 +92,7 @@
                            Setup = as.factor(Setup),
                            Target = as.factor(Target),
                            Habitat = as.factor(HabLayer_30m2),
+                           DomPrey = as.factor(dominantprey),
                            Height = scale(CameraHeight_M),
                            PercForest = scale(perc_forest), 
                            Elev = scale(Elevation__10m2),
@@ -101,7 +102,9 @@
                            NearestRd = scale(dist2rd),
                            logNearestRd = scale(log(dist2rd+1)),
                            MinGroupSize = scale(avg_min_group_size), 
-                           Nelk = scale(elk_perday),    # NOTE: _PERDAY VERSION FOR BAYESIAN REANALYSIS
+                           SppRich = scale(SR),
+                           SppDiversity = scale(H),
+                           Nelk = scale(elk_perday),    
                            Nhuman = scale(human_perday),
                            Nmotorized = scale(human_motorized_perday),
                            Nlagomorph = scale(lagomorphs_perday),
@@ -162,7 +165,7 @@
     print(corr_all)
     return(corr_all)
   }
-  cov_corr_matrix <- corr_matrix(stations_eoe20s21s, firstcol = 8, lastcol = 35)
+  cov_corr_matrix <- corr_matrix(stations_eoe20s21s, firstcol = 9, lastcol = 38)
   
   
   #'  ---------------------------
@@ -232,6 +235,7 @@
                           CameraFacing = as.factor(CameraFacing),
                           Setup = as.factor(Setup),
                           Target = as.factor(Target),
+                          DomPrey = as.factor(dominantprey),
                           Habitat = as.factor(HabLayer_30m2),
                           Height = CameraHeight_M,
                           PercForest = perc_forest, 
@@ -242,6 +246,8 @@
                           NearestRd = dist2rd,
                           logNearestRd = log(dist2rd+1),
                           MinGroupSize = avg_min_group_size, 
+                          SppRich = SR,
+                          SppDiversity = H,
                           Nelk = elk_perday,    
                           Nhuman = human_perday,
                           Nmotorized = human_motorized_perday,
