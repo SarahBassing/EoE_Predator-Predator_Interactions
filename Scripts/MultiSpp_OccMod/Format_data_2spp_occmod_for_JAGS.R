@@ -146,6 +146,9 @@
                                     rm_rows_yr1 = rm_rows_eoe20s, rm_rows_yr2 = rm_rows_eoe21s) %>%
     #'  Force values to 0 (mean when scaled) since scale() doesn't work when no variation in data
     mutate(Lion_mort_km2 = 0)
+  
+  #'  Save
+  save(stations_eoe20s21s, file = "./Data/Covariates_extracted/stations_eoe20s21s.RData")
 
   #'  Double check things are ordered correctly
   nrow(stations_eoe20s21s); nrow(dh)
@@ -282,6 +285,8 @@
   # save(stations_skinny_eoe20w, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20w.RData")
   # save(stations_skinny_eoe21s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE21s.RData")
   
+  #' #'  Save image of entire environment so it can be used with HPC
+  #' save.image(file = "./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
   
   #'  Fin!
   #'  This is all sourced by Multi-Spp_OccMod_2spp_Bayesian.R
