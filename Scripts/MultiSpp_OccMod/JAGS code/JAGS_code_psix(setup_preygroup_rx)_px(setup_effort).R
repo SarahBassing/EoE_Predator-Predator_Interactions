@@ -1,5 +1,5 @@
   #'  ----------------------------------------------------
-  #'  Relative abundance of prey groups - no lagomorph effect 
+  #'  Relative abundance of prey groups - baseline
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  February 2023
