@@ -300,6 +300,32 @@
   mcmcplot(wolf.lion.hab$samples)
   save(wolf.lion.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_habitat_rx)_px(setup_effort).RData")
   
+  #'  Prey groups model: psi & psix = setup, elevation, forest, small deer, big deer, livestock; px = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_wolflion.R")
+  start.time = Sys.time()
+  wolf.lion.preygroup <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preygroup_rx)_px(setup_effort)_wolflion.txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.preygroup$summary)
+  print(wolf.lion.preygroup$DIC)
+  which(wolf.lion.preygroup$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.preygroup$samples)
+  save(wolf.lion.preygroup, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_preygroup_rx)_px(setup_effort).RData")
+  
+  #'  Prey diversity model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock, lagomorph; px = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).R")
+  start.time = Sys.time()
+  wolf.lion.preydiversity <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.preydiversity$summary)
+  print(wolf.lion.preydiversity$DIC)
+  which(wolf.lion.preydiversity$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.preydiversity$samples)
+  save(wolf.lion.preydiversity, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  
   #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
   start.time = Sys.time()
@@ -312,6 +338,32 @@
   which(wolf.lion.anthro$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.lion.anthro$samples)
   save(wolf.lion.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_anthro_rx)_px(setup_effort).RData")
+  
+  #'  Global model #1: psi & psix = setup, elevation, forest, small deer, big deer, livestock, lagomorph, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global1)_px(setup_effort).R")
+  start.time = Sys.time()
+  wolf.lion.global1 <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global1)_px(setup_effort).txt",
+                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.global1$summary)
+  print(wolf.lion.global1$DIC)
+  which(wolf.lion.global1$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.global1$samples)
+  save(wolf.lion.global1, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(global1)_px(setup_effort).RData")
+  
+  #'  Global model #2: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock, lagomorph, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global2)_px(setup_effort).R")
+  start.time = Sys.time()
+  wolf.lion.global2 <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global2)_px(setup_effort).txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.global2$summary)
+  print(wolf.lion.global2$DIC)
+  which(wolf.lion.global2$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.global2$samples)
+  save(wolf.lion.global2, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(global2)_px(setup_effort).RData")
   
   
   
