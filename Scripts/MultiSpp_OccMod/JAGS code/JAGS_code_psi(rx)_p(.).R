@@ -24,17 +24,17 @@
           mean.pSpp1 ~ dunif(0, 1)                    
           mean.pSpp2 ~ dunif(0, 1)
       
-          #'  Random effect for site   
-          for(site in 1:length(uniquesites)) {
-            etaSpp1[site] ~ dnorm(0, tauSpp1)
-            etaSpp2[site] ~ dnorm(0, tauSpp2)
-          }
-    
-          #'  Hyperpriors for random effect
-          sigmaSpp1 ~ dunif(0, 10)
-          sigmaSpp2 ~ dunif(0, 10)
-          tauSpp1 <- pow(sigmaSpp1, -2)
-          tauSpp2 <- pow(sigmaSpp2, -2)
+          #' #'  Random effect for site   
+          #' for(site in 1:length(uniquesites)) {
+          #'   etaSpp1[site] ~ dnorm(0, tauSpp1)
+          #'   etaSpp2[site] ~ dnorm(0, tauSpp2)
+          #' }
+          #' 
+          #' #'  Hyperpriors for random effect
+          #' sigmaSpp1 ~ dunif(0, 10)
+          #' sigmaSpp2 ~ dunif(0, 10)
+          #' tauSpp1 <- pow(sigmaSpp1, -2)
+          #' tauSpp2 <- pow(sigmaSpp2, -2)
           
           ####  Define Likelihood  ####
           #'  =====================
@@ -111,8 +111,8 @@
               
             #'  ...for states Spp1, Spp2
             #'  Covariate order: Intercept + random effect for site
-            psiSpp1[i] <- betaSpp1*psi_cov[i,1]  + etaSpp1[psi_cov[i,16]]
-            psiSpp2[i] <- betaSpp2*psi_cov[i,1]  + etaSpp1[psi_cov[i,16]]
+            psiSpp1[i] <- betaSpp1*psi_cov[i,1] #+ etaSpp1[psi_cov[i,16]]
+            psiSpp2[i] <- betaSpp2*psi_cov[i,1] #+ etaSpp1[psi_cov[i,16]]
           
             #'  ...for state Spp12
             psiSpp12[i] <- 0
