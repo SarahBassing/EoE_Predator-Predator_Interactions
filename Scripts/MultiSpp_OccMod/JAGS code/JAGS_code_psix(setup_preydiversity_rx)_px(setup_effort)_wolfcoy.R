@@ -1,5 +1,5 @@
   #'  ------------------------------------
-  #'  Prey diversity model - wolf-coyote (and lion-bobcat) model
+  #'  Prey diversity model - wolf-coyote model
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  February 2023
@@ -7,11 +7,10 @@
   #'  Model to test whether predator co-occurrence is non-independent and whether
   #'  basic habitat features influence that relationship.
   #'  Prey species included: elk, livestock, moose, wtd
-  #'  Excluding livestock & moose effects on coyote|no wolf (or bobcat|no lion) 
-  #'  sub-model b/c do not expect mesopredator distribution to be influenced by 
-  #'  cattle or moose in the absence of apex predators
-  #'  Excluding lagomorph effect on wolf|no coyote (or lion|no bobcat) sub-model
-  #'  b/c do not expect apex predator distribution to be influenced by lagomorphs
+  #'  Excluding livestock & moose effects on coyote|no wolf sub-model b/c do not 
+  #'  expect coyote distribution to be influenced by cattle or moose in the absence 
+  #'  of apex predators
+  #'  Including lagomorph effect on coyote submodels b/c important prey item
   #'  ------------------------------------
   
   cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfcoy.txt', "
