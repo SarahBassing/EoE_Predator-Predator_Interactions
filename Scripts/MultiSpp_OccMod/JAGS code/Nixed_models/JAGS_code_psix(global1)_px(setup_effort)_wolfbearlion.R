@@ -162,8 +162,8 @@
           
             #'  Asymetric interactirons between all 3 species
             #'  Currently forcing interactions to equal detection probs above
-            rhoSpp12[i, j] <- rhoSpp1[i, j] #+ alphaSpp12[i, j]*rho_inxs_cov[i,j,1]
-            rhoSpp21[i, j] <- rhoSpp2[i, j] #+ alphaSpp21[i, j]*rho_inxs_cov[i,j,1]
+            rhoSpp12[i, j] <- rhoSpp1[i, j] + alphaSpp12*rho_inxs_cov[i,j,1] 
+            rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21*rho_inxs_cov[i,j,1]
           }
         }
       }
