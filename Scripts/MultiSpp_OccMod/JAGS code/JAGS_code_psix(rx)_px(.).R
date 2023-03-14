@@ -5,7 +5,7 @@
   #'  February 2023
   #'  ------------------------------------
 
-cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(.rx)_px(.).txt', "
+cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt', "
     model{
           
       #### Define Priors  ####
