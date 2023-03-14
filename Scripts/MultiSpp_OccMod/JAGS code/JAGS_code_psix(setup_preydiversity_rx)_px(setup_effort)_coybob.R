@@ -6,7 +6,7 @@
   #'  ------------------------------------
   #'  Model to test whether predator co-occurrence is non-independent and whether
   #'  basic habitat features influence that relationship.
-  #'  Prey species included: elk, livestock, moose, wtd
+  #'  Prey species included: elk, wtd, lagomorph
   #'  Excluding livestock & moose effects b/c do not expect mesopredator distribution 
   #'  to be influenced by cattle or moose 
   #'  Including lagomorph effect b/c both mesopredators prey on rabbits/hares
