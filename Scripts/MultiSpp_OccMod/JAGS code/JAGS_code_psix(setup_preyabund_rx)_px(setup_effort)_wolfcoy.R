@@ -1,17 +1,19 @@
   #'  ------------------------------------
-  #'  Prey diversity model - lion-bobcat model
+  #'  Prey relative abundance - wolf-coyote model
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  February 2023
   #'  ------------------------------------
   #'  Model to test whether predator co-occurrence is non-independent and whether
   #'  basic habitat features influence that relationship.
-  #'  Prey species included: elk, wtd, lagomorph
-  #'  Including lagomorph effect for bobcats only b/c important prey item but
-  #'  excluding elk effect b/c don't expect elk distributions to influence bob distributions
+  #'  Prey species included: elk, livestock, moose, wtd
+  #'  Excluding livestock & moose effects on coyote|no wolf sub-model b/c do not 
+  #'  expect coyote distribution to be influenced by cattle or moose in the absence 
+  #'  of apex predators
+  #'  Including lagomorph effect on coyote submodels b/c important prey item
   #'  ------------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_lionbob.txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfcoy.txt', "
       model{
         
         #### Define Priors  ####
@@ -24,18 +26,18 @@
         mean.psiSpp1[1] ~ dunif(0, 1)               
         mean.psiSpp2[1] ~ dunif(0, 1)
           
-        #'  Lion slopes (elk, no lagomorph)
-        for(fo_psi in 2:6){                         # fo occupancy slopes 
+        #'  Wolf slopes
+        for(fo_psi in 2:8){                         # fo occupancy slopes 
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
         }
-      
-        #'  Bobcat slopes (lagomorph, no elk)
-        for(fo_psi in 2:6){                         # fo occupancy slopes 
+        
+        #'  Coyote slopes (lagomorph but no moose or livestock effect)
+        for(fo_psi in 2:7){                         # fo occupancy slopes 
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
     
         #'  Second order psi priors                 # so occupancy intercepts 
-        for(so_psi in 1:7){
+        for(so_psi in 1:9){
           betaSpp12[so_psi] ~ dnorm(0, 0.1)
         }
       
@@ -145,14 +147,14 @@
           #'  Linear models for the occupancy parameters on the logit scale
             
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Spp1 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Elk[7] + White-tailed deer[10]
-          #'  Covariate order: Spp2 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + White-tailed deer[10] + Lagomorph[11]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,7] + betaSpp1[6]*psi_cov[i,10] + etaSpp1[psi_cov[i,16]]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,10] + betaSpp2[6]*psi_cov[i,11] + etaSpp2[psi_cov[i,16]]
+          #'  Covariate order: Spp1 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Elk[7] + Moose[8] + White-tailed deer[10] + Livestock[15] 
+          #'  Covariate order: Spp2 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Elk[7] + White-tailed deer[10] + Lagomorph[11]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,7] + betaSpp1[6]*psi_cov[i,8] + betaSpp1[7]*psi_cov[i,10] + betaSpp1[8]*psi_cov[i,15] + etaSpp1[psi_cov[i,16]]
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,7] + betaSpp2[6]*psi_cov[i,10] + betaSpp2[7]*psi_cov[i,11] + etaSpp2[psi_cov[i,16]]
         
           #'  ...for state Spp12
-          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Elk[7] + White-tailed deer[10] + Lagomorph[11]
-          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,7] + betaSpp12[6]*psi_inxs_cov[i,10] + betaSpp12[7]*psi_inxs_cov[i,11]
+          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Elk[7] + Moose[8] + White-tailed deer[10] + Livestock[15] + Lagomorph[11]
+          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,7] + betaSpp12[6]*psi_inxs_cov[i,8] + betaSpp12[7]*psi_inxs_cov[i,10] + betaSpp12[8]*psi_inxs_cov[i,15] + betaSpp12[9]*psi_inxs_cov[i,11] 
         
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
