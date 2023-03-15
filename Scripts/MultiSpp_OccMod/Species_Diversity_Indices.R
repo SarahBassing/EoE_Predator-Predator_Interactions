@@ -90,33 +90,34 @@
     #'  --------------------
     #'  Sum number of unique species detected at each camera
     SR <- RA %>% 
-      dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
+      dplyr::select(c("NewLocationID", "elk", "lagomorph", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
       mutate(elk_det = ifelse(elk > 0, 1, 0),
+             lagomorph_det = ifelse(lagomorph > 0, 1, 0),
              livestock_det = ifelse(livestock > 0, 1, 0),
              moose_det = ifelse(moose > 0, 1, 0),
              muledeer_det = ifelse(muledeer > 0, 1, 0),
              whitetaileddeer_det = ifelse(whitetaileddeer > 0, 1, 0),
-             SR = sum(elk_det, livestock_det, moose_det, muledeer_det, whitetaileddeer_det))
+             SR = sum(elk_det, lagomorph_det, livestock_det, moose_det, muledeer_det, whitetaileddeer_det))
     
     #'  Shannon's diversity index (H)
     #'  -----------------------------
     #'  Considers species richness and evenness (abundance of each species)
     #'  https://www.programmingr.com/shannon-diversity-index-the-diversity-function-in-r/
     Shannon <- as.data.frame(RA) %>% 
-      dplyr::select(c("NewLocationID", "elk_perday", "livestock_perday", "moose_perday",
-                      "muledeer_perday", "whitetaileddeer_perday")) %>%
+      dplyr::select(c("NewLocationID", "elk_perday", "lagomorphs_perday", "livestock_perday", 
+                      "moose_perday", "muledeer_perday", "whitetaileddeer_perday")) %>%
       filter(!is.na(elk_perday))
     #' #'  Alternatively, use un-weighted RA index
     #' #'  FYI: H values are almost identical to those of weighted RA index
     #' Shannon <- as.data.frame(RA) %>%
-    #'   dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
+    #'   dplyr::select(c("NewLocationID", "elk", "lagomorph", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
     #'   filter(!is.na(elk))
   
     #'  Loop through each camera site to calculate H
     H <- c(NA)
     for(i in 1:nrow(Shannon)) {
       #'  Relative abundance of each species
-      n <- c(Shannon[i,2], Shannon[i,3], Shannon[i,4], Shannon[i,5], Shannon[i,6]) 
+      n <- c(Shannon[i,2], Shannon[i,3], Shannon[i,4], Shannon[i,5], Shannon[i,6], Shannon[i,7]) 
       #'  Remove species that were not detected (RA = 0)
       n <- n[n != 0]
       #'  Calculate proportion of community each species represents
@@ -128,8 +129,8 @@
     Shannon <- cbind(Shannon, H) %>%
       mutate(H = round(H, 5))
     
-    #'  List species detected most frequently at each camera
-    dominantSpp <- Shannon %>% dplyr::select(-c(NewLocationID, H)) %>%
+    #'  List wild ungulate species detected most frequently at each camera
+    dominantSpp <- Shannon %>% dplyr::select(-c(NewLocationID, lagomorphs_perday, livestock_perday, H)) %>%
       rowwise() %>%
       mutate(dominantprey = names(.)[which.max(c_across(everything()))]) %>%
       dplyr::select(dominantprey) %>%
