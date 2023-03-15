@@ -468,8 +468,8 @@
   #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
   inits.wolf.lion <- function(){list(z = zinits[[3]], mean.psiSpp1 = runif(1),
-                                     mean.psiSpp2 = runif(1), alphaSpp1 = runif(1), 
-                                     alphaSpp2 = runif(1))}
+                                     mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
+                                     mean.pSpp2 = runif(1))}
   start.time = Sys.time()
   wolf.lion.hab <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
