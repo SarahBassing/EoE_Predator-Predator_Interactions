@@ -28,9 +28,14 @@
   # library(loo)
   library(tidyverse)
   
-  #'  Source detection histories and covariate data
-  source("./Scripts/MultiSpp_OccMod/Detection_histories_for_occmod.R")
-  source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_for_JAGS.R")
+  #' #'  Source detection histories and covariate data
+  #' source("./Scripts/MultiSpp_OccMod/Detection_histories_for_occmod.R")
+  #' source("./Scripts/MultiSpp_OccMod/Format_data_2spp_occmod_for_JAGS.R")
+  
+  #'  Load covariate and detection history data
+  load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
   
   
   #'  ----------------------------
