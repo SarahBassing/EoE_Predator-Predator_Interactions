@@ -132,8 +132,8 @@
   psi_cov[,2] <- det_covs$Setup
   psi_cov[,3] <- stations_eoe20s21s$Elev
   psi_cov[,4] <- stations_eoe20s21s$PercForest
-  psi_cov[,5] <- stations_eoe20s21s$Nsmall_deer  #DomPrey
-  psi_cov[,6] <- stations_eoe20s21s$Nbig_deer #SppDiversity
+  psi_cov[,5] <- factor(stations_eoe20s21s$DomPrey, levels = c("elk", "whitetaileddeer", "other"))
+  psi_cov[,6] <- stations_eoe20s21s$SppDiversity
   psi_cov[,7] <- stations_eoe20s21s$Nelk
   psi_cov[,8] <- stations_eoe20s21s$Nmoose
   psi_cov[,9] <- stations_eoe20s21s$Nmd
@@ -152,8 +152,8 @@
   psi_inxs_cov[,2] <- det_covs$Setup
   psi_inxs_cov[,3] <- stations_eoe20s21s$Elev
   psi_inxs_cov[,4] <- stations_eoe20s21s$PercForest
-  psi_inxs_cov[,5] <- stations_eoe20s21s$Nsmall_deer  #DomPrey
-  psi_inxs_cov[,6] <- stations_eoe20s21s$Nbig_deer #SppDiversity
+  psi_inxs_cov[,5] <- factor(stations_eoe20s21s$DomPrey, levels = c("elk", "whitetaileddeer", "other"))
+  psi_inxs_cov[,6] <- stations_eoe20s21s$SppDiversity
   psi_inxs_cov[,7] <- stations_eoe20s21s$Nelk
   psi_inxs_cov[,8] <- stations_eoe20s21s$Nmoose
   psi_inxs_cov[,9] <- stations_eoe20s21s$Nmd
@@ -246,9 +246,14 @@
   
   #####  MCMC settings  ####
   #'  ------------------
+  # nc <- 3
+  # ni <- 100000 
+  # nb <- 50000 
+  # nt <- 5
+  # na <- 5000 
   nc <- 3
-  ni <- 100000 
-  nb <- 50000 
+  ni <- 25000 
+  nb <- 15000 
   nt <- 5
   na <- 5000 
   
@@ -440,9 +445,24 @@
   
   ####  Wolf-Lion Models  ####
   #'  ----------------------
-  inits.wolf.lion <- function(){list(z = zinits[[3]])}
+  inits.wolf.lion <- function(){list(z = zinits[[3]], mean.psiSpp1 = runif(1),
+                                     mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
+                                     mean.pSpp2 = runif(1))}
   
-  #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
+  #'  Null: psi(.), psix(.), p(.), px(.), no random effect
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(.)_px(.).R")
+  start.time = Sys.time()
+  wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(.)_px(.).txt",
+                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.null$summary)
+  print(wolf.lion.null$DIC)
+  which(wolf.lion.null$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.null$samples)
+  save(wolf.lion.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(.)_px(.).RData")
+  
+  #'  Null: psi(rx), psix(.), p(.), px(.)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
   start.time = Sys.time()
   wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
@@ -466,10 +486,19 @@
   # save(wolf.lion.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(rx)_px(.).RData")
   
   #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat)_px(setup_effort).R")
+  start.time = Sys.time()
+  wolf.lion.hab1 <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat)_px(setup_effort).txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.hab1$summary)
+  print(wolf.lion.hab1$DIC)
+  which(wolf.lion.hab1$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.hab1$samples)
+  save(wolf.lion.hab1, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_habitat)_px(setup_effort).RData")
+  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
-  inits.wolf.lion <- function(){list(z = zinits[[3]], mean.psiSpp1 = runif(1),
-                                     mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
-                                     mean.pSpp2 = runif(1))}
   start.time = Sys.time()
   wolf.lion.hab <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
