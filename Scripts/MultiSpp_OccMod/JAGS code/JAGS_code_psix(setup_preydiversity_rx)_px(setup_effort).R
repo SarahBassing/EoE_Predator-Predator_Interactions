@@ -10,7 +10,7 @@
   #'  (proportional abundance of each species in community)
   #'  ------------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_shannonH_rx)_px(setup_effort).txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).txt', "
       model{
         
         #### Define Priors  ####
