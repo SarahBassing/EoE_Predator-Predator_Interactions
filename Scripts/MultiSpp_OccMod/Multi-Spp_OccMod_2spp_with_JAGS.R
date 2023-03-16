@@ -242,6 +242,7 @@
   #'  -------------------------
   params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21","sigmaSpp1", "sigmaSpp2",
+              "betaSpp1_domprey", "betaSpp2_domprey", "betaSpp12_domprey",
               "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z") 
   
   #####  MCMC settings  ####
