@@ -1,18 +1,17 @@
   #'  ------------------------------------
-  #'  Global model - coyote-bobcat model
+  #'  Global model - bear-lion model
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  February 2023
   #'  ------------------------------------
   #'  Model to test whether predator co-occurrence is non-independent and whether
   #'  basic habitat features influence that relationship.
-  #'  Prey species included: wtd, lagomorph
-  #'  Excluding elk, livestock, moose effects b/c do not expect mesopredator  
-  #'  distributions to be influenced by larger ungulates 
-  #'  Including lagomorph effect b/c both mesopredators prey on rabbits/hares
+  #'  Includes setup & habitat, species diversity (H), and relative abundance of
+  #'  elk & wtd. Does not include categorical variable for dominant prey species
+  #'  b/c redundant with elk/wtd relative abundance.
   #'  ------------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_coybob.txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_bearlion.txt', "
       model{
           
         ##### Define Priors  ####
@@ -29,6 +28,14 @@
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
+      
+        #' #'  Coefficients for categorical dominant prey species (1 = elk, 2 = wtd, 3 = other)
+        #' betaSpp1_domprey[1] <- 0
+        #' betaSpp2_domprey[2] <- 0
+        #' for(fo_prey in 2:3){
+        #'   betaSpp1_domprey[fo_prey] ~ dnorm(0, 0.1)
+        #'   betaSpp2_domprey[fo_prey] ~ dnorm(0, 0.1)
+        #' }
       
         #'  Second order psi priors                 # so occupancy intercepts
         for(so_psi in 1:9){
@@ -141,13 +148,13 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Spp1 & Spp2 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Dist2Burbs[12] + LogNearestRd[13] + Human[14] + White-tailed Deer[10] + Lagomorph[11]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,12] + betaSpp1[6]*psi_cov[i,13] + betaSpp1[7]*psi_cov[i,14] + betaSpp1[8]*psi_cov[i,10] + betaSpp1[9]*psi_cov[i,11] + eta[psi_cov[i,16]]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,12] + betaSpp2[6]*psi_cov[i,13] + betaSpp2[7]*psi_cov[i,14] + betaSpp2[8]*psi_cov[i,10] + betaSpp2[9]*psi_cov[i,11] + eta[psi_cov[i,16]]
+          #'  Covariate order: Spp1 & Spp2 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + SppDiversity[6] + Elk[7] + White-tailed Deer[10] #+ DominantPrey[5]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,6] + betaSpp1[6]*psi_cov[i,7] + betaSpp1[7]*psi_cov[i,10] + eta[psi_cov[i,16]] # + betaSpp1_domprey[psi_cov[i,5]]
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,6] + betaSpp2[6]*psi_cov[i,7] + betaSpp2[7]*psi_cov[i,10] + eta[psi_cov[i,16]] # + betaSpp1_domprey[psi_cov[i,5]]
           
           #'  ...for state Spp12
-          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Dist2Burbs[12] + LogNearestRd[13] + Human[14] + White-tailed Deer[10] + Lagomorph[11]
-          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,12] + betaSpp12[6]*psi_inxs_cov[i,13] + betaSpp12[7]*psi_inxs_cov[i,14] + betaSpp12[8]*psi_cov[i,10] + betaSpp1[9]*psi_cov[i,11]
+          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Dist2Burbs[12] + LogNearestRd[13] + Human[14] + SppDiversity[6] + Elk[7] + White-tailed Deer[10] #+ DominantPrey[5]
+          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,6] + betaSpp12[6]*psi_inxs_cov[i,7] + betaSpp12[7]*psi_inxs_cov[i,10] #+ betaSpp12_domprey[psi_cov[i,5]]
           
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
