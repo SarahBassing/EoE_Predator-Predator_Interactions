@@ -33,7 +33,7 @@
       
         #'  Coefficients for categorical dominant prey species (1 = elk, 2 = wtd, 3 = other)
         betaSpp1_domprey[1] <- 0
-        betaSpp2_domprey[2] <- 0
+        betaSpp2_domprey[1] <- 0
         for(fo_prey in 2:3){
           betaSpp1_domprey[fo_prey] ~ dnorm(0, 0.1)
           betaSpp2_domprey[fo_prey] ~ dnorm(0, 0.1)
