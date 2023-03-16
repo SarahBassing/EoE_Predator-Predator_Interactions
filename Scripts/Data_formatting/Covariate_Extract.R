@@ -203,6 +203,9 @@
       #'  Change all NAs introduced during joining to 0's 
       #'  (MAKE SURE THIS ONLY AFFECTS RELATIVE ABUNDANCE DATA)
       replace(is.na(.), 0) %>%
+      #'  Dang it, changed some NAs to 0 in dominant prey column - set these to
+      #'  "other" since species other than elk/wtd were present
+      mutate(dominantprey = ifelse(dominantprey == 0, "other", dominantprey)) %>%
       full_join(mort, by = "GMU") %>%
       dplyr::select(-c(geometry, ID, Lat, Long)) %>%
       arrange(NewLocationID)
