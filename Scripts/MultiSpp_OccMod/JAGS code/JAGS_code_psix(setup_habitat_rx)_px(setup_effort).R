@@ -50,7 +50,7 @@
         #   alphaSpp21[so_rho] ~ dnorm(0, 0.1)
         # }
         
-        #'  Random effect for site   
+        #'  Random effect for site
         for(site in 1:length(uniquesites)) {
           etaSpp1[site] ~ dnorm(0, tauSpp1)
           etaSpp2[site] ~ dnorm(0, tauSpp2)
