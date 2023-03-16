@@ -90,9 +90,9 @@
     #'  --------------------
     #'  Sum number of unique species detected at each camera
     SR <- RA %>% 
-      dplyr::select(c("NewLocationID", "elk", "lagomorph", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
+      dplyr::select(c("NewLocationID", "elk", "lagomorphs", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
       mutate(elk_det = ifelse(elk > 0, 1, 0),
-             lagomorph_det = ifelse(lagomorph > 0, 1, 0),
+             lagomorph_det = ifelse(lagomorphs > 0, 1, 0),
              livestock_det = ifelse(livestock > 0, 1, 0),
              moose_det = ifelse(moose > 0, 1, 0),
              muledeer_det = ifelse(muledeer > 0, 1, 0),
@@ -110,7 +110,7 @@
     #' #'  Alternatively, use un-weighted RA index
     #' #'  FYI: H values are almost identical to those of weighted RA index
     #' Shannon <- as.data.frame(RA) %>%
-    #'   dplyr::select(c("NewLocationID", "elk", "lagomorph", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
+    #'   dplyr::select(c("NewLocationID", "elk", "lagomorphs", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
     #'   filter(!is.na(elk))
   
     #'  Loop through each camera site to calculate H
@@ -132,11 +132,13 @@
     #'  List wild ungulate species detected most frequently at each camera
     dominantSpp <- Shannon %>% dplyr::select(-c(NewLocationID, lagomorphs_perday, livestock_perday, H)) %>%
       rowwise() %>%
-      mutate(dominantprey = names(.)[which.max(c_across(everything()))]) %>%
+      mutate(dominantprey = names(.)[which.max(c_across(everything()))],
+             dominantprey = ifelse(dominantprey == "moose_perday", "other", dominantprey),
+             dominantprey = ifelse(dominantprey == "muledeer_perday", "other", dominantprey)) %>%
       dplyr::select(dominantprey) %>%
       cbind(Shannon)
     
-    #'  Merge SR, H, and most frequently detected prey species with raw and 
+    #'  Merge SR, H, and most frequently detected wild ungulate species with raw and 
     #'  weighted relative abundance indices
     Spp_diversity <- full_join(SR, dominantSpp, by = c("NewLocationID")) %>%
       relocate(SR, .after = NewLocationID) %>%
