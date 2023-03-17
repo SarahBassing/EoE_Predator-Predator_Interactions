@@ -29,7 +29,7 @@
         }
       
         #'  Second order occupancy intercerpt & effect of trail type (psi)  
-        for(so_psi in 1:1){
+        for(so_psi in 1:2){
           betaSpp12[so_psi] ~ dnorm(0, 0.1)
         }
         
