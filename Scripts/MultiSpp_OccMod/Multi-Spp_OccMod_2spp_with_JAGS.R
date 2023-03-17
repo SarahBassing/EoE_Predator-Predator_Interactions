@@ -242,7 +242,7 @@
   #'  -------------------------
   params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21","sigmaSpp1", "sigmaSpp2",
-              "betaSpp1_domprey", "betaSpp2_domprey", "betaSpp12_domprey",
+              # "betaSpp1_domprey", "betaSpp2_domprey", "betaSpp12_domprey",
               "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z") 
   
   #####  MCMC settings  ####
@@ -253,10 +253,10 @@
   # nt <- 5
   # na <- 5000 
   nc <- 3
-  ni <- 25000 
-  nb <- 15000 
-  nt <- 5
-  na <- 5000 
+  ni <- 5000 
+  nb <- 1000 
+  nt <- 1
+  na <- 2000 
   
   #'  -------------------
   ####  RUN JAGS MODELS  ####
@@ -837,10 +837,12 @@
   save(coy.bob.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(rx)_px(.).RData")
   
   #'  Habitat model: psi = setup, elevation, forest; p = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+                      # "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.hab$summary)
