@@ -27,6 +27,10 @@
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
+      
+        #'  Second order occupancy intercerpt (psi) 
+        #'  Fix second-order interaction to 0
+        betaSpp12 <- 0
         
         #'  First order detection intercepts (rho)
         alphaSpp1[1] <- logit(mean.pSpp1)           
@@ -39,6 +43,11 @@
           alphaSpp1[fo_rho] ~ dnorm(0, 0.1)  
           alphaSpp2[fo_rho] ~ dnorm(0, 0.1)
         }
+      
+        #'  Second order detection priors (rho)
+        #'  Assumes no second-order interactions by setting these to 0
+        alphaSpp12 <- 0
+        alphaSpp21 <- 0
           
         #'  Random effect for site
         for(site in 1:length(uniquesites)) {
@@ -132,8 +141,8 @@
           psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + etaSpp2[psi_cov[i,16]]
           
           #'  ...for state Spp12
-          #'  No interaction
-          psiSpp12[i] <- 0
+          #'  Don't forget - second order parameter set to 0 so no interaction
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12*psi_inxs_cov[i,1]
           
           #'  Baseline linear predictors for detection
           #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
@@ -142,9 +151,9 @@
             rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5]
           
             #'  Asymetric interactions between both species
-            #'  Fixing to be same as species-sepcific detection probability
-            rhoSpp12[i, j] <- rhoSpp1[i, j] 
-            rhoSpp21[i, j] <- rhoSpp2[i, j] 
+            #'  Don't forget - second order parameters set to 0 so no interactions
+            rhoSpp12[i, j] <- rhoSpp1[i, j] + alphaSpp12*rho_inxs_cov[i,j,1] 
+            rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21*rho_inxs_cov[i,j,1] 
           }
         }
       }

@@ -34,6 +34,10 @@
         for(bearlion_psi in 2:6){                          
           betaSpp2[bearlion_psi] ~ dnorm(0, 0.1)
         }
+      
+        #'  Second order occupancy intercerpt (psi) 
+        #'  Fix second-order interaction to 0
+        betaSpp12 <- 0
         
         #'  First order detection intercepts (rho)
         alphaSpp1[1] <- logit(mean.pSpp1)           
@@ -140,8 +144,8 @@
           psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,7] + betaSpp2[6]*psi_cov[i,10] + etaSpp2[psi_cov[i,16]]
         
           #'  ...for state Spp12
-          #'  No interaction
-          psiSpp12[i] <- 0        #or should this be psiSpp1[i] + psiSpp2[i]
+          #'  Don't forget - second order parameter set to 0 so no interaction
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12*psi_inxs_cov[i,1]
           
           #'  Baseline linear predictors for detection
           #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
