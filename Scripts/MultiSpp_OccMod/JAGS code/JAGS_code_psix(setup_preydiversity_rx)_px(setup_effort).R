@@ -31,13 +31,14 @@
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
       
-        #'  Coefficients for categorical dominant prey species (1 = elk, 2 = wtd, 3 = other)
-        betaSpp1_domprey[1] <- 0
-        betaSpp2_domprey[1] <- 0
-        for(fo_prey in 2:3){
-          betaSpp1_domprey[fo_prey] ~ dnorm(0, 0.1)
-          betaSpp2_domprey[fo_prey] ~ dnorm(0, 0.1)
-        }
+        #' #'  First order occupancy slopes for categorical dominant prey species 
+        #' #'  (1 = elk, 2 = wtd, 3 = other)
+        #' betaSpp1_domprey[1] <- 0
+        #' betaSpp2_domprey[1] <- 0
+        #' for(fo_prey in 2:3){
+        #'   betaSpp1_domprey[fo_prey] ~ dnorm(0, 0.1)
+        #'   betaSpp2_domprey[fo_prey] ~ dnorm(0, 0.1)
+        #' }
     
         #'  Second order psi priors                 # so occupancy intercepts 
         for(so_psi in 1:5){
@@ -156,13 +157,13 @@
           #'  Linear models for the occupancy parameters on the logit scale
             
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Spp1 & Spp2 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + SppDiversity[6] + DominantPrey[5]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,6] + betaSpp1_domprey[psi_cov[i,5]] + etaSpp1[psi_cov[i,16]]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,6] + betaSpp2_domprey[psi_cov[i,5]] + etaSpp2[psi_cov[i,16]]
+          #'  Covariate order: Spp1 & Spp2 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + SppDiversity[6] #+ DominantPrey[5]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,6] + etaSpp1[psi_cov[i,16]] # + betaSpp1_domprey[psi_cov[i,5]]
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,6] + etaSpp2[psi_cov[i,16]] # + betaSpp2_domprey[psi_cov[i,5]]
         
           #'  ...for state Spp12
-          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + SppDiversity[6] + DominantPrey[5]
-          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,6] + betaSpp12_domprey[psi_cov[i,5]] 
+          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + SppDiversity[6] #+ DominantPrey[5]
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,6] #+ betaSpp12_domprey[psi_cov[i,5]] 
         
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
