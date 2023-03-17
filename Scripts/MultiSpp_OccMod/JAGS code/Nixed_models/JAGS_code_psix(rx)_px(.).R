@@ -124,7 +124,7 @@ cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(
           
         #'  ...for state Spp12
         #'  Intercept
-        psiSpp12[i] <- betaSpp12*psi_inxs_cov[i,1] 
+        psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12*psi_inxs_cov[i,1] 
           
         #'  Linear models for the detection parameters on the logit scale
         for(j in 1:nsurveys) {
