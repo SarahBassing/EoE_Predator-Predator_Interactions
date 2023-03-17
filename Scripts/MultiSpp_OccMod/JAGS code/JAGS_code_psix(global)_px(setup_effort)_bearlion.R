@@ -154,7 +154,7 @@
           
           #'  ...for state Spp12
           #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Dist2Burbs[12] + LogNearestRd[13] + Human[14] + SppDiversity[6] + Elk[7] + White-tailed Deer[10] #+ DominantPrey[5]
-          psiSpp12[i] <- betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,6] + betaSpp12[6]*psi_inxs_cov[i,7] + betaSpp12[7]*psi_inxs_cov[i,10] #+ betaSpp12_domprey[psi_cov[i,5]]
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,3] + betaSpp12[4]*psi_inxs_cov[i,4] + betaSpp12[5]*psi_inxs_cov[i,6] + betaSpp12[6]*psi_inxs_cov[i,7] + betaSpp12[7]*psi_inxs_cov[i,10] #+ betaSpp12_domprey[psi_cov[i,5]]
           
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
