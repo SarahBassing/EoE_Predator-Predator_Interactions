@@ -253,10 +253,10 @@
   # nt <- 5
   # na <- 5000 
   nc <- 3
-  ni <- 5000 
-  nb <- 1000 
+  ni <- 50 
+  nb <- 10
   nt <- 1
-  na <- 2000 
+  na <- 20
   
   #'  -------------------
   ####  RUN JAGS MODELS  ####
@@ -272,9 +272,12 @@
   
   ####  Wolf-Bear Models  ####
   #'  ----------------------
-  inits.wolf.bear <- function(){list(z = zinits[[1]])}
+  inits.wolf.bear <- function(){list(z = zinits[[1]], mean.psiSpp1 = runif(1),
+                                     mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
+                                     mean.pSpp2 = runif(1))}
   
-  #####  Habitat no inxs model: psi = setup, elevation, forest; p = setup, effort  ####
+  #####  Habitat no inxs model  #### 
+  #'  psi = setup, elevation, forest; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -287,7 +290,8 @@
   mcmcplot(wolf.bear.hab$samples)
   save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort).RData")
   
-  #####  Prey abundance no inxs model: psi = setup, elevation, forest, elk, moose, md, wtd, livestock; p = setup, effort  ####
+  #####  Prey abundance no inxs model  #### 
+  #'  psi = setup, elevation, forest, elk, moose, wtd, livestock; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.bear.preyabund <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -300,7 +304,8 @@
   mcmcplot(wolf.bear.preyabund$samples)
   save(wolf.bear.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preyabund_rx)_p(setup_effort).RData")
   
-  #####  Prey diversity no inxs model: psi = setup, elevation, forest, spp diversity; p = setup, effort  ####
+  #####  Prey diversity no inxs model  #### 
+  #'  psi = setup, elevation, forest, spp diversity; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.bear.preydiv <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -313,7 +318,8 @@
   mcmcplot(wolf.bear.preydiv$samples)
   save(wolf.bear.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_rx)_p(setup_effort).RData")
   
-  #####  Habitat w/ inx model: psi = setup, elevation, forest; psix(.); p = setup, effort  ####
+  #####  Habitat w/ inx model  #### 
+  #'  psi = setup, elevation, forest; psix(.); p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.bear.habx <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -326,7 +332,8 @@
   mcmcplot(wolf.bear.habx$samples)
   save(wolf.bear.habx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_psix(.)_p(setup_effort).RData")
   
-  #####  Habitat w/ prey abundance inx model: psi = setup, elevation, forest; psix(elk, moose, md, wtd, livestock); p = setup, effort  ####
+  #####  Habitat w/ prey abundance inx model  #### 
+  #'  psi = setup, elevation, forest; psix(elk, moose, wtd, livestock); p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.bear.preyabundx <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -339,7 +346,8 @@
   mcmcplot(wolf.bear.preyabundx$samples)
   save(wolf.bear.preyabundx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort).RData")
   
-  #####  Habitat w/ prey diversity inx model: psi = setup, elevation, forest; psix(spp diversity); p = setup, effort  ####
+  #####  Habitat w/ prey diversity inx model  #### 
+  #'  psi = setup, elevation, forest; psix(spp diversity); p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.bear.preydivx <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -350,634 +358,1063 @@
   print(wolf.bear.preydivx$DIC)
   which(wolf.bear.preydivx$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.bear.preydivx$samples)
-  save(wolf.bear.preydivx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).RData")
+  save(wolf.bear.preydivx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).RData")
   
   
-  
-  
-  
-  
-  #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
-  start.time = Sys.time()
-  wolf.bear.null <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
-                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.bear.null$summary)
-  print(wolf.bear.null$DIC)
-  which(wolf.bear.null$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.bear.null$samples)
-  save(wolf.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(rx)_px(.).RData")
-  # start.time = Sys.time()
-  # wolf.bear.null <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-  #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
-  #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
-  #                         DIC = TRUE, jags.module = c("glm", "dic"))
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # wolf.bear.null <- wolf.bear.null$BUGSoutput$summary
-  # print(wolf.bear.null, dig = 3)
-  # mcmcplot(wolf.bear.null)
-  # save(wolf.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(rx)_px(.).RData")
-  
-  #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
-  start.time = Sys.time()
-  wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.bear.hab$summary)
-  print(wolf.bear.hab$DIC)
-  which(wolf.bear.hab$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.bear.hab$samples)
-  save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_habitat_rx)_px(setup_effort).RData")
-  # start.time = Sys.time()
-  # wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-  #                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-  #                                n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
-  #                                DIC = TRUE, jags.module = c("glm", "dic"))
-  # # wolf.bear.hab <- jags.parallel(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-  # #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-  # #                       n.chains = nc, n.iter = ni, n.burnin = 50000, n.thin = nt, 
-  # #                       DIC = TRUE, jags.module = c("glm", "dic"))
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # wolf.bear.hab.sum <- wolf.bear.hab$BUGSoutput$summary
-  # print(wolf.bear.hab.sum, dig = 3)
-  # mcmcplot(wolf.bear.hab.sum)
-  # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_habitat_rx)_px(setup_effort).RData")
-  
-  #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfbearlion.R")
-  start.time = Sys.time()
-  wolf.bear.preyabund <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfbearlion.txt",
-                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.bear.preyabund$summary)
-  print(wolf.bear.preyabund$DIC)
-  which(wolf.bear.preyabund$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.bear.preyabund$samples)
-  save(wolf.bear.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_preyabund_rx)_px(setup_effort).RData")
-  
-  #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfbearlion.R")
-  start.time = Sys.time()
-  wolf.bear.preydiv <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfbearlion.txt",
-                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.bear.preydiv$summary)
-  print(wolf.bear.preydiv$DIC)
-  which(wolf.bear.preydiv$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.bear.preydiv$samples)
-  save(wolf.bear.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_preydiversity_rx)_px(setup_effort).RData")
-  
-  #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
-  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  #' #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
   #' start.time = Sys.time()
-  #' wolf.bear.anthro <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-  #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+  #' wolf.bear.null <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #'                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #'                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.bear.null$summary)
+  #' print(wolf.bear.null$DIC)
+  #' which(wolf.bear.null$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.bear.null$samples)
+  #' save(wolf.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(rx)_px(.).RData")
+  #' # start.time = Sys.time()
+  #' # wolf.bear.null <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #' #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #' #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+  #' #                         DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' # wolf.bear.null <- wolf.bear.null$BUGSoutput$summary
+  #' # print(wolf.bear.null, dig = 3)
+  #' # mcmcplot(wolf.bear.null)
+  #' # save(wolf.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(rx)_px(.).RData")
+  #' 
+  #' #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #' start.time = Sys.time()
+  #' wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #'                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #'                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.bear.hab$summary)
+  #' print(wolf.bear.hab$DIC)
+  #' which(wolf.bear.hab$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.bear.hab$samples)
+  #' save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_habitat_rx)_px(setup_effort).RData")
+  #' # start.time = Sys.time()
+  #' # wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #' #                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #' #                                n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
+  #' #                                DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # # wolf.bear.hab <- jags.parallel(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #' # #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #' # #                       n.chains = nc, n.iter = ni, n.burnin = 50000, n.thin = nt, 
+  #' # #                       DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' # wolf.bear.hab.sum <- wolf.bear.hab$BUGSoutput$summary
+  #' # print(wolf.bear.hab.sum, dig = 3)
+  #' # mcmcplot(wolf.bear.hab.sum)
+  #' # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_habitat_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfbearlion.R")
+  #' start.time = Sys.time()
+  #' wolf.bear.preyabund <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #'                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfbearlion.txt",
+  #'                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.bear.preyabund$summary)
+  #' print(wolf.bear.preyabund$DIC)
+  #' which(wolf.bear.preyabund$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.bear.preyabund$samples)
+  #' save(wolf.bear.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfbearlion.R")
+  #' start.time = Sys.time()
+  #' wolf.bear.preydiv <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #'                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfbearlion.txt",
+  #'                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.bear.preydiv$summary)
+  #' print(wolf.bear.preydiv$DIC)
+  #' which(wolf.bear.preydiv$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.bear.preydiv$samples)
+  #' save(wolf.bear.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  #' 
+  #' #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  #' #' start.time = Sys.time()
+  #' #' wolf.bear.anthro <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #' #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+  #' #'                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' #' print(wolf.bear.anthro$summary)
+  #' #' print(wolf.bear.anthro$DIC)
+  #' #' which(wolf.bear.anthro$summary[,"Rhat"] > 1.1)
+  #' #' mcmcplot(wolf.bear.anthro$samples)
+  #' #' save(wolf.bear.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_anthro_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Global model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_wolfbearlion.R")
+  #' start.time = Sys.time()
+  #' wolf.bear.global <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_wolfbearlion.txt",
   #'                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   #' end.time <- Sys.time(); (run.time <- end.time - start.time)
-  #' print(wolf.bear.anthro$summary)
-  #' print(wolf.bear.anthro$DIC)
-  #' which(wolf.bear.anthro$summary[,"Rhat"] > 1.1)
-  #' mcmcplot(wolf.bear.anthro$samples)
-  #' save(wolf.bear.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(setup_anthro_rx)_px(setup_effort).RData")
-  
-  #'  Global model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock, Dist2Burbs, LogNearestRd, human; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_wolfbearlion.R")
-  start.time = Sys.time()
-  wolf.bear.global <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_wolfbearlion.txt",
-                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.bear.global$summary)
-  print(wolf.bear.global$DIC)
-  which(wolf.bear.global$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.bear.global$samples)
-  save(wolf.bear.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(global)_px(setup_effort).RData")
+  #' print(wolf.bear.global$summary)
+  #' print(wolf.bear.global$DIC)
+  #' which(wolf.bear.global$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.bear.global$samples)
+  #' save(wolf.bear.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psix(global)_px(setup_effort).RData")
   
   
+  #'  ----------------------
   ####  Wolf-Coyote Models  ####
   #'  ----------------------
-  inits.wolf.coy <- function(){list(z = zinits[[2]])}
+  inits.wolf.coy <- function(){list(z = zinits[[2]], mean.psiSpp1 = runif(1),
+                                    mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
+                                    mean.pSpp2 = runif(1))}
   
-  #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
-  start.time = Sys.time()
-  wolf.coy.null <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
-                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.coy.null$summary)
-  print(wolf.coy.null$DIC)
-  which(wolf.coy.null$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.coy.null$samples)
-  save(wolf.coy.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(rx)_px(.).RData")
-  # start.time = Sys.time()
-  # wolf.coy.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.coy, params,
-  #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
-  #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
-  #                         DIC = TRUE, jags.module = c("glm", "dic"))
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # wolf.coy.null.sum <- wolf.coy.null$BUGSoutput$summary
-  # print(wolf.coy.null.sum, dig = 3)
-  # mcmcplot(wolf.coy.null.sum)
-  # save(wolf.coy.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(rx)_px(.).RData")
-  
-  #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #####  Habitat no inxs model  #### 
+  #'  psi = setup, elevation, forest; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.coy.hab <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.hab$summary)
-  print(wofl.coy.hab$DIC)
+  print(wolf.coy.hab$DIC)
   which(wolf.coy.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.coy.hab$samples)
-  save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_habitat_rx)_px(setup_effort).RData")
+  save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_rx)_p(setup_effort).RData")
   
-  #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock, lagomorph; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfcoy.R")
+  #####  Prey abundance no inxs model  #### 
+  #'  psi = setup, elevation, forest, elk, moose, wtd, livestock; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_wolfcoy.R")
   start.time = Sys.time()
-  wolf.coy.preyabund <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params, 
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfcoy.txt",
-                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  wolf.coy.preyabund <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_wolfcoy.txt",
+                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.preyabund$summary)
   print(wolf.coy.preyabund$DIC)
   which(wolf.coy.preyabund$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.coy.preyabund$samples)
-  save(wolf.coy.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  save(wolf.coy.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preyabund_rx)_p(setup_effort).RData")
   
-  #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfcoy.R")
+  #####  Prey diversity no inxs model  #### 
+  #'  psi = setup, elevation, forest, spp diversity; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).R")
   start.time = Sys.time()
-  wolf.coy.preydiv <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params, 
-                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfcoy.txt",
-                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  wolf.coy.preydiv <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.preydiv$summary)
   print(wolf.coy.preydiv$DIC)
   which(wolf.coy.preydiv$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.coy.preydiv$samples)
-  save(wolf.coy.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  save(wolf.coy.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preydiversity_rx)_p(setup_effort).RData")
   
-  #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
-  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  #####  Habitat w/ inx model  #### 
+  #'  psi = setup, elevation, forest; psix(.); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).R")
+  start.time = Sys.time()
+  wolf.coy.habx <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).txt",
+                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.coy.habx$summary)
+  print(wolf.coy.habx$DIC)
+  which(wolf.coy.habx$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.habx$samples)
+  save(wolf.coy.habx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_rx)_psix(.)_p(setup_effort).RData")
+  
+  #####  Habitat w/ prey abundance inx model  #### 
+  #'  psi = setup, elevation, forest; psix(elk, moose, wtd, lagomorph, livestock); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_wolfcoy.R")
+  start.time = Sys.time()
+  wolf.coy.preyabundx <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_wolfcoy.txt",
+                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.coy.preyabundx$summary)
+  print(wolf.coy.preyabundx$DIC)
+  which(wolf.coy.preyabundx$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.preyabundx$samples)
+  save(wolf.coy.preyabundx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort).RData")
+  
+  #####  Habitat w/ prey diversity inx model  #### 
+  #'  psi = setup, elevation, forest; psix(spp diversity); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).R")
+  start.time = Sys.time()
+  wolf.coy.preydivx <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).txt",
+                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.coy.preydivx$summary)
+  print(wolf.coy.preydivx$DIC)
+  which(wolf.coy.preydivx$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.preydivx$samples)
+  save(wolf.coy.preydivx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).RData")
+
+  #' #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
   #' start.time = Sys.time()
-  #' wolf.coy.anthro <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-  #'                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+  #' wolf.coy.null <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+  #'                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #'                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.coy.null$summary)
+  #' print(wolf.coy.null$DIC)
+  #' which(wolf.coy.null$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.coy.null$samples)
+  #' save(wolf.coy.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(rx)_px(.).RData")
+  #' # start.time = Sys.time()
+  #' # wolf.coy.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.coy, params,
+  #' #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #' #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+  #' #                         DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' # wolf.coy.null.sum <- wolf.coy.null$BUGSoutput$summary
+  #' # print(wolf.coy.null.sum, dig = 3)
+  #' # mcmcplot(wolf.coy.null.sum)
+  #' # save(wolf.coy.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(rx)_px(.).RData")
+  #' 
+  #' #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #' start.time = Sys.time()
+  #' wolf.coy.hab <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+  #'                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #'                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.coy.hab$summary)
+  #' print(wofl.coy.hab$DIC)
+  #' which(wolf.coy.hab$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.coy.hab$samples)
+  #' save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_habitat_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock, lagomorph; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfcoy.R")
+  #' start.time = Sys.time()
+  #' wolf.coy.preyabund <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params, 
+  #'                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfcoy.txt",
+  #'                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.coy.preyabund$summary)
+  #' print(wolf.coy.preyabund$DIC)
+  #' which(wolf.coy.preyabund$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.coy.preyabund$samples)
+  #' save(wolf.coy.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfcoy.R")
+  #' start.time = Sys.time()
+  #' wolf.coy.preydiv <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params, 
+  #'                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfcoy.txt",
+  #'                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.coy.preydiv$summary)
+  #' print(wolf.coy.preydiv$DIC)
+  #' which(wolf.coy.preydiv$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.coy.preydiv$samples)
+  #' save(wolf.coy.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  #' 
+  #' #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  #' #' start.time = Sys.time()
+  #' #' wolf.coy.anthro <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+  #' #'                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+  #' #'                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' #' print(wolf.coy.anthro$summary)
+  #' #' print(wolf.coy.anthro$DIC)
+  #' #' which(wolf.coy.anthro$summary[,"Rhat"] > 1.1)
+  #' #' mcmcplot(wolf.coy.anthro$samples)
+  #' #' save(wolf.coy.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_anthro_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Global model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human, livestock, elk, moose, md, wtd, lagomorph; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_wolfcoy.R")
+  #' start.time = Sys.time()
+  #' wolf.coy.global <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+  #'                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_wolfcoy.txt",
   #'                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   #' end.time <- Sys.time(); (run.time <- end.time - start.time)
-  #' print(wolf.coy.anthro$summary)
-  #' print(wolf.coy.anthro$DIC)
-  #' which(wolf.coy.anthro$summary[,"Rhat"] > 1.1)
-  #' mcmcplot(wolf.coy.anthro$samples)
-  #' save(wolf.coy.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(setup_anthro_rx)_px(setup_effort).RData")
-  
-  #'  Global model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human, livestock, elk, moose, md, wtd, lagomorph; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_wolfcoy.R")
-  start.time = Sys.time()
-  wolf.coy.global <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_wolfcoy.txt",
-                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.coy.global$summary)
-  print(wolf.coy.global$DIC)
-  which(wolf.coy.global$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.coy.global$samples)
-  save(wolf.coy.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(global)_px(setup_effort).RData")
+  #' print(wolf.coy.global$summary)
+  #' print(wolf.coy.global$DIC)
+  #' which(wolf.coy.global$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.coy.global$samples)
+  #' save(wolf.coy.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psix(global)_px(setup_effort).RData")
   
   
+  #'  ---------------------
   ####  Wolf-Lion Models  ####
-  #'  ----------------------
+  #'  ---------------------
   inits.wolf.lion <- function(){list(z = zinits[[3]], mean.psiSpp1 = runif(1),
                                      mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
                                      mean.pSpp2 = runif(1))}
   
-  #'  Null: psi(.), psix(.), p(.), px(.), no random effect
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(.)_px(.).R")
-  start.time = Sys.time()
-  wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(.)_px(.).txt",
-                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.lion.null$summary)
-  print(wolf.lion.null$DIC)
-  which(wolf.lion.null$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.lion.null$samples)
-  save(wolf.lion.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(.)_px(.).RData")
-  
-  #'  Null: psi(rx), psix(.), p(.), px(.)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
-  start.time = Sys.time()
-  wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
-                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.lion.null$summary)
-  print(wolf.lion.null$DIC)
-  which(wolf.lion.null$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.lion.null$samples)
-  save(wolf.lion.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(rx)_px(.).RData")
-  # start.time = Sys.time()
-  # wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-  #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
-  #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
-  #                         DIC = TRUE, jags.module = c("glm", "dic"))
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # wolf.lion.null.sum <- wolf.lion.null$BUGSoutput$summary
-  # print(wolf.lion.null.sum, dig = 3)
-  # mcmcplot(wolf.lion.null.sum)
-  # save(wolf.lion.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(rx)_px(.).RData")
-  
-  #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat)_px(setup_effort).R")
-  start.time = Sys.time()
-  wolf.lion.hab1 <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat)_px(setup_effort).txt",
-                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.lion.hab1$summary)
-  print(wolf.lion.hab1$DIC)
-  which(wolf.lion.hab1$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.lion.hab1$samples)
-  save(wolf.lion.hab1, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_habitat)_px(setup_effort).RData")
-  
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #####  Habitat no inxs model  #### 
+  #'  psi = setup, elevation, forest; p = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.lion.hab <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.hab$summary)
   print(wolf.lion.hab$DIC)
   which(wolf.lion.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.lion.hab$samples)
-  save(wolf.lion.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_habitat_rx)_px(setup_effort).RData")
-  # start.time = Sys.time()
-  # wolf.lion.hab <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-  #                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-  #                                n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
-  #                                DIC = TRUE, jags.module = c("glm", "dic"))
-  # # wolf.lion.hab <- jags.parallel(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-  # #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-  # #                       n.chains = nc, n.iter = ni, n.burnin = 50000, n.thin = nt, 
-  # #                       DIC = TRUE, jags.module = c("glm", "dic"))
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # wolf.lion.hab.sum <- wolf.lion.hab$BUGSoutput$summary
-  # print(wolf.lion.hab.sum, dig = 3)
-  # mcmcplot(wolf.lion.hab.sum)
-  # save(wolf.lion.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_habitat_rx)_px(setup_effort).RData")
+  save(wolf.lion.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_rx)_p(setup_effort).RData")
   
-  #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfbearlion.R")
+  #####  Prey abundance no inxs model  #### 
+  #'  psi = setup, elevation, forest, elk, moose, wtd, livestock; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.lion.preyabund <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfbearlion.txt",
-                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_wolfbearlion.txt",
+                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.preyabund$summary)
   print(wolf.lion.preyabund$DIC)
   which(wolf.lion.preyabund$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.lion.preyabund$samples)
-  save(wolf.lion.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  save(wolf.lion.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_preyabund_rx)_p(setup_effort).RData")
   
-  #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfbearlion.R")
+  #####  Prey diversity no inxs model  #### 
+  #'  psi = setup, elevation, forest, spp diversity; p = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.lion.preydiv <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfbearlion.txt",
-                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.preydiv$summary)
   print(wolf.lion.preydiv$DIC)
   which(wolf.lion.preydiv$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.lion.preydiv$samples)
-  save(wolf.lion.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  save(wolf.lion.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_preydiversity_rx)_p(setup_effort).RData")
   
-  #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
-  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
-  #' start.time = Sys.time()
-  #' wolf.lion.anthro <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-  #'                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
-  #'                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
-  #' print(wolf.lion.anthro$summary)
-  #' print(wolf.lion.anthro$DIC)
-  #' which(wolf.lion.anthro$summary[,"Rhat"] > 1.1)
-  #' mcmcplot(wolf.lion.anthro$samples)
-  #' save(wolf.lion.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_anthro_rx)_px(setup_effort).RData")
-  
-  #'  Global model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock, Dist2Burbs, LogNearestRd, human; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_wolfbearlion.R")
+  #####  Habitat w/ inx model  #### 
+  #'  psi = setup, elevation, forest; psix(.); p = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
-  wolf.lion.global <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_wolfbearlion.txt",
-                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.lion.global$summary)
-  print(wolf.lion.global$DIC)
-  which(wolf.lion.global$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.lion.global$samples)
-  save(wolf.lion.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(global)_px(setup_effort).RData")
-  
-  
-  ####  Lion-Bear Models  ####
-  #'  ----------------------
-  inits.lion.bear <- function(){list(z = zinits[[4]])}
-  
-  #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
-  start.time = Sys.time()
-  lion.bear.null <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  wolf.lion.habx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).txt",
                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(lion.bear.null$summary)
-  print(lion.bear.null$DIC)
-  which(lion.bear.null$summary[,"Rhat"] > 1.1)
-  mcmcplot(lion.bear.null$samples)
-  save(lion.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(rx)_px(.).RData")
-  # start.time = Sys.time()
-  # lion.bear.null <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-  #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
-  #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
-  #                         DIC = TRUE, jags.module = c("glm", "dic"))
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # lion.bear.null <- lion.bear.null$BUGSoutput$summary
-  # print(lion.bear.null, dig = 3)
-  # mcmcplot(lion.bear.null)
-  # save(lion.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(rx)_px(.).RData")
+  print(wolf.lion.habx$summary)
+  print(wolf.lion.habx$DIC)
+  which(wolf.lion.habx$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.habx$samples)
+  save(wolf.lion.habx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_rx)_psix(.)_p(setup_effort).RData")
   
-  #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #####  Habitat w/ prey abundance inx model  #### 
+  #'  psi = setup, elevation, forest; psix(elk, moose, wtd, livestock); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_wolfbearlion.R")
+  start.time = Sys.time()
+  wolf.lion.preyabundx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_wolfbearlion.txt",
+                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.preyabundx$summary)
+  print(wolf.lion.preyabundx$DIC)
+  which(wolf.lion.preyabundx$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.preyabundx$samples)
+  save(wolf.lion.preyabundx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort).RData")
+  
+  #####  Habitat w/ prey diversity inx model  #### 
+  #'  psi = setup, elevation, forest; psix(spp diversity); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).R")
+  start.time = Sys.time()
+  wolf.lion.preydivx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).txt",
+                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.preydivx$summary)
+  print(wolf.lion.preydivx$DIC)
+  which(wolf.lion.preydivx$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.preydivx$samples)
+  save(wolf.lion.preydivx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).RData")
+  
+  #' #'  Null: psi(.), psix(.), p(.), px(.), no random effect
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(.)_px(.).R")
+  #' start.time = Sys.time()
+  #' wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #'                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(.)_px(.).txt",
+  #'                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.lion.null$summary)
+  #' print(wolf.lion.null$DIC)
+  #' which(wolf.lion.null$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.lion.null$samples)
+  #' save(wolf.lion.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(.)_px(.).RData")
+  #' 
+  #' #'  Null: psi(rx), psix(.), p(.), px(.)
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
+  #' start.time = Sys.time()
+  #' wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #'                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #'                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.lion.null$summary)
+  #' print(wolf.lion.null$DIC)
+  #' which(wolf.lion.null$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.lion.null$samples)
+  #' save(wolf.lion.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(rx)_px(.).RData")
+  #' # start.time = Sys.time()
+  #' # wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #' #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #' #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+  #' #                         DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' # wolf.lion.null.sum <- wolf.lion.null$BUGSoutput$summary
+  #' # print(wolf.lion.null.sum, dig = 3)
+  #' # mcmcplot(wolf.lion.null.sum)
+  #' # save(wolf.lion.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(rx)_px(.).RData")
+  #' 
+  #' #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat)_px(setup_effort).R")
+  #' start.time = Sys.time()
+  #' wolf.lion.hab1 <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #'                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat)_px(setup_effort).txt",
+  #'                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.lion.hab1$summary)
+  #' print(wolf.lion.hab1$DIC)
+  #' which(wolf.lion.hab1$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.lion.hab1$samples)
+  #' save(wolf.lion.hab1, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_habitat)_px(setup_effort).RData")
+  #' 
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #' start.time = Sys.time()
+  #' wolf.lion.hab <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #'                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #'                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.lion.hab$summary)
+  #' print(wolf.lion.hab$DIC)
+  #' which(wolf.lion.hab$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.lion.hab$samples)
+  #' save(wolf.lion.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_habitat_rx)_px(setup_effort).RData")
+  #' # start.time = Sys.time()
+  #' # wolf.lion.hab <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #' #                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #' #                                n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
+  #' #                                DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # # wolf.lion.hab <- jags.parallel(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #' # #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #' # #                       n.chains = nc, n.iter = ni, n.burnin = 50000, n.thin = nt, 
+  #' # #                       DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' # wolf.lion.hab.sum <- wolf.lion.hab$BUGSoutput$summary
+  #' # print(wolf.lion.hab.sum, dig = 3)
+  #' # mcmcplot(wolf.lion.hab.sum)
+  #' # save(wolf.lion.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_habitat_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfbearlion.R")
+  #' start.time = Sys.time()
+  #' wolf.lion.preyabund <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #'                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_wolfbearlion.txt",
+  #'                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.lion.preyabund$summary)
+  #' print(wolf.lion.preyabund$DIC)
+  #' which(wolf.lion.preyabund$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.lion.preyabund$samples)
+  #' save(wolf.lion.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfbearlion.R")
+  #' start.time = Sys.time()
+  #' wolf.lion.preydiv <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #'                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_wolfbearlion.txt",
+  #'                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.lion.preydiv$summary)
+  #' print(wolf.lion.preydiv$DIC)
+  #' which(wolf.lion.preydiv$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.lion.preydiv$samples)
+  #' save(wolf.lion.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  #' 
+  #' #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  #' #' start.time = Sys.time()
+  #' #' wolf.lion.anthro <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #' #'                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+  #' #'                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' #' print(wolf.lion.anthro$summary)
+  #' #' print(wolf.lion.anthro$DIC)
+  #' #' which(wolf.lion.anthro$summary[,"Rhat"] > 1.1)
+  #' #' mcmcplot(wolf.lion.anthro$samples)
+  #' #' save(wolf.lion.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(setup_anthro_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Global model: psi & psix = setup, elevation, forest, elk, moose, md, wtd, livestock, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_wolfbearlion.R")
+  #' start.time = Sys.time()
+  #' wolf.lion.global <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+  #'                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_wolfbearlion.txt",
+  #'                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.lion.global$summary)
+  #' print(wolf.lion.global$DIC)
+  #' which(wolf.lion.global$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.lion.global$samples)
+  #' save(wolf.lion.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psix(global)_px(setup_effort).RData")
+  
+  
+  #'  --------------------
+  ####  Lion-Bear Models  ####
+  #'  --------------------
+  inits.lion.bear <- function(){list(z = zinits[[4]], mean.psiSpp1 = runif(1),
+                                     mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
+                                     mean.pSpp2 = runif(1))}
+  
+  #####  Habitat no inxs model  #### 
+  #'  psi = setup, elevation, forest; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bear.hab <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bear.hab$summary)
   print(lion.bear.hab$DIC)
   which(lion.bear.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bear.hab$samples)
-  save(lion.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_habitat_rx)_px(setup_effort).RData")
-  # start.time = Sys.time()
-  # lion.bear.hab <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-  #                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-  #                                n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
-  #                                DIC = TRUE, jags.module = c("glm", "dic"))
-  # # lion.bear.hab <- jags.parallel(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-  # #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-  # #                       n.chains = nc, n.iter = ni, n.burnin = 50000, n.thin = nt, 
-  # #                       DIC = TRUE, jags.module = c("glm", "dic"))
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # lion.bear.hab.sum <- lion.bear.hab$BUGSoutput$summary
-  # print(lion.bear.hab.sum, dig = 3)
-  # mcmcplot(lion.bear.hab.sum)
-  # save(lion.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_habitat_rx)_px(setup_effort).RData")
+  save(lion.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_rx)_p(setup_effort).RData")
   
-  #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, wtd; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_bearlion.R")
+  #####  Prey abundance no inxs model  #### 
+  #'  psi = setup, elevation, forest, elk, wtd; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_bearlion.R")
   start.time = Sys.time()
   lion.bear.preyabund <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_bearlion.txt",
-                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_bearlion.txt",
+                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bear.preyabund$summary)
   print(lion.bear.preyabund$DIC)
   which(lion.bear.preyabund$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bear.preyabund$samples)
-  save(lion.bear.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  save(lion.bear.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_preyabund_rx)_p(setup_effort).RData")
   
-  #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_bearlion.R")
+  #####  Prey diversity no inxs model  #### 
+  #'  psi = setup, elevation, forest, spp diversity; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bear.preydiv <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_bearlion.txt",
-                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bear.preydiv$summary)
   print(lion.bear.preydiv$DIC)
   which(lion.bear.preydiv$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bear.preydiv$samples)
-  save(lion.bear.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  save(lion.bear.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_preydiversity_rx)_p(setup_effort).RData")
   
-  #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
-  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
-  #' start.time = Sys.time()
-  #' lion.bear.anthro <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-  #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
-  #'                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
-  #' print(lion.bear.anthro$summary)
-  #' print(lion.bear.anthro$DIC)
-  #' which(lion.bear.anthro$summary[,"Rhat"] > 1.1)
-  #' mcmcplot(lion.bear.anthro$samples)
-  #' save(lion.bear.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_anthro_rx)_px(setup_effort).RData")
-  
-  #'  Global model: psi & psix = setup, elevation, forest, elk, wtd, Dist2Burbs, LogNearestRd, human; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_bearlion.R")
+  #####  Habitat w/ inx model  #### 
+  #'  psi = setup, elevation, forest; psix(.); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
-  lion.bear.global <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_bearlion.txt",
-                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(lion.bear.global$summary)
-  print(lion.bear.global$DIC)
-  which(lion.bear.global$summary[,"Rhat"] > 1.1)
-  mcmcplot(lion.bear.global$samples)
-  save(lion.bear.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(global)_px(setup_effort).RData")
-  
-  
-  ####  Lion-Bobcat Models  ####
-  #'  ----------------------
-  inits.lion.bob <- function(){list(z = zinits[[5]])}
-  
-  #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
-  start.time = Sys.time()
-  lion.bob.null <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  lion.bear.habx <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).txt",
                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(lion.bob.null$summary)
-  print(lion.bob.null$DIC)
-  which(lion.bob.null$summary[,"Rhat"] > 1.1)
-  mcmcplot(lion.bob.null$samples)
-  save(lion.bob.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(rx)_px(.).RData")
-  # start.time = Sys.time()
-  # lion.bob.null <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-  #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
-  #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
-  #                         DIC = TRUE, jags.module = c("glm", "dic"))
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # lion.bob.null.sum <- lion.bob.null$BUGSoutput$summary
-  # print(lion.bob.null.sum, dig = 3)
-  # mcmcplot(lion.bob.null.sum)
-  # save(lion.bob.null.sum, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(rx)_px(.).RData")
+  print(lion.bear.habx$summary)
+  print(lion.bear.habx$DIC)
+  which(lion.bear.habx$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bear.habx$samples)
+  save(lion.bear.habx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_rx)_psix(.)_p(setup_effort).RData")
   
-  #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #####  Habitat w/ prey abundance inx model  #### 
+  #'  psi = setup, elevation, forest; psix(elk, wtd); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_bearlion.R")
+  start.time = Sys.time()
+  lion.bear.preyabundx <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_bearlion.txt",
+                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(lion.bear.preyabundx$summary)
+  print(lion.bear.preyabundx$DIC)
+  which(lion.bear.preyabundx$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bear.preyabundx$samples)
+  save(lion.bear.preyabundx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort).RData")
+  
+  #####  Habitat w/ prey diversity inx model  #### 
+  #'  psi = setup, elevation, forest; psix(spp diversity); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).R")
+  start.time = Sys.time()
+  lion.bear.preydivx <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).txt",
+                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(lion.bear.preydivx$summary)
+  print(lion.bear.preydivx$DIC)
+  which(lion.bear.preydivx$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bear.preydivx$samples)
+  save(lion.bear.preydivx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).RData")
+  
+  
+  #' #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
+  #' start.time = Sys.time()
+  #' lion.bear.null <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  #'                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #'                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(lion.bear.null$summary)
+  #' print(lion.bear.null$DIC)
+  #' which(lion.bear.null$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bear.null$samples)
+  #' save(lion.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(rx)_px(.).RData")
+  #' # start.time = Sys.time()
+  #' # lion.bear.null <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  #' #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #' #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+  #' #                         DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' # lion.bear.null <- lion.bear.null$BUGSoutput$summary
+  #' # print(lion.bear.null, dig = 3)
+  #' # mcmcplot(lion.bear.null)
+  #' # save(lion.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(rx)_px(.).RData")
+  #' 
+  #' #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #' start.time = Sys.time()
+  #' lion.bear.hab <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  #'                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #'                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(lion.bear.hab$summary)
+  #' print(lion.bear.hab$DIC)
+  #' which(lion.bear.hab$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bear.hab$samples)
+  #' save(lion.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_habitat_rx)_px(setup_effort).RData")
+  #' # start.time = Sys.time()
+  #' # lion.bear.hab <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  #' #                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #' #                                n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
+  #' #                                DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # # lion.bear.hab <- jags.parallel(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  #' # #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #' # #                       n.chains = nc, n.iter = ni, n.burnin = 50000, n.thin = nt, 
+  #' # #                       DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' # lion.bear.hab.sum <- lion.bear.hab$BUGSoutput$summary
+  #' # print(lion.bear.hab.sum, dig = 3)
+  #' # mcmcplot(lion.bear.hab.sum)
+  #' # save(lion.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_habitat_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, wtd; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_bearlion.R")
+  #' start.time = Sys.time()
+  #' lion.bear.preyabund <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  #'                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_bearlion.txt",
+  #'                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(lion.bear.preyabund$summary)
+  #' print(lion.bear.preyabund$DIC)
+  #' which(lion.bear.preyabund$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bear.preyabund$samples)
+  #' save(lion.bear.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_bearlion.R")
+  #' start.time = Sys.time()
+  #' lion.bear.preydiv <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  #'                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_bearlion.txt",
+  #'                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(lion.bear.preydiv$summary)
+  #' print(lion.bear.preydiv$DIC)
+  #' which(lion.bear.preydiv$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bear.preydiv$samples)
+  #' save(lion.bear.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  #' 
+  #' #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  #' #' start.time = Sys.time()
+  #' #' lion.bear.anthro <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  #' #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+  #' #'                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' #' print(lion.bear.anthro$summary)
+  #' #' print(lion.bear.anthro$DIC)
+  #' #' which(lion.bear.anthro$summary[,"Rhat"] > 1.1)
+  #' #' mcmcplot(lion.bear.anthro$samples)
+  #' #' save(lion.bear.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(setup_anthro_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Global model: psi & psix = setup, elevation, forest, elk, wtd, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_bearlion.R")
+  #' start.time = Sys.time()
+  #' lion.bear.global <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_bearlion.txt",
+  #'                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(lion.bear.global$summary)
+  #' print(lion.bear.global$DIC)
+  #' which(lion.bear.global$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bear.global$samples)
+  #' save(lion.bear.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psix(global)_px(setup_effort).RData")
+  
+  
+  #'  ----------------------
+  ####  Lion-Bobcat Models  ####
+  #'  ----------------------
+  inits.lion.bob <- function(){list(z = zinits[[5]], mean.psiSpp1 = runif(1),
+                                    mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
+                                    mean.pSpp2 = runif(1))}
+  
+  #####  Habitat no inxs model  #### 
+  #'  psi = setup, elevation, forest; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bob.hab <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bob.hab$summary)
   print(lion.bob.hab$DIC)
   which(lion.bob.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bob.hab$samples)
-  save(lion.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_habitat_rx)_px(setup_effort).RData")
-  # start.time = Sys.time()
-  # lion.bob.hab <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-  #                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-  #                                n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
-  #                                DIC = TRUE, jags.module = c("glm", "dic"))
-  # # lion.bob.hab <- jags.parallel(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-  # #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-  # #                       n.chains = nc, n.iter = ni, n.burnin = 50000, n.thin = nt, 
-  # #                       DIC = TRUE, jags.module = c("glm", "dic"))
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # lion.bob.hab.sum <- lion.bob.hab$BUGSoutput$summary
-  # print(lion.bob.hab.sum, dig = 3)
-  # mcmcplot(lion.bob.hab.sum)
-  # save(lion.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_habitat_rx)_px(setup_effort).RData")
+  save(lion.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_rx)_p(setup_effort).RData")
   
-  #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, wtd, lagomorph; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_lionbob.R")
+  #####  Prey abundance no inxs model  #### 
+  #'  psi = setup, elevation, forest, elk, wtd, lagomorphs; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_lionbob.R")
   start.time = Sys.time()
   lion.bob.preyabund <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_lionbob.txt",
-                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_lionbob.txt",
+                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bob.preyabund$summary)
   print(lion.bob.preyabund$DIC)
   which(lion.bob.preyabund$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bob.preyabund$samples)
-  save(lion.bob.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  save(lion.bob.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_preyabund_rx)_p(setup_effort).RData")
   
-  #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_lionbob.R")
+  #####  Prey diversity no inxs model  #### 
+  #'  psi = setup, elevation, forest, spp diversity; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bob.preydiv <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_lionbob.txt",
-                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bob.preydiv$summary)
   print(lion.bob.preydiv$DIC)
   which(lion.bob.preydiv$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bob.preydiv$samples)
-  save(lion.bob.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  save(lion.bob.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_preydiversity_rx)_p(setup_effort).RData")
+  
+  #####  Habitat w/ inx model  #### 
+  #'  psi = setup, elevation, forest; psix(.); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).R")
+  start.time = Sys.time()
+  lion.bob.habx <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).txt",
+                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(lion.bob.habx$summary)
+  print(lion.bob.habx$DIC)
+  which(lion.bob.habx$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bob.habx$samples)
+  save(lion.bob.habx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_rx)_psix(.)_p(setup_effort).RData")
+  
+  #####  Habitat w/ prey abundance inx model  #### 
+  #'  psi = setup, elevation, forest; psix(elk, wtd, lagomorphs); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_lionbob.R")
+  start.time = Sys.time()
+  lion.bob.preyabundx <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_lionbob.txt",
+                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(lion.bob.preyabundx$summary)
+  print(lion.bob.preyabundx$DIC)
+  which(lion.bob.preyabundx$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bob.preyabundx$samples)
+  save(lion.bob.preyabundx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort).RData")
+  
+  #####  Habitat w/ prey diversity inx model  #### 
+  #'  psi = setup, elevation, forest; psix(spp diversity); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).R")
+  start.time = Sys.time()
+  lion.bob.preydivx <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).txt",
+                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(lion.bob.preydivx$summary)
+  print(lion.bob.preydivx$DIC)
+  which(lion.bob.preydivx$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bob.preydivx$samples)
+  save(lion.bob.preydivx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).RData")
   
   
-  #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
-  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  #' #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
   #' start.time = Sys.time()
-  #' lion.bob.anthro <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-  #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+  #' lion.bob.null <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+  #'                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #'                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(lion.bob.null$summary)
+  #' print(lion.bob.null$DIC)
+  #' which(lion.bob.null$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bob.null$samples)
+  #' save(lion.bob.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(rx)_px(.).RData")
+  #' # start.time = Sys.time()
+  #' # lion.bob.null <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+  #' #                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #' #                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+  #' #                         DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' # lion.bob.null.sum <- lion.bob.null$BUGSoutput$summary
+  #' # print(lion.bob.null.sum, dig = 3)
+  #' # mcmcplot(lion.bob.null.sum)
+  #' # save(lion.bob.null.sum, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(rx)_px(.).RData")
+  #' 
+  #' #'  Habitat model: psi & psix = setup, elevation, forest; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #' start.time = Sys.time()
+  #' lion.bob.hab <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+  #'                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #'                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(lion.bob.hab$summary)
+  #' print(lion.bob.hab$DIC)
+  #' which(lion.bob.hab$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bob.hab$samples)
+  #' save(lion.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_habitat_rx)_px(setup_effort).RData")
+  #' # start.time = Sys.time()
+  #' # lion.bob.hab <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+  #' #                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #' #                                n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
+  #' #                                DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # # lion.bob.hab <- jags.parallel(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+  #' # #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #' # #                       n.chains = nc, n.iter = ni, n.burnin = 50000, n.thin = nt, 
+  #' # #                       DIC = TRUE, jags.module = c("glm", "dic"))
+  #' # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' # lion.bob.hab.sum <- lion.bob.hab$BUGSoutput$summary
+  #' # print(lion.bob.hab.sum, dig = 3)
+  #' # mcmcplot(lion.bob.hab.sum)
+  #' # save(lion.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_habitat_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey relative abundance model: psi & psix = setup, elevation, forest, elk, wtd, lagomorph; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_lionbob.R")
+  #' start.time = Sys.time()
+  #' lion.bob.preyabund <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+  #'                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_lionbob.txt",
+  #'                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(lion.bob.preyabund$summary)
+  #' print(lion.bob.preyabund$DIC)
+  #' which(lion.bob.preyabund$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bob.preyabund$samples)
+  #' save(lion.bob.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_lionbob.R")
+  #' start.time = Sys.time()
+  #' lion.bob.preydiv <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+  #'                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort)_lionbob.txt",
+  #'                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(lion.bob.preydiv$summary)
+  #' print(lion.bob.preydiv$DIC)
+  #' which(lion.bob.preydiv$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bob.preydiv$samples)
+  #' save(lion.bob.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  #' 
+  #' 
+  #' #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  #' #' start.time = Sys.time()
+  #' #' lion.bob.anthro <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+  #' #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+  #' #'                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' #' print(lion.bob.anthro$summary)
+  #' #' print(lion.bob.anthro$DIC)
+  #' #' which(lion.bob.anthro$summary[,"Rhat"] > 1.1)
+  #' #' mcmcplot(lion.bob.anthro$samples)
+  #' #' save(lion.bob.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_anthro_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Global model: psi & psix = setup, elevation, forest, elk, wtd, lagomorph Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_lionbob.R")
+  #' start.time = Sys.time()
+  #' lion.bob.global <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+  #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_lionbob.txt",
   #'                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   #' end.time <- Sys.time(); (run.time <- end.time - start.time)
-  #' print(lion.bob.anthro$summary)
-  #' print(lion.bob.anthro$DIC)
-  #' which(lion.bob.anthro$summary[,"Rhat"] > 1.1)
-  #' mcmcplot(lion.bob.anthro$samples)
-  #' save(lion.bob.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(setup_anthro_rx)_px(setup_effort).RData")
-  
-  #'  Global model: psi & psix = setup, elevation, forest, elk, wtd, lagomorph Dist2Burbs, LogNearestRd, human; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_lionbob.R")
-  start.time = Sys.time()
-  lion.bob.global <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_lionbob.txt",
-                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(lion.bob.global$summary)
-  print(lion.bob.global$DIC)
-  which(lion.bob.global$summary[,"Rhat"] > 1.1)
-  mcmcplot(lion.bob.global$samples)
-  save(lion.bob.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(global)_px(setup_effort).RData")
+  #' print(lion.bob.global$summary)
+  #' print(lion.bob.global$DIC)
+  #' which(lion.bob.global$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(lion.bob.global$samples)
+  #' save(lion.bob.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psix(global)_px(setup_effort).RData")
   
   
+  #'  ------------------------
   ####  Coyote-Bobcat Models  ####
   #'  ------------------------
   inits.coy.bob <- function(){list(z = zinits[[6]])}
   
-  #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
-  start.time = Sys.time()
-  coy.bob.null <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
-                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(coy.bob.null$summary)
-  print(coy.bob.null$DIC)
-  which(coy.bob.null$summary[,"Rhat"] > 1.1)
-  mcmcplot(coy.bob.null$samples)
-  save(coy.bob.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(rx)_px(.).RData")
-  
-  #'  Habitat model: psi = setup, elevation, forest; p = setup, effort
-  # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #####  Habitat no inxs model  #### 
+  #'  psi = setup, elevation, forest; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                      # "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
-                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.hab$summary)
+  print(coy.bob.hab$DIC)
   which(coy.bob.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.hab$samples)
-  save(coy.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_habitat_rx)_px(setup_effort).RData") 
+  save(coy.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_p(setup_effort).RData")
   
-  #'  Prey relative abundance model: psi & psix = setup, elevation, forest, wtd, lagomorph; p = setup, effort, and interaction term
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_coybob.R")
+  #####  Prey abundance no inxs model  #### 
+  #'  psi = setup, elevation, forest, wtd, lagomorphs; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_coybob.R")
   start.time = Sys.time()
   coy.bob.preyabund <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_coybob.txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_coybob.txt",
+                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.preyabund$summary)
+  print(coy.bob.preyabund$DIC)
   which(coy.bob.preyabund$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.preyabund$samples)
-  save(coy.bob.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  save(coy.bob.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preyabund_rx)_p(setup_effort).RData")
   
-  #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; p = setup, effort, and interaction term
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).R")
+  #####  Prey diversity no inxs model  #### 
+  #'  psi = setup, elevation, forest, spp diversity; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.preydiv <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).txt",
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_rx)_p(setup_effort).txt",
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.preydiv$summary)
+  print(coy.bob.preydiv$DIC)
   which(coy.bob.preydiv$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.preydiv$samples)
-  save(coy.bob.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  save(coy.bob.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preydiversity_rx)_p(setup_effort).RData")
   
-  #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
-  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
-  #' start.time = Sys.time()
-  #' coy.bob.anthro <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-  #'                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
-  #'                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
-  #' print(coy.bob.anthro$summary)
-  #' which(coy.bob.anthro$summary[,"Rhat"] > 1.1)
-  #' mcmcplot(coy.bob.anthro$samples)
-  #' save(coy.bob.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_anthro_rx)_px(setup_effort).RData")
-  
-  #'  Global model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human, wtd, lagomorph; px = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_coybob.R")
+  #####  Habitat w/ inx model  #### 
+  #'  psi = setup, elevation, forest; psix(.); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
-  coy.bob.global <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_coybob.txt",
-                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  coy.bob.habx <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(.)_p(setup_effort).txt",
+                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(coy.bob.global$summary)
-  which(coy.bob.global$summary[,"Rhat"] > 1.1)
-  mcmcplot(coy.bob.global$samples)
-  save(coy.bob.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(global)_px(setup_effort).RData")
+  print(coy.bob.habx$summary)
+  print(coy.bob.habx$DIC)
+  which(coy.bob.habx$summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.habx$samples)
+  save(coy.bob.habx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(.)_p(setup_effort).RData")
+  
+  #####  Habitat w/ prey abundance inx model  #### 
+  #'  psi = setup, elevation, forest; psix(wtd, lagomorphs); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_coybob.R")
+  start.time = Sys.time()
+  coy.bob.preyabundx <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_coybob.txt",
+                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(coy.bob.preyabundx$summary)
+  print(coy.bob.preyabundx$DIC)
+  which(coy.bob.preyabundx$summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.preyabundx$samples)
+  save(coy.bob.preyabundx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort).RData")
+  
+  #####  Habitat w/ prey diversity inx model  #### 
+  #'  psi = setup, elevation, forest; psix(spp diversity); p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).R")
+  start.time = Sys.time()
+  coy.bob.preydivx <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).txt",
+                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(coy.bob.preydivx$summary)
+  print(coy.bob.preydivx$DIC)
+  which(coy.bob.preydivx$summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.preydivx$samples)
+  save(coy.bob.preydivx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).RData")
+  
+  #' #'  Null: psi(.), psix(.), p(.), px(.), includes random effect for site
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(rx)_px(.).R")
+  #' start.time = Sys.time()
+  #' coy.bob.null <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  #'                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(rx)_px(.).txt",
+  #'                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(coy.bob.null$summary)
+  #' print(coy.bob.null$DIC)
+  #' which(coy.bob.null$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(coy.bob.null$samples)
+  #' save(coy.bob.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(rx)_px(.).RData")
+  #' 
+  #' #'  Habitat model: psi = setup, elevation, forest; p = setup, effort
+  #' # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).R")
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
+  #' start.time = Sys.time()
+  #' coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  #'                     # "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_habitat_rx)_px(setup_effort).txt",
+  #'                     "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
+  #'                     n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(coy.bob.hab$summary)
+  #' which(coy.bob.hab$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(coy.bob.hab$samples)
+  #' save(coy.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_habitat_rx)_px(setup_effort).RData") 
+  #' 
+  #' #'  Prey relative abundance model: psi & psix = setup, elevation, forest, wtd, lagomorph; p = setup, effort, and interaction term
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_coybob.R")
+  #' start.time = Sys.time()
+  #' coy.bob.preyabund <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  #'                     "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preyabund_rx)_px(setup_effort)_coybob.txt",
+  #'                     n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(coy.bob.preyabund$summary)
+  #' which(coy.bob.preyabund$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(coy.bob.preyabund$samples)
+  #' save(coy.bob.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_preyabund_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Prey diversity model: psi & psix = setup, elevation, forest, shannon's diversity, dominant prey; p = setup, effort, and interaction term
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).R")
+  #' start.time = Sys.time()
+  #' coy.bob.preydiv <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  #'                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_preydiversity_rx)_px(setup_effort).txt",
+  #'                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(coy.bob.preydiv$summary)
+  #' which(coy.bob.preydiv$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(coy.bob.preydiv$samples)
+  #' save(coy.bob.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_preydiversity_rx)_px(setup_effort).RData")
+  #' 
+  #' #' #'  Anthropogenic model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human; px = setup, effort
+  #' #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).R")
+  #' #' start.time = Sys.time()
+  #' #' coy.bob.anthro <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  #' #'                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(setup_anthro_rx)_px(setup_effort).txt",
+  #' #'                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' #' print(coy.bob.anthro$summary)
+  #' #' which(coy.bob.anthro$summary[,"Rhat"] > 1.1)
+  #' #' mcmcplot(coy.bob.anthro$samples)
+  #' #' save(coy.bob.anthro, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_anthro_rx)_px(setup_effort).RData")
+  #' 
+  #' #'  Global model: psi & psix = setup, elevation, forest, Dist2Burbs, LogNearestRd, human, wtd, lagomorph; px = setup, effort
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psix(global)_px(setup_effort)_coybob.R")
+  #' start.time = Sys.time()
+  #' coy.bob.global <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  #'                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psix(global)_px(setup_effort)_coybob.txt",
+  #'                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(coy.bob.global$summary)
+  #' which(coy.bob.global$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(coy.bob.global$samples)
+  #' save(coy.bob.global, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(global)_px(setup_effort).RData")
   
