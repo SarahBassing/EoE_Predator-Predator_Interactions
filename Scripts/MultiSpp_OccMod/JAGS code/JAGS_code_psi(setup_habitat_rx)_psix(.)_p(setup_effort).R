@@ -28,10 +28,12 @@
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
       
-        #'  Second order occupancy intercerpt & effect of trail type (psi)  
-        for(so_psi in 1:2){
-          betaSpp12[so_psi] ~ dnorm(0, 0.1)
-        }
+        #'  Second order occupancy intercept (psix)
+        betaSpp12[1] ~ dnorm(0, 0.1)
+        #' #'  Second order occupancy intercerpt & effect of trail type (psi)  
+        #' for(so_psi in 1:2){
+        #'   betaSpp12[so_psi] ~ dnorm(0, 0.1)
+        #' }
         
         #'  First order detection intercepts (rho)
         alphaSpp1[1] <- logit(mean.pSpp1)           
@@ -137,8 +139,8 @@
           psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + etaSpp2[psi_cov[i,16]]
           
           #'  ...for state Spp12
-          #'  Covariate order: Intercept[1] + Setup[2]
-          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2]
+          #'  Covariate order: Intercept[1] #+ Setup[2]
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] #+ betaSpp12[2]*psi_inxs_cov[i,2]
           
           #'  Baseline linear predictors for detection
           #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
