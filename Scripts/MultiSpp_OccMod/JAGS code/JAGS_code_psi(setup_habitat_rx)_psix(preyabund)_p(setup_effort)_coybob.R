@@ -33,7 +33,7 @@
         }
       
         #'  Second order occupancy intercept & slopes (psi)                
-        for(so_psi in 1:3){
+        for(so_psi in 1:4){
           betaSpp12[so_psi] ~ dnorm(0, 0.1)
         }
         
@@ -136,13 +136,13 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept[1] + Setup[2] + Elevation[3] + Forest[4]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + etaSpp1[psi_cov[i,16]]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + etaSpp2[psi_cov[i,16]]
+          #'  Covariate order: Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + White-tailed deer[10] + Lagomorph[11]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,10] + betaSpp1[6]*psi_cov[i,11] + etaSpp1[psi_cov[i,16]]
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,10] + betaSpp2[6]*psi_cov[i,11] + etaSpp2[psi_cov[i,16]]
           
           #'  ...for state Spp12
-          #'  Covariate order: Spp12 = Intercept[1] + White-tailed deer[10] + Lagomorph[11]
-          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,10] + betaSpp12[3]*psi_inxs_cov[i,11]  
+          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + White-tailed deer[10] + Lagomorph[11]
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,10] + betaSpp12[4]*psi_inxs_cov[i,11]  
         
           #'  Baseline linear predictors for detection
           #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
