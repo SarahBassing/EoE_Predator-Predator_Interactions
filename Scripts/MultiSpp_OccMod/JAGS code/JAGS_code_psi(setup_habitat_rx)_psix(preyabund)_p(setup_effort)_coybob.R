@@ -27,7 +27,7 @@
         mean.psiSpp2[1] ~ dunif(0, 1)
             
         #'  First order occupancy slopes (psi)
-        for(fo_psi in 2:4){                         
+        for(fo_psi in 2:6){                         
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
