@@ -28,13 +28,13 @@
         mean.psiSpp2[1] ~ dunif(0, 1)
             
         #'  First order occupancy slopes (psi)
-        for(fo_psi in 2:4){                         
+        for(fo_psi in 2:5){                         
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
       
         #'  Second order occupancy intercept & slopes (psi)                
-        for(so_psi in 1:2){
+        for(so_psi in 1:3){
           betaSpp12[so_psi] ~ dnorm(0, 0.1)
         }
       
@@ -144,13 +144,13 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept[1] + Setup[2] + Elevation[3] + Forest[4]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + etaSpp1[psi_cov[i,16]]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + etaSpp2[psi_cov[i,16]]
+          #'  Covariate order: Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + SppDiversity[6]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,6] + etaSpp1[psi_cov[i,16]]
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,6] + etaSpp2[psi_cov[i,16]]
           
           #'  ...for state Spp12
-          #'  Covariate order: Spp12 = Intercept[1] + SppDiversity[6] #+ DominantPrey[5]
-          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,6] #+ betaSpp12_domprey[psi_cov[i,5]]
+          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + SppDiversity[6] #+ DominantPrey[5]
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,6] #+ betaSpp12_domprey[psi_cov[i,5]]
             
           #'  Baseline linear predictors for detection
           #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
