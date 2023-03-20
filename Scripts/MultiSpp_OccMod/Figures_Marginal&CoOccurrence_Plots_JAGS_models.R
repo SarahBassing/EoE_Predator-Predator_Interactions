@@ -18,7 +18,7 @@
   ####  Predict marginal & conditional occupancy  ####
   #'  --------------------------------------------
   #'  MASSIVE function the predict marginal and conditional occupancy for each species
-  predict_occupancy <- function(mod, ncat, npoints, focal_cov, psi_cov, cov_index) {
+  predict_occupancy <- function(mod, ncat, npoints, focal_cov, psi_cov, psi_inxs_cov, psi_cov_index, psi_inxs_cov_index) {
     #'  Rename model and review
     out1 <- mod
     print(out1$summary[1:50,])
@@ -37,19 +37,24 @@
     #'  Scale new data to be consistent with data used in model
     cov.pred <- (cov.pred.orig - mean.cov) / sd.cov
     
-    #'  Create model matrices for prediction covariates
+    #'  Create model matrices for prediction covariates on psi and psix
     #'  Fill matrix with categorical or mean value of each covariate
     psi_cov <- psi_cov
     psi_covs <- matrix(psi_cov, nrow = npoints, ncol = length(psi_cov), byrow = TRUE)
+    #'  Same thing but for covariates on interaction
+    psi_inxs_cov <- psi_inxs_cov
+    psi_inxs_covs <- matrix(psi_inxs_cov, nrow = npoints, ncol = length(psi_inxs_cov), byrow = TRUE)
     #'  Replace focal covariate column with new scaled data
     #'  New data must be in correct column based on order of covariates in original model
-    psi_covs[,cov_index] <- cov.pred
+    psi_covs[,psi_cov_index] <- cov.pred
     print(head(psi_covs))
+    psi_inxs_covs[,psi_inxs_cov_index] <- cov.pred
+    print(head(psi_inxs_covs))
     
     #'  Assemble linear predictors across all iterations of the MCMC chains
     psiSpp1 <- out1$sims.list$betaSpp1 %*% t(psi_covs)
     psiSpp2 <- out1$sims.list$betaSpp2 %*% t(psi_covs)
-    psiSpp12 <- psiSpp1 + psiSpp2 + out1$sims.list$betaSpp12 %*% t(psi_covs) #betaSpp12[,1:9] for current saved coy.bob.preydiversity model
+    psiSpp12 <- psiSpp1 + psiSpp2 + out1$sims.list$betaSpp12 %*% t(psi_inxs_covs) 
     
     #'  Compute latent state vector (lsv) based on new data and means of other covariates
     lsv <- array(NA, dim = c(ndraws, npoints, ncat))
@@ -181,19 +186,21 @@
   
   
   #####  Coyote-Bobcat co-occurrence  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psix(setup_habitat_rx)_px(setup_effort).RData")
-  coy.bob.elev.pred1 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
-                                         focal_cov = stations_skinny_eoe20s21s$Elev,
-                                         psi_cov = c(1, 1, 0, 0), cov_index = 3)
-  coy.bob.forest.pred1 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
-                                           focal_cov = stations_skinny_eoe20s21s$PercForest,
-                                           psi_cov = c(1, 1, 0, 0), cov_index = 4)
-  coy.bob.elev.pred0 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
-                                          focal_cov = stations_skinny_eoe20s21s$Elev,
-                                          psi_cov = c(1, 0, 0, 0), cov_index = 3)
-  coy.bob.forest.pred0 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
-                                            focal_cov = stations_skinny_eoe20s21s$PercForest,
-                                            psi_cov = c(1, 0, 0, 0), cov_index = 4)
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort).RData")
+  coy.bob.wtd.pred <- predict_occupancy(mod = coy.bob.preyabundx, ncat = 4, npoints = 500,
+                                        focal_cov = stations_skinny_eoe20s21s$Nwtd,
+                                        psi_cov = c(1, 1, 0, 0), psi_cov_index = 0,
+                                        psi_inxs_cov = c(1, 0, 0), psi_inxs_cov_index = 2)
+  coy.bob.forest.pred <- predict_occupancy(mod = coy.bob.preyabundx, ncat = 4, npoints = 500,
+                                           focal_cov = stations_skinny_eoe20s21s$Nlagomorph,
+                                           psi_cov = c(1, 1, 0, 0), psi_cov_index = 0,
+                                           psi_inxs_cov = c(1, 0, 0), psi_inxs_cov_index = 3)
+  # coy.bob.elev.pred0 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
+  #                                         focal_cov = stations_skinny_eoe20s21s$Elev,
+  #                                         psi_cov = c(1, 0, 0, 0), cov_index = 3)
+  # coy.bob.forest.pred0 <- predict_occupancy(mod = coy.bob.hab, ncat = 4, npoints = 500,
+  #                                           focal_cov = stations_skinny_eoe20s21s$PercForest,
+  #                                           psi_cov = c(1, 0, 0, 0), cov_index = 4)
   
   
   
@@ -270,8 +277,8 @@
                       spp1 = "Wolf", spp2 = "Coyote")
   
   #####  Coyote-Bobcat marginal occupancy  ####
-  marginal_prob_plots(focal_cov = coy.bob.elev.pred1[[3]], 
-                      marg = coy.bob.elev.pred1[[1]], covariate_name = "Elevation (m)", 
+  marginal_prob_plots(focal_cov = coy.bob.wtd.pred[[3]], 
+                      marg = coy.bob.wtd.pred[[1]], covariate_name = "Daily WTD", 
                       spp1 = "Coyote", spp2 = "Bobcat")
   marginal_prob_plots(focal_cov = coy.bob.forest.pred1[[3]], 
                       marg = coy.bob.forest.pred1[[1]], covariate_name = "Percent forest", 
@@ -368,8 +375,8 @@
   
   #####  Coyote-Bobcat conditional occupancy  ####
   #'  Habitat model
-  conditional_prob_plot(focal_cov = coy.bob.elev.pred1[[3]],
-                        covariate_name = "Elevation", cond = coy.bob.elev.pred1[[2]],
+  conditional_prob_plot(focal_cov = coy.bob.wtd.pred[[3]],
+                        covariate_name = "WTD", cond = coy.bob.wtd.pred[[2]],
                         spp1 = "coyote", spp2 = "bobcat")
   conditional_prob_plot(focal_cov = coy.bob.forest.pred1[[3]],
                         covariate_name = "Percent Forest Cover", cond = coy.bob.forest.pred1[[2]],
