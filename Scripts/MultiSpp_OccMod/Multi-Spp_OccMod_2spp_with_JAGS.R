@@ -333,7 +333,7 @@
   save(wolf.bear.habx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_psix(.)_p(setup_effort).RData")
   
   #####  Habitat w/ prey abundance inx model  #### 
-  #'  psi = setup, elevation, forest; psix(elk, moose, wtd, livestock); p = setup, effort  
+  #'  psi = setup, elevation, forest; psix(elk, moose, wtd); p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.bear.preyabundx <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
