@@ -19,7 +19,7 @@
         mean.psiSpp1 ~ dunif(0, 1)               
         mean.psiSpp2 ~ dunif(0, 1)
       
-        #'  Second order occupancy intercerpt (psi) 
+        #'  Second order occupancy intercerpt (psi)
         #'  Fix second-order interaction to 0
         betaSpp12 <- 0
             
