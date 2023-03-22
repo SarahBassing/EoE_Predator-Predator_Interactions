@@ -77,8 +77,14 @@
   coybob_list <- list(coy.bob.hab, coy.bob.preydiv, coy.bob.habx, coy.bob.preyabundx, coy.bob.preydivx) 
   coybob_name <- c("coy.bob.hab", "coy.bob.preydiv", "coy.bob.habx", "coy.bob.preyabundx", "coy.bob.preydivx") 
   
-  #'  Create model selection table using DIC, deltaDIC, and model weights
-  topmod_coybob <- dictab(cand.set = coybob_list, modnames = coybob_name, sort = TRUE)
+  ####  Create model selection table using DIC, deltaDIC, and model weights  ####
+  (topmod_wolfbear <- dictab(cand.set = wolfbear_list, modnames = coybob_name, sort = TRUE))
+  (topmod_wolfcoy <- dictab(cand.set = wolfcoy_list, modnames = coybob_name, sort = TRUE))
+  (topmod_wolflion <- dictab(cand.set = wolflion_list, modnames = coybob_name, sort = TRUE))
+  (topmod_lionbear <- dictab(cand.set = lionbear_list, modnames = coybob_name, sort = TRUE))
+  (topmod_lionbob <- dictab(cand.set = lionbob_list, modnames = coybob_name, sort = TRUE))
+  (topmod_coybob <- dictab(cand.set = coybob_list, modnames = coybob_name, sort = TRUE))
+  
   
   #'  Best supported model per species-pair
   topmodels <- rbind(topmod_wolfbear[1,], topmod_wolfcoy[1,], topmod_wolflion[1,], topmod_lionbear[1,], topmod_lionbob[1,], topmod_coybob[1,])
