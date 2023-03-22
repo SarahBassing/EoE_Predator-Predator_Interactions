@@ -251,7 +251,7 @@
   nt <- 5
   na <- 5000
   # nc <- 3
-  # ni <- 5000 
+  # ni <- 5000
   # nb <- 1000
   # nt <- 1
   # na <- 1000
@@ -272,7 +272,7 @@
   #'  ----------------------
   inits.wolf.bear <- function(){list(z = zinits[[1]], mean.psiSpp1 = runif(1),
                                      mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
-                                     mean.pSpp2 = runif(1))}
+                                     mean.pSpp2 = runif(1), sigmaSpp1 = 2, sigmaSpp2 = 2)}
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, elevation, forest; p = setup, effort  
@@ -733,6 +733,21 @@
   inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1),
                                    mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
                                    mean.pSpp2 = runif(1))}
+  
+  #####  Null model  ####
+  #'  psi = random effect
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(rx)_p(.).R")
+  start.time = Sys.time()
+  coy.bob.null <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(rx)_p(.).txt",
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(coy.bob.null$summary)
+  print(coy.bob.null$DIC)
+  which(coy.bob.null$summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.null$samples)
+  save(coy.bob.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(rx)_p(.).RData")
+  
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, elevation, forest; p = setup, effort  
