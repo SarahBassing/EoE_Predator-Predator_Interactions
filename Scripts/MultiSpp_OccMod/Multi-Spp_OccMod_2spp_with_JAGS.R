@@ -378,7 +378,7 @@
   #'  ----------------------
   inits.wolf.coy <- function(){list(z = zinits[[2]], mean.psiSpp1 = runif(1),
                                     mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
-                                    mean.pSpp2 = runif(1))}
+                                    mean.pSpp2 = runif(1), sigmaSpp1 = 1.73, sigmaSpp2 = 2.5)}
   
   #####  Null model  ####
   #'  psi = random effect
