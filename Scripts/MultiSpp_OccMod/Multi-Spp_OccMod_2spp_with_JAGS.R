@@ -507,8 +507,8 @@
   #'  ---------------------
   ####  Wolf-Lion Models  ####
   #'  ---------------------
-  inits.wolf.lion <- function(){list(z = zinits[[3]], mean.psiSpp1 = runif(1,0,0.3), # 0.1012 vs 0.1978 local optima for mean.psiSpp1
-                                     mean.psiSpp2 = runif(1,0.1,0.4), mean.pSpp1 = runif(1,0,0.2), # 0.2071 vs 0.2891 local optima for mean.psiSpp2
+  inits.wolf.lion <- function(){list(z = zinits[[3]], mean.psiSpp1 = runif(1,0,0.3), # 0.08 vs 0.19 local optima for mean.psiSpp1
+                                     mean.psiSpp2 = runif(1,0.1,0.4), mean.pSpp1 = runif(1,0,0.2), # 0.16 vs 0.28 local optima for mean.psiSpp2
                                      mean.pSpp2 = runif(1,0.1,0.2), sigmaSpp1 = runif(1,2,3), sigmaSpp2 = runif(1,4.5,5.5))}
                                      # 0.25 vs 2.5 local optima for sigmaSpp1; returns prior for sigmaSpp2
   
@@ -721,8 +721,8 @@
   #'  ----------------------
   ####  Lion-Bobcat Models  ####
   #'  ----------------------
-  inits.lion.bob <- function(){list(z = zinits[[5]], mean.psiSpp1 = runif(1,0.1,0.4), # -1.75 vs -1 local optima for mean.psiSpp1
-                                    mean.psiSpp2 = runif(1,0,0.3), mean.pSpp1 = runif(1,0,0.2), # -1.9 vs -1.1 local optima for mean.psiSpp2
+  inits.lion.bob <- function(){list(z = zinits[[5]], mean.psiSpp1 = runif(1,0.1,0.4), # 0.15 vs 0.27 local optima for mean.psiSpp1
+                                    mean.psiSpp2 = runif(1,0,0.3), mean.pSpp1 = runif(1,0,0.2), # 0.12 vs 0.26 local optima for mean.psiSpp2
                                     mean.pSpp2 = runif(1,0.1,0.2), sigmaSpp1 = runif(1,1.5,2.5), sigmaSpp2 = runif(1,1,3))}
                                     # 0.25 vs 2.5 local optima for sigmaSpp1; returns prior for sigmaSpp2
   
@@ -828,9 +828,9 @@
   #'  ------------------------
   ####  Coyote-Bobcat Models  ####
   #'  ------------------------
-  inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1),
-                                   mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
-                                   mean.pSpp2 = runif(1), sigmaSpp1 = runif(1), sigmaSpp2 = runif(1))}
+  inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1,0.4,0.6),
+                                   mean.psiSpp2 = runif(1,0,0.3), mean.pSpp1 = runif(1,0.4,0.5), 
+                                   mean.pSpp2 = runif(1,0.1,0.2), sigmaSpp1 = runif(1,1,2), sigmaSpp2 = runif(1,1,3))}
   
   #####  Null model  ####
   #'  psi = random effect
