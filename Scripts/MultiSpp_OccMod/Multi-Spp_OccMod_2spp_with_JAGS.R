@@ -376,9 +376,18 @@
   #'  ----------------------
   ####  Wolf-Coyote Models  ####
   #'  ----------------------
-  inits.wolf.coy <- function(){list(z = zinits[[2]], mean.psiSpp1 = runif(1),
-                                    mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
-                                    mean.pSpp2 = runif(1), sigmaSpp1 = 1.73, sigmaSpp2 = 2.5)}
+  #' Provide somewhat informed starting values for each parameter
+  inits.wolf.coy <- function(){list(z = zinits[[2]], mean.psiSpp1 = runif(1,-4,-3),
+                                    mean.psiSpp2 = runif(1,2,5), mean.pSpp1 = runif(1,-2,2),
+                                    mean.pSpp2 = runif(1-2,2), sigmaSpp1 = runif(1,1,2), sigmaSpp2 = runif(1,2,3))}
+  
+  #' #' Provide somewhat informed starting values for each parameter based on alternative parameterization
+  #' inits.wolf.coy <- function(){list(z = zinits[[2]], betaSpp1 = runif(1,-4,-3), betaSpp1[2] = runif(1,2,5), 
+  #'                                   betaSpp1[3] = runif(1,-1,1), betaSpp1[4] = runif(1,-1,1),
+  #'                                   betaSpp2[1] = runif(1,0,-2), betaSpp2[2] = runif(1,2,5),
+  #'                                   betaSpp2[3] = runif(1,-1,1), betaSpp2[4] = runif(1,-1,1),
+  #'                                   alphaSpp1 = runif(3,-2,2), alphaSpp2 = runif(3,-2,2),
+  #'                                   sigmaSpp1 = runif(1,1,2), sigmaSpp2 = runif(1,2,3))}
   
   #####  Null model  ####
   #'  psi = random effect
@@ -407,6 +416,20 @@
   which(wolf.coy.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.coy.hab$samples)
   save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_rx)_p(setup_effort).RData")
+  
+  #####  Habitat no inxs model  #### 
+  #'  psi = setup, elevation, forest; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort)_alt.R")
+  start.time = Sys.time()
+  wolf.coy.hab <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort)_alt.txt",
+                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.coy.hab$summary)
+  print(wolf.coy.hab$DIC)
+  which(wolf.coy.hab$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.hab$samples)
+  save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_rx)_p(setup_effort)_alt.RData")
   
   #####  Prey abundance no inxs model  #### 
   #'  psi = setup, elevation, forest, elk, moose, wtd, livestock; p = setup, effort  
