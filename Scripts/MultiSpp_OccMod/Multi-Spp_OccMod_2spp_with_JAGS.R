@@ -273,7 +273,7 @@
   #' Provide somewhat informed starting values for intercepts & sigmas
   inits.wolf.bear <- function(){list(z = zinits[[1]], mean.psiSpp1 = runif(1,0,0.2),
                                      mean.psiSpp2 = runif(1,0.5,0.9), mean.pSpp1 = runif(1,0,0.2),
-                                     mean.pSpp2 = runif(1,0,0.3), sigmaSpp1 = runif(1,1,2), sigmaSpp2 = runif(1,1,2))}
+                                     mean.pSpp2 = runif(1,0,0.3), sigmaSpp1 = runif(1,1.1,1.9), sigmaSpp2 = runif(1,1,2))}
   
   #####  Null model  ####
   #'  psi = random effect
@@ -303,7 +303,7 @@
   mcmcplot(wolf.bear.hab$samples)
   save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort).RData")
   
-  #####  Prey abundance no inxs model  #### 
+  #####  Prey abundance no inxs model  #### # sigma1, betaspp1, meanpsispp1 all still having trouble... provide even more specific initial values or bump up iterations?
   #'  psi = setup, elevation, forest, elk, moose, wtd, livestock; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
