@@ -274,14 +274,14 @@
                                               marg = coy.bob.for.pred1[[1]],
                                               covariate_name = "Percent forest cover",
                                               spp1 = "Coyote", spp2 = "Bobcat")
-  # coy.bob.wtd1_margocc <- marginal_prob_plots(focal_cov = coy.bob.wtd.pred1[[3]], 
-  #                                              marg = coy.bob.wtd.pred1[[1]], 
-  #                                              covariate_name = "White-tailed deer RAI", 
-  #                                              spp1 = "Coyote", spp2 = "Bobcat")
-  # coy.bob.lago1_margocc <- marginal_prob_plots(focal_cov = coy.bob.lago.pred1[[3]], 
-  #                                              marg = coy.bob.lago.pred1[[1]], 
-  #                                              covariate_name = "Lagomorph RAI", 
-  #                                              spp1 = "Coyote", spp2 = "Bobcat")
+  coy.bob.wtd1_margocc <- marginal_prob_plots(focal_cov = coy.bob.wtd.pred1[[3]],
+                                               marg = coy.bob.wtd.pred1[[1]],
+                                               covariate_name = "White-tailed deer RAI",
+                                               spp1 = "Coyote", spp2 = "Bobcat")
+  coy.bob.lago1_margocc <- marginal_prob_plots(focal_cov = coy.bob.lago.pred1[[3]],
+                                               marg = coy.bob.lago.pred1[[1]],
+                                               covariate_name = "Lagomorph RAI",
+                                               spp1 = "Coyote", spp2 = "Bobcat")
   
   
   #'  -----------------------------------
