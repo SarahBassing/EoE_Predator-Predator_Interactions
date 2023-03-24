@@ -289,7 +289,7 @@
   mcmcplot(wolf.bear.null$samples)
   save(wolf.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(rx)_p(.).RData")
   
-  #####  Habitat no inxs model  #### 
+  #####  Habitat no inxs model  #### # sigma1, betaspp1, meanpsispp1 all still having trouble... provide even more specific initial values or bump up iterations?
   #'  psi = setup, elevation, forest; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
   start.time = Sys.time()
