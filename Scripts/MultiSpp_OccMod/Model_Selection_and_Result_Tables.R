@@ -82,11 +82,11 @@
   coybob_name <- c("coy.bob.null", "coy.bob.hab", "coy.bob.preyabund", "coy.bob.preydiv", "coy.bob.habx", "coy.bob.preyabundx", "coy.bob.preydivx")
   
   ####  Create model selection table using DIC, deltaDIC, and model weights  ####
-  (topmod_wolfbear <- dictab(cand.set = wolfbear_list, modnames = coybob_name, sort = TRUE))
-  (topmod_wolfcoy <- dictab(cand.set = wolfcoy_list, modnames = coybob_name, sort = TRUE))
-  (topmod_wolflion <- dictab(cand.set = wolflion_list, modnames = coybob_name, sort = TRUE))
-  (topmod_lionbear <- dictab(cand.set = lionbear_list, modnames = coybob_name, sort = TRUE))
-  (topmod_lionbob <- dictab(cand.set = lionbob_list, modnames = coybob_name, sort = TRUE))
+  (topmod_wolfbear <- dictab(cand.set = wolfbear_list, modnames = wolfbear_name, sort = TRUE))
+  (topmod_wolfcoy <- dictab(cand.set = wolfcoy_list, modnames = wolfcoy_name, sort = TRUE))
+  (topmod_wolflion <- dictab(cand.set = wolflion_list, modnames = wolflion_name, sort = TRUE))
+  (topmod_lionbear <- dictab(cand.set = lionbear_list, modnames = lionbear_name, sort = TRUE))
+  (topmod_lionbob <- dictab(cand.set = lionbob_list, modnames = lionbob_name, sort = TRUE))
   (topmod_coybob <- dictab(cand.set = coybob_list, modnames = coybob_name, sort = TRUE))
   
   
