@@ -843,9 +843,12 @@
   #'  ------------------------
   ####  Coyote-Bobcat Models  ####
   #'  ------------------------
-  inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1,0.4,0.6),
-                                   mean.psiSpp2 = runif(1,0,0.3), mean.pSpp1 = runif(1,0.4,0.5), 
-                                   mean.pSpp2 = runif(1,0.1,0.2), sigmaSpp1 = runif(1,1,2), sigmaSpp2 = runif(1,1,3))}
+  # inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1,0.4,0.6),
+  #                                  mean.psiSpp2 = runif(1,0,0.3), mean.pSpp1 = runif(1,0.4,0.5), 
+  #                                  mean.pSpp2 = runif(1,0.1,0.2), sigmaSpp1 = runif(1,1,2), sigmaSpp2 = runif(1,1,3))}
+  inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1),
+                                   mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
+                                   mean.pSpp2 = runif(1), sigmaSpp1 = runif(1), sigmaSpp2 = runif(1))}
   
   #####  Null model  ####
   #'  psi = random effect
@@ -859,7 +862,7 @@
   print(coy.bob.null$DIC)
   which(coy.bob.null$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.null$samples)
-  save(coy.bob.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(rx)_p(.).RData")
+  save(coy.bob.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(rx)_p(.)_", Sys.Date(), ".RData"))
   
   
   #####  Habitat no inxs model  #### 
@@ -874,7 +877,7 @@
   print(coy.bob.hab$DIC)
   which(coy.bob.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.hab$samples)
-  save(coy.bob.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_p(setup_effort).RData")
+  save(coy.bob.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
   #'  psi = setup, elevation, forest, wtd, lagomorphs; p = setup, effort  
@@ -888,7 +891,7 @@
   print(coy.bob.preyabund$DIC)
   which(coy.bob.preyabund$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.preyabund$samples)
-  save(coy.bob.preyabund, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preyabund_rx)_p(setup_effort).RData")
+  save(coy.bob.preyabund, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preyabund_rx)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey diversity no inxs model  #### 
   #'  psi = setup, elevation, forest, spp diversity; p = setup, effort  
@@ -902,7 +905,7 @@
   print(coy.bob.preydiv$DIC)
   which(coy.bob.preydiv$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.preydiv$samples)
-  save(coy.bob.preydiv, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preydiversity_rx)_p(setup_effort).RData")
+  save(coy.bob.preydiv, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preydiversity_rx)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ inx model  #### 
   #'  psi = setup, elevation, forest; psix(.); p = setup, effort  
@@ -916,7 +919,7 @@
   print(coy.bob.habx$DIC)
   which(coy.bob.habx$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.habx$samples)
-  save(coy.bob.habx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(.)_p(setup_effort).RData")
+  save(coy.bob.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
   #'  psi = setup, elevation, forest; psix(wtd, lagomorphs); p = setup, effort  
@@ -930,7 +933,7 @@
   print(coy.bob.preyabundx$DIC)
   which(coy.bob.preyabundx$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.preyabundx$samples)
-  save(coy.bob.preyabundx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort).RData")
+  save(coy.bob.preyabundx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey diversity inx model  #### 
   #'  psi = setup, elevation, forest; psix(spp diversity); p = setup, effort  
@@ -944,6 +947,6 @@
   print(coy.bob.preydivx$DIC)
   which(coy.bob.preydivx$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.preydivx$samples)
-  save(coy.bob.preydivx, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort).RData")
+  save(coy.bob.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   
