@@ -242,13 +242,13 @@
   #'  -------------------------
   params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21","sigmaSpp1", "sigmaSpp2",
-              # "betaSpp1_domprey", "betaSpp2_domprey", "betaSpp12_domprey",
+              "mumuSpp1", "mumuSpp2", "sigmamuSpp1", "sigmamuSpp2",
               "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z") 
   
   #####  MCMC settings  ####
   #'  ------------------
   nc <- 3
-  ni <- 100000 #150000
+  ni <- 100000
   nb <- 50000  #75000
   nt <- 5
   na <- 5000
@@ -283,9 +283,7 @@
   #' inits.wolf.bear_sigma1.55 <- function(){list(z = zinits[[1]], mean.psiSpp1 = runif(1,0,0.2),
   #'                                    mean.psiSpp2 = runif(1,0.5,0.9), mean.pSpp1 = runif(1,0,0.2),
   #'                                    mean.pSpp2 = runif(1,0,0.3), sigmaSpp1 = 1.55, sigmaSpp2 = runif(1,1,2))}
-  inits.wolf.bear <- function(){list(z = zinits[[1]], mean.psiSpp1 = runif(1),
-                                               mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1),
-                                               mean.pSpp2 = runif(1))}
+  inits.wolf.bear <- function(){list(z = zinits[[1]])}
   
   #####  Null model  ####
   #'  psi = random effect
@@ -303,30 +301,31 @@
   
   #####  Habitat no inxs model  #### # sigma1, betaspp1, meanpsispp1 all still having trouble... provide even more specific initial values or bump up iterations?
   #'  psi = setup, elevation, forest; p = setup, effort  
-  # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
+  # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
-  # wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-  #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
-  #                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   # wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear_sigma1.98, params,
   #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
   #                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)  # did not converge well
   # wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear_sigma1.55, params,
   #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
   #                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)   # converged better than sigma1.98
-  wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
-                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  # wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
+  #                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.bear.hab$summary)
   print(wolf.bear.hab$DIC)
   which(wolf.bear.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.bear.hab$samples)
+  save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort)_hyperparams.RData")
   # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort).RData")
   # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort)_sigma1.98.RData")
   # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort)_sigma1.55.RData")
-  save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort).RData")
+  # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort).RData")
   
   #####  Prey abundance no inxs model  #### # sigma1, betaspp1, meanpsispp1 all still having trouble... provide even more specific initial values or bump up iterations?
   #'  psi = setup, elevation, forest, elk, moose, wtd, livestock; p = setup, effort  
@@ -408,6 +407,11 @@
                                     mean.pSpp2 = runif(1,0.3,0.5), sigmaSpp1 = runif(1,2,3), 
                                     sigmaSpp2 = runif(1,4.5,5.5))}
   
+  inits.wolf.coy <- function(){list(z = zinits[[2]], mean.psiSpp1 = runif(1),
+                                    mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1),
+                                    mean.pSpp2 = runif(1), sigmaSpp1 = runif(1), 
+                                    sigmaSpp2 = runif(1))}
+  
   #' #' Provide somewhat informed starting values for each parameter based on alternative parameterization
   #' inits.wolf.coy <- function(){list(z = zinits[[2]], betaSpp1 = runif(1,-4,-3), betaSpp1[2] = runif(1,2,5), 
   #'                                   betaSpp1[3] = runif(1,-1,1), betaSpp1[4] = runif(1,-1,1),
@@ -444,19 +448,19 @@
   mcmcplot(wolf.coy.hab$samples)
   save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_rx)_p(setup_effort).RData")
   
-  #' #####  Habitat no inxs model  #### 
-  #' #'  psi = setup, elevation, forest; p = setup, effort  
-  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort)_alt.R")
-  #' start.time = Sys.time()
-  #' wolf.coy.hab <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-  #'                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort)_alt.txt",
-  #'                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
-  #' print(wolf.coy.hab$summary)
-  #' print(wolf.coy.hab$DIC)
-  #' which(wolf.coy.hab$summary[,"Rhat"] > 1.1)
-  #' mcmcplot(wolf.coy.hab$samples)
-  #' save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_rx)_p(setup_effort)_alt.RData")
+  #####  Habitat no inxs model  ####
+  #'  psi = setup, elevation, forest; p = setup, effort
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
+  start.time = Sys.time()
+  wolf.coy.hab <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
+                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.coy.hab$summary)
+  print(wolf.coy.hab$DIC)
+  which(wolf.coy.hab$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.hab$samples)
+  save(wolf.coy.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort).RData")
   
   #####  Prey abundance no inxs model  #### 
   #'  psi = setup, elevation, forest, elk, moose, wtd, livestock; p = setup, effort  
@@ -688,6 +692,20 @@
   which(lion.bear.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bear.hab$samples)
   save(lion.bear.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat)_p(setup_effort_rx)_", Sys.Date(), ".RData"))
+  
+  #####  Habitat no inxs model  #### 
+  #'  psi = setup, elevation, forest; p = setup, effort  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
+  start.time = Sys.time()
+  lion.bear.hab <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(lion.bear.hab$summary)
+  print(lion.bear.hab$DIC)
+  which(lion.bear.hab$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bear.hab$samples)
+  save(lion.bear.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
   #'  psi = setup, elevation, forest, elk, wtd; p = setup, effort  
