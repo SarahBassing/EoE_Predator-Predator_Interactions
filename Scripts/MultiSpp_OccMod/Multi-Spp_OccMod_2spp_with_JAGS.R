@@ -843,9 +843,12 @@
   #'  ------------------------
   ####  Coyote-Bobcat Models  ####
   #'  ------------------------
-  inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1,0.4,0.6),
-                                   mean.psiSpp2 = runif(1,0,0.3), mean.pSpp1 = runif(1,0.4,0.5), 
-                                   mean.pSpp2 = runif(1,0.1,0.2), sigmaSpp1 = runif(1,1,2), sigmaSpp2 = runif(1,1,3))}
+  # inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1,0.4,0.6),
+  #                                  mean.psiSpp2 = runif(1,0,0.3), mean.pSpp1 = runif(1,0.4,0.5), 
+  #                                  mean.pSpp2 = runif(1,0.1,0.2), sigmaSpp1 = runif(1,1,2), sigmaSpp2 = runif(1,1,3))}
+  inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1),
+                                   mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
+                                   mean.pSpp2 = runif(1), sigmaSpp1 = runif(1), sigmaSpp2 = runif(1))}
   
   #####  Null model  ####
   #'  psi = random effect
