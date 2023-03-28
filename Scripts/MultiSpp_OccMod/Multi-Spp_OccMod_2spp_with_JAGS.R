@@ -92,6 +92,8 @@
   nspecies <- dim(wolf_bear_DH)[3]
   #'  Number of possible community states (species interactions): 00, 10, 01, 11
   ncat <- 2^nspecies
+  #'  Number of sampling years
+  nyears <- 2
   
   #####  Format detection histories  ####
   #'  --------------------------------
@@ -193,15 +195,16 @@
   #'  Function to bundle detection and covariate data
   bundle_data <- function(obs_array, psi_covs, psi_inxs, rho_covs, rho_inxs, 
                           sites, surveys, psi_1order, psi_2order, rho_1order, 
-                          rho_2order, ncats, uniquesites) {
+                          rho_2order, ncats, nspecies, nyears, uniquesites) {
     #'  list all pieces of data together
     bundled <- list(y = obs_array, psi_cov = psi_covs, psi_inxs_cov = psi_inxs,
                     rho_cov = rho_covs, rho_inxs_cov = rho_inxs, nsites = sites,
                     nsurveys = surveys, nfirst_order_psi = ncol(psi_1order), 
                     nsecond_order_psi = ncol(psi_2order), 
                     nfirst_order_rho = dim(rho_1order)[3], 
-                    nsecond_order_rho = dim(rho_2order)[3], ncat = ncats, #rho_2order
-                    uniquesites = as.numeric(factor(uniquesites), levels = uniquesites))
+                    nsecond_order_rho = dim(rho_2order)[3], ncat = ncats, 
+                    nspec = nspecies, nyear = nyears,
+                    uniquesites = as.numeric(factor(uniquesites), levels = uniquesites)) #rho_2order
     #'  Summarize to make sure it looks right
     str(bundled)
     return(bundled)
@@ -212,7 +215,7 @@
                                surveys = nsurveys, psi_1order = psi_cov, 
                                psi_2order = psi_inxs_cov, rho_1order = rho_cov, 
                                rho_2order = rho_inxs_cov, ncats = ncat, 
-                               uniquesites = unique(psi_cov[,16])) 
+                               nspecies = nspecies, nyears = nyears, uniquesites = unique(psi_cov[,16])) 
   # save(bundled_pred_list, file = "./Data/MultiSpp_OccMod_Outputs/bundled_predator_data_list.RData")
   
   
