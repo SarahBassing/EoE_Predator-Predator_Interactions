@@ -51,30 +51,16 @@
           
         #'  Random effect for site
         for(site in 1:length(uniquesites)) {
-          etaSpp1[site] ~ dnorm(muSpp1, tauSpp1)
-          etaSpp2[site] ~ dnorm(muSpp2, tauSpp2)
+          etaSpp1[site] ~ dnorm(0, tauSpp1)
+          etaSpp2[site] ~ dnorm(0, tauSpp2)
         }
 
         #'  Hyperpriors for random effect
-        #'  Priors for mean and precision of the random effect for site
-        muSpp1 ~ dnorm(mumuSpp1, taumuSpp1)
-        muSpp2 ~ dnorm(mumuSpp2, taumuSpp2)
-        #'  Single shared variance among all cameras
         sigmaSpp1 ~ dunif(0, 10)
         sigmaSpp2 ~ dunif(0, 10)
         tauSpp1 <- pow(sigmaSpp1, -2)
         tauSpp2 <- pow(sigmaSpp2, -2)
-        
-        #'  Hyperpriors for the site-specific means and precision hyperparameters
-        mumuSpp1 ~ dunif(0, 10)
-        mumuSpp2 ~ dunif(0, 10)
-        sigmamuSpp1 ~ dunif(0, 10)
-        sigmamuSpp2 ~ dunif(0, 10)
-        taumuSpp1 <- pow(sigmamuSpp1, -2) # taumuSpp1 ~ dgamma(0.001, 0.001)
-        taumuSpp2 <- pow(sigmamuSpp2, -2) # taumuSpp2 ~ dgamma(0.001, 0.001)
       
-        
-                
             
         ####  Define Likelihood  ####
         #'  =====================
