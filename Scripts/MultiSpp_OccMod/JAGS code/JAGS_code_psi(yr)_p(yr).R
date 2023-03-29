@@ -4,8 +4,12 @@
   #'  Sarah Bassing
   #'  February 2023
   #'  ---------------------------------
-
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(.)_p(.).txt', "
+  #'  Included year effects to account for temporal correlation in occurrence 
+  #'  related to re-sampling same site each year but otherwise unrelated to 
+  #'  environmental/ biotic variables of interest.
+  #'  ---------------------------------
+  
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(yr).txt', "
       model{
           
         #### Define Priors  ####
@@ -14,10 +18,16 @@
         #'  Intercepts and slopes for linear models associated with each natural parameter
           
         #'  First order occupancy intercerpts (psi) 
-        betaSpp1 <- logit(mean.psiSpp1)          
-        betaSpp2 <- logit(mean.psiSpp2)
+        betaSpp1[1] <- logit(mean.psiSpp1)          
+        betaSpp2[1] <- logit(mean.psiSpp2)
         mean.psiSpp1 ~ dunif(0, 1)               
         mean.psiSpp2 ~ dunif(0, 1)
+      
+        #'  First order occupancy slopes (psi)
+        for(fo_psi in 2:2){                         
+          betaSpp1[fo_psi] ~ dnorm(0, 0.1)
+          betaSpp2[fo_psi] ~ dnorm(0, 0.1)
+        }
       
         #'  Second order occupancy intercerpt (psi)
         #'  Fix second-order interaction to 0
@@ -28,6 +38,12 @@
         alphaSpp2 <- logit(mean.pSpp2)
         mean.pSpp1 ~ dunif(0, 1)                    
         mean.pSpp2 ~ dunif(0, 1)
+      
+        #'  First order detection slopes (rho)   
+        for(fo_rho in 2:2){                         
+          alphaSpp1[fo_rho] ~ dnorm(0, 0.1)  
+          alphaSpp2[fo_rho] ~ dnorm(0, 0.1)
+        }
       
         #'  Second order detection priors (rho)
         #'  Assumes no second-order interactions by setting these to 0
@@ -108,9 +124,9 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept 
-          psiSpp1[i] <- betaSpp1*psi_cov[i,1] 
-          psiSpp2[i] <- betaSpp2*psi_cov[i,1] 
+          #'  Covariate order: Intercept[1] + Year[6]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,6] 
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,6] 
           
           #'  ...for state Spp12
           #'  Don't forget - second order parameter set to 0 so no interaction
@@ -119,8 +135,8 @@
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
             #'  Intercept
-            rhoSpp1[i, j] <- alphaSpp1*rho_cov[i,j,1] 
-            rhoSpp2[i, j] <- alphaSpp2*rho_cov[i,j,1] 
+            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,6] 
+            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,6] 
           
             #'  Asymetric interactions between both species
             #'  Fixing to be same as species-sepcific detection probability
