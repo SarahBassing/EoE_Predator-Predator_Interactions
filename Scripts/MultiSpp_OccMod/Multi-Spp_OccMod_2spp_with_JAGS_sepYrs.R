@@ -318,7 +318,8 @@
   #'                                    mean.psiSpp2 = runif(1,0.5,0.9), mean.pSpp1 = runif(1,0,0.2),
   #'                                    mean.pSpp2 = runif(1,0,0.3), sigmaSpp1 = 1.55, sigmaSpp2 = runif(1,1,2))}
   inits.wolf.bear_20s <- function(){list(z = zinits_20s[[1]])}
-  inits.wolf.bear_21s <- function(){list(z = zinits_21s[[1]])}
+  inits.wolf.bear_21s <- function(){list(z = zinits_21s[[1]], mean.psiSpp1 = runif(1,0.1,0.3), 
+                                         mean.pSpp1 = runif(1,0.05,0.15))}
   
   #####  Null model  ####
   #'  psi = random effect
