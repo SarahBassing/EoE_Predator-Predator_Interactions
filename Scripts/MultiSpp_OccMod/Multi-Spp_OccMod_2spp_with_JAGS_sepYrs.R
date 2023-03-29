@@ -337,9 +337,9 @@
     return(wolf.bear.null)
   }
   wolf.bear.null.20s <- run_wolfbear_nullmod(bundled = bundled_pred_list_20s[[1]], inits = inits.wolf.bear_20s)
-  save(wolf.bear.null.20s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(.)_p(.).RData")
+  save(wolf.bear.null.20s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(.)_p(.)_", Sys.Date(), ".RData"))
   wolf.bear.null.21s <- run_wolfbear_nullmod(bundled = bundled_pred_list_21s[[1]], inits = inits.wolf.bear_21s)
-  save(wolf.bear.null.21s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(.)_p(.).RData")
+  save(wolf.bear.null.21s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(.)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, elevation, forest; p = setup, effort  
@@ -357,9 +357,9 @@
     return(wolf.bear.hab)
   }
   wolf.bear.hab.20s <- run_wolfbear_habmod(bundled = bundled_pred_list_20s[[1]], inits = inits.wolf.bear_20s)
-  save(wolf.bear.hab.20s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_habitat)_p(setup_effort).RData")
+  save(wolf.bear.hab.20s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_habitat)_p(setup_effort)_", Sys.Date(), ".RData"))
   wolf.bear.hab.21s <- run_wolfbear_habmod(bundled = bundled_pred_list_21s[[1]], inits = inits.wolf.bear_21s)
-  save(wolf.bear.hab.21s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_habitat)_p(setup_effort).RData")
+  save(wolf.bear.hab.21s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_habitat)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
   #'  psi = setup, elevation, forest, elk, moose, wtd; p = setup, effort  
@@ -377,9 +377,9 @@
     return(wolf.bear.preyabund)
   }
   wolf.bear.preyabund.20s <- run_wolfbear_npreymod(bundled = bundled_pred_list_20s[[1]], inits = inits.wolf.bear_20s)
-  save(wolf.bear.preyabund.20s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_preyabund)_p(setup_effort).RData")
+  save(wolf.bear.preyabund.20s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   wolf.bear.preyabund.21s <- run_wolfbear_npreymod(bundled = bundled_pred_list_21s[[1]], inits = inits.wolf.bear_21s)
-  save(wolf.bear.preyabund.21s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_preyabund)_p(setup_effort).RData")
+  save(wolf.bear.preyabund.21s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey diversity no inxs model  #### 
   #'  psi = setup, elevation, forest, spp diversity; p = setup, effort  
@@ -397,9 +397,9 @@
     return(wolf.bear.preydiv)
   }
   wolf.bear.preydiv.20s <- run_wolfbear_pdivmod(bundled = bundled_pred_list_20s[[1]], inits = inits.wolf.bear_20s)
-  save(wolf.bear.preydiv.20s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_preydiversity)_p(setup_effort).RData")
+  save(wolf.bear.preydiv.20s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   wolf.bear.preydiv.21s <- run_wolfbear_pdivmod(bundled = bundled_pred_list_21s[[1]], inits = inits.wolf.bear_21s)
-  save(wolf.bear.preydiv.21s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_preydiversity)_p(setup_effort).RData")
+  save(wolf.bear.preydiv.21s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ inx model  #### 
   #'  psi = setup, elevation, forest; psix(.); p = setup, effort  
@@ -417,9 +417,9 @@
     return(wolf.bear.habx)
   }
   wolf.bear.habx.20s <- run_wolfbear_habxmod(bundled = bundled_pred_list_20s[[1]], inits = inits.wolf.bear_20s)
-  save(wolf.bear.habx.20s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_habitat)_psix(.)_p(setup_effort).RData")
+  save(wolf.bear.habx.20s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_habitat)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   wolf.bear.habx.21s <- run_wolfbear_habxmod(bundled = bundled_pred_list_21s[[1]], inits = inits.wolf.bear_21s)
-  save(wolf.bear.habx.21s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_habitat)_psix(.)_p(setup_effort).RData")
+  save(wolf.bear.habx.21s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_habitat)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
   #'  psi = setup, elevation, forest; psix(elk, moose, wtd); p = setup, effort  
@@ -437,9 +437,9 @@
     return(wolf.bear.preyabundx)
   }
   wolf.bear.preyabundx.20s <- run_wolfbear_npreyxmod(bundled = bundled_pred_list_20s[[1]], inits = inits.wolf.bear_20s)
-  save(wolf.bear.preyabundx.20s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_habitat)_psix(preyabund)_p(setup_effort).RData")
+  save(wolf.bear.preyabundx.20s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_habitat)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   wolf.bear.preyabundx.21s <- run_wolfbear_npreyxmod(bundled = bundled_pred_list_21s[[1]], inits = inits.wolf.bear_21s)
-  save(wolf.bear.preyabundx.21s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_habitat)_psix(preyabund)_p(setup_effort).RData")
+  save(wolf.bear.preyabundx.21s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_habitat)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey diversity inx model  #### 
   #'  psi = setup, elevation, forest; psix(spp diversity); p = setup, effort  
@@ -457,9 +457,9 @@
     return(wolf.bear.preydivx)
   }
   wolf.bear.preydivx.20s <- run_wolfbear_pdivxmod(bundled = bundled_pred_list_20s[[1]], inits = inits.wolf.bear_20s)
-  save(wolf.bear.preydivx.20s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_habitat)_psix(preydiversity)_p(setup_effort).RData")
+  save(wolf.bear.preydivx.20s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear20s_psi(setup_habitat)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   wolf.bear.preydivx.21s <- run_wolfbear_pdivxmod(bundled = bundled_pred_list_21s[[1]], inits = inits.wolf.bear_21s)
-  save(wolf.bear.preydivx.21s, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_habitat)_psix(preydiversity)_p(setup_effort).RData")
+  save(wolf.bear.preydivx.21s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear21s_psi(setup_habitat)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   
   #'  ----------------------
@@ -955,38 +955,51 @@
   # inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1,0.4,0.6),
   #                                  mean.psiSpp2 = runif(1,0,0.3), mean.pSpp1 = runif(1,0.4,0.5), 
   #                                  mean.pSpp2 = runif(1,0.1,0.2), sigmaSpp1 = runif(1,1,2), sigmaSpp2 = runif(1,1,3))}
-  inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1),
-                                   mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
-                                   mean.pSpp2 = runif(1), sigmaSpp1 = runif(1), sigmaSpp2 = runif(1))}
+  # inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1),
+  #                                  mean.psiSpp2 = runif(1), mean.pSpp1 = runif(1), 
+  #                                  mean.pSpp2 = runif(1), sigmaSpp1 = runif(1), sigmaSpp2 = runif(1))}
+  inits.coy.bob_20s <- function(){list(z = zinits_20s[[6]])}
+  inits.coy.bob_21s <- function(){list(z = zinits_21s[[6]])}
   
   #####  Null model  ####
   #'  psi = random effect
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(rx)_p(.).R")
-  start.time = Sys.time()
-  coy.bob.null <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(rx)_p(.).txt",
-                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(coy.bob.null$summary)
-  print(coy.bob.null$DIC)
-  which(coy.bob.null$summary[,"Rhat"] > 1.1)
-  mcmcplot(coy.bob.null$samples)
-  save(coy.bob.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(rx)_p(.)_", Sys.Date(), ".RData"))
-  
+  run_coybob_nullmod <- function(bundled, inits) {
+    source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(.)_p(.).R")
+    start.time = Sys.time()
+    coy.bob.null <- jags(bundled, inits = inits, params,
+                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(.)_p(.).txt",
+                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+    end.time <- Sys.time(); print(run.time <- end.time - start.time)
+    print(coy.bob.null$summary)
+    print(coy.bob.null$DIC)
+    print(which(coy.bob.null$summary[,"Rhat"] > 1.1))
+    mcmcplot(coy.bob.null$samples)
+    return(coy.bob.null)
+  }
+  coy.bob.null.20s <- run_coybob_nullmod(bundled = bundled_pred_list_20s[[6]], inits = inits.coy.bob_20s)
+  save(coy.bob.null.20s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob20s_psi(.)_p(.)_", Sys.Date(), ".RData"))
+  coy.bob.null.21s <- run_coybob_nullmod(bundled = bundled_pred_list_21s[[6]], inits = inits.coy.bob_21s)
+  save(coy.bob.null.21s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob21s_psi(.)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, elevation, forest; p = setup, effort  
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort)_v2.R")
-  start.time = Sys.time()
-  coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort)_v2.txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(coy.bob.hab$summary)
-  print(coy.bob.hab$DIC)
-  which(coy.bob.hab$summary[,"Rhat"] > 1.1)
-  mcmcplot(coy.bob.hab$samples)
-  save(coy.bob.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_rx)_p(setup_effort)_v2_", Sys.Date(), ".RData"))
+  run_coybob_habmod <- function(bundled, inits) {
+    source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat)_p(setup_effort).R")
+    start.time = Sys.time()
+    coy.bob.hab <- jags(bundled, inits = inits, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat)_p(setup_effort).txt",
+                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+    end.time <- Sys.time(); print(run.time <- end.time - start.time)
+    print(coy.bob.hab$summary)
+    print(coy.bob.hab$DIC)
+    print(which(coy.bob.hab$summary[,"Rhat"] > 1.1))
+    mcmcplot(coy.bob.hab$samples)
+    return(coy.bob.hab)
+  }
+  coy.bob.hab.20s <- run_coybob_habmod(bundled = bundled_pred_list_20s[[6]], inits = inits.coy.bob_20s)
+  save(coy.bob.hab.20s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob20s_psi(setup_habitat)_p(setup_effort)_", Sys.Date(), ".RData"))
+  coy.bob.hab.21s <- run_coybob_habmod(bundled = bundled_pred_list_21s[[6]], inits = inits.coy.bob_21s)
+  save(coy.bob.hab.21s, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob21s_psi(setup_habitat)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, elevation, forest; p = setup, effort  
