@@ -169,21 +169,23 @@
   head(psi_inxs_cov)
   
   ######  First order detection (rho|no second spp)  ####
-  rho_cov <- array(NA, dim = c(nsites, nsurveys, 5)) # last digit is number of covariates + intercept
+  rho_cov <- array(NA, dim = c(nsites, nsurveys, 6)) # last digit is number of covariates + intercept
   rho_cov[,,1] <- 1
   rho_cov[,,2] <- det_covs$CameraFacing
   rho_cov[,,3] <- det_covs$Setup
   rho_cov[,,4] <- det_covs$Height
   rho_cov[,,5] <- effort_eoe20s21s
+  rho_cov[,,6] <- stations_eoe20s21s$Year
   head(rho_cov)
   
   ######  Second order detection (rho): 2-way interactions  ####
-  rho_inxs_cov <- array(NA, dim = c(nsites, nsurveys, 5))
+  rho_inxs_cov <- array(NA, dim = c(nsites, nsurveys, 6))
   rho_inxs_cov[,,1] <- 1
   rho_inxs_cov[,,2] <- det_covs$CameraFacing
   rho_inxs_cov[,,3] <- det_covs$Setup
   rho_inxs_cov[,,4] <- det_covs$Height
   rho_inxs_cov[,,5] <- effort_eoe20s21s
+  rho_inxs_cov[,,6] <- stations_eoe20s21s$Year
   head(rho_inxs_cov)
   
   
@@ -244,22 +246,22 @@
   #####  Parameters monitored  ####
   #'  -------------------------
   params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
-              "alphaSpp12", "alphaSpp21","sigmaSpp1", "sigmaSpp2",
-              "mumuSpp1", "mumuSpp2", "sigmamuSpp1", "sigmamuSpp2",
-              "mean.psiSpp1", "mean.psiSpp2", "mean.pSpp1", "mean.pSpp2", "z") 
+              "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
+              "mean.pSpp1", "mean.pSpp2", "z") 
+              # "sigmaSpp1", "sigmaSpp2", "mumuSpp1", "mumuSpp2", "sigmamuSpp1", "sigmamuSpp2",
   
   #####  MCMC settings  ####
   #'  ------------------
-  nc <- 3
-  ni <- 100000
-  nb <- 50000  #75000
-  nt <- 10 #5
-  na <- 5000
   # nc <- 3
-  # ni <- 5000
-  # nb <- 1000
-  # nt <- 1
-  # na <- 1000
+  # ni <- 100000
+  # nb <- 50000  
+  # nt <- 10 
+  # na <- 5000
+  nc <- 3
+  ni <- 50000
+  nb <- 20000
+  nt <- 5
+  na <- 1000
   
   #'  -------------------
   ####  RUN JAGS MODELS  ####
@@ -276,16 +278,6 @@
   ####  Wolf-Bear Models  ####
   #'  ----------------------
   #' #' Provide somewhat informed starting values for intercepts & sigmas
-  #' inits.wolf.bear <- function(){list(z = zinits[[1]], mean.psiSpp1 = runif(1,0,0.2),
-  #'                                    mean.psiSpp2 = runif(1,0.5,0.9), mean.pSpp1 = runif(1,0,0.2),
-  #'                                    mean.pSpp2 = runif(1,0,0.3), sigmaSpp1 = runif(1,1.1,1.9), sigmaSpp2 = runif(1,1,2))}
-  #' #'  Attempting to identify if there are 2+ local optima by providing sigma1 different initial values
-  #' inits.wolf.bear_sigma1.98 <- function(){list(z = zinits[[1]], mean.psiSpp1 = runif(1,0,0.2),
-  #'                                    mean.psiSpp2 = runif(1,0.5,0.9), mean.pSpp1 = runif(1,0,0.2),
-  #'                                    mean.pSpp2 = runif(1,0,0.3), sigmaSpp1 = 1.98, sigmaSpp2 = runif(1,1,2))}
-  #' inits.wolf.bear_sigma1.55 <- function(){list(z = zinits[[1]], mean.psiSpp1 = runif(1,0,0.2),
-  #'                                    mean.psiSpp2 = runif(1,0.5,0.9), mean.pSpp1 = runif(1,0,0.2),
-  #'                                    mean.pSpp2 = runif(1,0,0.3), sigmaSpp1 = 1.55, sigmaSpp2 = runif(1,1,2))}
   inits.wolf.bear <- function(){list(z = zinits[[1]])}
   
   #####  Null model  ####
@@ -300,35 +292,21 @@
   print(wolf.bear.null$DIC)
   which(wolf.bear.null$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.bear.null$samples)
-  save(wolf.bear.null, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(rx)_p(.).RData")
+  save(wolf.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(rx)_p(.)_", Sys.Date(), ".RData"))
   
-  #####  Habitat no inxs model  #### # sigma1, betaspp1, meanpsispp1 all still having trouble... provide even more specific initial values or bump up iterations?
+  #####  Habitat no inxs model  #### 
   #'  psi = setup, elevation, forest; p = setup, effort  
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).R")
-  # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
-  # wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear_sigma1.98, params,
-  #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
-  #                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)  # did not converge well
-  # wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear_sigma1.55, params,
-  #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_rx)_p(setup_effort).txt",
-  #                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)   # converged better than sigma1.98
-  # wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-  #                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
-  #                       n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.bear.hab$summary)
   print(wolf.bear.hab$DIC)
   which(wolf.bear.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.bear.hab$samples)
-  save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort)_hyperparams.RData")
-  # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort).RData")
-  # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort)_sigma1.98.RData")
-  # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_rx)_p(setup_effort)_sigma1.55.RData")
-  # save(wolf.bear.hab, file = "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort).RData")
+  save(wolf.bear.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### # sigma1, betaspp1, meanpsispp1 all still having trouble... provide even more specific initial values or bump up iterations?
   #'  psi = setup, elevation, forest, elk, moose, wtd, livestock; p = setup, effort  
