@@ -287,8 +287,8 @@
   # nt <- 10 #5
   # na <- 5000
   nc <- 3
-  ni <- 10000
-  nb <- 5000
+  ni <- 20000
+  nb <- 10000
   nt <- 5
   na <- 1000
   
@@ -363,7 +363,7 @@
   #####  Prey abundance no inxs model  #### 
   #'  psi = setup, elevation, forest, elk, moose, wtd; p = setup, effort  
   run_wolfbear_npreymod <- function(bundled, inits) {
-    source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_wolfbearlion.R")
+    source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund)_p(setup_effort)_wolfbearlion.R")
     start.time = Sys.time()
     wolf.bear.preyabund <- jags(bundled, inits = inits, params,
                                 "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund)_p(setup_effort)_wolfbearlion.txt",
