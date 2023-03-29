@@ -19,8 +19,8 @@
         #'  First order occupancy intercerpts (psi) 
         betaSpp1[1] <- logit(mean.psiSpp1)           
         betaSpp2[1] <- logit(mean.psiSpp2)
-        mean.psiSpp1[1] ~ dunif(0, 1)               
-        mean.psiSpp2[1] ~ dunif(0, 1)
+        mean.psiSpp1 ~ dunif(0, 1)               
+        mean.psiSpp2 ~ dunif(0, 1)
             
         #'  First order occupancy slopes (psi)
         for(fo_psi in 2:5){                         
@@ -97,22 +97,22 @@
             #'  present, the detection probability is rhoSpp1.
             #'  Example 2: when only Spp1 is observed by in reality Spp1 & Spp2
             #'  are truly present, the detection probability is rhoSpp12
-            #'  True state = unoccupied (z = 1 --> 000)
+            #'  True state = unoccupied (z = 1 --> 00)
             rdm[i, j, 1, 1] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 1] <- 0 # ------------------------------------ OS = Spp1 present
             rdm[i, j, 3, 1] <- 0 # ------------------------------------ OS = Spp2 present
             rdm[i, j, 4, 1] <- 0 # ------------------------------------ OS = Spp12 present
-            #'  True state = Spp1 present (z = 2 --> 100)
+            #'  True state = Spp1 present (z = 2 --> 10)
             rdm[i, j, 1, 2] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 2] <- exp(rhoSpp1[i, j]) # ------------------- OS = Spp1 present
             rdm[i, j, 3, 2] <- 0 # ------------------------------------ OS = Spp2 present
             rdm[i, j, 4, 2] <- 0 # ------------------------------------ OS = Spp12 present
-            #'  True state = Spp2 present (z = 3 --> 010 )
+            #'  True state = Spp2 present (z = 3 --> 01)
             rdm[i, j, 1, 3] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 3] <- 0 # ------------------------------------ OS = Spp1 present
             rdm[i, j, 3, 3] <- exp(rhoSpp2[i, j]) # ------------------- OS = Spp2 present
             rdm[i, j, 4, 3] <- 0 # ------------------------------------ OS = Spp12 present
-            #'  True state = Spp1 & Spp2 present (z = 4 --> 110)
+            #'  True state = Spp1 & Spp2 present (z = 4 --> 11)
             rdm[i, j, 1, 4] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 4] <- exp(rhoSpp12[i, j]) # ------------------ OS = Spp1 present
             rdm[i, j, 3, 4] <- exp(rhoSpp21[i, j]) # ------------------ OS = Spp2 present
@@ -124,19 +124,19 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept[1] + Setup[2] + Elevation[3] + Forest[4] + Year[5]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,5] 
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] 
+          #'  Covariate order: Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,5] + betaSpp1[4]*psi_cov[i,3] + betaSpp1[5]*psi_cov[i,4] 
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,5] + betaSpp2[4]*psi_cov[i,3] + betaSpp2[5]*psi_cov[i,4] 
           
           #'  ...for state Spp12
           #'  Don't forget - second order parameter set to 0 so no interaction
           psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12*psi_inxs_cov[i,1]
           
           #'  Baseline linear predictors for detection
-          #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5] + Year[6]
+          #'  Covariate order: Intercept[1] + Setup[3] + Year[6] + Sampling Effort[5]
           for(j in 1:nsurveys) {
-            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5] + alphaSpp1[4]*rho_cov[i,j,6]
-            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5] + alphaSpp2[4]*rho_cov[i,j,6]
+            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,6] + alphaSpp1[4]*rho_cov[i,j,5]
+            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,6] + alphaSpp2[4]*rho_cov[i,j,5]
           
             #'  Asymetric interactions between both species
             #'  Don't forget - second order parameters set to 0 so no interactions
