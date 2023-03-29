@@ -277,22 +277,21 @@
   
   ####  Wolf-Bear Models  ####
   #'  ----------------------
-  #' #' Provide somewhat informed starting values for intercepts & sigmas
   inits.wolf.bear <- function(){list(z = zinits[[1]])}
   
   #####  Null model  ####
   #'  psi = random effect
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(rx)_p(.).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(.)_p(.).R")
   start.time = Sys.time()
   wolf.bear.null <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(rx)_p(.).txt",
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(.)_p(.).txt",
                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.bear.null$summary)
   print(wolf.bear.null$DIC)
   which(wolf.bear.null$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.bear.null$samples)
-  save(wolf.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(rx)_p(.)_", Sys.Date(), ".RData"))
+  save(wolf.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(.)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, elevation, forest; p = setup, effort  
@@ -308,7 +307,7 @@
   mcmcplot(wolf.bear.hab$samples)
   save(wolf.bear.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
-  #####  Prey abundance no inxs model  #### # sigma1, betaspp1, meanpsispp1 all still having trouble... provide even more specific initial values or bump up iterations?
+  #####  Prey abundance no inxs model  #### 
   #'  psi = setup, elevation, forest, elk, moose, wtd, livestock; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_rx)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
