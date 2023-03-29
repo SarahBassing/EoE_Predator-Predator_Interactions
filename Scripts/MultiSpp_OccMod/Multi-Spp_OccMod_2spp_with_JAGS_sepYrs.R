@@ -318,7 +318,8 @@
   #'                                    mean.psiSpp2 = runif(1,0.5,0.9), mean.pSpp1 = runif(1,0,0.2),
   #'                                    mean.pSpp2 = runif(1,0,0.3), sigmaSpp1 = 1.55, sigmaSpp2 = runif(1,1,2))}
   inits.wolf.bear_20s <- function(){list(z = zinits_20s[[1]])}
-  inits.wolf.bear_21s <- function(){list(z = zinits_21s[[1]])}
+  inits.wolf.bear_21s <- function(){list(z = zinits_21s[[1]], mean.psiSpp1 = runif(1,0.1,0.3), 
+                                         mean.pSpp1 = runif(1,0.05,0.15))}
   
   #####  Null model  ####
   #'  psi = random effect
@@ -331,7 +332,7 @@
     end.time <- Sys.time(); print(run.time <- end.time - start.time)
     print(wolf.bear.null$summary)
     print(wolf.bear.null$DIC)
-    which(wolf.bear.null$summary[,"Rhat"] > 1.1)
+    print(which(wolf.bear.null$summary[,"Rhat"] > 1.1))
     mcmcplot(wolf.bear.null$samples)
     return(wolf.bear.null)
   }
@@ -351,7 +352,7 @@
     end.time <- Sys.time(); print(run.time <- end.time - start.time)
     print(wolf.bear.hab$summary)
     print(wolf.bear.hab$DIC)
-    which(wolf.bear.hab$summary[,"Rhat"] > 1.1)
+    print(which(wolf.bear.hab$summary[,"Rhat"] > 1.1))
     mcmcplot(wolf.bear.hab$samples)
     return(wolf.bear.hab)
   }
@@ -371,7 +372,7 @@
     end.time <- Sys.time(); print(run.time <- end.time - start.time)
     print(wolf.bear.preyabund$summary)
     print(wolf.bear.preyabund$DIC)
-    which(wolf.bear.preyabund$summary[,"Rhat"] > 1.1)
+    print(which(wolf.bear.preyabund$summary[,"Rhat"] > 1.1))
     mcmcplot(wolf.bear.preyabund$samples)
     return(wolf.bear.preyabund)
   }
@@ -391,7 +392,7 @@
     end.time <- Sys.time(); print(run.time <- end.time - start.time)
     print(wolf.bear.preydiv$summary)
     print(wolf.bear.preydiv$DIC)
-    which(wolf.bear.preydiv$summary[,"Rhat"] > 1.1)
+    print(which(wolf.bear.preydiv$summary[,"Rhat"] > 1.1))
     mcmcplot(wolf.bear.preydiv$samples)
     return(wolf.bear.preydiv)
   }
@@ -411,7 +412,7 @@
     end.time <- Sys.time(); print(run.time <- end.time - start.time)
     print(wolf.bear.habx$summary)
     print(wolf.bear.habx$DIC)
-    which(wolf.bear.habx$summary[,"Rhat"] > 1.1)
+    print(which(wolf.bear.habx$summary[,"Rhat"] > 1.1))
     mcmcplot(wolf.bear.habx$samples)
     return(wolf.bear.habx)
   }
@@ -431,7 +432,7 @@
     end.time <- Sys.time(); print(run.time <- end.time - start.time)
     print(wolf.bear.preyabundx$summary)
     print(wolf.bear.preyabundx$DIC)
-    which(wolf.bear.preyabundx$summary[,"Rhat"] > 1.1)
+    print(which(wolf.bear.preyabundx$summary[,"Rhat"] > 1.1))
     mcmcplot(wolf.bear.preyabundx$samples)
     return(wolf.bear.preyabundx)
   }
@@ -451,7 +452,7 @@
     end.time <- Sys.time(); print(run.time <- end.time - start.time)
     print(wolf.bear.preydivx$summary)
     print(wolf.bear.preydivx$DIC)
-    which(wolf.bear.preydivx$summary[,"Rhat"] > 1.1)
+    print(which(wolf.bear.preydivx$summary[,"Rhat"] > 1.1))
     mcmcplot(wolf.bear.preydivx$samples)
     return(wolf.bear.preydivx)
   }
