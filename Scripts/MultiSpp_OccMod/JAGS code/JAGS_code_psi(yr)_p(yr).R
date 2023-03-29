@@ -34,8 +34,8 @@
         betaSpp12 <- 0
             
         #'  First order detection priors (rho)
-        alphaSpp1 <- logit(mean.pSpp1)           
-        alphaSpp2 <- logit(mean.pSpp2)
+        alphaSpp1[1] <- logit(mean.pSpp1)           
+        alphaSpp2[1] <- logit(mean.pSpp2)
         mean.pSpp1 ~ dunif(0, 1)                    
         mean.pSpp2 ~ dunif(0, 1)
       
@@ -97,22 +97,22 @@
             #'  present, the detection probability is rhoSpp1.
             #'  Example 2: when only Spp1 is observed by in reality Spp1 & Spp2
             #'  are truly present, the detection probability is rhoSpp12.
-            #'  True state = unoccupied (z = 1 --> 000)
+            #'  True state = unoccupied (z = 1 --> 00)
             rdm[i, j, 1, 1] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 1] <- 0 # ------------------------------------ OS = Spp1 present
             rdm[i, j, 3, 1] <- 0 # ------------------------------------ OS = Spp2 present
             rdm[i, j, 4, 1] <- 0 # ------------------------------------ OS = Spp12 present
-            #'  True state = Spp1 present (z = 2 --> 100)
+            #'  True state = Spp1 present (z = 2 --> 10)
             rdm[i, j, 1, 2] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 2] <- exp(rhoSpp1[i, j]) # ------------------- OS = Spp1 present
             rdm[i, j, 3, 2] <- 0 # ------------------------------------ OS = Spp2 present
             rdm[i, j, 4, 2] <- 0 # ------------------------------------ OS = Spp12 present
-            #'  True state = Spp2 present (z = 3 --> 010 )
+            #'  True state = Spp2 present (z = 3 --> 01)
             rdm[i, j, 1, 3] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 3] <- 0 # ------------------------------------ OS = Spp1 present
             rdm[i, j, 3, 3] <- exp(rhoSpp2[i, j]) # ------------------- OS = Spp2 present
             rdm[i, j, 4, 3] <- 0 # ------------------------------------ OS = Spp12 present
-            #'  True state = Spp1 & Spp2 present (z = 4 --> 110)
+            #'  True state = Spp1 & Spp2 present (z = 4 --> 11)
             rdm[i, j, 1, 4] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 4] <- exp(rhoSpp12[i, j]) # ------------------ OS = Spp1 present
             rdm[i, j, 3, 4] <- exp(rhoSpp21[i, j]) # ------------------ OS = Spp2 present
@@ -124,9 +124,9 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept[1] + Year[6]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,6] 
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,6] 
+          #'  Covariate order: Intercept[1] + Year[5]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,5] 
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,5] 
           
           #'  ...for state Spp12
           #'  Don't forget - second order parameter set to 0 so no interaction
@@ -134,7 +134,7 @@
           
           #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
-            #'  Intercept
+            #'  Intercept + Year[6]
             rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,6] 
             rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,6] 
           
