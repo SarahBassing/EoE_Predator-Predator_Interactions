@@ -11,7 +11,7 @@
 #'  excluding elk effect b/c don't expect elk distributions to influence bob distributions
 #'  ------------------------------------
 
-cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort_yr)_lionbob.txt', "
+cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_lionbob.txt', "
       model{
           
         #### Define Priors  ####
@@ -129,8 +129,8 @@ cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_ha
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Spp1 = Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + Elk[7] + White-tailed deer[10] + Lagomorph[11]
-          #'  Covariate order: Spp2 = Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + Elk[7] + White-tailed deer[10] + Lagomorph[11]
+          #'  Covariate order: Spp1 = Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + Elk[7] + White-tailed deer[10]
+          #'  Covariate order: Spp2 = Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + White-tailed deer[10] + Lagomorph[11]
           psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,5] + betaSpp1[4]*psi_cov[i,3] + betaSpp1[5]*psi_cov[i,4] + betaSpp1[6]*psi_cov[i,7] + betaSpp1[7]*psi_cov[i,10]
           psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,5] + betaSpp2[4]*psi_cov[i,3] + betaSpp2[5]*psi_cov[i,4] + betaSpp2[6]*psi_cov[i,10] + betaSpp2[7]*psi_cov[i,11]
           
@@ -139,10 +139,10 @@ cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_ha
           psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,7] + betaSpp12[4]*psi_inxs_cov[i,10] + betaSpp12[5]*psi_inxs_cov[i,11]
                 
           #'  Baseline linear predictors for detection
-          #'  Covariate order: Intercept[1] + Setup[3] + Year[6] + Sampling Effort[5]
+          #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
           for(j in 1:nsurveys) {
-            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,6] + alphaSpp1[4]*rho_cov[i,j,5]
-            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,6] + alphaSpp2[4]*rho_cov[i,j,5]
+            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5] 
+            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5] 
           
             #'  Asymetric interactions between both species
             #'  Fixing to be same as species-sepcific detection probability

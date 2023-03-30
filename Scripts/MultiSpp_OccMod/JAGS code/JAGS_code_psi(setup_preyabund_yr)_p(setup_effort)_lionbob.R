@@ -12,7 +12,7 @@
   #'  elk b/c don't expect elk distributions to influence bobcat distributions.
   #'  ------------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort_yr)_lionbob.txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_lionbob.txt', "
       model{
           
         #### Define Priors  ####
@@ -44,7 +44,7 @@
         mean.pSpp2 ~ dunif(0, 1)
          
         #'  First order detection slopes (rho)   
-        for(fo_rho in 2:4){                         
+        for(fo_rho in 2:3){                         
           alphaSpp1[fo_rho] ~ dnorm(0, 0.1)  
           alphaSpp2[fo_rho] ~ dnorm(0, 0.1)
         }
@@ -139,10 +139,10 @@
           psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12*psi_inxs_cov[i,1]
           
           #'  Baseline linear predictors for detection
-          #'  Covariate order: Intercept[1] + Setup[3] + Year[6] + Sampling Effort[5]
+          #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
           for(j in 1:nsurveys) {
-            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,6] + alphaSpp1[4]*rho_cov[i,j,5]
-            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,6] + alphaSpp2[4]*rho_cov[i,j,5]
+            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5] 
+            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5] 
           
             #'  Asymetric interactions between both species
             #'  Fixing to be same as species-sepcific detection probability

@@ -1,18 +1,19 @@
   #'  ------------------------------------
-  #'  Prey relative abundance on wolf-coyote interaction model
+  #'  Prey relative abundance, no species interactions - wolf-coyote model
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  March 2023
   #'  ------------------------------------
-  #'  Model to test whether predator occurrence is influenced by basic habitat 
-  #'  features and if co-occurrence is influenced by prey availability.
+  #'  Model to test whether predator occurrence is influenced by relative abundance
+  #'  indices for individual prey species, as well as basic habitat features. 
+  #'  Assumes species occur and are detected independently of one another.
   #'  Prey species included: elk, moose, wtd
   #'  Excluding elk, & moose effects on coyote model b/c do not expect 
   #'  large ungualtes to influence coyote occurrence but including lagomorph on  
   #'  coyote model b/c important prey item for them.
   #'  ------------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort_yr)_wolfcoy.txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_wolfcoy.txt', "
       model{
           
         #### Define Priors  ####
@@ -27,19 +28,17 @@
         mean.psiSpp2 ~ dunif(0, 1)
             
         #'  First order occupancy slopes (psi)
-        #'  Wolf slopes
-        for(fo_psi in 2:8){                         
-          betaSpp1[fo_psi] ~ dnorm(0, 0.1)
+        #'  NOTE: number of priors & covariates for to betaSpp1 & betaSpp2 differ!
+        for(wolf_psi in 2:8){                         
+          betaSpp1[wolf_psi] ~ dnorm(0, 0.1)
         }
-        #'  Coyote slopes
-        for(fo_psi in 2:7){                         
-          betaSpp2[fo_psi] ~ dnorm(0, 0.1)
+        for(coy_psi in 2:7){                          
+          betaSpp2[coy_psi] ~ dnorm(0, 0.1)
         }
-      
-        #'  Second order occupancy intercept & slopes (psi)                
-        for(so_psi in 1:6){
-          betaSpp12[so_psi] ~ dnorm(0, 0.1)
-        }
+    
+        #'  Second order occupancy intercerpt (psi) 
+        #'  Fix second-order interaction to 0
+        betaSpp12 <- 0
         
         #'  First order detection intercepts (rho)
         alphaSpp1[1] <- logit(mean.pSpp1)           
@@ -48,7 +47,7 @@
         mean.pSpp2 ~ dunif(0, 1)
          
         #'  First order detection slopes (rho)   
-        for(fo_rho in 2:4){                         
+        for(fo_rho in 2:3){                         
           alphaSpp1[fo_rho] ~ dnorm(0, 0.1)  
           alphaSpp2[fo_rho] ~ dnorm(0, 0.1)
         }
@@ -133,19 +132,20 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + Elk[7] + Moose[8] + White-tailed deer[10] + Lagomorph[11] 
+          #'  Covariate order: Spp1 = Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + Elk[7] + Moose[8] + White-tailed deer[10] 
+          #'  Covariate order: Spp2 = Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + White-tailed deer[10] + Lagomorph[11]
           psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,5] + betaSpp1[4]*psi_cov[i,3] + betaSpp1[5]*psi_cov[i,4] + betaSpp1[6]*psi_cov[i,7] + betaSpp1[7]*psi_cov[i,8] + betaSpp1[8]*psi_cov[i,10]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,5] + betaSpp2[4]*psi_cov[i,3] + betaSpp2[5]*psi_cov[i,4] + betaSpp2[6]*psi_cov[i,10] + betaSpp2[7]*psi_cov[i,11] 
-          
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,5] + betaSpp2[4]*psi_cov[i,3] + betaSpp2[5]*psi_cov[i,4] + betaSpp2[6]*psi_cov[i,10] + betaSpp2[7]*psi_cov[i,11]
+        
           #'  ...for state Spp12
-          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Elk[7] + Moose[8] + White-tailed deer[10] + Lagomorph[11] 
-          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,7] + betaSpp12[4]*psi_inxs_cov[i,8] + betaSpp12[5]*psi_inxs_cov[i,10] + betaSpp12[6]*psi_inxs_cov[i,11] 
-            
+          #'  Don't forget - second order parameter set to 0 so no interaction
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12*psi_inxs_cov[i,1]
+          
           #'  Baseline linear predictors for detection
-          #'  Covariate order: Intercept[1] + Setup[3] + Year[6] + Sampling Effort[5]
+          #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
           for(j in 1:nsurveys) {
-            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,6] + alphaSpp1[4]*rho_cov[i,j,5]
-            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,6] + alphaSpp2[4]*rho_cov[i,j,5]
+            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5] 
+            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5] 
           
             #'  Asymetric interactions between both species
             #'  Fixing to be same as species-sepcific detection probability
