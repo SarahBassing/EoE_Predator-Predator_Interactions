@@ -130,8 +130,8 @@
               
           #'  ...for states Spp1, Spp2
           #'  Covariate order: Spp1 & Spp2 = Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + SppDiversity[6] 
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,5] + betaSpp1[4]*psi_cov[i,3] + betaSpp1[5]*psi_cov[i,4] + betaSpp1_domprey[psi_cov[i,6]]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,5] + betaSpp2[4]*psi_cov[i,3] + betaSpp2[5]*psi_cov[i,4] + betaSpp2_domprey[psi_cov[i,6]] 
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,5] + betaSpp1[4]*psi_cov[i,3] + betaSpp1[5]*psi_cov[i,4] + betaSpp1[psi_cov[i,6]]
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,5] + betaSpp2[4]*psi_cov[i,3] + betaSpp2[5]*psi_cov[i,4] + betaSpp2[psi_cov[i,6]] 
         
           #'  ...for state Spp12
           #'  Don't forget - second order parameter set to 0 so no interaction
