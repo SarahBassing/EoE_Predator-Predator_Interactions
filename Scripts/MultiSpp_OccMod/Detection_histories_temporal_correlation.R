@@ -67,67 +67,67 @@
   sites_20s <- rownames(wolf_bear_DH_20s)
   sites_21s <- rownames(wolf_bear_DH_21s)
   
-  #'  Naive occupancy for all possible states (no spp, spp1, spp2, both spp detected) 
-  initial_z <- function(bundled_dh, loc) {
-    #'  Naive occupancy for each species at each site (site x spp matrix)
-    zinit <- apply(bundled_dh, c(1, 3), sum, na.rm = TRUE)
-    zinit[zinit > 1] <- 1
-    #'  Collapse 2-species detection state into 4 categories
-    zcat <- apply(zinit, 1, paste, collapse = "")
-    zcat[zcat == "00"] <- 1
-    zcat[zcat == "10"] <- 2
-    zcat[zcat == "01"] <- 3
-    zcat[zcat == "11"] <- 4
-    #'  Make z numeric again
-    zcat <- as.numeric(zcat)
-    naiveocc <- cbind(loc, zcat)
-    naiveocc <- as.data.frame(naiveocc) %>%
-      mutate(loc = as.character(loc),
-             zcat = as.numeric(zcat))
-    
-    return(naiveocc)
-  }
-  zinits_20s <- lapply(DH_array_list_20s, initial_z, loc = sites_20s)
-  zinits_21s <- lapply(DH_array_list_21s, initial_z, loc = sites_21s)
-  zcat_names <- c("wolf_bear_zcat", "wolf_coy_zcat", "wolf_lion_zcat", 
-                  "lion_bear_zcat", "lion_bob_zcat", "coy_bob_zcat")
-  names(zinits_20s) <- zcat_names
-  names(zinits_21s) <- zcat_names
-  
-  #'  Reduce detection data to just sites sampled >1 year
-  resampled_sites <- function(naiveocc20, naiveocc21) {
-    #'  Retain only smr21 sites that were surveyed the previous year
-    resampled_sites_21s <- naiveocc21[(naiveocc21$loc %in% naiveocc20$loc),]
-    #'  Retain only smr20 sites that were surveyed the next year
-    resampled_sites_20s <- naiveocc20[(naiveocc20$loc %in% resampled_sites_21s$loc),]
-    #'  Double check they are they same length
-    print(nrow(resampled_sites_21s)); print(nrow(resampled_sites_20s))
-    #'  Merge into single df
-    resample_dets <- full_join(resampled_sites_20s, resampled_sites_21s, by = "loc")
-    return(resample_dets)
-  } 
-  resamp.sites.wolf.bear <- resampled_sites(zinits_20s[[1]], zinits_21s[[1]])
-  resamp.sites.wolf.coy <- resampled_sites(zinits_20s[[2]], zinits_21s[[2]])
-  resamp.sites.wolf.lion <- resampled_sites(zinits_20s[[3]], zinits_21s[[3]])
-  resamp.sites.lion.bear <- resampled_sites(zinits_20s[[4]], zinits_21s[[4]])
-  resamp.sites.lion.bob <- resampled_sites(zinits_20s[[5]], zinits_21s[[5]])
-  resamp.sites.coy.bob <- resampled_sites(zinits_20s[[6]], zinits_21s[[6]])
-  resamp.sites <- list(resamp.sites.wolf.bear, resamp.sites.wolf.coy, resamp.sites.wolf.lion, 
-                       resamp.sites.lion.bear, resamp.sites.lion.bob, resamp.sites.coy.bob)
-  
-  #'  Test whether multispecies detections are correlated across years
-  #'  Using Spearman's rank-sum correlation test b/c categorical variables
-  multispp_cor <- function(dets) {
-    twospp_det_cor <- cor(dets$zcat.x, dets$zcat.y, method = c("spearman"))
-    twospp_det_cor <- round(twospp_det_cor, 3)
-    print(twospp_det_cor)
-    return(twospp_det_cor)
-  }
-  multispp_det_cor <- lapply(resamp.sites, multispp_cor)
-  multispp_det_cor <- as.data.frame(unlist(multispp_det_cor))
-  spp <- c("Wolf-Bear", "Wolf-Coyote", "Wolf-Lion", "Lion-Bear", "Lion-Bobcat", "Coyote-Bobcat")
-  multispp_det_cor <- cbind(spp, multispp_det_cor)
-  names(multispp_det_cor) <- c("Predators", "Spearman's correlation")
+  #' #'  Naive occupancy for all possible states (no spp, spp1, spp2, both spp detected) 
+  #' initial_z <- function(bundled_dh, loc) {
+  #'   #'  Naive occupancy for each species at each site (site x spp matrix)
+  #'   zinit <- apply(bundled_dh, c(1, 3), sum, na.rm = TRUE)
+  #'   zinit[zinit > 1] <- 1
+  #'   #'  Collapse 2-species detection state into 4 categories
+  #'   zcat <- apply(zinit, 1, paste, collapse = "")
+  #'   zcat[zcat == "00"] <- 0
+  #'   zcat[zcat == "10"] <- 1
+  #'   zcat[zcat == "01"] <- 2
+  #'   zcat[zcat == "11"] <- 3
+  #'   #'  Make z numeric again
+  #'   zcat <- as.numeric(zcat)
+  #'   naiveocc <- cbind(loc, zcat)
+  #'   naiveocc <- as.data.frame(naiveocc) %>%
+  #'     mutate(loc = as.character(loc),
+  #'            zcat = as.numeric(zcat))
+  #'   
+  #'   return(naiveocc)
+  #' }
+  #' zinits_20s <- lapply(DH_array_list_20s, initial_z, loc = sites_20s)
+  #' zinits_21s <- lapply(DH_array_list_21s, initial_z, loc = sites_21s)
+  #' zcat_names <- c("wolf_bear_zcat", "wolf_coy_zcat", "wolf_lion_zcat", 
+  #'                 "lion_bear_zcat", "lion_bob_zcat", "coy_bob_zcat")
+  #' names(zinits_20s) <- zcat_names
+  #' names(zinits_21s) <- zcat_names
+  #' 
+  #' #'  Reduce detection data to just sites sampled >1 year
+  #' resampled_sites <- function(naiveocc20, naiveocc21) {
+  #'   #'  Retain only smr21 sites that were surveyed the previous year
+  #'   resampled_sites_21s <- naiveocc21[(naiveocc21$loc %in% naiveocc20$loc),]
+  #'   #'  Retain only smr20 sites that were surveyed the next year
+  #'   resampled_sites_20s <- naiveocc20[(naiveocc20$loc %in% resampled_sites_21s$loc),]
+  #'   #'  Double check they are they same length
+  #'   print(nrow(resampled_sites_21s)); print(nrow(resampled_sites_20s))
+  #'   #'  Merge into single df
+  #'   resample_dets <- full_join(resampled_sites_20s, resampled_sites_21s, by = "loc")
+  #'   return(resample_dets)
+  #' } 
+  #' resamp.sites.wolf.bear <- resampled_sites(zinits_20s[[1]], zinits_21s[[1]])
+  #' resamp.sites.wolf.coy <- resampled_sites(zinits_20s[[2]], zinits_21s[[2]])
+  #' resamp.sites.wolf.lion <- resampled_sites(zinits_20s[[3]], zinits_21s[[3]])
+  #' resamp.sites.lion.bear <- resampled_sites(zinits_20s[[4]], zinits_21s[[4]])
+  #' resamp.sites.lion.bob <- resampled_sites(zinits_20s[[5]], zinits_21s[[5]])
+  #' resamp.sites.coy.bob <- resampled_sites(zinits_20s[[6]], zinits_21s[[6]])
+  #' resamp.sites <- list(resamp.sites.wolf.bear, resamp.sites.wolf.coy, resamp.sites.wolf.lion, 
+  #'                      resamp.sites.lion.bear, resamp.sites.lion.bob, resamp.sites.coy.bob)
+  #' 
+  #' #'  Test whether multispecies detections are correlated across years
+  #' #'  Using Spearman's rank-sum correlation test b/c categorical variables
+  #' multispp_cor <- function(dets) {
+  #'   twospp_det_cor <- cor(dets$zcat.x, dets$zcat.y) #, method = c("spearman")
+  #'   twospp_det_cor <- round(twospp_det_cor, 3)
+  #'   print(twospp_det_cor)
+  #'   return(twospp_det_cor)
+  #' }
+  #' multispp_det_cor <- lapply(resamp.sites, multispp_cor)
+  #' multispp_det_cor <- as.data.frame(unlist(multispp_det_cor))
+  #' spp <- c("Wolf-Bear", "Wolf-Coyote", "Wolf-Lion", "Lion-Bear", "Lion-Bobcat", "Coyote-Bobcat")
+  #' multispp_det_cor <- cbind(spp, multispp_det_cor)
+  #' names(multispp_det_cor) <- c("Predators", "Pearson's correlation") #"Spearman's correlation"
   
   #'  Species-specific naive occupancy
   z_naive <- function(bundled_dh, loc) {
@@ -140,6 +140,8 @@
   }
   z_20s <- lapply(DH_array_list_20s, z_naive, loc = sites_20s)
   z_21s <- lapply(DH_array_list_21s, z_naive, loc = sites_21s)
+  zcat_names <- c("wolf_bear_zcat", "wolf_coy_zcat", "wolf_lion_zcat",
+                  "lion_bear_zcat", "lion_bob_zcat", "coy_bob_zcat")
   names(z_20s) <- zcat_names
   names(z_21s) <- zcat_names
   
@@ -167,7 +169,7 @@
   #'  Test whether single-species detections are correlated across years
   #'  Using Spearman's rank-sum correlation test b/c categorical variables
   spp_cor <- function(dets) {
-    det_cor <- cor(dets$zcat.x, dets$zcat.y, method = c("spearman"))
+    det_cor <- cor(dets$zcat.x, dets$zcat.y) #, method = c("spearman")
     det_cor <- round(det_cor, 3)
     print(det_cor)
     return(det_cor)
@@ -176,11 +178,11 @@
   spp_det_cor <- as.data.frame(unlist(spp_det_cor))
   spp <- c("Bear", "Bobcat", "Coyote", "Lion", "Wolf")
   spp_det_cor <- cbind(spp, spp_det_cor)
-  names(spp_det_cor) <- c("Predators", "Spearman's correlation")
+  names(spp_det_cor) <- c("Predators", "Pearson's correlation") #"Spearman's correlation"
   
-  #'  Bind single and multispecies correlation tests together
-  detection.cor <- rbind(spp_det_cor, multispp_det_cor)
+  #' #'  Bind single and multispecies correlation tests together
+  #' detection.cor <- rbind(spp_det_cor, multispp_det_cor)
   
   #'  Save
-  write.csv(detection.cor, file = "./Outputs/Tables/Annual_detection_correlation.csv")
+  write.csv(spp_det_cor, file = "./Outputs/Tables/Annual_detection_correlation.csv")
   
