@@ -118,8 +118,9 @@
       filter(Kill.Date <= end_date)
     return(mort)
   }
+  mort_pre_Smr19 <- lapply(mort_predators_legal, annual_mortality, start_date = "2018-08-01", end_date = "2019-03-31")
   mort_pre_Smr20 <- lapply(mort_predators_legal, annual_mortality, start_date = "2019-08-01", end_date = "2020-03-31")
-  mort_pre_Wtr20 <- lapply(mort_predators_legal, annual_mortality, start_date = "2020-02-01", end_date = "2020-11-30")
+  mort_pre_Wtr20 <- lapply(mort_predators_legal, annual_mortality, start_date = "2020-04-01", end_date = "2020-11-30")
   mort_pre_Smr21 <- lapply(mort_predators_legal, annual_mortality, start_date = "2020-08-01", end_date = "2021-03-31")
   
   
@@ -141,6 +142,8 @@
       
     return(count_dead)
   }
+  mort_preSmr19_n <- lapply(mort_pre_Smr19, total_morts) %>%
+    do.call(rbind, .)
   mort_preSmr20_n <- lapply(mort_pre_Smr20, total_morts) %>%
     do.call(rbind, .)
   mort_preWtr20_n <- lapply(mort_pre_Wtr20, total_morts) %>%
@@ -170,11 +173,14 @@
     
     return(km2_morts)
   }
+  mort_preSmr19 <- morts_per_area(mort_preSmr19_n, gmu_area = eoe_area) 
   mort_preSmr20 <- morts_per_area(mort_preSmr20_n, gmu_area = eoe_area) 
   mort_preWtr20 <- morts_per_area(mort_preWtr20_n, gmu_area = eoe_area)
   mort_preSmr21 <- morts_per_area(mort_preSmr21_n, gmu_area = eoe_area) 
   
   #'  Save
+  # save(mort_preSmr19, file = "./Data/IDFG BGMR data/mort_preSmr19.RData")
+  # write.csv(mort_preSmr19, "./Data/IDFG BGMR data/mort_preSmr19.csv")
   # save(mort_preSmr20, file = "./Data/IDFG BGMR data/mort_preSmr20.RData")
   # write.csv(mort_preSmr20, "./Data/IDFG BGMR data/mort_preSmr20.csv")
   # save(mort_preWtr20, file = "./Data/IDFG BGMR data/mort_preWtr20.RData")
