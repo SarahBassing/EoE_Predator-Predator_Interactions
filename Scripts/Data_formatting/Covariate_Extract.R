@@ -150,11 +150,26 @@
     mort_df <- as.data.frame(cbind(mort_bear, mort_bob, mort_lion, mort_wolf))
     return(mort_df)
   }
+  mort_Smr19_df <- reformat_mort_dat(mort_preSmr19) %>%
+    filter(GMU != "GMU1")
   mort_Smr20_df <- reformat_mort_dat(mort_preSmr20) %>%
     filter(GMU != "GMU1")
   mort_Wtr20_df <- reformat_mort_dat(mort_preWtr20) %>%
     filter(GMU != "GMU1")
   mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
+  
+  #'  summarize mortality data
+  Season <- c("2018-2019", "2018-2019", "2019-2020", "2019-2020", "2020-2021", "2020-2021", "2020-2021")
+  mort_summary <- rbind(mort_Smr19_df, mort_Smr20_df, mort_Smr21_df)
+  mort_summary <- cbind(Season, mort_summary)
+  names(mort_summary)[names(mort_summary) == "Season"] <- "Harvest season (fall - winter)"
+  
+  mort_summary_noGMU1 <- filter(mort_summary, GMU != "GMU1") %>%
+    dplyr::select(`Harvest season (fall - winter)`, Bear_mort_n, Bob_mort_n, Lion_mort_n, Wolf_mort_n) %>%
+    group_by(`Harvest season (fall - winter)`) %>%
+    summarise(across(everything(), sum),
+              .groups = 'drop') %>%
+    ungroup()
   
   
   #####  Relative abundance index & species diversity indices  ####
