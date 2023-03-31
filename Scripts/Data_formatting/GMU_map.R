@@ -25,6 +25,16 @@ eoe_gmus <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp")
 id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp")
 bbox <- st_bbox(eoe_gmus)
 
+units::set_units(st_area(eoe_gmus), km^2) #' area of each GMU in sq-km (order = GMU1, GMU6, GMU10A)
+#'  Centroid of each gmu (lat/long)
+gmu_center_latlong <- eoe_gmus %>%
+  st_centroid() %>%
+  st_transform(wgs84) %>%
+  st_geometry() %>%
+  unlist()
+gmu_center_latlong
+
+
 gmu_map <- ggplot() +
   geom_sf(data = gmu) +
   geom_sf(data = eoe_gmus, aes(fill = NAME)) +
@@ -33,8 +43,8 @@ gmu_map <- ggplot() +
   # coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
   theme_bw() +
   theme(legend.position = c(0.85, 0.85))
-ggsave(filename = "./gmu_map.png", plot = gmu_map, 
-       width = 9, height = 5, dpi = 300)    
+# ggsave(filename = "./gmu_map.png", plot = gmu_map, 
+#        width = 9, height = 5, dpi = 300)    
 
 
             
