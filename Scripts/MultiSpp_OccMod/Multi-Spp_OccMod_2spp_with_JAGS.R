@@ -485,7 +485,9 @@
   #'  ---------------------
   ####  Wolf-Lion Models  ####
   #'  ---------------------
-  inits.wolf.lion <- function(){list(z = zinits[[3]])}  # consider increasing iterations for this model set
+  inits.wolf.lion <- function(){list(z = zinits[[3]])}  
+  #'  Increase number of iterations per chain to improve convergence
+  ni.wl <- 40000 
   
   #####  Null model  ####
   #'  psi = year; p = year
@@ -493,7 +495,7 @@
   start.time = Sys.time()
   wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(.)_p(.).txt",
-                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                        n.chains = nc, n.iter = ni.wl, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.null$summary)
   print(wolf.lion.null$DIC)
@@ -507,7 +509,7 @@
   start.time = Sys.time()
   wolf.lion.hab <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
-                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                        n.chains = nc, n.iter = ni.wl, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.hab$summary)
   print(wolf.lion.hab$DIC)
@@ -521,7 +523,7 @@
   start.time = Sys.time()
   wolf.lion.preyabund <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_wolfbearlion.txt",
-                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                              n.chains = nc, n.iter = ni.wl, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.preyabund$summary)
   print(wolf.lion.preyabund$DIC)
@@ -535,7 +537,7 @@
   start.time = Sys.time()
   wolf.lion.preydiv <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort).txt",
-                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                            n.chains = nc, n.iter = ni.wl, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.preydiv$summary)
   print(wolf.lion.preydiv$DIC)
@@ -549,7 +551,7 @@
   start.time = Sys.time()
   wolf.lion.habx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).txt",
-                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                         n.chains = nc, n.iter = ni.wl, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.habx$summary)
   print(wolf.lion.habx$DIC)
@@ -563,7 +565,7 @@
   start.time = Sys.time()
   wolf.lion.preyabundx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_wolfbearlion.txt",
-                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                               n.chains = nc, n.iter = ni.wl, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.preyabundx$summary)
   print(wolf.lion.preyabundx$DIC)
@@ -577,7 +579,7 @@
   start.time = Sys.time()
   wolf.lion.preydivx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).txt",
-                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                             n.chains = nc, n.iter = ni.wl, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.preydivx$summary)
   print(wolf.lion.preydivx$DIC)
