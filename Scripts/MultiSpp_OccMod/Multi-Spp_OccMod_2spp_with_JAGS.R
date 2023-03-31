@@ -485,7 +485,7 @@
   #'  ---------------------
   ####  Wolf-Lion Models  ####
   #'  ---------------------
-  inits.wolf.lion <- function(){list(z = zinits[[3]])}
+  inits.wolf.lion <- function(){list(z = zinits[[3]])}  # consider increasing iterations for this model set
   
   #####  Null model  ####
   #'  psi = year; p = year
