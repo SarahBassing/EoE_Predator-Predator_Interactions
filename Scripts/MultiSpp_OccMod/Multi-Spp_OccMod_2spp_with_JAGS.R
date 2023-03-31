@@ -451,7 +451,7 @@
   print(wolf.coy.habx$DIC)
   which(wolf.coy.habx$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.coy.habx$samples)
-  save(wolf.coy.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Data(), ".RData"))
+  save(wolf.coy.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
   #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd, lagomorph); p = setup, year, effort  
