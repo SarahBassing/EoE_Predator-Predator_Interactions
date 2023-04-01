@@ -277,7 +277,7 @@
   
   ####  Wolf-Bear Models  ####
   #'  ----------------------
-  inits.wolf.bear <- function(){list(z = zinits[[1]])}
+  inits.wolf.bear <- function(){list(z = zinits[[1]])}   # consider rerunning with 40000 iterations for interaction model convergence
   
   #####  Null model  ####
   #'  psi = year; p = year
