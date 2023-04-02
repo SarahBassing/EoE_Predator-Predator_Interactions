@@ -487,7 +487,7 @@
   #'  ---------------------
   inits.wolf.lion <- function(){list(z = zinits[[3]], psi.Spp2 = runif(1, 0.2, 0.3))}  
   #'  Increase number of iterations per chain to improve convergence
-  ni.wl <- 40000 
+  ni.wl <- 50000 
   nt.wl <- 10
   
   #####  Null model  ####
