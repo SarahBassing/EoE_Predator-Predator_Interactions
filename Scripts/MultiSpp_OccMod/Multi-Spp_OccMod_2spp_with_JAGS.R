@@ -487,7 +487,9 @@
   #'  ---------------------
   ####  Wolf-Lion Models  ####
   #'  ---------------------
-  inits.wolf.lion <- function(){list(z = zinits[[3]], psi.Spp2 = runif(1, 0.2, 0.3))}  
+  inits.wolf.lion <- function(){list(z = zinits[[3]], mean.psiSpp1 = runif(1, 0.01, 0.15), 
+                                     mean.psiSpp2 = runif(1, 0.2, 0.3),
+                                     mean.pSpp1 = runif(1, 0.02, 0.12), mean.pSpp2 =  runif(1, 0.01, 0.06))}  
   #'  Increase number of iterations per chain to improve convergence
   ni.wl <- 50000 
   
