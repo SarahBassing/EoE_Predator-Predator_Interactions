@@ -15,9 +15,9 @@
   library(tidyverse)
   
   #'  Load model outputs and list
-  #'  Wolf-Bear
+  #'  Wolf-Bear                       # NOTE: 30,000 iterations, thinning rate of 5
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(.)_p(.)_2023-03-30.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2023-03-30.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2023-03-30.RData") #re-evaluate after this is re-run
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preyabund_yr)_p(setup_effort)_2023-03-30.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_2023-03-30.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2023-03-31.RData")
@@ -26,7 +26,7 @@
   wolfbear_list <- list(wolf.bear.null, wolf.bear.hab, wolf.bear.preyabund, wolf.bear.preydiv, wolf.bear.habx, wolf.bear.preyabundx, wolf.bear.preydivx) 
   wolfbear_name <- c("wolf.bear.null", "wolf.bear.hab", "wolf.bear.preyabund", "wolf.bear.preydiv", "wolf.bear.habx", "wolf.bear.preyabundx", "wolf.bear.preydivx") 
   
-  #'  Wolf-Coyote
+  #'  Wolf-Coyote                     # NOTE: 30,000 iterations, thinning rate of 5
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(.)_p(.)_2023-03-30.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2023-03-30.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preyabund_yr)_p(setup_effort)_2023-03-31.RData")
@@ -82,7 +82,7 @@
   coybob_name <- c("coy.bob.null", "coy.bob.hab", "coy.bob.preyabund", "coy.bob.preydiv", "coy.bob.habx", "coy.bob.preyabundx", "coy.bob.preydivx")
   
   ####  Create model selection table using DIC, deltaDIC, and model weights  ####
-  (topmod_wolfbear <- dictab(cand.set = wolfbear_list, modnames = wolfbear_name, sort = TRUE))
+  (topmod_wolfbear <- dictab(cand.set = wolfbear_list, modnames = wolfbear_name, sort = TRUE)) # wolf.bear.habx currently best supported model even though NS interaction term; preydiv and hab 2nd/3rd supported even though NS preydiv -- likely DIC selecting overly complex model and basic hab is really the best model
   (topmod_wolfcoy <- dictab(cand.set = wolfcoy_list, modnames = wolfcoy_name, sort = TRUE))
   (topmod_wolflion <- dictab(cand.set = wolflion_list, modnames = wolflion_name, sort = TRUE))
   (topmod_lionbear <- dictab(cand.set = lionbear_list, modnames = lionbear_name, sort = TRUE))
