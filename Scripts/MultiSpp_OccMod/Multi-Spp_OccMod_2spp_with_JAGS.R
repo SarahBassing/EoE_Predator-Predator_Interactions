@@ -591,7 +591,9 @@
   #'  --------------------
   ####  Lion-Bear Models  ####
   #'  --------------------
-  inits.lion.bear <- function(){list(z = zinits[[4]], mean.psiSpp1 = runif(1, 0.25, 0.35), mean.psiSpp2 = runif(1, 0.6, 0.7))}
+  inits.lion.bear <- function(){list(z = zinits[[4]], mean.psiSpp1 = runif(1, 0.1, 0.35), 
+                                     mean.psiSpp2 = runif(1, 0.6, 0.7), mean.pSpp1 = runif(1, 0.01, 0.06),
+                                     mean.pSpp2 = runif(1, 0.15, 0.2))}
   ni.lb <- 50000
   
   #####  Null model  ####
