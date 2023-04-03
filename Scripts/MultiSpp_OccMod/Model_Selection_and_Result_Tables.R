@@ -70,7 +70,7 @@
   lionbob_list <- list(lion.bob.null, lion.bob.hab, lion.bob.preyabund, lion.bob.preydiv, lion.bob.habx, lion.bob.preyabundx, lion.bob.preydivx) 
   lionbob_name <- c("lion.bob.null", "lion.bob.hab", "lion.bob.preyabund", "lion.bob.preydiv", "lion.bob.habx", "lion.bob.preyabundx", "lion.bob.preydivx") 
   
-  #'  Coyote-Bobcat                # NOTE: 40000 iterations and thinning rate of 10 but still seeing evidence of convergence failure with r-hat values on z
+  #'  Coyote-Bobcat                # NOTE: 40000 iterations and thinning rate of 10 but still seeing evidence of convergence failure with r-hat values on z - currently rerunning with initial values
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(.)_p(.)_2023-04-01.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_p(setup_effort)_2023-04-03.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preyabund_yr)_p(setup_effort)_2023-04-02.RData")
