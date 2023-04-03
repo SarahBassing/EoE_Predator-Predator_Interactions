@@ -805,7 +805,9 @@
   #'  ------------------------
   ####  Coyote-Bobcat Models  ####
   #'  ------------------------
-  inits.coy.bob <- function(){list(z = zinits[[6]])}
+  inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1, 0.3, 0.4), 
+                                   mean.psiSpp2 = runif(1, 0.03, 0.18),
+                                   mean.pSpp1 = runif(1, 0.15, 0.2), mean.pSpp2 = runif(1, 0.03, 0.1))}
   
   #####  Null model  ####
   #'  psi = year; p = year
