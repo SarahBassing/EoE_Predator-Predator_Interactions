@@ -384,7 +384,7 @@
   #'  ----------------------
   inits.wolf.coy <- function(){list(z = zinits[[2]])} # run with 30,000 iterations and thinning rate of 5
   ni <- 30000; nt <- 5
-  nc.wc <- 40000
+  ni <- 50000
   
   #####  Null model  ####
   #'  psi = year; p = year
@@ -448,7 +448,7 @@
   start.time = Sys.time()
   wolf.coy.habx <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).txt",
-                         n.chains = nc.wc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.habx$summary)
   print(wolf.coy.habx$DIC)
@@ -462,7 +462,7 @@
   start.time = Sys.time()
   wolf.coy.preyabundx <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
                                "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_wolfcoy.txt",
-                               n.chains = nc.wc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.preyabundx$summary)
   print(wolf.coy.preyabundx$DIC)
