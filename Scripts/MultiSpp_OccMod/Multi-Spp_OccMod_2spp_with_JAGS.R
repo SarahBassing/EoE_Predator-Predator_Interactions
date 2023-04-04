@@ -384,7 +384,7 @@
   #'  ----------------------
   inits.wolf.coy <- function(){list(z = zinits[[2]])} # run with 30,000 iterations and thinning rate of 5
   ni <- 30000; nt <- 5
-  ni <- 50000
+  ni <- 50000; nt <- 10
   
   #####  Null model  ####
   #'  psi = year; p = year
@@ -476,7 +476,7 @@
   start.time = Sys.time()
   wolf.coy.preydivx <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).txt",
-                             n.chains = nc.wc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.preydivx$summary)
   print(wolf.coy.preydivx$DIC)
