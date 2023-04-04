@@ -704,6 +704,7 @@
   ####  Lion-Bobcat Models  ####
   #'  ----------------------
   inits.lion.bob <- function(){list(z = zinits[[5]])}
+  ni <- 50000
   
   #####  Null model  ####
   #'  psi = year; p = year
