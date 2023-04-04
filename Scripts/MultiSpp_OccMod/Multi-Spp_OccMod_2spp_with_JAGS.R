@@ -552,7 +552,7 @@
   
   #####  Habitat w/ inx model  #### 
   #'  psi = setup, year, elevation, forest; psix(.); p = setup, year, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.lion.habx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).txt",
