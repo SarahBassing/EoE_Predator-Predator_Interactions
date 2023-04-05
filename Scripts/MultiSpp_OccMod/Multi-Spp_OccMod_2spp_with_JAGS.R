@@ -703,7 +703,9 @@
   #'  ----------------------
   ####  Lion-Bobcat Models  ####
   #'  ----------------------
-  inits.lion.bob <- function(){list(z = zinits[[5]])}
+  inits.lion.bob <- function(){list(z = zinits[[5]], mean.psiSpp1 = runif(1, 0.2, 0.35),
+                                    mean.psiSpp2 = runif(1, 0.1, 0.3), mean.pSpp1 = runif(1, 0.01, 0.1),
+                                    mean.pSpp2 = runif(1, 0.02, 0.1))}
   ni <- 50000
   
   #####  Null model  ####
