@@ -101,6 +101,7 @@
     names(resample_dets) <- c("loc", "zcat.x", "zcat.y")
     return(resample_dets)
   } 
+  #'  Feed year 1 & year 2 data for individual species into function
   resamp.sites.bear <- resampled_sites(z_20s[[1]][,c(1,3)], z_21s[[1]][,c(1,3)])
   resamp.sites.bob <- resampled_sites(z_20s[[5]][,c(1,3)], z_21s[[5]][,c(1,3)])
   resamp.sites.coy <- resampled_sites(z_20s[[2]][,c(1,3)], z_21s[[2]][,c(1,3)])
@@ -108,29 +109,13 @@
   resamp.sites.wolf <- resampled_sites(z_20s[[1]][,c(1:2)], z_21s[[1]][,c(1:2)])
   resamp.sites.singlespp <- list(resamp.sites.bear, resamp.sites.bob, resamp.sites.coy, 
                        resamp.sites.lion, resamp.sites.wolf)
-
-  #'  Test whether single-species detections are correlated across years
-  #'  Using Spearman's rank-sum correlation test b/c categorical variables
-  spp_cor <- function(dets) {
-    det_cor <- cor(dets$zcat.x, dets$zcat.y) 
-    det_cor <- round(det_cor, 3)
-    print(det_cor)
-    return(det_cor)
-  }
-  spp_det_cor <- lapply(resamp.sites.singlespp, spp_cor)
-  spp_det_cor <- as.data.frame(unlist(spp_det_cor))
-  spp <- c("Bear", "Bobcat", "Coyote", "Lion", "Wolf")
-  spp_det_cor <- cbind(spp, spp_det_cor)
-  names(spp_det_cor) <- c("Predators", "Pearson's correlation") 
   
-  #'  Save
-  write.csv(spp_det_cor, file = "./Outputs/Tables/Annual_detection_correlation.csv")
   
   #'  Chi-squared test of independence
   #'  Don't need Yates's correction for continuity b/c sufficient sample size
   chisq_test <- function(dets) {
     print(table(dets[,c(2:3)]))
-    out <- chisq.test(dets$zcat.y, dets$zcat.z, correct = FALSE)
+    out <- chisq.test(dets$zcat.y, dets$zcat.z, correct = FALSE, simulate.p.value = TRUE) 
     print(out)
     return(out)
   }
