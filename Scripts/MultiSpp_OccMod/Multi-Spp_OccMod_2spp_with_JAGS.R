@@ -991,7 +991,7 @@
   save(coy.bob.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Global model  #### 
-  ni <- 75000
+  ni <- 100000
   #'  psi = setup, year, elevation, forest; psix(wtd, lagomorphs, spp diversity); p = setup, year, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_coybob.R")
   start.time = Sys.time()
