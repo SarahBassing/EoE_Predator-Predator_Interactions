@@ -373,6 +373,7 @@
   save(wolf.bear.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Global model  #### 
+  ni <- 75000
   #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd, spp diversity); p = setup, year, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
@@ -494,6 +495,7 @@
   save(wolf.coy.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
 
   #####  Global model  #### 
+  ni <- 75000
   #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd, lagomorph, spp diversity); p = setup, year, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_wolfcoy.R")
   start.time = Sys.time()
@@ -617,6 +619,7 @@
   save(wolf.lion.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
  
   #####  Global model  #### 
+  ni <- 75000
   #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd, spp diversity); p = setup, year, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
@@ -739,7 +742,8 @@
   mcmcplot(lion.bear.preydivx$samples)
   save(lion.bear.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
-  #####  Global model  #### 
+  #####  Global model  ####
+  ni <- 75000
   #'  psi = setup, year, elevation, forest; psix(elk, wtd, spp diversity); p = setup, year, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearlion.R")
   start.time = Sys.time()
@@ -863,6 +867,7 @@
   save(lion.bob.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Global model  #### 
+  ni <- 75000
   #'  psi = setup, year, elevation, forest; psix(elk, wtd, lagomorphs, spp diversity); p = setup, year, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_lionbob.R")
   start.time = Sys.time()
