@@ -269,7 +269,7 @@
   ####  Wolf-Bear Models  ####
   #'  ----------------------
   inits.wolf.bear <- function(){list(z = zinits[[1]])}    # ran with 30,000 iterations and thinning rate of 5
-  ni <- 30000; nt <- 5
+  #ni <- 30000; nt <- 5
   
   #####  Null model  ####
   #'  psi = year; p = year
