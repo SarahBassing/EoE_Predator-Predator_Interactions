@@ -144,23 +144,51 @@
     return(predicted_probabilities)
   }
   #####  Wolf-Black bear predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2023-03-31.RData")
-  wolf.bear.elev.ung.yr1 <- predict_occupancy(mod = wolf.bear.habx, ncat = 4, npoints = 500,
+  #'  Top model
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2023-04-08.RData")
+  wolf.bear.elev.ung.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
                                              focal_cov = stations_skinny_eoe20s21s$Elev,
                                              psi_cov = c(1, 0, 0, 0, 0), psi_cov_index = 4,
-                                             psi_inxs_cov = c(1), psi_inxs_cov_index = 0)
-  wolf.bear.elev.pred.yr1 <- predict_occupancy(mod = wolf.bear.habx, ncat = 4, npoints = 500,
+                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.elev.pred.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
                                              focal_cov = stations_skinny_eoe20s21s$Elev,
                                              psi_cov = c(1, 1, 0, 0, 0), psi_cov_index = 4,
-                                             psi_inxs_cov = c(1), psi_inxs_cov_index = 0)
-  wolf.bear.for.ung.yr1 <- predict_occupancy(mod = wolf.bear.habx, ncat = 4, npoints = 500,
+                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.for.ung.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
                                              focal_cov = stations_skinny_eoe20s21s$PercForest,
                                              psi_cov = c(1, 0, 0, 0, 0), psi_cov_index = 5,
-                                             psi_inxs_cov = c(1), psi_inxs_cov_index = 0)
-  wolf.bear.for.pred.yr1 <- predict_occupancy(mod = wolf.bear.habx, ncat = 4, npoints = 500,
+                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.for.pred.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
                                              focal_cov = stations_skinny_eoe20s21s$PercForest,
                                              psi_cov = c(1, 1, 0, 0, 0), psi_cov_index = 5,
-                                             psi_inxs_cov = c(1), psi_inxs_cov_index = 0)
+                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  
+  #'  Second top model (within 2 deltaDIC)
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_2023-04-09.RData")
+  wolf.bear.elev.ung.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+                                              focal_cov = stations_skinny_eoe20s21s$Elev,
+                                              psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 4,
+                                              psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.elev.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+                                               focal_cov = stations_skinny_eoe20s21s$Elev,
+                                               psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 4,
+                                               psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.for.ung.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$PercForest,
+                                             psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 5,
+                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.for.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+                                              focal_cov = stations_skinny_eoe20s21s$PercForest,
+                                              psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 5,
+                                              psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.div.ung.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$SppDiversity,
+                                             psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 6,
+                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.div.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+                                              focal_cov = stations_skinny_eoe20s21s$SppDiversity,
+                                              psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 6,
+                                              psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
   
   #####  Wolf-Coyote predictions  ####
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2023-04-04.RData") 
@@ -273,11 +301,22 @@
     return(marg_occ_plot)
   }
   #####  Wolf-Bear marginal occupancy  ####
-  wolf.bear.marg.elev.ung <- plot_marginal_occ(predicted = wolf.bear.elev.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.elev.pred <- plot_marginal_occ(predicted = wolf.bear.elev.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.for.ung <- plot_marginal_occ(predicted = wolf.bear.for.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.for.pred <- plot_marginal_occ(predicted = wolf.bear.for.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "Trail sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.plots <- list(wolf.bear.marg.elev.ung, wolf.bear.marg.elev.pred, wolf.bear.marg.for.ung, wolf.bear.marg.for.pred)
+  #'  Top model
+  wolf.bear.marg.elev.ung_a <- plot_marginal_occ(predicted = wolf.bear.elev.ung.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.elev.pred_a <- plot_marginal_occ(predicted = wolf.bear.elev.pred.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.for.ung_a <- plot_marginal_occ(predicted = wolf.bear.for.ung.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.for.pred_a <- plot_marginal_occ(predicted = wolf.bear.for.pred.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "Trail sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.plots_topmod <- list(wolf.bear.marg.elev.ung_a, wolf.bear.marg.elev.pred_a, wolf.bear.marg.for.ung_a, wolf.bear.marg.for.pred_a)
+  
+  #'  Second top model
+  wolf.bear.marg.elev.ung_b <- plot_marginal_occ(predicted = wolf.bear.elev.ung.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.elev.pred_b <- plot_marginal_occ(predicted = wolf.bear.elev.pred.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.for.ung_b <- plot_marginal_occ(predicted = wolf.bear.for.ung.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.for.pred_b <- plot_marginal_occ(predicted = wolf.bear.for.pred.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "Trail sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.div.ung_b <- plot_marginal_occ(predicted = wolf.bear.elev.ung.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Shannon's diversity index", setup = "random sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.div.pred_b <- plot_marginal_occ(predicted = wolf.bear.elev.pred.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Shannon's diversity index", setup = "trail sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.plots_2ndmod <- list(wolf.bear.marg.elev.ung_b, wolf.bear.marg.elev.pred_b, wolf.bear.marg.for.ung_b, wolf.bear.marg.for.pred_b, wolf.bear.marg.div.ung_b, wolf.bear.marg.div.pred_b)
+  
   
   #####  Wolf-Coyote marginal occupancy  ####
   wolf.coy.marg.elev.ung <- plot_marginal_occ(predicted = wolf.coy.elev.ung.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Coyote")
@@ -426,11 +465,11 @@
     return(condish_occ_plot)
   }
   #####  Wolf-Bear conditional occupancy  ####
-  wolf.bear.condish.elev.ung <- plot_conditional_occ(predicted = wolf.bear.elev.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.condish.elev.pred <- plot_conditional_occ(predicted = wolf.bear.elev.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
-  wolf.bear.condish.for.ung <- plot_conditional_occ(predicted = wolf.bear.for.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.condish.for.pred <- plot_conditional_occ(predicted = wolf.bear.for.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "trail sites", spppair = "Wolf - Black Bear")
-  wolf.bear.condish.plots <- list(wolf.bear.condish.elev.ung, wolf.bear.condish.elev.pred, wolf.bear.condish.for.ung, wolf.bear.condish.for.pred)
+  # wolf.bear.condish.elev.ung <- plot_conditional_occ(predicted = wolf.bear.elev.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
+  # wolf.bear.condish.elev.pred <- plot_conditional_occ(predicted = wolf.bear.elev.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
+  # wolf.bear.condish.for.ung <- plot_conditional_occ(predicted = wolf.bear.for.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Black Bear")
+  # wolf.bear.condish.for.pred <- plot_conditional_occ(predicted = wolf.bear.for.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "trail sites", spppair = "Wolf - Black Bear")
+  # wolf.bear.condish.plots <- list(wolf.bear.condish.elev.ung, wolf.bear.condish.elev.pred, wolf.bear.condish.for.ung, wolf.bear.condish.for.pred)
   
   #####  Wolf-Coyote conditional occupancy  ####
   wolf.coy.condish.elev.ung <- plot_conditional_occ(predicted = wolf.coy.elev.ung.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Coyote")
