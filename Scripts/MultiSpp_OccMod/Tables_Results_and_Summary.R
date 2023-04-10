@@ -17,6 +17,15 @@
     #'  Identify top models
   load("./Outputs/MultiSpp_OccMod_Outputs/DIC_top_models.RData")
   print(topmodels)
+  
+  #'  Load top models
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2023-04-08.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_2023-04-09.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2023-04-04.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(.)_p(.)_2023-04-05.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(.)_p(.)_2023-03-31.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(.)_p(.)_2023-04-04.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_2023-04-07.RData")
 
   ####  Summary tables  ####
   #'  Save model outputs in table format 
@@ -29,9 +38,9 @@
         Parameter = Parameter,
         Species1 = rep(spp1, nrow(.)),
         Species2 = rep(spp2, nrow(.)),
-        Estimate = round(mean, rounddig),
-        lower = round(`2.5%`, rounddig),
-        upper = round(`97.5%`, rounddig)
+        Estimate = format(round(mean, rounddig), nsmall = 2),
+        lower = format(round(`2.5%`, rounddig), nsmall = 2),
+        upper = format(round(`97.5%`, rounddig), nsmall = 2)
       ) %>%
       relocate(Parameter, .before = Estimate) %>%
       filter(!str_detect(Parameter, "z")) %>%
@@ -96,26 +105,93 @@
              # Parameter = ifelse(grepl("\\[8]", Parameter), cov8, Parameter))
     return(renamed_out)
   }
+  occ_wolf.bear.top <- rename_occ_params(out_wolf.bear_top[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
+                                         cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Elevation", cov5 = "Forest cover", 
+                                         cov6 = NA, cov7 = NA, cov8 = NA) %>%
+    mutate(Parameter = ifelse(Parameter == "Interaction", paste0(Parameter, ": Intercept"), Parameter),
+           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
+  occ_wolf.bear.2nd <- rename_occ_params(out_wolf.bear_2nd[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
+                                         cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Elevation", cov5 = "Forest cover", 
+                                         cov6 = "Shannon's H", cov7 = NA, cov8 = NA) %>%
+    mutate(Parameter = ifelse(Parameter == "Interaction", paste0(Parameter, ": Intercept"), Parameter),
+           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
+  occ_wolf.coy <- rename_occ_params(out_wolf.coy[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
+                                    cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Elevation", cov5 = "Forest cover", 
+                                    cov6 = NA, cov7 = NA, cov8 = NA) %>%
+    mutate(Parameter = ifelse(Parameter == "Interaction", paste0(Parameter, ": Intercept"), Parameter),
+           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Coyote", "Species 2"))
+  occ_wolf.lion <- rename_occ_params(out_wolf.lion[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
+                                    cov2 = "Year 2", cov3 = NA, cov4 = NA, cov5 = NA, 
+                                    cov6 = NA, cov7 = NA, cov8 = NA) %>%
+    mutate(Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Mountain lion", "Species 2"))
+  occ_lion.bear <- rename_occ_params(out_lion.bear[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
+                                     cov2 = "Year 2", cov3 = NA, cov4 = NA, cov5 = NA, 
+                                    cov6 = NA, cov7 = NA, cov8 = NA) %>%
+    mutate(Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
+           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
+  occ_lion.bob <- rename_occ_params(out_lion.bob[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
+                                    cov2 = "Year 2", cov3 = NA, cov4 = NA, cov5 = NA, 
+                                    cov6 = NA, cov7 = NA, cov8 = NA) %>%
+    mutate(Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
+           Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
   occ_coy.bob <- rename_occ_params(out_coy.bob[[1]], intx3 = "N white-tailed deer", intx4 = "N lagomorph", intx5 = "Shannon's H", 
                                    cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Elevation", cov5 = "Forest cover", 
-                                   cov6 = "N white-tailed deer", cov7 = "N lagomorph", cov8 = "Shannon's H")
+                                   cov6 = "N white-tailed deer", cov7 = "N lagomorph", cov8 = "Shannon's H") %>%
+    mutate(Parameter = str_replace(Parameter, "Coyote", "Species 1"),
+           Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
   
   
-    renamed_out <- out %>%
-    #'  rename interaction intercept first
-    mutate(Parameter = ifelse(grepl("betaSpp12\\[1]", Parameter), "Co-occ intercept", Parameter),
-           #'  rename psi/p intercepts and trail setup parameters
-           Parameter = ifelse(grepl("\\[1]", Parameter), "Intercept", Parameter), 
-           Parameter = ifelse(grepl("\\[2]", Parameter), "Trail setup", Parameter),
-           #'  rename any covariates on interaction term
-           Parameter = ifelse(Parameter == "betaSpp12[3]", "N white-tailed deer", Parameter),
-           Parameter = ifelse(Parameter == "betaSpp12[4]", "N lagomorph", Parameter),
-           Parameter = ifelse(Parameter == "betaSpp12[5]", "Shannon's H", Parameter),
-           Parameter = ifelse(grepl("\\[3]", Parameter), "Year 2", Parameter),
-           Parameter = ifelse(grepl("\\[4]", Parameter), "Elevation", Parameter),
-           Parameter = ifelse(grepl("\\[5]", Parameter), "Forest cover", Parameter),
-           Parameter = ifelse(grepl("\\[6]", Parameter), "N white-tailed deer", Parameter),
-           Parameter = ifelse(grepl("\\[7]", Parameter), "N lagomorph", Parameter),
-           Parameter = ifelse(grepl("\\[8]", Parameter), "Shannon's H", Parameter))
-  return(renamed_out)
+  top_null_results <- rbind(occ_wolf.lion, occ_lion.bear, occ_lion.bob)
+  top_non_null_results <- rbind(occ_wolf.bear.2nd, occ_wolf.coy, occ_coy.bob) # NOTE: using 2nd best supported wolf.bear model
+  top_occmod_table_long <- rbind(occ_wolf.bear.2nd, occ_wolf.coy, occ_wolf.lion, occ_lion.bear, occ_lion.bob, occ_coy.bob) # NOTE: using 2nd best supported wolf.bear model
+  
+  
+  top_occmod_table_wide <- all_occ_results %>%
+    mutate(lower = str_replace_all(lower, " ", ""),
+           upper = str_replace_all(upper, " ", ""),
+           CRI = paste0("(", lower, ", ", upper, ")")) %>%
+    dplyr::select(-c(lower, upper)) %>%
+    unite(Mean_CRI, Estimate, CRI, sep = " ") %>%
+    spread(Parameter, Mean_CRI) %>%
+    relocate("Species 1: Intercept", .after = "Species2") %>%
+    relocate("Species 1: Trail setup", .after = "Species 1: Intercept") %>%
+    relocate("Species 1: Year 2", .after = "Species 1: Trail setup") %>%
+    relocate("Species 1: Elevation", .after = "Species 1: Year 2") %>%
+    relocate("Species 1: Forest cover", .after = "Species 1: Elevation") %>%
+    relocate("Species 1: N white-tailed deer", .after = "Species 1: Forest cover") %>%
+    relocate("Species 1: N lagomorph", .after = "Species 1: N white-tailed deer") %>%
+    relocate("Species 1: Shannon's H", .after = "Species 1: N lagomorph") %>%
+    relocate("Species 2: Intercept", .after = "Species 1: Shannon's H") %>%
+    relocate("Species 2: Trail setup", .after = "Species 2: Intercept") %>%
+    relocate("Species 2: Year 2", .after = "Species 2: Trail setup") %>%
+    relocate("Species 2: Elevation", .after = "Species 2: Year 2") %>%
+    relocate("Species 2: Forest cover", .after = "Species 2: Elevation") %>%
+    relocate("Species 2: N white-tailed deer", .after = "Species 2: Forest cover") %>%
+    relocate("Species 2: N lagomorph", .after = "Species 2: N white-tailed deer") %>%
+    relocate("Species 2: Shannon's H", .after = "Species 2: N lagomorph") %>%
+    relocate("Interaction: Intercept", .after = "Species 2: Shannon's H") %>%
+    relocate("Interaction: Trail setup", .after = "Species 2: Intercept") %>%
+    relocate("Interaction: N white-tailed deer", .after = "Species 2: Trail setup") %>%
+    relocate("Interaction: N lagomorph", .after = "Species 2: N white-tailed deer") %>%
+    relocate("Interaction: Shannon's H", .after = "Species 2: N lagomorph")
+  
+  
+  
+  #'  Save
+  write.csv(top_null_results, file = paste0("./Outputs/Tables/top_null_results_", Sys.Date(), ".csv"))
+  write.csv(top_non_null_results, file = paste0("./Outputs/Tables/top_non_null_results_", Sys.Date(), ".csv"))
+  write.csv(top_occmod_table_long, file = paste0("./Outputs/Tables/top_occmod_table_long_", Sys.Date(), ".csv"))
+  write.csv(top_occmod_table_wide, file = paste0("./Outputs/Tables/top_occmod_table_wide_", Sys.Date(), ".csv"))
+  
+  
+  
+  
+  
   
