@@ -268,8 +268,8 @@
   
   ####  Wolf-Bear Models  ####
   #'  ----------------------
-  inits.wolf.bear <- function(){list(z = zinits[[1]])}    # ran with 30,000 iterations and thinning rate of 5
-  #ni <- 30000; nt <- 5
+  inits.wolf.bear <- function(){list(z = zinits[[1]])}    
+  ni <- 75000
   
   #####  Null model  ####
   #'  psi = year; p = year
@@ -392,6 +392,7 @@
   ####  Wolf-Coyote Models  ####
   #'  ----------------------
   inits.wolf.coy <- function(){list(z = zinits[[2]])} 
+  ni <- 75000
   
   #####  Null model  ####
   #'  psi = year; p = year
@@ -888,6 +889,7 @@
   inits.coy.bob <- function(){list(z = zinits[[6]], mean.psiSpp1 = runif(1, 0.3, 0.4), 
                                    mean.psiSpp2 = runif(1, 0.03, 0.18),
                                    mean.pSpp1 = runif(1, 0.15, 0.2), mean.pSpp2 = runif(1, 0.03, 0.1))}
+  ni <- 100000
   
   #####  Null model  ####
   #'  psi = year; p = year
