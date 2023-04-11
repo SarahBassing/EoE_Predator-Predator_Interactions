@@ -97,10 +97,42 @@
   
   
   #'  Best supported model per species-pair
-  topmodels <- rbind(topmod_wolfbear[1,], topmod_wolfcoy[1,], topmod_wolflion[1,], topmod_lionbear[1,], topmod_lionbob[1,], topmod_coybob[1,])
+  (topmodels <- rbind(topmod_wolfbear[1:2,], topmod_wolfcoy[1,], topmod_wolflion[1,], topmod_lionbear[1,], topmod_lionbob[1,], topmod_coybob[1,]))
   
   #'  Full table of models ranked by DIC for all species-pairs
-  model_list_DIC <- rbind(topmod_wolfbear, topmod_wolfcoy, topmod_wolflion, topmod_lionbear, topmod_lionbob, topmod_coybob)
+  model_list_DIC <- rbind(topmod_wolfbear, topmod_wolfcoy, topmod_coybob, topmod_wolflion, topmod_lionbear, topmod_lionbob) %>%
+    mutate_if(is.numeric, round, digits = 2) %>%
+    dplyr::select(c(Modnames, DIC, Delta_DIC, DICWt)) %>%
+    #'  Rename model and species pairing
+    #'  Split model name based on placement of multiple periods
+    #'  https://stackoverflow.com/questions/26265400/use-regex-in-r-to-retrieve-string-before-second-occurence-of-a-period
+    mutate(Species_pair = sub( "(^[^.]+[.][^.]+)(.+$)", "\\1", Modnames), 
+           Species_pair = str_replace(Species_pair, "\\.", " - "), 
+           Species_pair = str_replace(Species_pair, "bear", "Black bear"),
+           Species_pair = str_replace(Species_pair, "lion", "Mountain lion"),
+           Species_pair = str_replace(Species_pair, "coy", "Coyote"),
+           Species_pair = str_replace(Species_pair, "bob", "Bobcat"),
+           Species_pair = str_replace(Species_pair, "wolf", "Wolf"),
+           Model = gsub(".*null", "Model 1", Modnames), 
+           Model = gsub(".*habx", "Model 5", Model), 
+           Model = gsub(".*preyabundx", "Model 6", Model),
+           Model = gsub(".*preydivx", "Model 7", Model),
+           Model = gsub(".*hab", "Model 2", Model), 
+           Model = gsub(".*preyabund", "Model 3", Model), 
+           Model = gsub(".*preydiv", "Model 4", Model), 
+           Model = gsub(".*global", "Model 8", Model),
+           Model_name = gsub(".*null", "Null", Modnames),
+           Model_name = gsub(".*habx", "Habitat with interaction", Model_name),
+           Model_name = gsub(".*preyabundx", "Prey abundance with interaction", Model_name),
+           Model_name = gsub(".*preydivx", "Prey diversity with interaction", Model_name),
+           Model_name = gsub(".*hab", "Habitat", Model_name),
+           Model_name = gsub(".*preyabund", "Prey abundance", Model_name),
+           Model_name = gsub(".*preydiv", "Prey diversity", Model_name),
+           Model_name = gsub(".*global", "Global", Model_name)) %>%
+    relocate(Species_pair, .before = DIC) %>%
+    relocate(Model, .after = Species_pair) %>%
+    relocate(Model_name, .after = Model) %>%
+    dplyr::select(-Modnames)
   
   #'  Save
   write.csv(topmodels, file = "./Outputs/MultiSpp_OccMod_Outputs/DIC_top_models.csv")
