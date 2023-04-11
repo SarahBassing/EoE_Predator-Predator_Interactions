@@ -75,22 +75,22 @@
   DH_summary <- rbind(DH_bear, DH_bob, DH_coy, DH_lion, DH_wolf) %>%
     dplyr::select(-`Number of operating cameras`)
   
-  #'  Save!
-  write.csv(DH_summary, "./Outputs/Tables/Summary_table_DH.csv")
+  #' #'  Save!
+  #' write.csv(DH_summary, "./Outputs/Tables/Summary_table_DH.csv")
   
   
   #####  Summarize covariate data  ####
   #'  ------------------------------
-  Covariate <- c("Elevation (m)", "Forest cover (%)", "Elk mean RAI", 
-                 "Lagomorph mean RAI", "Moose mean RAI", 
-                 "Mule deer mean RAI", "White-tailed deer mean RAI", 
+  Covariate <- c("Elevation (m)", "Forest cover (%)", "Elk mean RAI",
+                 "Lagomorph mean RAI", "Moose mean RAI",
+                 "Mule deer mean RAI", "White-tailed deer mean RAI",
                  "Shannon's diveristy index (H)")
   covs <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, Elevation__10m2, perc_forest, elk_perday, lagomorphs_perday, 
-                    moose_perday,  muledeer_perday, whitetaileddeer_perday, H)) 
+    dplyr::select(c(NewLocationID, Elevation__10m2, perc_forest, elk_perday, lagomorphs_perday,
+                    moose_perday,  muledeer_perday, whitetaileddeer_perday, H))
   nobs <- nrow(covs)
   cov_means <- covs %>% summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))) %>%
-    gather(key = "Variable", value = "Mean") 
+    gather(key = "Variable", value = "Mean")
   cov_sd <- covs %>% summarise(across(where(is.numeric), ~ sd(.x, na.rm = TRUE)))
   cov_se <- cov_sd/sqrt(nobs); cov_se <- gather(cov_se, key = "Variable", value = "SE")
   cov_min <- covs %>% summarise(across(where(is.numeric), ~ min(.x, na.rm = TRUE))) %>%
@@ -103,11 +103,11 @@
     cbind(Covariate) %>%
     relocate(Covariate, .before = "Mean") %>%
     dplyr::select(-Variable) %>%
-    mutate(Mean = round(Mean, 2), 
-           SE = round(SE, 3), 
-           Min = round(Min, 2), 
+    mutate(Mean = round(Mean, 2),
+           SE = round(SE, 3),
+           Min = round(Min, 2),
            Max = round(Max, 2))
-  
+
   #'  Table number of cameras per setup and year
   eoe_covs_20s$Year <- "2020"
   eoe_covs_21s$Year <- "2021"
@@ -118,9 +118,9 @@
     arrange(Year)
   colnames(cam_deployment_summary) <- c("Year", "Camera setup", "Operable cameras (n)")
   
-  #'  Save covariate summary tables
-  write.csv(cov_summary, "./Outputs/Tables/Summary_table_covariates.csv")
-  write.csv(cam_deployment_summary, "./Outputs/Tables/Summary_table_camera_deployment.csv")
+  #' #'  Save covariate summary tables
+  #' write.csv(cov_summary, "./Outputs/Tables/Summary_table_covariates.csv")
+  #' write.csv(cam_deployment_summary, "./Outputs/Tables/Summary_table_camera_deployment.csv")
   
   
   
@@ -152,9 +152,9 @@
         Parameter = Parameter,
         Species1 = rep(spp1, nrow(.)),
         Species2 = rep(spp2, nrow(.)),
-        Mean = format(round(mean, rounddig), nsmall = 2),
-        Lower_CRI = format(round(`2.5%`, rounddig), nsmall = 2),
-        Upper_CRI = format(round(`97.5%`, rounddig), nsmall = 2),
+        Mean = round(mean, rounddig),
+        Lower_CRI = round(`2.5%`, rounddig),
+        Upper_CRI = round(`97.5%`, rounddig),
         Mean = as.numeric(Mean),
         Lower_CRI = as.numeric(Lower_CRI),
         Upper_CRI = as.numeric(Upper_CRI)
@@ -196,33 +196,24 @@
   rename_occ_params <- function(out, intx3, intx4, intx5, cov2, cov3, cov4, cov5, cov6, cov7, cov8) {
     renamed_out <- out %>%
       #'  Add species names to appropriate parameters
-      mutate(Parameter = str_replace(Parameter, "betaSpp12", "Interaction"),
+      mutate(Lower_CRI = format(Lower_CRI, nsmall = 2),
+             Upper_CRI = format(Upper_CRI, nsmall = 2),
+             Parameter = str_replace(Parameter, "betaSpp12", "Interaction"),
              Parameter = str_replace(Parameter, "betaSpp1", Species1),
              Parameter = str_replace(Parameter, "betaSpp2", Species2),
              #'  Rename psi/p intercepts and trail setup parameters
              Parameter = str_replace(Parameter, "\\[1]", ": Intercept"),
              Parameter = str_replace(Parameter, "\\[2]", paste(":", cov2)),
-             # Parameter = ifelse(grepl("\\[1]", Parameter), "Intercept", Parameter), 
-             # Parameter = ifelse(grepl("\\[2]", Parameter), "Trail setup", Parameter),
              #'  rename any covariates on interaction term
              Parameter = str_replace(Parameter, "Interaction\\[3]", paste("Interaction:",intx3)),
              Parameter = str_replace(Parameter, "Interaction\\[4]", paste("Interaction:",intx4)),
              Parameter = str_replace(Parameter, "Interaction\\[5]", paste("Interaction:",intx5)),
-             # Parameter = ifelse(Parameter == "Interaction[3]", intx3, Parameter),
-             # Parameter = ifelse(Parameter == "Interaction[4]", intx4, Parameter),
-             # Parameter = ifelse(Parameter == "Interaction[5]", intx5, Parameter),
              Parameter = str_replace(Parameter, "\\[3]", paste(":", cov3)),
              Parameter = str_replace(Parameter, "\\[4]", paste(":", cov4)),
              Parameter = str_replace(Parameter, "\\[5]", paste(":", cov5)),
              Parameter = str_replace(Parameter, "\\[6]", paste(":", cov6)),
              Parameter = str_replace(Parameter, "\\[7]", paste(":", cov7)),
              Parameter = str_replace(Parameter, "\\[8]", paste(":", cov8)))
-             # Parameter = ifelse(grepl("\\[3]", Parameter), cov3, Parameter),
-             # Parameter = ifelse(grepl("\\[4]", Parameter), cov4, Parameter),
-             # Parameter = ifelse(grepl("\\[5]", Parameter), cov5, Parameter),
-             # Parameter = ifelse(grepl("\\[6]", Parameter), cov6, Parameter),
-             # Parameter = ifelse(grepl("\\[7]", Parameter), cov7, Parameter),
-             # Parameter = ifelse(grepl("\\[8]", Parameter), cov8, Parameter))
     return(renamed_out)
   }
   occ_wolf.bear.top <- rename_occ_params(out_wolf.bear_top[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
@@ -301,20 +292,62 @@
     relocate("Interaction: N lagomorph", .after = "Species 2: N white-tailed deer") %>%
     relocate("Interaction: Shannon's H", .after = "Species 2: N lagomorph")
   
+  #'  Alternate approach to tabling results
+  spp1_out <- filter(top_occmod_table_long, grepl("Species 1", Parameter)) %>%
+    #'  Make sure all numbers have 2 decimal places
+    mutate(Lower_CRI = format(Lower_CRI, nsmall = 2),
+           Upper_CRI = format(Upper_CRI, nsmall = 2),
+           #'  Remove extra spaces created during formatting
+           Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
+           Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
+           #'  Drop species identifier in parameter name
+           Parameter = gsub(".*:", "", Parameter),
+           #'  Combine lower & upper 95% CRI into single column
+           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")")) %>%
+    dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
+    #'  Add species identifier to mean & CRI columns
+    rename(Mean_Species1 = Mean, CRI_Species1 = CRI)
+  spp2_out <- filter(top_occmod_table_long, grepl("Species 2", Parameter)) %>%
+    mutate(Lower_CRI = format(Lower_CRI, nsmall = 2),
+           Upper_CRI = format(Upper_CRI, nsmall = 2),
+           Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
+           Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
+           Parameter = gsub(".*:", "", Parameter),
+           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")")) %>%
+    dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
+    rename(Mean_Species2 = Mean, CRI_Species2 = CRI)
+  interaction_out <- filter(top_occmod_table_long, grepl("Interaction", Parameter)) %>%
+    mutate(Lower_CRI = format(Lower_CRI, nsmall = 2),
+           Upper_CRI = format(Upper_CRI, nsmall = 2),
+           Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
+           Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
+           Parameter = gsub(".*:", "", Parameter),
+           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")")) %>%
+    dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
+    rename(Mean_Interaction = Mean, CRI_Interaction = CRI)
+  #'  Join species 1 & 2 estimates together
+  top_occmod_table <- full_join(spp1_out, spp2_out, by = c("Species1", "Species2", "Parameter")) %>%
+    full_join(interaction_out, by = c("Species1", "Species2", "Parameter"))
+  colnames(top_occmod_table) <- c("Species 1", "Species 2", "Parameter", "Mean (Species 1)", "95% CRI (Species 1)", 
+                                  "Mean (Species 2)", "95% CRI (Species 2)", "Mean (Interaction)", "95% CRI (Interaction)")
+  
   #'  Save occupancy results
   write.csv(top_null_results, file = paste0("./Outputs/Tables/top_null_results_", Sys.Date(), ".csv"))
   write.csv(top_non_null_results, file = paste0("./Outputs/Tables/top_non_null_results_", Sys.Date(), ".csv"))
   write.csv(top_occmod_table_long, file = paste0("./Outputs/Tables/top_occmod_table_long_", Sys.Date(), ".csv"))
   write.csv(top_occmod_table_wide, file = paste0("./Outputs/Tables/top_occmod_table_wide_", Sys.Date(), ".csv"))
+  write.csv(top_occmod_table, file = paste0("./Outputs/Tables/top_occmod_table_", Sys.Date(), ".csv"))
   
-  
+ 
   #####  Detection results  ####
   #'  -----------------------
   #'  Switch place-holder parameter names with useful ones for occupancy submodel
   rename_occ_params <- function(out, cov2, cov3) {
     renamed_out <- out %>%
       #'  Add species names to appropriate parameters
-      mutate(Parameter = str_replace(Parameter, "alphaSpp12", "Interaction Spp12"),
+      mutate(Lower_CRI = format(Lower_CRI, nsmall = 2),
+             Upper_CRI = format(Upper_CRI, nsmall = 2),
+             Parameter = str_replace(Parameter, "alphaSpp12", "Interaction Spp12"),
              Parameter = str_replace(Parameter, "alphaSpp21", "Interaction Spp21"),
              Parameter = str_replace(Parameter, "alphaSpp1", Species1),
              Parameter = str_replace(Parameter, "alphaSpp2", Species2),
