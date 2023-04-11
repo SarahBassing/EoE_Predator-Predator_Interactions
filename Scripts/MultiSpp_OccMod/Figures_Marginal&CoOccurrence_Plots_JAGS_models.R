@@ -27,7 +27,7 @@
   load("./Data/Covariates_extracted/Covariate_skinny_EoE20s21s.RData")
   
   #'  Identify top models
-  load("./Outputs/MultiSpp_OccMod_Outputs/DIC_top_models.RData")
+  load("./Outputs/Tables/DIC_top_models.RData")
   print(topmodels)
   
   #'  -------------------------------------------------

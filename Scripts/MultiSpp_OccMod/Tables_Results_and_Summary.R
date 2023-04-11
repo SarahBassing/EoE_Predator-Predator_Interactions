@@ -149,7 +149,7 @@
   #'  --------------------------------
   
   #'  Identify top models
-  load("./Outputs/MultiSpp_OccMod_Outputs/DIC_top_models.RData")
+  load("./Outputs/Tables/DIC_top_models.RData")
   print(topmodels)
   
   #'  Load top models              #######  MAKE SURE THESE ARE UP-TO-DATE!!!  #######
