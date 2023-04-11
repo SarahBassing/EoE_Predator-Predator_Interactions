@@ -135,10 +135,10 @@
     dplyr::select(-Modnames)
   
   #'  Save
-  write.csv(topmodels, file = "./Outputs/MultiSpp_OccMod_Outputs/DIC_top_models.csv")
-  write.csv(model_list_DIC, file = "./Outputs/MultiSpp_OccMod_Outputs/DIC_model_selection_results.csv")
-  save(topmodels, file = "./Outputs/MultiSpp_OccMod_Outputs/DIC_top_models.RData")
-  save(model_list_DIC, file = "./Outputs/MultiSpp_OccMod_Outputs/DIC_model_selection_results.RData")
+  write.csv(topmodels, file = "./Outputs/Tables/DIC_top_models.csv")
+  write.csv(model_list_DIC, file = "./Outputs/Tables/DIC_model_selection_results.csv")
+  save(topmodels, file = "./Outputs/Tables/DIC_top_models.RData")
+  save(model_list_DIC, file = "./Outputs/Tables/DIC_model_selection_results.RData")
   
   
     
