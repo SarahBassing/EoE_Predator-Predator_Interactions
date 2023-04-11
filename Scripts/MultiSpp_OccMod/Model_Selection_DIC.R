@@ -125,14 +125,15 @@
            Model_name = gsub(".*habx", "Habitat with interaction", Model_name),
            Model_name = gsub(".*preyabundx", "Prey abundance with interaction", Model_name),
            Model_name = gsub(".*preydivx", "Prey diversity with interaction", Model_name),
-           Model_name = gsub(".*hab", "Habitat", Model_name),
-           Model_name = gsub(".*preyabund", "Prey abundance", Model_name),
-           Model_name = gsub(".*preydiv", "Prey diversity", Model_name),
+           Model_name = gsub(".*hab", "Habitat, no interaction", Model_name),
+           Model_name = gsub(".*preyabund", "Prey abundance, no interaction", Model_name),
+           Model_name = gsub(".*preydiv", "Prey diversity, no interaction", Model_name),
            Model_name = gsub(".*global", "Global", Model_name)) %>%
     relocate(Species_pair, .before = DIC) %>%
     relocate(Model, .after = Species_pair) %>%
     relocate(Model_name, .after = Model) %>%
     dplyr::select(-Modnames)
+  colnames(model_list_DIC) <- c("Predator pair", "Model", "Model description", "DIC", "Delta DIC", "DIC Weight")
   
   #'  Save
   write.csv(topmodels, file = "./Outputs/Tables/DIC_top_models.csv")
