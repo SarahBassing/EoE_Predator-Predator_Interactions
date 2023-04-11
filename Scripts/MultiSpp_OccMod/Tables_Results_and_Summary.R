@@ -75,6 +75,10 @@
   DH_summary <- rbind(DH_bear, DH_bob, DH_coy, DH_lion, DH_wolf) %>%
     dplyr::select(-`Number of operating cameras`)
   
+  #'  Calculate mean number of detection events per species per year
+  (mean_dets <- mean(DH_summary$`Total detection events`))
+  (se_dets <- sd(DH_summary$`Total detection events`)/sqrt(nrow(DH_summary)))
+  
   #' #'  Save!
   #' write.csv(DH_summary, "./Outputs/Tables/Summary_table_DH.csv")
   
