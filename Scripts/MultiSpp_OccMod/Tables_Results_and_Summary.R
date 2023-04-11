@@ -15,28 +15,16 @@
   library(stringr)
   library(tidyverse)
   
+    
+  #'  ------------------------
+  ####  Data summary tables  ####
+  #'  ------------------------
+
   #'  Load covariate and detection data
   load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
   
-  #'  Identify top models
-  load("./Outputs/MultiSpp_OccMod_Outputs/DIC_top_models.RData")
-  print(topmodels)
-  
-  #'  Load top models
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2023-04-08.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_2023-04-09.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2023-04-04.RData") 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(.)_p(.)_2023-04-05.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(.)_p(.)_2023-03-31.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(.)_p(.)_2023-04-04.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_2023-04-07.RData")
-
-  #'  ------------------------
-  ####  Data summary tables  ####
-  #'  ------------------------
-  #'  Summarize detection history data and covariate data
   
   #####  Summarize detection data  ####
   #'  ------------------------------
@@ -139,6 +127,21 @@
   #'  --------------------------------
   ####  Model result summary tables  ####
   #'  --------------------------------
+  
+  #'  Identify top models
+  load("./Outputs/MultiSpp_OccMod_Outputs/DIC_top_models.RData")
+  print(topmodels)
+  
+  #'  Load top models              #######  MAKE SURE THESE ARE UP-TO-DATE!!!  #######
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2023-04-08.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_2023-04-09.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2023-04-04.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2023-04-06.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2023-04-06.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2023-04-06.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_2023-04-07.RData")
+  
+  
   #'  Save model outputs in table format 
   #'  Functions extract outputs for each sub-model and appends species info
   rounddig <- 2
@@ -149,11 +152,14 @@
         Parameter = Parameter,
         Species1 = rep(spp1, nrow(.)),
         Species2 = rep(spp2, nrow(.)),
-        Estimate = format(round(mean, rounddig), nsmall = 2),
-        lower = format(round(`2.5%`, rounddig), nsmall = 2),
-        upper = format(round(`97.5%`, rounddig), nsmall = 2)
+        Mean = format(round(mean, rounddig), nsmall = 2),
+        Lower_CRI = format(round(`2.5%`, rounddig), nsmall = 2),
+        Upper_CRI = format(round(`97.5%`, rounddig), nsmall = 2),
+        Mean = as.numeric(Mean),
+        Lower_CRI = as.numeric(Lower_CRI),
+        Upper_CRI = as.numeric(Upper_CRI)
       ) %>%
-      relocate(Parameter, .before = Estimate) %>%
+      relocate(Parameter, .before = Mean) %>%
       filter(!str_detect(Parameter, "z")) %>%
       filter(Parameter != "deviance") 
     
@@ -161,12 +167,12 @@
     occ_out <- out %>%
       filter(str_detect(Parameter, "beta")) %>%
       #'  Remove estimates that were fixed to 0 (psix if no interaction)
-      filter(Estimate != 0)
+      filter(Mean != 0)
     #'  Detection results
     det_out <- out %>%
       filter(str_detect(Parameter, "alpha")) %>%
       #'  Remove estimates that were fixed to 0 (px if no interaction)
-      filter(Estimate != 0)
+      filter(Mean != 0)
     #'  Mean occupancy and detection probabilities
     mean_out <- out %>%
       filter(str_detect(Parameter, "mean"))
@@ -240,20 +246,17 @@
   occ_wolf.lion <- rename_occ_params(out_wolf.lion[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
                                     cov2 = "Year 2", cov3 = NA, cov4 = NA, cov5 = NA, 
                                     cov6 = NA, cov7 = NA, cov8 = NA) %>%
-    mutate(Parameter = paste0(Parameter, ": Intercept"),
-           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+    mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Mountain lion", "Species 2"))
   occ_lion.bear <- rename_occ_params(out_lion.bear[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
                                      cov2 = "Year 2", cov3 = NA, cov4 = NA, cov5 = NA, 
                                     cov6 = NA, cov7 = NA, cov8 = NA) %>%
-    mutate(Parameter = paste0(Parameter, ": Intercept"),
-           Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
+    mutate(Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
            Parameter = str_replace(Parameter, "Black bear", "Species 2"))
   occ_lion.bob <- rename_occ_params(out_lion.bob[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
                                     cov2 = "Year 2", cov3 = NA, cov4 = NA, cov5 = NA, 
                                     cov6 = NA, cov7 = NA, cov8 = NA) %>%
-    mutate(Parameter = paste0(Parameter, ": Intercept"),
-           Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
+    mutate(Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
            Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
   occ_coy.bob <- rename_occ_params(out_coy.bob[[1]], intx3 = "N white-tailed deer", intx4 = "N lagomorph", intx5 = "Shannon's H", 
                                    cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Elevation", cov5 = "Forest cover", 
@@ -267,12 +270,14 @@
   top_occmod_table_long <- rbind(occ_wolf.bear.2nd, occ_wolf.coy, occ_wolf.lion, occ_lion.bear, occ_lion.bob, occ_coy.bob) # NOTE: using 2nd best supported wolf.bear model
   
   #'  Reformat into a wide table
-  top_occmod_table_wide <- all_occ_results %>%
-    mutate(lower = str_replace_all(lower, " ", ""),
-           upper = str_replace_all(upper, " ", ""),
-           CRI = paste0("(", lower, ", ", upper, ")")) %>%
-    dplyr::select(-c(lower, upper)) %>%
-    unite(Mean_CRI, Estimate, CRI, sep = " ") %>%
+  top_occmod_table_wide <- top_occmod_table_long %>%
+    #'  Remove any extra spaces introduced during data formatting
+    mutate(Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
+           Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
+           #'  Combine into single 95% CRI column
+           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")")) %>%
+    dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
+    unite(Mean_CRI, Mean, CRI, sep = " ") %>%
     spread(Parameter, Mean_CRI) %>%
     relocate("Species 1: Intercept", .after = "Species2") %>%
     relocate("Species 1: Trail setup", .after = "Species 1: Intercept") %>%
@@ -305,8 +310,64 @@
   
   #####  Detection results  ####
   #'  -----------------------
+  #'  Switch place-holder parameter names with useful ones for occupancy submodel
+  rename_occ_params <- function(out, cov2, cov3) {
+    renamed_out <- out %>%
+      #'  Add species names to appropriate parameters
+      mutate(Parameter = str_replace(Parameter, "alphaSpp12", "Interaction Spp12"),
+             Parameter = str_replace(Parameter, "alphaSpp21", "Interaction Spp21"),
+             Parameter = str_replace(Parameter, "alphaSpp1", Species1),
+             Parameter = str_replace(Parameter, "alphaSpp2", Species2),
+             #'  Rename parameters
+             Parameter = str_replace(Parameter, "\\[1]", ": Intercept"),
+             Parameter = str_replace(Parameter, "\\[2]", paste(":", cov2)),
+             Parameter = str_replace(Parameter, "\\[3]", paste(":", cov3)))
+    return(renamed_out)
+  }
+  det_wolf.bear.top <- rename_occ_params(out_wolf.bear_top[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
+  det_wolf.bear.2nd <- rename_occ_params(out_wolf.bear_2nd[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
+  det_wolf.coy <- rename_occ_params(out_wolf.coy[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Coyote", "Species 2"))
+  det_wolf.lion <- rename_occ_params(out_wolf.lion[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Mountain lion", "Species 2"))
+  det_lion.bear <- rename_occ_params(out_lion.bear[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
+           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
+  det_lion.bob <- rename_occ_params(out_lion.bob[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
+           Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
+  det_coy.bob <- rename_occ_params(out_coy.bob[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = str_replace(Parameter, "Coyote", "Species 1"),
+           Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
   
+  top_detmod_table_long <- rbind(det_wolf.bear.2nd, det_wolf.coy, det_wolf.lion, det_lion.bear, det_lion.bob, det_coy.bob) # NOTE: using 2nd best supported wolf.bear model
   
+  #'  Reformat into a wide table
+  top_detmod_table_wide <- top_detmod_table_long %>%
+    #'  Remove any extra spaces introduced during data formatting
+    mutate(Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
+           Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
+           #'  Combine into single 95% CRI column
+           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")")) %>%
+    dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
+    unite(Mean_CRI, Mean, CRI, sep = " ") %>%
+    spread(Parameter, Mean_CRI) %>%
+    relocate("Species 1: Intercept", .after = "Species2") %>%
+    relocate("Species 1: Trail setup", .after = "Species 1: Intercept") %>%
+    relocate("Species 1: Sampling effort", .after = "Species 1: Trail setup") %>%
+    relocate("Species 2: Intercept", .after = "Species 1: Sampling effort") %>%
+    relocate("Species 2: Trail setup", .after = "Species 2: Intercept") %>%
+    relocate("Species 2: Sampling effort", .after = "Species 2: Trail setup") 
   
-  
-  
+  #'  Save detection results
+  write.csv(top_detmod_table_long, file = paste0("./Outputs/Tables/top_detmod_table_long_", Sys.Date(), ".csv"))
+  write.csv(top_detmod_table_wide, file = paste0("./Outputs/Tables/top_detmod_table_wide_", Sys.Date(), ".csv"))
