@@ -85,9 +85,9 @@
   
   #####  Summarize covariate data  ####
   #'  ------------------------------
-  Covariate <- c("Elevation (m)", "Forest cover (%)", "Elk mean RAI",
-                 "Lagomorph mean RAI", "Moose mean RAI",
-                 "Mule deer mean RAI", "White-tailed deer mean RAI",
+  Covariate <- c("Elevation (m)", "Forest cover (%)", "Elk RAI",
+                 "Lagomorph RAI", "Moose RAI",
+                 "Mule deer RAI", "White-tailed deer RAI",
                  "Shannon's diveristy index (H)")
   covs <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
     dplyr::select(c(NewLocationID, Elevation__10m2, perc_forest, elk_perday, lagomorphs_perday,
