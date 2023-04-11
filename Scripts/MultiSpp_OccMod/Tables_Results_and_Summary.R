@@ -110,6 +110,23 @@
            SE = round(SE, 3),
            Min = round(Min, 2),
            Max = round(Max, 2))
+  
+  #'  Sampling effort
+  (mean_effort <- mean(as.matrix(count_eoe20s21s_effort), na.rm = TRUE))
+  nobs_effort <- dim(count_eoe20s21s_effort)[1] * dim(count_eoe20s21s_effort)[2]
+  (se_effort <- sd(as.matrix(count_eoe20s21s_effort), na.rm = TRUE) / sqrt(nobs_effort))
+  (min_effort <- min(as.matrix(count_eoe20s21s_effort), na.rm = TRUE))
+  (max_effort <- max(as.matrix(count_eoe20s21s_effort), na.rm = TRUE))
+  effort <- c(mean_effort, se_effort, min_effort, max_effort) 
+  effort <- format(round(effort, 2), nsmall = 2)
+  effort <- c("Sampling effort (n days/week)", effort) 
+
+  #'  Append to covariate summary table
+  cov_summary <- rbind(cov_summary, effort) %>%
+    mutate(Mean = as.numeric(Mean),
+           SE = as.numeric(SE),
+           Min = as.numeric(Min),
+           Max = as.numeric(Max))
 
   #'  Table number of cameras per setup and year
   eoe_covs_20s$Year <- "2020"
