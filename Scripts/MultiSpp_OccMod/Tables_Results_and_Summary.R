@@ -4,7 +4,8 @@
   #'  Sarah Bassing
   #'  April 2023
   #'  ---------------------------------
-  #'  Script to summarize results from top models in table format
+  #'  Script to summarize covariate and detection data, as well as results from 
+  #'  top models and organize them into result tables.
   #'  ---------------------------------
   
   #'  Clean workspace
@@ -14,7 +15,12 @@
   library(stringr)
   library(tidyverse)
   
-    #'  Identify top models
+  #'  Load covariate and detection data
+  load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
+  
+  #'  Identify top models
   load("./Outputs/MultiSpp_OccMod_Outputs/DIC_top_models.RData")
   print(topmodels)
   
@@ -27,7 +33,112 @@
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(.)_p(.)_2023-04-04.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_2023-04-07.RData")
 
-  ####  Summary tables  ####
+  #'  ------------------------
+  ####  Data summary tables  ####
+  #'  ------------------------
+  #'  Summarize detection history data and covariate data
+  
+  #####  Summarize detection data  ####
+  #'  ------------------------------
+  #'  Function to summarize species-specific detection data
+  all_detections <- function(dh1, dh2, spp) {
+    dh1 <- as.data.frame(dh1[[1]])
+    dh2 <- as.data.frame(dh2[[1]])
+    #'  Rename columns in each detection history
+    newcols <- c("occ1", "occ2", "occ3", "occ4", "occ5", "occ6", "occ7", "occ8", "occ9", "occ10", "occ11")
+    colnames(dh1) <- newcols; colnames(dh2) <- newcols
+    #'  Add year to each data set
+    dh1$Year <- "2020"
+    dh2$Year <- "2021"
+    #'  Bind data and summarize detections
+    dh <- rbind(dh1, dh2) %>%
+      rownames_to_column(., "NewLocationID") %>%
+      relocate(Year, .before = occ1) %>%
+             #'  Sum detection events across sampling occasions
+      mutate(total_dets = select(., occ1:occ11) %>% rowSums(na.rm = TRUE),
+             #'  Binary whether a detection ever occurred
+             dets_YN = ifelse(total_dets > 1, 1, total_dets)) 
+    #'  Summarize detection data per year
+    det_summary <- dh %>%
+      group_by(Year) %>%
+                #'  Number of detection events
+      summarize(n_dets = sum(total_dets),
+                #'  Number of cameras with 1+ detection
+                n_cam_dets = sum(dets_YN),
+                #'  Number of unique camera locations
+                n_cams = n(),
+                #'  Proportion of cameras that had 1+ detection
+                prop_cam_dets = round(n_cam_dets/n_cams, 2)) %>%
+      ungroup() %>%
+      #'  Add species name to table
+      mutate(Species = spp) %>%
+      relocate(Species, .before = Year)
+    colnames(det_summary) <- c("Species", "Year", "Total detection events", "Total cameras with detections", 
+                               "Number of operating cameras", "Proportion cameras with detections")
+    return(det_summary)
+  }
+  DH_bear <- all_detections(DH_eoe20s_predators[[1]], DH_eoe21s_predators[[1]], spp = "Black bear")
+  DH_bob <- all_detections(DH_eoe20s_predators[[2]], DH_eoe21s_predators[[2]], spp = "Bobcat")
+  DH_coy <- all_detections(DH_eoe20s_predators[[3]], DH_eoe21s_predators[[3]], spp = "Coyote")
+  DH_lion <- all_detections(DH_eoe20s_predators[[4]], DH_eoe21s_predators[[4]], spp = "Mountain lion")
+  DH_wolf <- all_detections(DH_eoe20s_predators[[5]], DH_eoe21s_predators[[5]], spp = "Wolf")
+  
+  #'  Final detection history summary table
+  DH_summary <- rbind(DH_bear, DH_bob, DH_coy, DH_lion, DH_wolf) %>%
+    dplyr::select(-`Number of operating cameras`)
+  
+  #'  Save!
+  write.csv(DH_summary, "./Outputs/Tables/Summary_table_DH.csv")
+  
+  
+  #####  Summarize covariate data  ####
+  #'  ------------------------------
+  Covariate <- c("Elevation (m)", "Forest cover (%)", "Elk mean RAI", 
+                 "Lagomorph mean RAI", "Moose mean RAI", 
+                 "Mule deer mean RAI", "White-tailed deer mean RAI", 
+                 "Shannon's diveristy index (H)")
+  covs <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    dplyr::select(c(NewLocationID, Elevation__10m2, perc_forest, elk_perday, lagomorphs_perday, 
+                    moose_perday,  muledeer_perday, whitetaileddeer_perday, H)) 
+  nobs <- nrow(covs)
+  cov_means <- covs %>% summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))) %>%
+    gather(key = "Variable", value = "Mean") 
+  cov_sd <- covs %>% summarise(across(where(is.numeric), ~ sd(.x, na.rm = TRUE)))
+  cov_se <- cov_sd/sqrt(nobs); cov_se <- gather(cov_se, key = "Variable", value = "SE")
+  cov_min <- covs %>% summarise(across(where(is.numeric), ~ min(.x, na.rm = TRUE))) %>%
+    gather(key = "Variable", value = "Min")
+  cov_max <- covs %>% summarise(across(where(is.numeric), ~ max(.x, na.rm = TRUE))) %>%
+    gather(key = "Variable", value = "Max")
+  cov_summary <- full_join(cov_means, cov_se, by = "Variable") %>%
+    full_join(cov_min, by = "Variable") %>%
+    full_join(cov_max, by = "Variable") %>%
+    cbind(Covariate) %>%
+    relocate(Covariate, .before = "Mean") %>%
+    dplyr::select(-Variable) %>%
+    mutate(Mean = round(Mean, 2), 
+           SE = round(SE, 3), 
+           Min = round(Min, 2), 
+           Max = round(Max, 2))
+  
+  #'  Table number of cameras per setup and year
+  eoe_covs_20s$Year <- "2020"
+  eoe_covs_21s$Year <- "2021"
+  covs <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    mutate(Setup = ifelse(grepl("P", NewLocationID), "Predator", "Ungulate")) %>%
+    dplyr::select(c(Year, Setup)) #, GMU
+  cam_deployment_summary <- as.data.frame(table(covs)) %>%
+    arrange(Year)
+  colnames(cam_deployment_summary) <- c("Year", "Camera setup", "Operable cameras (n)")
+  
+  #'  Save covariate summary tables
+  write.csv(cov_summary, "./Outputs/Tables/Summary_table_covariates.csv")
+  write.csv(cam_deployment_summary, "./Outputs/Tables/Summary_table_camera_deployment.csv")
+  
+  
+  
+  #'  --------------------------------
+  ####  Model result summary tables  ####
+  #'  --------------------------------
   #'  Save model outputs in table format 
   #'  Functions extract outputs for each sub-model and appends species info
   rounddig <- 2
@@ -72,6 +183,9 @@
   out_lion.bob <- mod_out(lion.bob.null, "Mountain lion", "Bobcat")
   out_coy.bob <- mod_out(coy.bob.global, "Coyote", "Bobcat")
   
+  
+  #####  Occupancy results  ####
+  #'  -----------------------
   #'  Switch place-holder parameter names with useful ones for occupancy submodel
   rename_occ_params <- function(out, intx3, intx4, intx5, cov2, cov3, cov4, cov5, cov6, cov7, cov8) {
     renamed_out <- out %>%
@@ -147,12 +261,12 @@
     mutate(Parameter = str_replace(Parameter, "Coyote", "Species 1"),
            Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
   
-  
+  #'  Combine all occupancy results (long table)
   top_null_results <- rbind(occ_wolf.lion, occ_lion.bear, occ_lion.bob)
   top_non_null_results <- rbind(occ_wolf.bear.2nd, occ_wolf.coy, occ_coy.bob) # NOTE: using 2nd best supported wolf.bear model
   top_occmod_table_long <- rbind(occ_wolf.bear.2nd, occ_wolf.coy, occ_wolf.lion, occ_lion.bear, occ_lion.bob, occ_coy.bob) # NOTE: using 2nd best supported wolf.bear model
   
-  
+  #'  Reformat into a wide table
   top_occmod_table_wide <- all_occ_results %>%
     mutate(lower = str_replace_all(lower, " ", ""),
            upper = str_replace_all(upper, " ", ""),
@@ -182,14 +296,15 @@
     relocate("Interaction: N lagomorph", .after = "Species 2: N white-tailed deer") %>%
     relocate("Interaction: Shannon's H", .after = "Species 2: N lagomorph")
   
-  
-  
-  #'  Save
+  #'  Save occupancy results
   write.csv(top_null_results, file = paste0("./Outputs/Tables/top_null_results_", Sys.Date(), ".csv"))
   write.csv(top_non_null_results, file = paste0("./Outputs/Tables/top_non_null_results_", Sys.Date(), ".csv"))
   write.csv(top_occmod_table_long, file = paste0("./Outputs/Tables/top_occmod_table_long_", Sys.Date(), ".csv"))
   write.csv(top_occmod_table_wide, file = paste0("./Outputs/Tables/top_occmod_table_wide_", Sys.Date(), ".csv"))
   
+  
+  #####  Detection results  ####
+  #'  -----------------------
   
   
   
