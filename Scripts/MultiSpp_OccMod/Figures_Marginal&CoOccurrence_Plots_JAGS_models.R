@@ -342,7 +342,6 @@
   wolf.bear.marg.div.pred_b <- plot_marginal_occ(predicted = wolf.bear.div.pred.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Shannon's diversity index", setup = "trail sites", spppair = "Wolf - Black Bear")
   wolf.bear.marg.plots_2ndmod <- list(wolf.bear.marg.elev.ung_b, wolf.bear.marg.elev.pred_b, wolf.bear.marg.for.ung_b, wolf.bear.marg.for.pred_b, wolf.bear.marg.div.ung_b, wolf.bear.marg.div.pred_b)
   
-  
   #####  Wolf-Coyote marginal occupancy  ####
   wolf.coy.marg.elev.ung <- plot_marginal_occ(predicted = wolf.coy.elev.ung.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Coyote")
   wolf.coy.marg.elev.pred <- plot_marginal_occ(predicted = wolf.coy.elev.pred.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Coyote")
@@ -515,11 +514,11 @@
   # wolf.bear.condish.plots <- list(wolf.bear.condish.elev.ung, wolf.bear.condish.elev.pred, wolf.bear.condish.for.ung, wolf.bear.condish.for.pred)
   
   #####  Wolf-Coyote conditional occupancy  ####
-  wolf.coy.condish.elev.ung <- plot_conditional_occ(predicted = wolf.coy.elev.ung.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Coyote")
-  wolf.coy.condish.elev.pred <- plot_conditional_occ(predicted = wolf.coy.elev.pred.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Coyote")
-  wolf.coy.condish.for.ung <- plot_conditional_occ(predicted = wolf.coy.for.ung.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Coyote")
-  wolf.coy.condish.for.pred <- plot_conditional_occ(predicted = wolf.coy.for.pred.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Percent forest cover", setup = "trail sites", spppair = "Wolf - Coyote")
-  wolf.coy.condish.plots <- list(wolf.coy.condish.elev.ung, wolf.coy.condish.elev.pred, wolf.coy.condish.for.ung, wolf.coy.condish.for.pred)
+  # wolf.coy.condish.elev.ung <- plot_conditional_occ(predicted = wolf.coy.elev.ung.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Coyote")
+  # wolf.coy.condish.elev.pred <- plot_conditional_occ(predicted = wolf.coy.elev.pred.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Coyote")
+  # wolf.coy.condish.for.ung <- plot_conditional_occ(predicted = wolf.coy.for.ung.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Coyote")
+  # wolf.coy.condish.for.pred <- plot_conditional_occ(predicted = wolf.coy.for.pred.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Percent forest cover", setup = "trail sites", spppair = "Wolf - Coyote")
+  # wolf.coy.condish.plots <- list(wolf.coy.condish.elev.ung, wolf.coy.condish.elev.pred, wolf.coy.condish.for.ung, wolf.coy.condish.for.pred)
   
   #####  Wolf-Lion conditional occupancy  ####
   #'  Nadda
