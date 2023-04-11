@@ -85,13 +85,12 @@
   
   #####  Summarize covariate data  ####
   #'  ------------------------------
-  Covariate <- c("Elevation (m)", "Forest cover (%)", "Elk RAI",
-                 "Lagomorph RAI", "Moose RAI",
-                 "Mule deer RAI", "White-tailed deer RAI",
+  Covariate <- c("Elevation (m)", "Forest cover (%)", "Cattle RAI", "Elk RAI",
+                 "Lagomorph RAI", "Moose RAI", "Mule deer RAI", "White-tailed deer RAI",
                  "Shannon's diveristy index (H)")
   covs <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-    dplyr::select(c(NewLocationID, Elevation__10m2, perc_forest, elk_perday, lagomorphs_perday,
-                    moose_perday,  muledeer_perday, whitetaileddeer_perday, H))
+    dplyr::select(c(NewLocationID, Elevation__10m2, perc_forest, livestock_perday, elk_perday, 
+                    lagomorphs_perday,moose_perday,  muledeer_perday, whitetaileddeer_perday, H))
   nobs <- nrow(covs)
   cov_means <- covs %>% summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))) %>%
     gather(key = "Variable", value = "Mean")
