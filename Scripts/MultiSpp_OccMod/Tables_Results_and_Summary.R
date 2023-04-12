@@ -205,8 +205,7 @@
     
     return(split_out)
   }
-  out_wolf.bear_top <- mod_out(wolf.bear.hab, "Wolf", "Black bear")
-  out_wolf.bear_2nd <- mod_out(wolf.bear.preydiv, "Wolf", "Black bear")
+  out_wolf.bear <- mod_out(wolf.bear.preydiv, "Wolf", "Black bear")
   out_wolf.coy <- mod_out(wolf.coy.hab, "Wolf", "Coyote")
   out_wolf.lion <- mod_out(wolf.lion.null, "Wolf", "Mountain lion")
   out_lion.bear <- mod_out(lion.bear.null, "Mountain lion", "Black bear")
@@ -244,15 +243,9 @@
              Parameter = str_replace(Parameter, "\\[8]", paste(":", cov8)))
     return(renamed_out)
   }
-  occ_wolf.bear.top <- rename_occ_params(out_wolf.bear_top[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
-                                         cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Elevation", cov5 = "Forest cover", 
-                                         cov6 = NA, cov7 = NA, cov8 = NA) %>%
-    mutate(Parameter = ifelse(Parameter == "Interaction", paste0(Parameter, ": Intercept"), Parameter),
-           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
-           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
-  occ_wolf.bear.2nd <- rename_occ_params(out_wolf.bear_2nd[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
-                                         cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Elevation", cov5 = "Forest cover", 
-                                         cov6 = "Shannon's H", cov7 = NA, cov8 = NA) %>%
+  occ_wolf.bear <- rename_occ_params(out_wolf.bear[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
+                                     cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Elevation", cov5 = "Forest cover", 
+                                     cov6 = "Shannon's H", cov7 = NA, cov8 = NA) %>%
     mutate(Parameter = ifelse(Parameter == "Interaction", paste0(Parameter, ": Intercept"), Parameter),
            Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Black bear", "Species 2"))
@@ -285,8 +278,8 @@
   
   #'  Combine all occupancy results (long table)
   top_null_results <- rbind(occ_wolf.lion, occ_lion.bear, occ_lion.bob)
-  top_non_null_results <- rbind(occ_wolf.bear.2nd, occ_wolf.coy, occ_coy.bob) # NOTE: using 2nd best supported wolf.bear model
-  top_occmod_table_long <- rbind(occ_wolf.bear.2nd, occ_wolf.coy, occ_wolf.lion, occ_lion.bear, occ_lion.bob, occ_coy.bob) # NOTE: using 2nd best supported wolf.bear model
+  top_non_null_results <- rbind(occ_wolf.bear, occ_wolf.coy, occ_coy.bob) 
+  top_occmod_table_long <- rbind(occ_wolf.bear, occ_wolf.coy, occ_wolf.lion, occ_lion.bear, occ_lion.bob, occ_coy.bob) 
   
   #'  Reformat into a wide table
   top_occmod_table_wide <- top_occmod_table_long %>%
@@ -385,10 +378,7 @@
              Parameter = str_replace(Parameter, "\\[3]", paste(":", cov3)))
     return(renamed_out)
   }
-  det_wolf.bear.top <- rename_det_params(out_wolf.bear_top[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
-    mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
-           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
-  det_wolf.bear.2nd <- rename_det_params(out_wolf.bear_2nd[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+  det_wolf.bear <- rename_det_params(out_wolf.bear[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Black bear", "Species 2"))
   det_wolf.coy <- rename_det_params(out_wolf.coy[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
@@ -410,7 +400,7 @@
     mutate(Parameter = str_replace(Parameter, "Coyote", "Species 1"),
            Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
   
-  top_detmod_table_long <- rbind(det_wolf.bear.2nd, det_wolf.coy, det_wolf.lion, det_lion.bear, det_lion.bob, det_coy.bob) # NOTE: using 2nd best supported wolf.bear model
+  top_detmod_table_long <- rbind(det_wolf.bear, det_wolf.coy, det_wolf.lion, det_lion.bear, det_lion.bob, det_coy.bob) 
   
   #'  Reformat into a wide table
   top_detmod_table_wide <- top_detmod_table_long %>%
@@ -461,8 +451,7 @@
       relocate(Predator_pair, .before = Species)
     return(renamed_out)
   }
-  # mean_wolf.bear.top <- rename_mean_psi_p(out_wolf.bear_top[[3]])
-  # mean_wolf.bear.2nd <- rename_mean_psi_p(out_wolf.bear_2nd[[3]])
+  # mean_wolf.bear <- rename_mean_psi_p(out_wolf.bear[[3]])
   # mean_wolf.coy <- rename_mean_psi_p(out_wolf.coy[[3]])
   # mean_coy.bob <- rename_mean_psi_p(out_coy.bob[[3]])
   mean_wolf.lion <- rename_mean_psi_p(out_wolf.lion[[3]])
