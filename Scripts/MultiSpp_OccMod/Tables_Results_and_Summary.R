@@ -161,6 +161,11 @@
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2023-04-06.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_2023-04-07.RData")
   
+  #'  Additional null models to snag mean psi and p from
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2023-04-10.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(yr)_p(.)_2023-04-10.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2023-04-10.RData")
+  
   
   #'  Save model outputs in table format 
   #'  Functions extract outputs for each sub-model and appends species info
@@ -208,6 +213,10 @@
   out_lion.bear <- mod_out(lion.bear.null, "Mountain lion", "Black bear")
   out_lion.bob <- mod_out(lion.bob.null, "Mountain lion", "Bobcat")
   out_coy.bob <- mod_out(coy.bob.global, "Coyote", "Bobcat")
+  
+  out_wolf.bear_null <- mod_out(wolf.bear.null, "Wolf", "Black bear")
+  out_wolf.coy_null <- mod_out(wolf.coy.null, "Wolf", "Coyote")
+  out_coy.bob_null <- mod_out(coy.bob.null, "Coyote", "Bobcat")
   
   
   #####  Occupancy results  ####
@@ -362,7 +371,7 @@
   #####  Detection results  ####
   #'  -----------------------
   #'  Switch place-holder parameter names with useful ones for occupancy submodel
-  rename_occ_params <- function(out, cov2, cov3) {
+  rename_det_params <- function(out, cov2, cov3) {
     renamed_out <- out %>%
       #'  Add species names to appropriate parameters
       mutate(Lower_CRI = format(Lower_CRI, nsmall = 2),
@@ -377,28 +386,28 @@
              Parameter = str_replace(Parameter, "\\[3]", paste(":", cov3)))
     return(renamed_out)
   }
-  det_wolf.bear.top <- rename_occ_params(out_wolf.bear_top[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+  det_wolf.bear.top <- rename_det_params(out_wolf.bear_top[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Black bear", "Species 2"))
-  det_wolf.bear.2nd <- rename_occ_params(out_wolf.bear_2nd[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+  det_wolf.bear.2nd <- rename_det_params(out_wolf.bear_2nd[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Black bear", "Species 2"))
-  det_wolf.coy <- rename_occ_params(out_wolf.coy[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+  det_wolf.coy <- rename_det_params(out_wolf.coy[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Coyote", "Species 2"))
-  det_wolf.lion <- rename_occ_params(out_wolf.lion[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+  det_wolf.lion <- rename_det_params(out_wolf.lion[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = paste0(Parameter, ": Intercept"),
            Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Mountain lion", "Species 2"))
-  det_lion.bear <- rename_occ_params(out_lion.bear[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+  det_lion.bear <- rename_det_params(out_lion.bear[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = paste0(Parameter, ": Intercept"),
            Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
            Parameter = str_replace(Parameter, "Black bear", "Species 2"))
-  det_lion.bob <- rename_occ_params(out_lion.bob[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+  det_lion.bob <- rename_det_params(out_lion.bob[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = paste0(Parameter, ": Intercept"),
            Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
            Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
-  det_coy.bob <- rename_occ_params(out_coy.bob[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+  det_coy.bob <- rename_det_params(out_coy.bob[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = str_replace(Parameter, "Coyote", "Species 1"),
            Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
   
@@ -424,3 +433,68 @@
   #'  Save detection results
   write.csv(top_detmod_table_long, file = paste0("./Outputs/Tables/top_detmod_table_long_", Sys.Date(), ".csv"))
   write.csv(top_detmod_table_wide, file = paste0("./Outputs/Tables/top_detmod_table_wide_", Sys.Date(), ".csv"))
+
+  
+  #####  Mean occupancy & detection probability  ####
+  #'  --------------------------------------------
+  #'  Switch place-holder parameter names with useful ones for occupancy submodel
+  rename_mean_psi_p <- function(out) {
+    renamed_out <- out %>%
+      #'  Add species names to appropriate parameters
+      mutate(Mean = format(Mean, nsmall = 2),
+             Lower_CRI = format(Lower_CRI, nsmall = 2),
+             Upper_CRI = format(Upper_CRI, nsmall = 2),
+             Mean = str_replace_all(Mean, " ", ""),
+             Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
+             Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
+             #'  Combine into single 95% CRI column
+             CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")"),
+             Mean = paste(Mean, CRI),
+             Species = ifelse(Parameter == "mean.psiSpp1", Species1, Species2),
+             Species = ifelse(Parameter == "mean.pSpp1", Species1, Species),
+             Parameter = str_replace(Parameter, "mean.psiSpp1", "Mean occupancy"),
+             Parameter = str_replace(Parameter, "mean.psiSpp2", "Mean occupancy"),
+             Parameter = str_replace(Parameter, "mean.pSpp1", "Mean detection"),
+             Parameter = str_replace(Parameter, "mean.pSpp2", "Mean detection"),
+             Predator_pair = paste(Species1, "-", Species2)) %>%
+      dplyr::select(-c(Species1, Species2, Lower_CRI, Upper_CRI, CRI)) %>%
+      relocate(Species, .before = Parameter) %>%
+      relocate(Predator_pair, .before = Species)
+    return(renamed_out)
+  }
+  # mean_wolf.bear.top <- rename_mean_psi_p(out_wolf.bear_top[[3]])
+  # mean_wolf.bear.2nd <- rename_mean_psi_p(out_wolf.bear_2nd[[3]])
+  # mean_wolf.coy <- rename_mean_psi_p(out_wolf.coy[[3]])
+  # mean_coy.bob <- rename_mean_psi_p(out_coy.bob[[3]])
+  mean_wolf.lion <- rename_mean_psi_p(out_wolf.lion[[3]])
+  mean_lion.bear <- rename_mean_psi_p(out_lion.bear[[3]])
+  mean_lion.bob <- rename_mean_psi_p(out_lion.bob[[3]])
+  mean_wolf.bear <- rename_mean_psi_p(out_wolf.bear_null[[3]])
+  mean_wolf.coy <- rename_mean_psi_p(out_wolf.coy_null[[3]])
+  mean_coy.bob <- rename_mean_psi_p(out_coy.bob_null[[3]])
+  
+  #'  Merge all results  
+  mean_occ_det <- rbind(mean_wolf.bear, mean_wolf.coy, mean_coy.bob, mean_wolf.lion, mean_lion.bear, mean_lion.bob)
+  #'  Split by occupancy vs detection probability
+  mean_occ <- filter(mean_occ_det, Parameter == "Mean occupancy") %>%
+    rename("Mean Occupancy (95% CRI)" = "Mean") %>%
+    dplyr::select(-Parameter)
+  mean_det <- filter(mean_occ_det, Parameter == "Mean detection") %>%
+    rename("Mean Detection (95% CRI)" = "Mean") %>%
+    dplyr::select(-Parameter)
+  #'  Re-combine occupancy and detection estimates so there is 1 row per species
+  mean_occ_det <- full_join(mean_occ, mean_det, by = c("Predator_pair", "Species")) %>%
+    arrange(Species) %>%
+    group_by(Species) %>%
+    slice(1L) %>%
+    ungroup() %>%
+    dplyr::select(-Predator_pair)
+  ### NOTE: Reports multiple occ and det estimates per species given multiple models with the same species
+  ### NOTE: Estimates differ depending on if they come from null model vs model with covariates
+  ### NOTE: mean.psi and mean.p for covariate models are occ/det at ungulate cameras (which is LOW compared to predator cameras)
+  ### NOTE: mean.psi and mean.p for null models are true mean occ/det (averaged across ungulate & predator cameras)
+  ### NOTE: but don't account for any heterogeneity in occ/det. 
+  ### NOTE: Currently using estimates from null models since this is unaffected by camera placement
+  
+  write.csv(mean_occ_det, "./Outputs/Tables/Summary_mean_psi&p.csv")
+  
