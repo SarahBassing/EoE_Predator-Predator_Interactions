@@ -146,27 +146,27 @@
   #####  Wolf-Black bear predictions  ####
   #'  Top model
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_2023-04-11.RData")
-  wolf.bear.elev.ung.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+  wolf.bear.elev.ung.yr1 <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
                                                focal_cov = stations_skinny_eoe20s21s$Elev,
                                                psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 4,
                                                psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.elev.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+  wolf.bear.elev.pred.yr1 <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
                                                 focal_cov = stations_skinny_eoe20s21s$Elev,
                                                 psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 4,
                                                 psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.for.ung.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+  wolf.bear.for.ung.yr1 <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
                                               focal_cov = stations_skinny_eoe20s21s$PercForest,
                                               psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 5,
                                               psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.for.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+  wolf.bear.for.pred.yr1 <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
                                                focal_cov = stations_skinny_eoe20s21s$PercForest,
                                                psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 5,
                                                psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.div.ung.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+  wolf.bear.div.ung.yr1 <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
                                               focal_cov = stations_skinny_eoe20s21s$SppDiversity,
                                               psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 6,
                                               psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.div.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+  wolf.bear.div.pred.yr1 <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
                                                focal_cov = stations_skinny_eoe20s21s$SppDiversity,
                                                psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 6,
                                                psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
@@ -326,20 +326,19 @@
   }
   #####  Wolf-Bear marginal occupancy  ####
   #'  Top model
-  wolf.bear.marg.elev.ung_a <- plot_marginal_occ(predicted = wolf.bear.elev.ung.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.elev.pred_a <- plot_marginal_occ(predicted = wolf.bear.elev.pred.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.for.ung_a <- plot_marginal_occ(predicted = wolf.bear.for.ung.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.for.pred_a <- plot_marginal_occ(predicted = wolf.bear.for.pred.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "Trail sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.plots_topmod <- list(wolf.bear.marg.elev.ung_a, wolf.bear.marg.elev.pred_a, wolf.bear.marg.for.ung_a, wolf.bear.marg.for.pred_a)
+  wolf.bear.marg.elev.ung <- plot_marginal_occ(predicted = wolf.bear.elev.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.elev.pred <- plot_marginal_occ(predicted = wolf.bear.elev.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.for.ung <- plot_marginal_occ(predicted = wolf.bear.for.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.for.pred <- plot_marginal_occ(predicted = wolf.bear.for.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "Trail sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.div.ung <- plot_marginal_occ(predicted = wolf.bear.div.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Shannon's diversity index", setup = "random sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.div.pred <- plot_marginal_occ(predicted = wolf.bear.div.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Shannon's diversity index", setup = "trail sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.plots <- list(wolf.bear.marg.elev.ung, wolf.bear.marg.elev.pred, wolf.bear.marg.for.ung, wolf.bear.marg.for.pred, wolf.bear.marg.div.ung, wolf.bear.marg.div.pred)
   
-  #'  Second top model
-  wolf.bear.marg.elev.ung_b <- plot_marginal_occ(predicted = wolf.bear.elev.ung.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.elev.pred_b <- plot_marginal_occ(predicted = wolf.bear.elev.pred.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.for.ung_b <- plot_marginal_occ(predicted = wolf.bear.for.ung.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.for.pred_b <- plot_marginal_occ(predicted = wolf.bear.for.pred.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "Trail sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.div.ung_b <- plot_marginal_occ(predicted = wolf.bear.div.ung.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Shannon's diversity index", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.div.pred_b <- plot_marginal_occ(predicted = wolf.bear.div.pred.yr1b, spp1 = "Wolf", spp2 = "Bear", covname = "Shannon's diversity index", setup = "trail sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.plots_2ndmod <- list(wolf.bear.marg.elev.ung_b, wolf.bear.marg.elev.pred_b, wolf.bear.marg.for.ung_b, wolf.bear.marg.for.pred_b, wolf.bear.marg.div.ung_b, wolf.bear.marg.div.pred_b)
+  # wolf.bear.marg.elev.ung_a <- plot_marginal_occ(predicted = wolf.bear.elev.ung.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
+  # wolf.bear.marg.elev.pred_a <- plot_marginal_occ(predicted = wolf.bear.elev.pred.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
+  # wolf.bear.marg.for.ung_a <- plot_marginal_occ(predicted = wolf.bear.for.ung.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "random sites", spppair = "Wolf - Black Bear")
+  # wolf.bear.marg.for.pred_a <- plot_marginal_occ(predicted = wolf.bear.for.pred.yr1a, spp1 = "Wolf", spp2 = "Bear", covname = "Percent forest cover", setup = "Trail sites", spppair = "Wolf - Black Bear")
+  # wolf.bear.marg.plots_altmod <- list(wolf.bear.marg.elev.ung_a, wolf.bear.marg.elev.pred_a, wolf.bear.marg.for.ung_a, wolf.bear.marg.for.pred_a)
   
   #####  Wolf-Coyote marginal occupancy  ####
   wolf.coy.marg.elev.ung <- plot_marginal_occ(predicted = wolf.coy.elev.ung.yr1, spp1 = "Wolf", spp2 = "Coyote", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Coyote")
@@ -362,14 +361,14 @@
   coy.bob.marg.elev.pred <- plot_marginal_occ(predicted = coy.bob.elev.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Elevation (m)", setup = "trail sites", spppair = "Coyote - Bobcat")
   coy.bob.marg.for.ung <- plot_marginal_occ(predicted = coy.bob.for.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Percent forest cover", setup = "random sites", spppair = "Coyote - Bobcat")
   coy.bob.marg.for.pred <- plot_marginal_occ(predicted = coy.bob.for.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Percent forest cover", setup = "trail sites", spppair = "Coyote - Bobcat")
-  coy.bob.marg.wtd.ung <- plot_marginal_occ(predicted = coy.bob.wtd.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "White-tailed deer relative abundance", setup = "random sites", spppair = "Coyote - Bobcat")
-  coy.bob.marg.wtd.pred <- plot_marginal_occ(predicted = coy.bob.wtd.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "White-tailed deer relative abundance", setup = "trail sites", spppair = "Coyote - Bobcat")
-  coy.bob.marg.lago.ung <- plot_marginal_occ(predicted = coy.bob.lago.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Lagomorph relative abundance", setup = "random sites", spppair = "Coyote - Bobcat")
-  coy.bob.marg.lago.pred <- plot_marginal_occ(predicted = coy.bob.lago.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Lagomorph relative abundance", setup = "trail sites", spppair = "Coyote - Bobcat")
-  coy.bob.marg.div.ung <- plot_marginal_occ(predicted = coy.bob.div.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Shannon's diversity index", setup = "random sites", spppair = "Coyote - Bobcat")
-  coy.bob.marg.div.pred <- plot_marginal_occ(predicted = coy.bob.div.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Shannon's diversity index", setup = "trail sites", spppair = "Coyote - Bobcat")
-  coy.bob.marg.plots <- list(coy.bob.marg.elev.ung, coy.bob.marg.elev.pred, coy.bob.marg.for.ung, coy.bob.marg.for.pred, 
-                             coy.bob.marg.wtd.ung, coy.bob.marg.wtd.pred, coy.bob.marg.lago.ung, coy.bob.marg.lago.pred, coy.bob.marg.div.ung, coy.bob.marg.div.pred)
+  # coy.bob.marg.wtd.ung <- plot_marginal_occ(predicted = coy.bob.wtd.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "White-tailed deer relative abundance", setup = "random sites", spppair = "Coyote - Bobcat")
+  # coy.bob.marg.wtd.pred <- plot_marginal_occ(predicted = coy.bob.wtd.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "White-tailed deer relative abundance", setup = "trail sites", spppair = "Coyote - Bobcat")
+  # coy.bob.marg.lago.ung <- plot_marginal_occ(predicted = coy.bob.lago.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Lagomorph relative abundance", setup = "random sites", spppair = "Coyote - Bobcat")
+  # coy.bob.marg.lago.pred <- plot_marginal_occ(predicted = coy.bob.lago.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Lagomorph relative abundance", setup = "trail sites", spppair = "Coyote - Bobcat")
+  # coy.bob.marg.div.ung <- plot_marginal_occ(predicted = coy.bob.div.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Shannon's diversity index", setup = "random sites", spppair = "Coyote - Bobcat")
+  # coy.bob.marg.div.pred <- plot_marginal_occ(predicted = coy.bob.div.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Shannon's diversity index", setup = "trail sites", spppair = "Coyote - Bobcat")
+  coy.bob.marg.plots <- list(coy.bob.marg.elev.ung, coy.bob.marg.elev.pred, coy.bob.marg.for.ung, coy.bob.marg.for.pred)#, 
+                             #coy.bob.marg.wtd.ung, coy.bob.marg.wtd.pred, coy.bob.marg.lago.ung, coy.bob.marg.lago.pred, coy.bob.marg.div.ung, coy.bob.marg.div.pred)
  
   #' #'  Function to plot marginal probabilities
   #' marginal_prob_plots <- function(focal_cov, marg, covariate_name, spp1, spp2, plotit = T) {
@@ -619,17 +618,17 @@
   
   #'  Save
   #'  Wolf-bear marginal
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_ung_marginal_plots.tiff", wolf.bear.marg.plots_2ndmod[[1]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_ung_marginal_plots.tiff", wolf.bear.marg.plots[[1]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_pred_marginal_plots.tiff", wolf.bear.marg.plots_2ndmod[[2]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_pred_marginal_plots.tiff", wolf.bear.marg.plots[[2]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_ung_marginal_plots.tiff", wolf.bear.marg.plots_2ndmod[[3]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_ung_marginal_plots.tiff", wolf.bear.marg.plots[[3]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_pred_marginal_plots.tiff", wolf.bear.marg.plots_2ndmod[[4]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_pred_marginal_plots.tiff", wolf.bear.marg.plots[[4]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_div_ung_marginal_plots.tiff", wolf.bear.marg.plots_2ndmod[[5]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_div_ung_marginal_plots.tiff", wolf.bear.marg.plots[[5]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_div_pred_marginal_plots.tiff", wolf.bear.marg.plots_2ndmod[[6]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_div_pred_marginal_plots.tiff", wolf.bear.marg.plots[[6]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   #'  Wolf-coyote marginal
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_ung_marginal_plots.tiff", wolf.coy.marg.plots[[1]], 
@@ -659,15 +658,15 @@
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_pred_conditional_plots.tiff", wolf.bear.condish.plots[[4]],
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  #'  Wolf-coyote conditional
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_ung_conditional_plots.tiff", wolf.coy.condish.plots[[1]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_pred_conditional_plots.tiff", wolf.coy.condish.plots[[2]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_ung_conditional_plots.tiff", wolf.coy.condish.plots[[3]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_pred_conditional_plots.tiff", wolf.coy.condish.plots[[4]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  #' #'  Wolf-coyote conditional
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_ung_conditional_plots.tiff", wolf.coy.condish.plots[[1]], 
+  #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_pred_conditional_plots.tiff", wolf.coy.condish.plots[[2]], 
+  #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_ung_conditional_plots.tiff", wolf.coy.condish.plots[[3]], 
+  #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_pred_conditional_plots.tiff", wolf.coy.condish.plots[[4]], 
+  #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   #'  Coyote-bobcat conditional
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_wtd_ung_conditional_plots.tiff", coy.bob.condish.plots[[5]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
