@@ -145,53 +145,53 @@
   }
   #####  Wolf-Black bear predictions  ####
   #'  Top model
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2023-04-08.RData")
-  wolf.bear.elev.ung.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
-                                             focal_cov = stations_skinny_eoe20s21s$Elev,
-                                             psi_cov = c(1, 0, 0, 0, 0), psi_cov_index = 4,
-                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.elev.pred.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
-                                             focal_cov = stations_skinny_eoe20s21s$Elev,
-                                             psi_cov = c(1, 1, 0, 0, 0), psi_cov_index = 4,
-                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.for.ung.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
-                                             focal_cov = stations_skinny_eoe20s21s$PercForest,
-                                             psi_cov = c(1, 0, 0, 0, 0), psi_cov_index = 5,
-                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.for.pred.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
-                                             focal_cov = stations_skinny_eoe20s21s$PercForest,
-                                             psi_cov = c(1, 1, 0, 0, 0), psi_cov_index = 5,
-                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  
-  #'  Second top model (within 2 deltaDIC)
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_2023-04-09.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_2023-04-11.RData")
   wolf.bear.elev.ung.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
-                                              focal_cov = stations_skinny_eoe20s21s$Elev,
-                                              psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 4,
-                                              psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.elev.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
                                                focal_cov = stations_skinny_eoe20s21s$Elev,
-                                               psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 4,
+                                               psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 4,
                                                psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.elev.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+                                                focal_cov = stations_skinny_eoe20s21s$Elev,
+                                                psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 4,
+                                                psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
   wolf.bear.for.ung.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
-                                             focal_cov = stations_skinny_eoe20s21s$PercForest,
-                                             psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 5,
-                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.for.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
                                               focal_cov = stations_skinny_eoe20s21s$PercForest,
-                                              psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 5,
+                                              psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 5,
                                               psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.for.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+                                               focal_cov = stations_skinny_eoe20s21s$PercForest,
+                                               psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 5,
+                                               psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
   wolf.bear.div.ung.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
-                                             focal_cov = stations_skinny_eoe20s21s$SppDiversity,
-                                             psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 6,
-                                             psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
-  wolf.bear.div.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
                                               focal_cov = stations_skinny_eoe20s21s$SppDiversity,
-                                              psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 6,
+                                              psi_cov = c(1, 0, 0, 0, 0, 0), psi_cov_index = 6,
                                               psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.div.pred.yr1b <- predict_occupancy(mod = wolf.bear.preydiv, ncat = 4, npoints = 500,
+                                               focal_cov = stations_skinny_eoe20s21s$SppDiversity,
+                                               psi_cov = c(1, 1, 0, 0, 0, 0), psi_cov_index = 6,
+                                               psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  
+  #' #'  Second top model (but not within 2 deltaDIC)
+  #' load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2023-04-12.RData")
+  #' wolf.bear.elev.ung.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
+  #'                                              focal_cov = stations_skinny_eoe20s21s$Elev,
+  #'                                              psi_cov = c(1, 0, 0, 0, 0), psi_cov_index = 4,
+  #'                                              psi_inxs_cov = c(1), psi_inxs_cov_index = 0)
+  #' wolf.bear.elev.pred.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
+  #'                                               focal_cov = stations_skinny_eoe20s21s$Elev,
+  #'                                               psi_cov = c(1, 1, 0, 0, 0), psi_cov_index = 4,
+  #'                                               psi_inxs_cov = c(1), psi_inxs_cov_index = 0)
+  #' wolf.bear.for.ung.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
+  #'                                             focal_cov = stations_skinny_eoe20s21s$PercForest,
+  #'                                             psi_cov = c(1, 0, 0, 0, 0), psi_cov_index = 5,
+  #'                                             psi_inxs_cov = c(1), psi_inxs_cov_index = 0)
+  #' wolf.bear.for.pred.yr1a <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
+  #'                                              focal_cov = stations_skinny_eoe20s21s$PercForest,
+  #'                                              psi_cov = c(1, 1, 0, 0, 0), psi_cov_index = 5,
+  #'                                              psi_inxs_cov = c(1), psi_inxs_cov_index = 0)
   
   #####  Wolf-Coyote predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2023-04-04.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2023-04-10.RData") 
   wolf.coy.elev.ung.yr1 <- predict_occupancy(mod = wolf.coy.hab, ncat = 4, npoints = 500,
                                              focal_cov = stations_skinny_eoe20s21s$Elev,
                                              psi_cov = c(1, 0, 0, 0, 0), psi_cov_index = 4,
@@ -210,20 +210,19 @@
                                              psi_inxs_cov = 0, psi_inxs_cov_index = 0)
   
   #####  Wolf-Lion predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(.)_p(.)_2023-04-05.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2023-04-06.RData")
   
   
   #####  Lion-Bear predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(.)_p(.)_2023-03-31.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2023-04-06.RData")
   
   
   #####  Lion-Bobcat predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(.)_p(.)_2023-04-04.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2023-04-06.RData")
   
   
   #####  Coyote-Bobcat predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_2023-04-07.RData")
-  # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2023-04-04.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_2023-04-11.RData")
   coy.bob.elev.ung.yr1 <- predict_occupancy(mod = coy.bob.global, ncat = 4, npoints = 500, 
                                             focal_cov = stations_skinny_eoe20s21s$Elev,
                                             psi_cov = c(1, 0, 0, 0, 0, 0, 0, 0), psi_cov_index = 4,
