@@ -749,7 +749,7 @@
   
   #'  Extract mean and 95% CRI for each observation (should be identical) and thin
   #'  to one value per species
-  mean_occ_prob <- function(predicted, spp1, spp2) {
+  mean_occ_prob <- function(predicted, spp1, spp2, yr) {
     #'  Snag mean
     marg.occ <- as.data.frame(predicted[[1]][,,"mean"]) %>%
       pivot_longer(cols = c(Spp1, Spp2), names_to = "Species") %>%
@@ -774,27 +774,38 @@
       ungroup() %>%
       mutate(marginal_occ = round(marginal_occ, 2),
              lowerCRI = round(lowerCRI, 2),
-             upperCRI = round(upperCRI, 2))
+             upperCRI = round(upperCRI, 2),
+             Year = yr)
     return(predicted.marginal.occ)
   }
-  psimean_wolf.bear.yr1 <- mean_occ_prob(wolf.bear.mean.yr1, spp1 = "Wolf", spp2 = "Black bear")
-  psimean_wolf.bear.yr2 <- mean_occ_prob(wolf.bear.mean.yr2, spp1 = "Wolf", spp2 = "Black bear")
-  psimean_wolf.coy.yr1 <- mean_occ_prob(wolf.coy.mean.yr1, spp1 = "Wolf", spp2 = "Coyote")
-  psimean_wolf.coy.yr2 <- mean_occ_prob(wolf.coy.mean.yr2, spp1 = "Wolf", spp2 = "Coyote")
-  psimean_wolf.lion.yr1 <- mean_occ_prob(wolf.lion.mean.yr1, spp1 = "Wolf", spp2 = "Mountain lion")
-  psimean_wolf.lion.yr2 <- mean_occ_prob(wolf.lion.mean.yr2, spp1 = "Wolf", spp2 = "Mountain lion")
-  psimean_lion.bear.yr1 <- mean_occ_prob(lion.bear.mean.yr1, spp1 = "Mountain lion", spp2 = "Black bear")
-  psimean_lion.bear.yr2 <- mean_occ_prob(lion.bear.mean.yr2, spp1 = "Mountain lion", spp2 = "Black bear")
-  psimean_lion.bob.yr1 <- mean_occ_prob(lion.bob.mean.yr1, spp1 = "Mountain lion", spp2 = "Bobcat")
-  psimean_lion.bob.yr2 <- mean_occ_prob(lion.bob.mean.yr2, spp1 = "Mountain lion", spp2 = "Bobcat")
-  psimean_coy.bob.yr1 <- mean_occ_prob(coy.bob.mean.yr1, spp1 = "Coyote", spp2 = "Bobcat")
-  psimean_coy.bob.yr2 <- mean_occ_prob(coy.bob.mean.yr2, spp1 = "Coyote", spp2 = "Bobcat")
+  psimean_wolf.bear.yr1 <- mean_occ_prob(wolf.bear.mean.yr1, spp1 = "Wolf", spp2 = "Black bear", yr = "2020")
+  psimean_wolf.bear.yr2 <- mean_occ_prob(wolf.bear.mean.yr2, spp1 = "Wolf", spp2 = "Black bear", yr = "2021")
+  psimean_wolf.coy.yr1 <- mean_occ_prob(wolf.coy.mean.yr1, spp1 = "Wolf", spp2 = "Coyote", yr = "2020")
+  psimean_wolf.coy.yr2 <- mean_occ_prob(wolf.coy.mean.yr2, spp1 = "Wolf", spp2 = "Coyote", yr = "2021")
+  psimean_wolf.lion.yr1 <- mean_occ_prob(wolf.lion.mean.yr1, spp1 = "Wolf", spp2 = "Mountain lion", yr = "2020")
+  psimean_wolf.lion.yr2 <- mean_occ_prob(wolf.lion.mean.yr2, spp1 = "Wolf", spp2 = "Mountain lion", yr = "2021")
+  psimean_lion.bear.yr1 <- mean_occ_prob(lion.bear.mean.yr1, spp1 = "Mountain lion", spp2 = "Black bear", yr = "2020")
+  psimean_lion.bear.yr2 <- mean_occ_prob(lion.bear.mean.yr2, spp1 = "Mountain lion", spp2 = "Black bear", yr = "2021")
+  psimean_lion.bob.yr1 <- mean_occ_prob(lion.bob.mean.yr1, spp1 = "Mountain lion", spp2 = "Bobcat", yr = "2020")
+  psimean_lion.bob.yr2 <- mean_occ_prob(lion.bob.mean.yr2, spp1 = "Mountain lion", spp2 = "Bobcat", yr = "2021")
+  psimean_coy.bob.yr1 <- mean_occ_prob(coy.bob.mean.yr1, spp1 = "Coyote", spp2 = "Bobcat", yr = "2020")
+  psimean_coy.bob.yr2 <- mean_occ_prob(coy.bob.mean.yr2, spp1 = "Coyote", spp2 = "Bobcat", yr = "2021")
   
   #'  Bind all species and years together
-  mean_annual_psi <- cbind(psimean_wolf.bear.yr1, psimean_wolf.bear.yr2, psimean_wolf.coy.yr1, 
+  mean_annual_psi <- rbind(psimean_wolf.bear.yr1, psimean_wolf.bear.yr2, psimean_wolf.coy.yr1, 
                            psimean_wolf.coy.yr2, psimean_wolf.lion.yr1, psimean_wolf.lion.yr2, 
                            psimean_lion.bear.yr1, psimean_lion.bear.yr2, psimean_lion.bob.yr1,
-                           psimean_lion.bob.yr2, psimean_coy.bob.yr1, psimean_coy.bob.yr2)
+                           psimean_lion.bob.yr2, psimean_coy.bob.yr1, psimean_coy.bob.yr2) %>%
+    #'  Reduce to one observation per species
+    group_by(Species, Year) %>%
+    slice(1L) %>%
+    ungroup() %>%
+    #'  Combine mean & CRI into single column
+    mutate(CRI = paste0("(", lowerCRI, ", ", upperCRI, ")"),
+           Mean = paste(marginal_occ, CRI)) %>%
+    dplyr::select(Species, Year, Mean) %>%
+    spread(Year, Mean) %>%
+    rename("Mean_CRI_2020" = "2020", "Mean_CRI_2021" = "2021")
   
   #'  Save!
   write.csv(mean_annual_psi, "./Outputs/Tables/Summary_mean_psi_yr1v2.csv")
