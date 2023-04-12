@@ -682,4 +682,123 @@
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
+  #'  ----------------------------------------
+  ####  Predict mean occupancy for Yr1 & Yr2  ####
+  #'  ----------------------------------------
+  #'  Load null models (includes year effect on marginal occupancy)
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2023-04-10.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(yr)_p(.)_2023-04-10.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2023-04-06.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2023-04-06.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2023-04-06.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2023-04-10.RData")
+  
+  #'  Add binary Year variable to covariate data fram
+  stations_skinny_eoe20s21s <- mutate(stations_skinny_eoe20s21s, 
+                                      Year = ifelse(Season == "Smr20", 0, 1))
+  
+  #'  Predict mean occupancy for Yr1 and Yr2
+  wolf.bear.mean.yr1 <- predict_occupancy(mod = wolf.bear.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 0), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.bear.mean.yr2 <- predict_occupancy(mod = wolf.bear.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 1), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.coy.mean.yr1 <- predict_occupancy(mod = wolf.coy.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 0), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.coy.mean.yr2 <- predict_occupancy(mod = wolf.coy.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 1), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.lion.mean.yr1 <- predict_occupancy(mod = wolf.lion.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 0), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  wolf.lion.mean.yr2 <- predict_occupancy(mod = wolf.lion.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 1), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  lion.bear.mean.yr1 <- predict_occupancy(mod = lion.bear.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 0), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  lion.bear.mean.yr2 <- predict_occupancy(mod = lion.bear.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 1), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  lion.bob.mean.yr1 <- predict_occupancy(mod = lion.bob.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 0), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  lion.bob.mean.yr2 <- predict_occupancy(mod = lion.bob.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          psi_cov = c(1, 1), psi_cov_index = 0,
+                                          psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  coy.bob.mean.yr1 <- predict_occupancy(mod = coy.bob.null, ncat = 4, npoints = 500,
+                                         focal_cov = stations_skinny_eoe20s21s$Year,
+                                         psi_cov = c(1, 0), psi_cov_index = 0,
+                                         psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  coy.bob.mean.yr2 <- predict_occupancy(mod = coy.bob.null, ncat = 4, npoints = 500,
+                                         focal_cov = stations_skinny_eoe20s21s$Year,
+                                         psi_cov = c(1, 1), psi_cov_index = 0,
+                                         psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  
+  #'  Extract mean and 95% CRI for each observation (should be identical) and thin
+  #'  to one value per species
+  mean_occ_prob <- function(predicted, spp1, spp2) {
+    #'  Snag mean
+    marg.occ <- as.data.frame(predicted[[1]][,,"mean"]) %>%
+      pivot_longer(cols = c(Spp1, Spp2), names_to = "Species") %>%
+      arrange(Species) %>%
+      mutate(Species = ifelse(Species == "Spp1", spp1, spp2),
+             Species = factor(Species, levels = c(spp1, spp2)))
+    #'  Snag lower 95% credible interval
+    lower.marg <- as.data.frame(predicted[[1]][,,"lower"]) %>%
+      pivot_longer(cols = c(Spp1, Spp2), names_to = "Species") %>%
+      arrange(Species)
+    #'  Snag upper 95% credible interval 
+    upper.marg <- as.data.frame(predicted[[1]][,,"upper"]) %>%
+      pivot_longer(cols = c(Spp1, Spp2), names_to = "Species") %>%
+      arrange(Species)
+    #'  Create single data frame
+    predicted.marginal.occ <- cbind(marg.occ, lower.marg[,2], upper.marg[,2])
+    names(predicted.marginal.occ) <- c("Species", "marginal_occ", "lowerCRI", "upperCRI")
+    #'  Drop extra observations and round
+    predicted.marginal.occ <- as.data.frame(predicted.marginal.occ) %>%
+      group_by(Species) %>%
+      slice(1L) %>%
+      ungroup() %>%
+      mutate(marginal_occ = round(marginal_occ, 2),
+             lowerCRI = round(lowerCRI, 2),
+             upperCRI = round(upperCRI, 2))
+    return(predicted.marginal.occ)
+  }
+  psimean_wolf.bear.yr1 <- mean_occ_prob(wolf.bear.mean.yr1, spp1 = "Wolf", spp2 = "Black bear")
+  psimean_wolf.bear.yr2 <- mean_occ_prob(wolf.bear.mean.yr2, spp1 = "Wolf", spp2 = "Black bear")
+  psimean_wolf.coy.yr1 <- mean_occ_prob(wolf.coy.mean.yr1, spp1 = "Wolf", spp2 = "Coyote")
+  psimean_wolf.coy.yr2 <- mean_occ_prob(wolf.coy.mean.yr2, spp1 = "Wolf", spp2 = "Coyote")
+  psimean_wolf.lion.yr1 <- mean_occ_prob(wolf.lion.mean.yr1, spp1 = "Wolf", spp2 = "Mountain lion")
+  psimean_wolf.lion.yr2 <- mean_occ_prob(wolf.lion.mean.yr2, spp1 = "Wolf", spp2 = "Mountain lion")
+  psimean_lion.bear.yr1 <- mean_occ_prob(lion.bear.mean.yr1, spp1 = "Mountain lion", spp2 = "Black bear")
+  psimean_lion.bear.yr2 <- mean_occ_prob(lion.bear.mean.yr2, spp1 = "Mountain lion", spp2 = "Black bear")
+  psimean_lion.bob.yr1 <- mean_occ_prob(lion.bob.mean.yr1, spp1 = "Mountain lion", spp2 = "Bobcat")
+  psimean_lion.bob.yr2 <- mean_occ_prob(lion.bob.mean.yr2, spp1 = "Mountain lion", spp2 = "Bobcat")
+  psimean_coy.bob.yr1 <- mean_occ_prob(coy.bob.mean.yr1, spp1 = "Coyote", spp2 = "Bobcat")
+  psimean_coy.bob.yr2 <- mean_occ_prob(coy.bob.mean.yr2, spp1 = "Coyote", spp2 = "Bobcat")
+  
+  #'  Bind all species and years together
+  mean_annual_psi <- cbind(psimean_wolf.bear.yr1, psimean_wolf.bear.yr2, psimean_wolf.coy.yr1, 
+                           psimean_wolf.coy.yr2, psimean_wolf.lion.yr1, psimean_wolf.lion.yr2, 
+                           psimean_lion.bear.yr1, psimean_lion.bear.yr2, psimean_lion.bob.yr1,
+                           psimean_lion.bob.yr2, psimean_coy.bob.yr1, psimean_coy.bob.yr2)
+  
+  #'  Save!
+  write.csv(mean_annual_psi, "./Outputs/Tables/Summary_mean_psi_yr1v2.csv")
+  
+  
+  
   
