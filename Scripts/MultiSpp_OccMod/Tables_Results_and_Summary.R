@@ -315,42 +315,39 @@
   
   #'  Alternate approach to tabling results
   spp1_out <- filter(top_occmod_table_long, grepl("Species 1", Parameter)) %>%
-    #'  Make sure all numbers have 2 decimal places
-    mutate(Lower_CRI = format(Lower_CRI, nsmall = 2),
-           Upper_CRI = format(Upper_CRI, nsmall = 2),
-           #'  Remove extra spaces created during formatting
-           Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
-           Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
-           #'  Drop species identifier in parameter name
-           Parameter = gsub(".*:", "", Parameter),
+    #'  Drop species identifier in parameter name and reformat mean & 95% CRI
+    mutate(Parameter = gsub(".*:", "", Parameter),
            #'  Combine lower & upper 95% CRI into single column
-           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")")) %>%
-    dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
+           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")"),
+           #'  Make sure there are two decimals for each value
+           Mean = format(Mean, nsmall = 2),
+           #'  Combine mean and 95% CRI into single column
+           Mean_CRI = paste(Mean, CRI),
+           Mean_CRI = format(Mean_CRI, nsmall = 2)) %>%
+    dplyr::select(-c(Lower_CRI, Upper_CRI, Mean, CRI)) %>%
     #'  Add species identifier to mean & CRI columns
-    rename(Mean_Species1 = Mean, CRI_Species1 = CRI)
+    rename(Mean_CRI_Species1 = Mean_CRI)
   spp2_out <- filter(top_occmod_table_long, grepl("Species 2", Parameter)) %>%
-    mutate(Lower_CRI = format(Lower_CRI, nsmall = 2),
-           Upper_CRI = format(Upper_CRI, nsmall = 2),
-           Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
-           Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
-           Parameter = gsub(".*:", "", Parameter),
-           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")")) %>%
-    dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
-    rename(Mean_Species2 = Mean, CRI_Species2 = CRI)
+    mutate(Parameter = gsub(".*:", "", Parameter),
+           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")"),
+           Mean = format(Mean, nsmall = 2),
+           Mean_CRI = paste(Mean, CRI),
+           Mean_CRI = format(Mean_CRI, nsmall = 2)) %>%
+    dplyr::select(-c(Lower_CRI, Upper_CRI, Mean, CRI)) %>%
+    rename(Mean_CRI_Species2 = Mean_CRI)
   interaction_out <- filter(top_occmod_table_long, grepl("Interaction", Parameter)) %>%
-    mutate(Lower_CRI = format(Lower_CRI, nsmall = 2),
-           Upper_CRI = format(Upper_CRI, nsmall = 2),
-           Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
-           Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
-           Parameter = gsub(".*:", "", Parameter),
-           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")")) %>%
-    dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
-    rename(Mean_Interaction = Mean, CRI_Interaction = CRI)
+    mutate(Parameter = gsub(".*:", "", Parameter),
+           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")"),
+           Mean = format(Mean, nsmall = 2),
+           Mean_CRI = paste(Mean, CRI),
+           Mean_CRI = format(Mean_CRI, nsmall = 2)) %>%
+    dplyr::select(-c(Lower_CRI, Upper_CRI, Mean, CRI)) %>%
+    rename(Mean_CRI_Interaction = Mean_CRI)
   #'  Join species 1 & 2 estimates together
   top_occmod_table <- full_join(spp1_out, spp2_out, by = c("Species1", "Species2", "Parameter")) %>%
     full_join(interaction_out, by = c("Species1", "Species2", "Parameter"))
-  colnames(top_occmod_table) <- c("Species 1", "Species 2", "Parameter", "Mean (Species 1)", "95% CRI (Species 1)", 
-                                  "Mean (Species 2)", "95% CRI (Species 2)", "Mean (Interaction)", "95% CRI (Interaction)")
+  colnames(top_occmod_table) <- c("Species 1", "Species 2", "Parameter", "Species 1 Mean (95% CRI)", 
+                                  "Species 2 Mean (95% CRI)", "Interaction Mean (95% CRI)")
   
   #'  Save occupancy results
   write.csv(top_null_results, file = paste0("./Outputs/Tables/top_null_results_", Sys.Date(), ".csv"))
