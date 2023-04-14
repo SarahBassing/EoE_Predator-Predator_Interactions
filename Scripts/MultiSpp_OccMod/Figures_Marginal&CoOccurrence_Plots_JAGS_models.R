@@ -372,71 +372,37 @@
   coy.bob.marg.plots <- list(coy.bob.marg.elev.ung, coy.bob.marg.elev.pred, coy.bob.marg.for.ung, coy.bob.marg.for.pred)#, 
                              #coy.bob.marg.wtd.ung, coy.bob.marg.wtd.pred, coy.bob.marg.lago.ung, coy.bob.marg.lago.pred, coy.bob.marg.div.ung, coy.bob.marg.div.pred)
  
-  #' #'  Function to plot marginal probabilities
-  #' marginal_prob_plots <- function(focal_cov, marg, covariate_name, spp1, spp2, plotit = T) {
-  #'   #'  Plot marginal probability for each species
-  #'   matplot(focal_cov, marg[,,"mean"],
-  #'           type = "l", lty = 1:2, lwd = 3, col = c("black", "darkblue"), frame = FALSE, xlab = covariate_name, #col = 1:2
-  #'           ylab = "Marginal occupancy probability", ylim = c(0, 1), #ylim = c(0, max(marg[,,"upper"]))
-  #'           main = paste("Marginal Occupancy for", spp1, "and", spp2))
-  #'   #'  Add CRIs
-  #'   polygon(c(focal_cov, rev(focal_cov)), c(marg[,1,"lower"], rev(marg[,1,"upper"])),
-  #'           border = NA, col = adjustcolor("black", alpha = 0.2))
-  #'   polygon(c(focal_cov, rev(focal_cov)), c(marg[,2,"lower"], rev(marg[,2,"upper"])),
-  #'           border = NA, col = adjustcolor("darkblue", alpha = 0.2))
-  #'   # for(i in 1:2) {
-  #'   #   polygon(c(focal_cov, rev(focal_cov)), c(marg[,i,"lower"], rev(marg[,i,"upper"])),
-  #'   #           border = NA, col = adjustcolor(i, alpha = 0.2))
-  #'   # }
-  #'   legend("topright", c(spp1, spp2), lwd = 3, lty = 1:2, col = c("black", "darkblue"), horiz = TRUE, bty = "n") #col = 1:2
-  #' }
-  #' #####  Wolf-Bear marginal occupancy  ####
-  #' (wolf.bear.marg.elev.ung <- marginal_prob_plots(focal_cov = wolf.bear.elev.ung.yr1b[[3]], marg = wolf.bear.elev.ung.yr1b[[1]],
-  #'                                                 covariate_name = "Elevation (m)", spp1 = "Wolf", spp2 = "Bear"))
-  #' (wolf.bear.marg.elev.pred <- marginal_prob_plots(focal_cov = wolf.bear.elev.pred.yr1b[[3]], marg = wolf.bear.elev.pred.yr1b[[1]],
-  #'                                                  covariate_name = "Elevation (m)", spp1 = "Wolf", spp2 = "Bear"))
-  #' (wolf.bear.marg.for.ung <- marginal_prob_plots(focal_cov = wolf.bear.for.ung.yr1b[[3]], marg = wolf.bear.for.ung.yr1b[[1]],
-  #'                                                covariate_name = "Percent forest cover", spp1 = "Wolf", spp2 = "Bear"))
-  #' (wolf.bear.marg.for.pred <- marginal_prob_plots(focal_cov = wolf.bear.for.pred.yr1b[[3]], marg = wolf.bear.for.pred.yr1b[[1]],
-  #'                                                 covariate_name = "Percent forest cover", spp1 = "Wolf", spp2 = "Bear"))
-  #' (wolf.bear.marg.div.ung <- marginal_prob_plots(focal_cov = wolf.bear.div.ung.yr1b[[3]], marg = wolf.bear.div.ung.yr1b[[1]],
-  #'                                                covariate_name = "Shannon's diversity", spp1 = "Wolf", spp2 = "Bear"))
-  #' (wolf.bear.marg.div.pred <- marginal_prob_plots(focal_cov = wolf.bear.div.pred.yr1b[[3]], marg = wolf.bear.div.pred.yr1b[[1]],
-  #'                                                 covariate_name = "Shannon's diversity", spp1 = "Wolf", spp2 = "Bear"))
-  #' 
-  #' 
-  #' #####  Wolf-Coyote marginal occupancy  ####
-  #' (wolf.coy.marg.elev.ung <- marginal_prob_plots(focal_cov = wolf.coy.elev.ung.yr1[[3]], marg = wolf.coy.elev.ung.yr1[[1]], 
-  #'                                                covariate_name = "Elevation (m)", spp1 = "Wolf", spp2 = "Coyote"))
-  #' (wolf.coy.marg.elev.pred <- marginal_prob_plots(focal_cov = wolf.coy.elev.pred.yr1[[3]], marg = wolf.coy.elev.pred.yr1[[1]], 
-  #'                                                 covariate_name = "Elevation (m)", spp1 = "Wolf", spp2 = "Coyote"))
-  #' (wolf.coy.marg.for.ung <- marginal_prob_plots(focal_cov = wolf.coy.for.ung.yr1[[3]], marg = wolf.coy.for.ung.yr1[[1]], 
-  #'                                               covariate_name = "Percent forest cover", spp1 = "Wolf", spp2 = "Coyote"))
-  #' (wolf.coy.marg.for.pred <- marginal_prob_plots(focal_cov = wolf.coy.for.pred.yr1[[3]], marg = wolf.coy.for.pred.yr1[[1]], 
-  #'                                                covariate_name = "Percent forest cover", spp1 = "Wolf", spp2 = "Coyote"))
-  #' 
-  #' #####  Wolf-Lion marginal occupancy  ####
-  #' #'  Nadda
-  #' 
-  #' #####  Lion-Bear marginal occupancy  ####
-  #' #'  Nadda
-  #' 
-  #' #####  Lion-Bobcat marginal occupancy  ####
-  #' #'  Nadda
-  #' 
-  #' #####  Coyote-Bobcat marginal occupancy  ####
-  #' (coy.bob.marg.elev.ung <- marginal_prob_plots(focal_cov = coy.bob.elev.ung.yr1[[3]], marg = coy.bob.elev.ung.yr1[[1]],
-  #'                                               covariate_name = "Elevation (m)", spp1 = "Coyote", spp2 = "Bobcat"))
-  #' (coy.bob.marg.elev.pred <- marginal_prob_plots(focal_cov = coy.bob.elev.pred.yr1[[3]], marg = coy.bob.elev.pred.yr1[[1]],
-  #'                                                covariate_name = "Elevation (m)", spp1 = "Coyote", spp2 = "Bobcat"))
-  #' (coy.bob.marg.for.ung <- marginal_prob_plots(focal_cov = coy.bob.for.ung.yr1[[3]], marg = coy.bob.for.ung.yr1[[1]],
-  #'                                              covariate_name = "Percent forest cover", spp1 = "Coyote", spp2 = "Bobcat"))
-  #' (coy.bob.marg.for.pred <- marginal_prob_plots(focal_cov = coy.bob.for.pred.yr1[[3]], marg = coy.bob.for.pred.yr1[[1]],
-  #'                                               covariate_name = "Percent forest cover", spp1 = "Coyote", spp2 = "Bobcat"))
-  #' (coy.bob.marg.div.ung <- marginal_prob_plots(focal_cov = coy.bob.div.ung.yr1[[3]], marg = coy.bob.div.ung.yr1[[1]],
-  #'                                               covariate_name = "Shannon's diversity index", spp1 = "Coyote", spp2 = "Bobcat"))
-  #' (coy.bob.marg.div.pred <- marginal_prob_plots(focal_cov = coy.bob.div.pred.yr1[[3]], marg = coy.bob.div.pred.yr1[[1]],
-  #'                                                covariate_name = "Shannon's diversity index", spp1 = "Coyote", spp2 = "Bobcat"))
+  
+  #'  Add species pair and camera placement to each data set
+  add_info <- function(marg, spp_pair, cam_setup) {
+    marg$Species_pair <- spp_pair
+    marg$Setup <- cam_setup
+    return(marg)
+  }
+  wolf.bear.marg.elev.ung_new <- add_info(wolf.bear.marg.elev.ung, spp_pair = "wolf-bear", cam_setup = "random")
+  wolf.bear.marg.elev.pred_new <- add_info(wolf.bear.marg.elev.pred, spp_pair = "wolf-bear", cam_setup = "trail")
+  wolf.bear.marg.for.ung_new <- add_info(wolf.bear.marg.for.ung, spp_pair = "wolf-bear", cam_setup = "random")
+  wolf.bear.marg.for.pred_new <- add_info(wolf.bear.marg.for.pred, spp_pair = "wolf-bear", cam_setup = "trail")
+  wolf.bear.marg.div.ung_new <- add_info(wolf.bear.marg.div.ung, spp_pair = "wolf-bear", cam_setup = "random")
+  wolf.bear.marg.div.pred_new <- add_info(wolf.bear.marg.div.pred, spp_pair = "wolf-bear", cam_setup = "trail")
+  wolf.coy.marg.elev.ung_new <- add_info(wolf.coy.marg.elev.ung, spp_pair = "wolf-coy", cam_setup = "random")
+  wolf.coy.marg.elev.pred_new <- add_info(wolf.coy.marg.elev.pred, spp_pair = "wolf-coy", cam_setup = "trail")
+  wolf.coy.marg.for.ung_new <- add_info(wolf.coy.marg.for.ung, spp_pair = "wolf-coy", cam_setup = "random")
+  wolf.coy.marg.for.pred_new <- add_info(wolf.coy.marg.for.pred, spp_pair = "wolf-coy", cam_setup = "trail")
+  coy.bob.marg.elev.ung_new <- add_info(coy.bob.marg.elev.ung, spp_pair = "coy-bob", cam_setup = "random")
+  coy.bob.marg.elev.pred_new <- add_info(coy.bob.marg.elev.pred, spp_pair = "coy-bob", cam_setup = "trail")
+  coy.bob.marg.for.ung_new <- add_info(coy.bob.marg.for.ung, spp_pair = "coy-bob", cam_setup = "random")
+  coy.bob.marg.for.pred_new <- add_info(coy.bob.marg.for.pred, spp_pair = "coy-bob", cam_setup = "trail")
+  
+  #'  Combine all marginal probability estimates for each variable
+  marginal_elev <- rbind(wolf.bear.marg.elev.ung_new, wolf.bear.marg.elev.pred_new, wolf.coy.marg.elev.ung_new, wolf.coy.marg.elev.pred_new, coy.bob.marg.elev.ung_new, coy.bob.marg.elev.pred_new)
+  marginal_for <- rbind(wolf.bear.marg.for.ung_new, wolf.bear.marg.for.pred_new, wolf.coy.marg.for.ung_new, wolf.coy.marg.for.pred_new, coy.bob.marg.for.ung_new, coy.bob.marg.for.pred_new)
+  marginal_div <- rbind(wolf.bear.marg.div.ung_new, wolf.bear.marg.div.pred_new)
+  
+  #'  Plot each species response to specific covariate together
+  #'  will need to drop repeat wolf and coyote data
+  #'  probably choose just trail or random sites but see what they both look like (maybe one different shades or one solid and one dashed?)
+  
   
   
   #'  -----------------------------------
