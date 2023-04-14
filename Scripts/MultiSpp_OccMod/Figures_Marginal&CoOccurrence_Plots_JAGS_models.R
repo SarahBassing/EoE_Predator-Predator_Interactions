@@ -264,6 +264,8 @@
                                              psi_cov = c(1, 1, 0, 0, 0, 0, 0, 0), psi_cov_index = 8,
                                              psi_inxs_cov = c(1, 1, 0, 0, 0), psi_inxs_cov_index = 5)
   
+  save.image(file = paste0("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_psi-cov_relationships_", Sys.Date(), ".RData"))
+  
   
   #'  --------------------------------
   ####  Plot marginal Pr(occupancy)  ####
