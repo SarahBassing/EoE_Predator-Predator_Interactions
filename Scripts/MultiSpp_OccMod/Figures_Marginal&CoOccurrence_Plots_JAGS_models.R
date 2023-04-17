@@ -5,7 +5,8 @@
   #'  February 2023
   #'  -------------------------------
   #'  Script to create figures of predicted co-occurrence and covariate effects
-  #'  from multispecies occupancy models run in JAGS.
+  #'  from multispecies occupancy models run in JAGS. Also predict mean probabilties
+  #'  of occupancy and detection for each species based on null model.
   #'  -------------------------------
   
   #'  Clean workspace
