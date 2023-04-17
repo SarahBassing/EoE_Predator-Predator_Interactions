@@ -437,7 +437,7 @@
   four_colors <- c("#364B9A", "#98CAE1", "#FDB366", "#A50026")
   
   #'  Function to reformat data for easier use with ggplot2 and plot marginal occupancy
-  plot_conditional_occ <- function(predicted, spp1, spp2, covname, setup, spppair) {
+  plot_conditional_occ <- function(predicted, spp1, spp2, x, covname, setup, spppair) {
     #'  Reformat data for ggplot
     #'  Snag marginal occupancy for each species, convert from wide to long format, 
     #'  and assign species name
@@ -483,9 +483,9 @@
       #'  Force y-axis from 0 to 1
       ylim(0,1.0) +
       #'  Use list name as X-axis title
-      xlab(covname) +
+      xlab(x) +
       ylab(paste("Conditional occupancy probability,", setup)) +
-      labs(#title = paste(spppair, "Conditional Occupancy Probabilities"),
+      labs(title = paste("Conditional occupancy in response to", covname),
         fill = "Species interaction", color = "Species interaction") +
       facet_wrap(~Species, scales = "free_y") +
       theme(legend.position="bottom")
@@ -518,16 +518,16 @@
   #'  Nadda
   
   #####  Coyote-Bobcat conditional occupancy  ####
-  coy.bob.condish.elev.ung <- plot_conditional_occ(predicted = coy.bob.elev.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Elevation (m)", setup = "random sites", spppair = "Coyote - Bobcat")
-  coy.bob.condish.elev.pred <- plot_conditional_occ(predicted = coy.bob.elev.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Elevation (m)", setup = "trail sites", spppair = "Coyote - Bobcat")
-  coy.bob.condish.for.ung <- plot_conditional_occ(predicted = coy.bob.for.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Percent forest cover", setup = "random sites", spppair = "Coyote - Bobcat")
-  coy.bob.condish.for.pred <- plot_conditional_occ(predicted = coy.bob.for.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Percent forest cover", setup = "trail sites", spppair = "Coyote - Bobcat")
-  coy.bob.condish.wtd.ung <- plot_conditional_occ(predicted = coy.bob.wtd.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "White-tailed deer relative abundance", setup = "random sites", spppair = "Coyote - Bobcat")
-  coy.bob.condish.wtd.pred <- plot_conditional_occ(predicted = coy.bob.wtd.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "White-tailed deer relative abundance", setup = "trail sites", spppair = "Coyote - Bobcat")
-  coy.bob.condish.lago.ung <- plot_conditional_occ(predicted = coy.bob.lago.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Lagomorph relative abundance", setup = "random sites", spppair = "Coyote - Bobcat")
-  coy.bob.condish.lago.pred <- plot_conditional_occ(predicted = coy.bob.lago.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Lagomorph relative abundance", setup = "trail sites", spppair = "Coyote - Bobcat")
-  coy.bob.condish.div.ung <- plot_conditional_occ(predicted = coy.bob.div.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Shannon's diversity index", setup = "random sites", spppair = "Coyote - Bobcat")
-  coy.bob.condish.div.pred <- plot_conditional_occ(predicted = coy.bob.div.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", covname = "Shannon's diversity index", setup = "trail sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.elev.ung <- plot_conditional_occ(predicted = coy.bob.elev.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "Elevation (m)", covname = "elevation", setup = "random sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.elev.pred <- plot_conditional_occ(predicted = coy.bob.elev.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "Elevation (m)", covname = "elevation", setup = "trail sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.for.ung <- plot_conditional_occ(predicted = coy.bob.for.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "Percent forest cover", covname = "forest cover", setup = "random sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.for.pred <- plot_conditional_occ(predicted = coy.bob.for.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "Percent forest cover", covname = "forest cover", setup = "trail sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.wtd.ung <- plot_conditional_occ(predicted = coy.bob.wtd.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "White-tailed deer relative abundance (RAI)", covname = "white-tailed deer relative abundance", setup = "random sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.wtd.pred <- plot_conditional_occ(predicted = coy.bob.wtd.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "White-tailed deer relative abundance (RAI)", covname = "white-tailed deer relative abundance", setup = "trail sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.lago.ung <- plot_conditional_occ(predicted = coy.bob.lago.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "Lagomorph relative abundance (RAI)", covname = "lagomorph relative abundance", setup = "random sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.lago.pred <- plot_conditional_occ(predicted = coy.bob.lago.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "Lagomorph relative abundance (RAI) ", covname = "lagomorph relative abundance", setup = "trail sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.div.ung <- plot_conditional_occ(predicted = coy.bob.div.ung.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "Shannon's diversity index (H)", covname = "prey diversity",setup = "random sites", spppair = "Coyote - Bobcat")
+  coy.bob.condish.div.pred <- plot_conditional_occ(predicted = coy.bob.div.pred.yr1, spp1 = "Coyote", spp2 = "Bobcat", x = "Shannon's diversity index (H)", covname = "prey diversity",setup = "trail sites", spppair = "Coyote - Bobcat")
   coy.bob.condish.plots <- list(coy.bob.condish.elev.ung, coy.bob.condish.elev.pred, coy.bob.condish.for.ung, coy.bob.condish.for.pred, coy.bob.condish.wtd.ung, coy.bob.condish.wtd.pred, 
                                 coy.bob.condish.lago.ung, coy.bob.condish.lago.pred, coy.bob.condish.div.ung, coy.bob.condish.div.pred)
   
