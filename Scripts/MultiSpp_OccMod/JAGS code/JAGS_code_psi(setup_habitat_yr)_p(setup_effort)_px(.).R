@@ -6,7 +6,8 @@
   #'  ------------------------------------
   #'  Model to test whether predator occurrence is influenced by basic habitat 
   #'  features. Assumes species occur independently of one another but allows
-  #'  detection to vary in response to the other predator.
+  #'  detection to vary in response to the other predator. Code for interaction
+  #'  on detection probability based on https://masonfidino.com/interpret_rota_model/
   #'  ------------------------------------
   
   cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(.).txt', "
