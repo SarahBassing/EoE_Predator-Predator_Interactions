@@ -244,7 +244,6 @@
   params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
               "mean.pSpp1", "mean.pSpp2", "z") 
-              # "sigmaSpp1", "sigmaSpp2", "mumuSpp1", "mumuSpp2", "sigmamuSpp1", "sigmamuSpp2",
   
   #####  MCMC settings  ####
   #'  ------------------
@@ -273,7 +272,6 @@
   
   #####  Null model  ####
   #'  psi = year; p = year
-  # source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(.)_p(.).R")
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.).R")
   start.time = Sys.time()
   wolf.bear.null <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -285,7 +283,6 @@
   print(wolf.bear.null$DIC)
   which(wolf.bear.null$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.bear.null$samples)
-  # save(wolf.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(.)_p(.)_", Sys.Date(), ".RData"))
   save(wolf.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
@@ -371,6 +368,24 @@
   which(wolf.bear.preydivx$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.bear.preydivx$samples)
   save(wolf.bear.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
+  
+  #####  Habitat, intx on detection model  #### 
+  #'  psi = setup, year, elevation, forest; p = setup, year, effort; px(.) 
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(.).R")
+  start.time = Sys.time()
+  wolf.bear.hab.px <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(.).txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.bear.hab.px$summary)
+  print(wolf.bear.hab.px$DIC)
+  which(wolf.bear.hab.px$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.bear.hab.px$samples)
+  save(wolf.bear.hab.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
+  
+  
+  
+  
   
   #####  Global model  #### 
   ni <- 75000
