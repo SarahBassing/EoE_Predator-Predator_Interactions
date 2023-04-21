@@ -694,7 +694,7 @@
   #'  psi = year; p(.); px(.)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.).R")
   start.time = Sys.time()
-  wolf.lion.null.px <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+  wolf.lion.null.px <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.).txt",
                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -710,7 +710,7 @@
   #'  psi = year; p(.); px(psi)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(psi).R")
   start.time = Sys.time()
-  wolf.lion.null.px2 <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+  wolf.lion.null.px2 <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(psi).txt",
                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -833,8 +833,8 @@
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearlion.R")
   start.time = Sys.time()
   lion.bear.global <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
-                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearlion.txt",
-                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearlion.txt",
+                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bear.global$summary)
   print(lion.bear.global$DIC)
@@ -848,7 +848,7 @@
   #'  psi = year; p(.); px(.)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.).R")
   start.time = Sys.time()
-  lion.bear.null.px <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+  lion.bear.null.px <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.).txt",
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -864,7 +864,7 @@
   #'  psi = year; p(.); px(psi)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(psi).R")
   start.time = Sys.time()
-  lion.bear.null.px2 <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+  lion.bear.null.px2 <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(psi).txt",
                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -987,8 +987,8 @@
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_lionbob.R")
   start.time = Sys.time()
   lion.bob.global <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_lionbob.txt",
-                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_lionbob.txt",
+                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bob.global$summary)
   print(lion.bob.global$DIC)
@@ -1002,9 +1002,9 @@
   #'  psi = year; p(.); px(.)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.).R")
   start.time = Sys.time()
-  lion.bob.null.px <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.).txt",
-                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  lion.bob.null.px <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.).txt",
+                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bob.null.px$summary)
   print(lion.bob.null.px$DIC)
@@ -1018,9 +1018,9 @@
   #'  psi = year; p(.); px(psi)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(psi).R")
   start.time = Sys.time()
-  lion.bob.null.px2 <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(psi).txt",
-                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  lion.bob.null.px2 <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(psi).txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bob.null.px2$summary)
   print(lion.bob.null.px2$DIC)
