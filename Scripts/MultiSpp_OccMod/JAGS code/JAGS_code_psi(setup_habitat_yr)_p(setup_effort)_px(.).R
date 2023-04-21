@@ -152,8 +152,9 @@
             #' rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21[1]*rho_inxs_cov[i,j,1] 
       
             #'  Second-order interaction on detection (test for non-independence of detections)
+            #'  rhoSpp21 not used but need as place holder based on how Multi-Spp_OccMod_2spp_with_JAGS.R calls model
             rhoSpp12[i, j] <- rhoSpp1[i, j] + rhoSpp2[i, j] + alphaSpp12[1]*rho_inxs_cov[i,j,1] 
-            rhoSpp21[i, j] <- alphaSpp21[1]*rho_inxs_cov[i,j,1] # doesn't actually get used anywhere but need the place holder for now
+            rhoSpp21[i, j] <- alphaSpp21[1]*rho_inxs_cov[i,j,1] 
           }
         }
       }
