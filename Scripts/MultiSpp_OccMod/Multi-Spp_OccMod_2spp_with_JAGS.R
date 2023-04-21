@@ -382,7 +382,8 @@
   mcmcplot(wolf.bear.global$samples)
   save(wolf.bear.global, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(global)_psix(global)_p(setup_effort)_", Sys.Date(), ".RData"))
   
-  #####  Top model w/ intx on detection model  #### 
+  #####  Top model w/ intx on detection model v1  #### 
+  #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model:  Prey diversity, no intx on psi
   #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort; px(.) 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(.).R")
@@ -396,6 +397,23 @@
   which(wolf.bear.preydiv.px$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.bear.preydiv.px$samples)
   save(wolf.bear.preydiv.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
+  
+  #####  Top model w/ intx on detection model v2  #### 
+  #'  Parameterization tests whether presence of one predator affects detection of the other
+  #'  Top model:  Prey diversity, no intx on psi
+  #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort; px(psi) 
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi).R")
+  start.time = Sys.time()
+  wolf.bear.preydiv.px2 <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi).txt",
+                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.bear.preydiv.px2$summary)
+  print(wolf.bear.preydiv.px2$DIC)
+  which(wolf.bear.preydiv.px2$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.bear.preydiv.px2$samples)
+  save(wolf.bear.preydiv.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData"))
+  
   
   
   #'  ----------------------
@@ -517,7 +535,8 @@
   mcmcplot(wolf.coy.global$samples)
   save(wolf.coy.global, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(global)_psix(global)_p(setup_effort)_", Sys.Date(), ".RData"))
   
-  #####  Top model w/ intx on detection model  #### 
+  #####  Top model w/ intx on detection model v1  #### 
+  #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model:  Habitat, no intx on psi
   #'  psi = setup, year, elevation, forest; p = setup, effort; px(.) 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(.).R")
@@ -531,6 +550,22 @@
   which(wolf.coy.hab.px$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.coy.hab.px$samples)
   save(wolf.coy.hab.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
+  
+  #####  Top model w/ intx on detection model v2  #### 
+  #'  Parameterization tests whether presence of one predator affects detection of the other
+  #'  Top model:  Habitat, no intx on psi
+  #'  psi = setup, year, elevation, forest; p = setup, effort; px(psi) 
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(psi).R")
+  start.time = Sys.time()
+  wolf.coy.hab.px2 <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
+                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(psi).txt",
+                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.coy.hab.px2$summary)
+  print(wolf.coy.hab.px2$DIC)
+  which(wolf.coy.hab.px2$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.coy.hab.px2$samples)
+  save(wolf.coy.hab.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData"))
   
   
   
@@ -1018,7 +1053,8 @@
   save(coy.bob.global, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   
-  #####  Top model w/ intx on detection model  #### 
+  #####  Top model w/ intx on detection model v1  #### 
+  #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model:  Global
   #'  psi = setup, year, elevation, forest; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(.)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob.R")
@@ -1033,4 +1069,19 @@
   mcmcplot(coy.bob.global.px$samples)
   save(coy.bob.global.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob_", Sys.Date(), ".RData"))
   
+  #####  Top model w/ intx on detection model v2  #### 
+  #'  Parameterization tests whether presence of one predator affects detection of the other
+  #'  Top model:  Global
+  #'  psi = setup, year, elevation, forest; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(psi)
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.R")
+  start.time = Sys.time()
+  coy.bob.global.px2 <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(coy.bob.global.px2$summary)
+  print(coy.bob.global.px2$DIC)
+  which(coy.bob.global.px2$summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.global.px2$samples)
+  save(coy.bob.global.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob_", Sys.Date(), ".RData"))
   
