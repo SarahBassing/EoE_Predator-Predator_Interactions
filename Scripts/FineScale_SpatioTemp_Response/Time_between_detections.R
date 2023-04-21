@@ -49,19 +49,16 @@
   #'  most cameras were active each season (Detection_data_cleaning.R script)
   detections <- function(dets, start_date, end_date) {
     dets <- dets %>%
-      filter(Species == "elk" | Species == "moose" | Species == "muledeer" | Species == "whitetaileddeer" |
-               Species == "rabbit_hare" | Species == "human" | Species == "dog_domestic" | 
-               Species == "horse" |  Species == "cattle_cow" | Species == "cat_domestic" |
-               Vehicle == "TRUE") %>%
       dplyr::select("NewLocationID", "CamID", "Date", "Time", "posix_date_time", "TriggerMode",
                     "OpState", "Species", "Vehicle", "Count") %>%
+      filter(Species != "none") %>%
       mutate(
         Date = as.Date(Date, format = "%d-%b-%Y"),
         Time = chron(times = Time),
         Species = ifelse(Vehicle == "TRUE", "human_motorized", Species),
-        mutate(Category = ifelse(Species == "Bobcat" | Species == "Black bear" | 
-                                   Species == "Coyote" | Species == "Mountain lion" | 
-                                   Species == "Wolf", "Predator", "Other")) %>%
+        Category = ifelse(Species == "bobcat" | Species == "bear_black" | 
+                                   Species == "coyote" | Species == "mountain_lion" | 
+                                   Species == "wolf", "Predator", "Other")) %>%
       dplyr::select(-Vehicle) %>%
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
@@ -92,12 +89,7 @@
       #'  when time since last image of that species is greater than defined time interval
       group_by(Species, NewLocationID) %>%
       mutate(det_events = cumsum(c(1, diff(posix_date_time) > elapsed_time))) %>% # units in seconds!
-      ungroup() #%>%
-      #' #'  Retain only the first image from each unique detection event
-      #' group_by(NewLocationID, Species, det_events) %>%
-      #' slice(1L) %>%
-      #' ungroup()
-
+      ungroup()
     return(det_events)
   }
   eoe20s_5min_dets <- unique_detections(eoe20s_dets, elapsed_time = 300) # (5*60 = 300 seconds)
@@ -109,25 +101,29 @@
   #'  Filter data to the first/last image from each unique detection event
   first_last_image <- function(dets) {
     #'  First image of each detection event
-    firstimg <- capdata[capdata$Category == "Predator",] %>%
-      group_by(det_events) %>%
+    firstimg <- dets[dets$Category == "Predator",] %>%
+      group_by(NewLocationID, Species, det_events) %>%
       slice(1L) %>%
       ungroup() %>%
-      mutate(Det_type = "first")
+      mutate(Det_type = "first") %>%
+      arrange(NewLocationID, posix_date_time)
     #'  Last image of each detection event
-    lastimg <- capdata[capdata$Category == "Predator",] %>%
-      group_by(det_events) %>%
+    lastimg <- dets[dets$Category == "Predator",] %>%
+      group_by(NewLocationID, Species, det_events) %>%
       slice_tail() %>%
       ungroup() %>%
-      mutate(Det_type = "last")
+      mutate(Det_type = "last") %>%
+      arrange(NewLocationID, posix_date_time)
     #'  Last image of all OTHER detection events
-    lastother <- capdata[capdata$Category == "Other",] %>%
-      group_by(det_events) %>%
+    lastother <- dets[dets$Category == "Other",] %>%
+      group_by(NewLocationID, Species, det_events) %>%
       slice_tail() %>%
       ungroup() %>%
-      mutate(Det_type = "last")
+      mutate(Det_type = "last") %>%
+      arrange(NewLocationID, posix_date_time)
     #'  Merge last image of each predator/other and first image of each predator
-    firstlast_img <- rbind(firstimg, lastimg, lastother)
+    firstlast_img <- rbind(firstimg, lastimg, lastother) %>%
+      arrange(NewLocationID, posix_date_time)
     return(firstlast_img)
   }
   firstlast_img <- lapply(eoe_5min_list, first_last_image)
@@ -135,13 +131,60 @@
   #'  Detections with only one image get duplicated b/c its the first & last image
   #'  Identify duplicate images (ignoring last column where they differ) and filter
   #'  to just one image per detection event
-  dups <- firstlast_img[[1]] %>%
-    group_by_at(vars(-Det_type)) %>% 
-    filter(n() > 1) %>%
-    filter(Det_type == "last")
-  #'  Remove the duplicate images from the larger data set & arrange by date/time/location
-  firstlast_img_20s <- anti_join(firstlast_img[[1]], dups) %>%
-    arrange(CameraLocation, DateTime)
+  drop_duplicates <- function(dets) {
+    dups <- dets %>%
+      dplyr::select("NewLocationID", "Date", "Time", "posix_date_time", 
+                    "TriggerMode", "Species", "Category", "Det_type") %>%
+      group_by_at(vars(-Det_type)) %>% 
+      filter(n() > 1) %>%
+      filter(Det_type == "last")
+    #'  Remove the duplicate images from the larger data set & arrange by date/time/location
+    no_dups <- anti_join(dets, dups) %>%
+      arrange(NewLocationID, posix_date_time)
+    return(no_dups)
+  }
+  firstlast_img_skinny <- lapply(firstlast_img, drop_duplicates)
+  
+  #'  ----------------------------------------
+  ####  Filter predator-prey detection data  ####
+  #'  ----------------------------------------
+  #'  Group multiple detection events of same category (but of different species) 
+  #'  when they occur sequentially, then reduce to a single observation (e.g., 
+  #'  we only care about the LAST of the last predator detections in a series of 
+  #'  predator detections).
+  thin_dat <- function(dets) {
+    dat <- arrange(dets, NewLocationID, posix_date_time) %>%
+      dplyr::select(-c(det_events, Det_type))
+    caps_new <- c()
+    caps_new[1] <- 1
+    for (i in 2:nrow(dat)){
+      if (dat$NewLocationID[i-1] != dat$NewLocationID[i]) caps_new[i] = i
+      else(if (dat$Category[i-1] != dat$Category[i]) caps_new[i] = i
+           else caps_new[i] = caps_new[i-1])
+    }
+    
+    caps_new <- as.factor(caps_new)
+    
+    #'  Add new column to larger data set
+    capdata <- cbind(as.data.frame(dat), caps_new)
+    
+    #'  Remove all extra detections when multiple detections of same category occur in a row
+    firstpreyspp <- capdata[capdata$Category == "Prey",] %>%
+      group_by(caps_new) %>% 
+      slice(1L) %>%
+      ungroup()
+    lasteverythingelse <- capdata[capdata$Category != "Prey",] %>%
+      group_by(caps_new) %>% 
+      slice_tail() %>%
+      ungroup()
+    #'  Combine into final data set
+    dets <- rbind(firstpreyspp, lasteverythingelse) %>%
+      arrange(NewLocationID, posix_date_time)
+    return(dets)
+  }
+  #'  Last predator followed by first prey images by season
+  firstlast_img_thin <- lapply(firstlast_img_skinny, thin_dat)
+  
   
   
   
