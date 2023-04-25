@@ -221,11 +221,31 @@
              first_pred = ifelse(first_pred == "Y" & Category == "Other", "N", first_pred),
              #'  Create column flagging detections of interest
              pred_pair = ifelse(second_pred == "Y", "Y", "N"),
-             pred_pair = ifelse(first_pred == "Y", "Y", pred_pair)) %>%
-      #'  Drop extra columns
-      dplyr::select(-c(cam, second_pred, first_pred)) %>%
-      #'  Retain only observations of two different predators detected in a row
-      filter(pred_pair == "Y")
+             pred_pair = ifelse(first_pred == "Y", "Y", pred_pair),
+             same_time = ifelse(lag(posix_date_time) == posix_date_time, "same", "diff"),
+             same_time = ifelse(is.na(same_time), "diff", same_time)) 
+    #'  Pull out predator sequences that contain observations of different species
+    #'  detected at the same exact time- order of detections gets messy
+    dup_times <- capdata %>%
+      group_by(caps_new) %>%
+      #'  Any image within group of images where at least one image has same time as another
+      filter(any(same_time == "same")) %>%
+      ungroup() %>%
+      group_by(NewLocationID) %>%
+      #'  Rearrange observations so that duplicate images with different species 
+      #'  are ordered by sequence of when each species first arrived and left
+      #'  i.e., arrange by predator that was detected first and is leaving (last) 
+      #'  followed by predator that was detected second and just showed up (first)
+      arrange(posix_date_time, desc(Det_type)) %>%
+      ungroup()  
+      ################################################# this is where I left off- 
+      ############### do I just reorder capdata above and then filter or do I keep 
+      ############### this subset of dup_times and somehow merge it back with capdata???
+      
+      #' #'  Retain only observations of two different predators detected in a row
+      #' filter(pred_pair == "Y") #%>%
+      #' #'  Drop extra columns
+      #' dplyr::select(-c(cam, second_pred, first_pred)) #%>%
     return(capdata)
   }
   predator_pairs <- lapply(full_predator_sequences, flag_sequential_predators) 
