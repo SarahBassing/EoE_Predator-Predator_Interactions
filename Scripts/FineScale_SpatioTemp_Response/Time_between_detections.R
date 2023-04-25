@@ -133,9 +133,9 @@
   #'  to just one image per detection event
   drop_duplicates <- function(dets) {
     dups <- dets %>%
-      dplyr::select("NewLocationID", "Date", "Time", "posix_date_time", 
+      dplyr::select("NewLocationID", "Date", "Time", "posix_date_time",
                     "TriggerMode", "Species", "Category", "Det_type") %>%
-      group_by_at(vars(-Det_type)) %>% 
+      group_by_at(vars(-Det_type)) %>%
       filter(n() > 1) %>%
       filter(Det_type == "last")
     #'  Remove the duplicate images from the larger data set & arrange by date/time/location
@@ -143,18 +143,18 @@
       arrange(NewLocationID, posix_date_time)
     return(no_dups)
   }
-  firstlast_img_skinny <- lapply(firstlast_img, drop_duplicates)
+  firstlast_img <- lapply(firstlast_img, drop_duplicates)
   
-  #'  ----------------------------------------
-  ####  Filter predator-prey detection data  ####
-  #'  ----------------------------------------
+  #'  -------------------------
+  ####  Filter detection data  ####
+  #'  -------------------------
   #'  Group multiple detection events of same category (but of different species) 
-  #'  when they occur sequentially, then reduce to a single observation (e.g., 
-  #'  we only care about the LAST of the last predator detections in a series of 
-  #'  predator detections).
+  #'  when they occur sequentially, then reduce groups of "other" category to a 
+  #'  single observation (e.g., we only care that a predator sequence was broken
+  #'  up but don't need all "other" detections).
   thin_dat <- function(dets) {
     dat <- arrange(dets, NewLocationID, posix_date_time) %>%
-      dplyr::select(-c(det_events, Det_type))
+      dplyr::select(-det_events)
     caps_new <- c()
     caps_new[1] <- 1
     for (i in 2:nrow(dat)){
@@ -169,21 +169,100 @@
     capdata <- cbind(as.data.frame(dat), caps_new)
     
     #'  Remove all extra detections when multiple detections of same category occur in a row
-    firstpreyspp <- capdata[capdata$Category == "Prey",] %>%
-      group_by(caps_new) %>% 
-      slice(1L) %>%
-      ungroup()
-    lasteverythingelse <- capdata[capdata$Category != "Prey",] %>%
+    predspp <- capdata[capdata$Category == "Predator",] #%>%
+      # group_by(caps_new) %>%
+      # slice(1L) %>%
+      # ungroup()
+    lasteverythingelse <- capdata[capdata$Category != "Predator",] %>%
       group_by(caps_new) %>% 
       slice_tail() %>%
       ungroup()
     #'  Combine into final data set
-    dets <- rbind(firstpreyspp, lasteverythingelse) %>%
+    dets <- rbind(predspp, lasteverythingelse) %>%
       arrange(NewLocationID, posix_date_time)
     return(dets)
   }
-  #'  Last predator followed by first prey images by season
-  firstlast_img_thin <- lapply(firstlast_img_skinny, thin_dat)
+  full_predator_sequences <- lapply(firstlast_img, thin_dat) #firstlast_img_skinny
+  
+  #'  Flag sequential detections of two different predators
+  flag_sequential_predators <- function(dets) {
+    #'  Assign same ID to all detection events from the same camera
+    dat <- arrange(dets, NewLocationID, posix_date_time)
+    cam <- c()
+    cam[1] <- 1
+    for (i in 2:nrow(dat)){
+      if (dat$NewLocationID[i-1] != dat$NewLocationID[i]) cam[i] = i
+      else cam[i] = cam[i-1]
+    }
+    #'  Identify images where predator spp2 is detected right after predator spp1
+    second_pred <- c()
+    second_pred[1] <- "N"
+    for (i in 2:nrow(dat)){
+      if (dat$Category[i-1] != dat$Category[i]) second_pred[i] = "N"
+      else(if (dat$Species[i-1] != dat$Species[i]) second_pred[i] = "Y"
+           else(second_pred[i] = "N"))
+      
+    }
+    #'  Identify images where predator spp1 is detected right before predator spp2
+    first_pred <- c()
+    first_pred[1] <- "N"
+    for (i in 2:nrow(dat)){
+      if (dat$Category[i-1] != dat$Category[i]) first_pred[i-1] = "N"
+      else(if (dat$Species[i-1] != dat$Species[i]) first_pred[i-1] = "Y"
+           else(first_pred[i-1] = "N"))
+      
+    }
+    #'  Add "N" to very end of vector so the length matches number of rows in dets
+    first_pred[nrow(dat)] <- "N"
+    #'  Add new column to larger data set
+    capdata <- cbind(as.data.frame(dat), cam, second_pred, first_pred) %>%
+      #'  Make sure no "Other" category observations get labeled "Y"
+      mutate(second_pred = ifelse(second_pred == "Y" & Category == "Other", "N", second_pred),
+             first_pred = ifelse(first_pred == "Y" & Category == "Other", "N", first_pred),
+             #'  Create column flagging detections of interest
+             pred_pair = ifelse(second_pred == "Y", "Y", "N"),
+             pred_pair = ifelse(first_pred == "Y", "Y", pred_pair)) %>%
+      #'  Drop extra columns
+      dplyr::select(-c(cam, second_pred, first_pred)) %>%
+      #'  Retain only observations of two different predators detected in a row
+      filter(pred_pair == "Y")
+    return(capdata)
+  }
+  predator_pairs <- lapply(full_predator_sequences, flag_sequential_predators) 
+  
+  
+  #'  ---------------------------------------------
+  ####  Calculate times between detection events   ####
+  #'  ---------------------------------------------
+  #'  Function to calculate time between detection events of two focal species
+  #'  Data structured so only last image of spp1 and first image of spp2 per
+  #'  detection event are included in data frame.
+  tbd <- function(detection_data, spp1, unittime) {
+    #'  Create empty vector to be filled
+    detection_data$TimeSinceLastDet <- c()
+    #'  Fill first element of the vector to get it started
+    detection_data$TimeSinceLastDet[1] <- 0
+    #'  Loop through each row to calculate elapsed time since previous detection
+    for (i in 2:nrow(detection_data)){
+      #'  If previous detection was spp1, set time to 0
+      if (detection_data$Category[i-1] == spp1) detection_data$TimeSinceLastDet[i] = 0
+      #'  If current detection is spp2 and follows detection of spp1, calculate
+      #'  the difference in time from previous detection to current detection
+      if (detection_data$Category[i] != spp1) detection_data$TimeSinceLastDet[i] = difftime(detection_data$DateTime[i], detection_data$DateTime[i-1], units = unittime)
+    }
+    #'  Retain only prey observations (don't need the actual predator detections)
+    # detection_data <- filter(detection_data, Category == "Prey")
+    return(detection_data)
+  }
+  #'  Calculate time between detections for different pairs of species of interest
+  #'  spp1 should be the species detected first, unittime is the unit of time 
+  #'  to make calculations in (options are: "sec", "min", "hour", "day")
+  #'  Note: there should be NO negative values! If there are negative values this
+  #'  means the script is calculating times between detections across camera sites
+  tbd_pred.prey_smr <- tbd(predator_pairs, spp1 = "Predator", unittime = "min")
+  
+  
+  
   
   
   
