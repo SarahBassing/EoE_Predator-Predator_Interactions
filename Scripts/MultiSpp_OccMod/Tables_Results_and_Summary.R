@@ -155,15 +155,23 @@
   #'  Load top models              #######  MAKE SURE THESE ARE UP-TO-DATE!!!  #######
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_2023-04-11.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2023-04-10.RData") 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2023-04-06.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2023-04-06.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2023-04-06.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2023-04-12.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2023-04-11.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2023-04-11.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_2023-04-11.RData")
   
   #'  Additional null models to snag mean psi and p from
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2023-04-10.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(yr)_p(.)_2023-04-10.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2023-04-10.RData")
+  
+  #'  Co-detecition model based on each top model
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_px(.)_2023-04-20.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_px(.)_2023-04-21.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_px(.)_2023-04-21.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_px(.)_2023-04-21.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_px(.)_2023-04-21.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob_2023-04-25.RData")
   
   
   #'  Save model outputs in table format 
@@ -215,6 +223,13 @@
   out_wolf.bear_null <- mod_out(wolf.bear.null, "Wolf", "Black bear")
   out_wolf.coy_null <- mod_out(wolf.coy.null, "Wolf", "Coyote")
   out_coy.bob_null <- mod_out(coy.bob.null, "Coyote", "Bobcat")
+  
+  out_wolf.bear.px <- mod_out(wolf.bear.preydiv.px, "Wolf", "Black bear")
+  out_wolf.coy.px <- mod_out(wolf.coy.hab.px, "Wolf", "Coyote")
+  out_wolf.lion.px <- mod_out(wolf.lion.null.px, "Wolf", "Mountain lion")
+  out_lion.bear.px <- mod_out(lion.bear.null.px, "Mountain lion", "Black bear")
+  out_lion.bob.px <- mod_out(lion.bob.null.px, "Mountain lion", "Bobcat")
+  out_coy.bob.px <- mod_out(coy.bob.global.px, "Coyote", "Bobcat")
   
   
   #####  Occupancy results  ####
@@ -375,6 +390,7 @@
              Parameter = str_replace(Parameter, "\\[3]", paste(":", cov3)))
     return(renamed_out)
   }
+  #'  Top model detection results
   det_wolf.bear <- rename_det_params(out_wolf.bear[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Black bear", "Species 2"))
@@ -415,10 +431,58 @@
     relocate("Species 2: Intercept", .after = "Species 1: Sampling effort") %>%
     relocate("Species 2: Trail setup", .after = "Species 2: Intercept") %>%
     relocate("Species 2: Sampling effort", .after = "Species 2: Trail setup") 
+
+  
+  #'  Top model with co-detection results
+  det_wolf.bear.px <- rename_det_params(out_wolf.bear.px[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
+  det_wolf.coy.px <- rename_det_params(out_wolf.coy.px[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Coyote", "Species 2"))
+  det_wolf.lion.px <- rename_det_params(out_wolf.lion.px[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+           Parameter = str_replace(Parameter, "Mountain lion", "Species 2"))
+  det_lion.bear.px <- rename_det_params(out_lion.bear.px[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
+           Parameter = str_replace(Parameter, "Black bear", "Species 2"))
+  det_lion.bob.px <- rename_det_params(out_lion.bob.px[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Mountain lion", "Species 1"),
+           Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
+  det_coy.bob.px <- rename_det_params(out_coy.bob.px[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = str_replace(Parameter, "Coyote", "Species 1"),
+           Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
+  
+  co_detmod_table_long <- rbind(det_wolf.bear.px, det_wolf.coy.px, det_wolf.lion.px, det_lion.bear.px, det_lion.bob.px, det_coy.bob.px) %>%
+    mutate(Parameter = ifelse(Parameter == "Interaction Spp12", "Interaction: Intercept", Parameter),
+           Parameter = ifelse(Parameter == "Interaction Spp12: Intercept", "Interaction: Intercept", Parameter))
+  
+  #'  Reformat into a wide table
+  co_detmod_table_wide <- co_detmod_table_long %>%
+    #'  Remove any extra spaces introduced during data formatting
+    mutate(Lower_CRI = str_replace_all(Lower_CRI, " ", ""),
+           Upper_CRI = str_replace_all(Upper_CRI, " ", ""),
+           #'  Combine into single 95% CRI column
+           CRI = paste0("(", Lower_CRI, ", ", Upper_CRI, ")")) %>%
+    dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
+    unite(Mean_CRI, Mean, CRI, sep = " ") %>%
+    spread(Parameter, Mean_CRI) %>%
+    relocate("Species 1: Intercept", .after = "Species2") %>%
+    relocate("Species 1: Trail setup", .after = "Species 1: Intercept") %>%
+    relocate("Species 1: Sampling effort", .after = "Species 1: Trail setup") %>%
+    relocate("Species 2: Intercept", .after = "Species 1: Sampling effort") %>%
+    relocate("Species 2: Trail setup", .after = "Species 2: Intercept") %>%
+    relocate("Species 2: Sampling effort", .after = "Species 2: Trail setup") %>%
+    relocate("Interaction: Intercept", .after = "Species 2: Sampling effort")
   
   #'  Save detection results
   write.csv(top_detmod_table_long, file = paste0("./Outputs/Tables/top_detmod_table_long_", Sys.Date(), ".csv"))
   write.csv(top_detmod_table_wide, file = paste0("./Outputs/Tables/top_detmod_table_wide_", Sys.Date(), ".csv"))
+  write.csv(co_detmod_table_long, file = paste0("./Outputs/Tables/co_detmod_table_long_", Sys.Date(), ".csv"))
+  write.csv(co_detmod_table_wide, file = paste0("./Outputs/Tables/co_detmod_table_wide_", Sys.Date(), ".csv"))
 
   
   #####  Mean occupancy & detection probability  ####
