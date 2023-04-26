@@ -128,22 +128,22 @@
   }
   firstlast_img <- lapply(eoe_5min_list, first_last_image)
   
-  #'  Detections with only one image get duplicated b/c its the first & last image
-  #'  Identify duplicate images (ignoring last column where they differ) and filter
-  #'  to just one image per detection event
-  drop_duplicates <- function(dets) {
-    dups <- dets %>%
-      dplyr::select("NewLocationID", "Date", "Time", "posix_date_time",
-                    "TriggerMode", "Species", "Category", "Det_type") %>%
-      group_by_at(vars(-Det_type)) %>%
-      filter(n() > 1) %>%
-      filter(Det_type == "last")
-    #'  Remove the duplicate images from the larger data set & arrange by date/time/location
-    no_dups <- anti_join(dets, dups) %>%
-      arrange(NewLocationID, posix_date_time)
-    return(no_dups)
-  }
-  firstlast_img <- lapply(firstlast_img, drop_duplicates)
+  #' #'  Detections with only one image get duplicated b/c its the first & last image
+  #' #'  Identify duplicate images (ignoring last column where they differ) and filter
+  #' #'  to just one image per detection event
+  #' drop_duplicates <- function(dets) {
+  #'   dups <- dets %>%
+  #'     dplyr::select("NewLocationID", "Date", "Time", "posix_date_time",
+  #'                   "TriggerMode", "Species", "Category", "Det_type") %>%
+  #'     group_by_at(vars(-Det_type)) %>%
+  #'     filter(n() > 1) %>%
+  #'     filter(Det_type == "last")
+  #'   #'  Remove the duplicate images from the larger data set & arrange by date/time/location
+  #'   no_dups <- anti_join(dets, dups) %>%
+  #'     arrange(NewLocationID, posix_date_time)
+  #'   return(no_dups)
+  #' }
+  #' firstlast_img <- lapply(firstlast_img, drop_duplicates)
   
   #'  -------------------------
   ####  Filter detection data  ####
@@ -216,6 +216,14 @@
     first_pred[nrow(dat)] <- "N"
     #'  Add new column to larger data set
     capdata <- cbind(as.data.frame(dat), cam, second_pred, first_pred) %>%
+      #'  Rearrange observations so that duplicate images with different species
+      #'  are ordered by sequence of when each species first arrived and left
+      #'  i.e., arrange by predator that was detected first and is leaving (last)
+      #'  followed by predator that was detected second and just showed up (first)
+      group_by(NewLocationID) %>%
+      arrange(posix_date_time) %>% #, desc(Det_type)
+      ungroup() %>%
+      arrange(NewLocationID) %>%
       #'  Make sure no "Other" category observations get labeled "Y"
       mutate(second_pred = ifelse(second_pred == "Y" & Category == "Other", "N", second_pred),
              first_pred = ifelse(first_pred == "Y" & Category == "Other", "N", first_pred),
@@ -223,32 +231,52 @@
              pred_pair = ifelse(second_pred == "Y", "Y", "N"),
              pred_pair = ifelse(first_pred == "Y", "Y", pred_pair),
              same_time = ifelse(lag(posix_date_time) == posix_date_time, "same", "diff"),
-             same_time = ifelse(is.na(same_time), "diff", same_time)) 
-    #'  Pull out predator sequences that contain observations of different species
-    #'  detected at the same exact time- order of detections gets messy
-    dup_times <- capdata %>%
-      group_by(caps_new) %>%
-      #'  Any image within group of images where at least one image has same time as another
-      filter(any(same_time == "same")) %>%
-      ungroup() %>%
-      group_by(NewLocationID) %>%
-      #'  Rearrange observations so that duplicate images with different species 
-      #'  are ordered by sequence of when each species first arrived and left
-      #'  i.e., arrange by predator that was detected first and is leaving (last) 
-      #'  followed by predator that was detected second and just showed up (first)
-      arrange(posix_date_time, desc(Det_type)) %>%
-      ungroup()  
-      ################################################# this is where I left off- 
-      ############### do I just reorder capdata above and then filter or do I keep 
-      ############### this subset of dup_times and somehow merge it back with capdata???
-      
-      #' #'  Retain only observations of two different predators detected in a row
-      #' filter(pred_pair == "Y") #%>%
-      #' #'  Drop extra columns
-      #' dplyr::select(-c(cam, second_pred, first_pred)) #%>%
+             same_time = ifelse(is.na(same_time), "diff", same_time),
+             #'  Create a unique ID so I can more easily remove specific observations
+             uniqueID = paste0(NewLocationID, "_", posix_date_time, "_", Species, "_", Det_type))
     return(capdata)
   }
   predator_pairs <- lapply(full_predator_sequences, flag_sequential_predators) 
+  
+  #'  Pull out predator sequences that contain observations of different species
+  #'  detected at the same exact time. Identify which images need to be removed
+  #'  b/c order of last/first species detected gets messy, especially when only
+  #'  one image of both species so first/last image is same for both species. UGH.
+  dup_times <- function(capdata) {
+    double_obs <-  capdata %>%
+      group_by(caps_new) %>%
+      #'  Filter to any image within group of where... 
+      #'  at least one image has same time as another
+      filter(any(same_time == "same")) %>%
+      #'  and at least one is part of a predator pairing
+      filter(any(pred_pair == "Y")) %>%
+      ungroup() %>%
+      group_by(NewLocationID) %>%
+      arrange(posix_date_time, desc(Det_type)) %>%
+      ungroup() %>%
+      arrange(NewLocationID)
+    return(double_obs)
+  } 
+  double_dets <- lapply(predator_pairs, dup_times)
+  
+  rm_20s 
+    #GMU10A_P_104_2020-09-03 14:52:14_bobcat_first, GMU10A_P_104_2020-09-03 14:52:15_coyote_last, GMU10A_P_15_2020-08-07 00:27:15_bobcat_first, GMU10A_P_23_2020-07-22 01:35:58_bobcat_first,
+    #GMU10A_P_40_2020-08-03 00:16:27_coyote_last, GMU10A_P_40_2020-08-03 00:16:27_wolf_first, GMU10A_P_41_2020-07-16 22:01:43_coyote_last, GMU10A_P_5_2020-09-15 07:27:58_bobcat_first,
+    #GMU10A_P_59_2020-09-14 06:53:24_coyote_last, GMU10A_P_86_2020-07-27 01:47:41_wolf_first, GMU10A_P_86_2020-07-27 01:47:42_coyote_last, GMU10A_P_86_2020-08-11 02:31:28_bobcat_first,
+    #GMU10A_P_86_2020-08-11 02:31:44_coyote_last, GMU10A_P_86_2020-08-11 02:40:03_coyote_last, GMU10A_P_86_2020-08-11 02:40:03_bobcat_first, GMU6_P_17_2020-07-01 22:36:24_coyote_last, 
+    #GMU6_P_17_2020-07-01 22:36:25_mountain_lion_last, GMU6_P_18_2020-08-15 22:20:59_bobcat_first, GMU6_P_18_2020-08-15 22:21:07_coyote_last, GMU6_P_37_2020-07-28 00:11:29_coyote_first,
+    #GMU6_P_37_2020-07-28 00:11:30_wolf_last, GMU6_P_38_2020-08-28 21:03:42_wolf_last, GMU6_P_38_2020-08-28 21:03:42_wolf_first, GMU6_P_45_2020-08-01 03:56:05_coyote_last, 
+    #GMU6_P_56_2020-08-23 23:24:19_coyote_last, GMU6_P_56_2020-08-28 00:58:18_bobcat_first, GMU6_P_56_2020-08-28 00:58:21_coyote_last, GMU6_P_58_2020-07-16 02:08:36_coyote_first, 
+    #GMU6_P_58_2020-07-16 02:08:47_wolf_last, GMU6_P_66_2020-07-31 22:16:15_bobcat_first, GMU6_P_66_2020-07-31 22:16:18_coyote_last, GMU6_P_94_2020-07-10 05:24:20_bobcat_last, 
+    #GMU6_P_94_2020-09-09 01:52:26_mountain_lion_first, GMU6_P_94_2020-09-09 01:53:41_bobcat_last, GMU6_U_130_2020-08-21 23:57:41_wolf_first, GMU6_U_130_2020-08-21 23:58:48_coyote_last,
+    #GMU6_U_90_2020-09-04 13:27:34_mountain_lion_first, GMU6_U_90_2020-09-04 13:27:50_bear_black_last
+  
+  # go though 21s data to identify which images need to be removed
+
+  
+
+
+
   
   
   #'  ---------------------------------------------
