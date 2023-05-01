@@ -73,13 +73,15 @@
   eoe20w_dets <- detections(eoe20w_allM_skinny, start_date = "2020-12-01", end_date = "2021-02-01")
   eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15")
   
-  #'  ------------------------------------------
-  ####  Summarize independent detection events  ####
-  #'  ------------------------------------------
+  #'  -----------------------------------------
+  ####  Generate independent detection events  ####
+  #'  -----------------------------------------
   #'  Generate "independent" detection events based on defined amount of time 
   #'  elapsing between sequential images of same species at a camera, then count
   #'  the number of unique detection events of a given species at each camera.
-  #'  Currently using 5 min as interval (5*60 = 300 seconds)
+  #'  Currently using 5 min as interval (5*60 = 300 seconds).
+  #'  Then filter to the first and last image of each predator detection and 
+  #'  just the last image of all other species.
   #'  -----------------------------------------
   unique_detections <- function(dets, elapsed_time) {
     #'  Generate unique detection events
@@ -128,6 +130,20 @@
   }
   firstlast_img <- lapply(eoe_5min_list, first_last_image)
   
+  #'  --------------------------------------
+  ####  Filter to specific pairs of images  ####
+  #'  --------------------------------------
+  #'  1. Thin image set to only single "other" image within sequential group of 
+  #'     other images.
+  #'  2. Flag pairs of different predator species detected back-to-back within 
+  #'     the same set of sequential detection events.
+  #'  3. Identify instances where order of last pred1 - first pred2 is incorrect 
+  #'     owing to duplicated observations for same image.
+  #'  4. Remove these images from larger last/first data set.
+  #'  5. Calculate time-between-detections of different species
+  #'  6. Thin image set to just detections of different predator species
+  #'  --------------------------------------
+  
   #' #'  Detections with only one image get duplicated b/c its the first & last image
   #' #'  Identify duplicate images (ignoring last column where they differ) and filter
   #' #'  to just one image per detection event
@@ -145,14 +161,11 @@
   #' }
   #' firstlast_img <- lapply(firstlast_img, drop_duplicates)
   
-  #'  -------------------------
-  ####  Filter detection data  ####
-  #'  -------------------------
   #'  Group multiple detection events of same category (but of different species) 
   #'  when they occur sequentially, then reduce groups of "other" category to a 
   #'  single observation (e.g., we only care that a predator sequence was broken
   #'  up but don't need all "other" detections).
-  thin_dat <- function(dets) {
+  thin_dat_by_category <- function(dets) {
     dat <- arrange(dets, NewLocationID, posix_date_time) %>%
       dplyr::select(-det_events)
     caps_new <- c()
@@ -182,7 +195,7 @@
       arrange(NewLocationID, posix_date_time)
     return(dets)
   }
-  full_predator_sequences <- lapply(firstlast_img, thin_dat) #firstlast_img_skinny
+  full_predator_sequences <- lapply(firstlast_img, thin_dat_by_category) #firstlast_img_skinny
   
   #'  Flag sequential detections of two different predators
   flag_sequential_predators <- function(dets) {
@@ -242,7 +255,7 @@
   #'  detected at the same exact time. Identify which images need to be removed
   #'  b/c order of last/first species detected gets messy, especially when only
   #'  one image of both species so first/last image is same for both species. UGH.
-  dup_times <- function(capdata) {
+  id_duplicate_times <- function(capdata) {
     double_obs <-  capdata %>%
       group_by(caps_new) %>%
       #'  Filter to any image within group of where... 
@@ -257,28 +270,44 @@
       arrange(NewLocationID)
     return(double_obs)
   } 
-  double_dets <- lapply(predator_pairs, dup_times)
+  double_dets <- lapply(predator_pairs, id_duplicate_times)
   
-  rm_20s 
-    #GMU10A_P_104_2020-09-03 14:52:14_bobcat_first, GMU10A_P_104_2020-09-03 14:52:15_coyote_last, GMU10A_P_15_2020-08-07 00:27:15_bobcat_first, GMU10A_P_23_2020-07-22 01:35:58_bobcat_first,
-    #GMU10A_P_40_2020-08-03 00:16:27_coyote_last, GMU10A_P_40_2020-08-03 00:16:27_wolf_first, GMU10A_P_41_2020-07-16 22:01:43_coyote_last, GMU10A_P_5_2020-09-15 07:27:58_bobcat_first,
-    #GMU10A_P_59_2020-09-14 06:53:24_coyote_last, GMU10A_P_86_2020-07-27 01:47:41_wolf_first, GMU10A_P_86_2020-07-27 01:47:42_coyote_last, GMU10A_P_86_2020-08-11 02:31:28_bobcat_first,
-    #GMU10A_P_86_2020-08-11 02:31:44_coyote_last, GMU10A_P_86_2020-08-11 02:40:03_coyote_last, GMU10A_P_86_2020-08-11 02:40:03_bobcat_first, GMU6_P_17_2020-07-01 22:36:24_coyote_last, 
-    #GMU6_P_17_2020-07-01 22:36:25_mountain_lion_last, GMU6_P_18_2020-08-15 22:20:59_bobcat_first, GMU6_P_18_2020-08-15 22:21:07_coyote_last, GMU6_P_37_2020-07-28 00:11:29_coyote_first,
-    #GMU6_P_37_2020-07-28 00:11:30_wolf_last, GMU6_P_38_2020-08-28 21:03:42_wolf_last, GMU6_P_38_2020-08-28 21:03:42_wolf_first, GMU6_P_45_2020-08-01 03:56:05_coyote_last, 
-    #GMU6_P_56_2020-08-23 23:24:19_coyote_last, GMU6_P_56_2020-08-28 00:58:18_bobcat_first, GMU6_P_56_2020-08-28 00:58:21_coyote_last, GMU6_P_58_2020-07-16 02:08:36_coyote_first, 
-    #GMU6_P_58_2020-07-16 02:08:47_wolf_last, GMU6_P_66_2020-07-31 22:16:15_bobcat_first, GMU6_P_66_2020-07-31 22:16:18_coyote_last, GMU6_P_94_2020-07-10 05:24:20_bobcat_last, 
-    #GMU6_P_94_2020-09-09 01:52:26_mountain_lion_first, GMU6_P_94_2020-09-09 01:53:41_bobcat_last, GMU6_U_130_2020-08-21 23:57:41_wolf_first, GMU6_U_130_2020-08-21 23:58:48_coyote_last,
-    #GMU6_U_90_2020-09-04 13:27:34_mountain_lion_first, GMU6_U_90_2020-09-04 13:27:50_bear_black_last
+  #'  List all uniqueIDs of observations that need to be removed in a giant vector
+  rm_20s <- c("GMU10A_P_104_2020-09-03 14:52:14_bobcat_first", "GMU10A_P_104_2020-09-03 14:52:15_coyote_last", "GMU10A_P_15_2020-08-07 00:27:15_bobcat_first", "GMU10A_P_23_2020-07-22 01:35:58_bobcat_first",
+    "GMU10A_P_40_2020-08-03 00:16:27_coyote_last", "GMU10A_P_40_2020-08-03 00:16:27_wolf_first", "GMU10A_P_41_2020-07-16 22:01:43_coyote_last", "GMU10A_P_5_2020-09-15 07:27:58_bobcat_first",
+    "GMU10A_P_59_2020-09-14 06:53:24_coyote_last", "GMU10A_P_86_2020-07-27 01:47:41_wolf_first", "GMU10A_P_86_2020-07-27 01:47:42_coyote_last", "GMU10A_P_86_2020-08-11 02:31:28_bobcat_first",
+    "GMU10A_P_86_2020-08-11 02:31:44_coyote_last", "GMU10A_P_86_2020-08-11 02:40:03_coyote_last", "GMU10A_P_86_2020-08-11 02:40:03_bobcat_first", "GMU6_P_17_2020-07-01 22:36:24_coyote_last", 
+    "GMU6_P_17_2020-07-01 22:36:25_mountain_lion_last", "GMU6_P_18_2020-08-15 22:20:59_bobcat_first", "GMU6_P_18_2020-08-15 22:21:07_coyote_last", "GMU6_P_37_2020-07-28 00:11:29_coyote_first",
+    "GMU6_P_37_2020-07-28 00:11:30_wolf_last", "GMU6_P_38_2020-08-28 21:03:42_wolf_last", "GMU6_P_38_2020-08-28 21:03:42_wolf_first", "GMU6_P_45_2020-08-01 03:56:05_coyote_last", 
+    "GMU6_P_56_2020-08-23 23:24:19_coyote_last", "GMU6_P_56_2020-08-28 00:58:18_bobcat_first", "GMU6_P_56_2020-08-28 00:58:21_coyote_last", "GMU6_P_58_2020-07-16 02:08:36_coyote_first", 
+    "GMU6_P_58_2020-07-16 02:08:47_wolf_last", "GMU6_P_66_2020-07-31 22:16:15_bobcat_first", "GMU6_P_66_2020-07-31 22:16:18_coyote_last", "GMU6_P_94_2020-07-10 05:24:20_bobcat_last", 
+    "GMU6_P_94_2020-09-09 01:52:26_mountain_lion_first", "GMU6_P_94_2020-09-09 01:53:41_bobcat_last", "GMU6_U_130_2020-08-21 23:57:41_wolf_first", "GMU6_U_130_2020-08-21 23:58:48_coyote_last",
+    "GMU6_U_90_2020-09-04 13:27:34_mountain_lion_first", "GMU6_U_90_2020-09-04 13:27:50_bear_black_last")
+  rm_21s <- c()
   
-  # go though 21s data to identify which images need to be removed
+  
+  
+  
+
+  #'  Function to remove specific observations that screw up the last-first detection order
+  remove_obs <- function(pred_pairs, rm_obs) {
+    #'  Grab all rows that meet criteria based on uniqueID
+    obs_to_remove <- pred_pairs[pred_pairs$uniqueID %in% rm_obs,]
+    #'  Remove these rows from the larger df
+    reduced_predator_pairs <- anti_join(pred_pairs, obs_to_remove)
+    return(reduced_predator_pairs)
+  }
+  predator_pairs_20s <- remove_obs(predator_pairs[[1]], rm_20s)
+  predator_pairs_20s <- remove_obs(predator_pairs[[3]], rm_21s)
+  #'  Being lazy and not doing this for wtr20 data right now
+  
+  #'  Re-list cleaned predator-pair data sets
+  predator_pairs <- list(predator_pairs_20s, predator_pairs[[2]], predator_pairs_21s)
+  
+  ####### need to fix last/first column so they are every other - double check they are correct
 
   
 
-
-
-  
-  
   #'  ---------------------------------------------
   ####  Calculate times between detection events   ####
   #'  ---------------------------------------------
@@ -312,7 +341,7 @@
   
   
   
-  
+  ### eventually thin to just predator data, no other observations in between
   
   
   
