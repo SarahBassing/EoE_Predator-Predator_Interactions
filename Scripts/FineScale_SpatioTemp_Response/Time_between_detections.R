@@ -349,7 +349,7 @@
     bind_rows(GMU6_P_94_new) %>%
     #'  Arrange everything back in order
     arrange(NewLocationID, posix_date_time, desc(Det_type)) 
-  #'  Note: first/last labels are off for a few predator pairings b/c of desc(Det_type) 
+  #'  Note: first/last labels are off for a few predator pairings b/c of desc(Det_type)    ###### NOPE! NEED TO FIX THIS!!! Can I switch first/last when everything but that is identical (spp, time, location)
   #'  but the detection sequence is correct so leaving for now for: 
   #'  Summer 2020
   #'  wolf - coyote, coyote - wolf detections at GMU10A_P_51, GMU10A_P_93, GMU6_P_73
@@ -358,35 +358,33 @@
   #'  coyote - bobcat, bobcat - mountain lion detections at GMU6_P_94
   #'  Summer 2021
   #'  black bear - coyote, coyote - black bear detections at GMU10A_U_112
-  #'  coyote - moutain lion, mountain lion - coyote detections at GMU6_P_18
+  #'  coyote - mountain lion, mountain lion - coyote detections at GMU6_P_18
   
   #' #'  Double check everything looks alright
   #' tst <- b2b_predators[[1]]
   #' tst2 <- b2b_predators[[3]]
   
-  
-
   #'  ---------------------------------------------
   ####  Calculate times between detection events   ####
   #'  ---------------------------------------------
   #'  Function to calculate time between detection events of two focal species
   #'  Data structured so only last image of spp1 and first image of spp2 per
   #'  detection event are included in data frame.
-  tbd <- function(detection_data, spp1, unittime) {
-    #'  Create empty vector to be filled
-    detection_data$TimeSinceLastDet <- c()
-    #'  Fill first element of the vector to get it started
-    detection_data$TimeSinceLastDet[1] <- 0
-    #'  Loop through each row to calculate elapsed time since previous detection
-    for (i in 2:nrow(detection_data)){
-      #'  If previous detection was spp1, set time to 0
-      if (detection_data$Category[i-1] == spp1) detection_data$TimeSinceLastDet[i] = 0
-      #'  If current detection is spp2 and follows detection of spp1, calculate
-      #'  the difference in time from previous detection to current detection
-      if (detection_data$Category[i] != spp1) detection_data$TimeSinceLastDet[i] = difftime(detection_data$DateTime[i], detection_data$DateTime[i-1], units = unittime)
-    }
-    #'  Retain only prey observations (don't need the actual predator detections)
-    # detection_data <- filter(detection_data, Category == "Prey")
+  tbd <- function(detection_data, det_type, unittime) {
+    detection_data <- detection_data %>%
+      group_by(NewLocationID) %>%
+      mutate(TimeSinceLastDet = difftime(posix_date_time, lag(posix_date_time), units = unittime),
+             TimeSinceLastDet = ifelse(Det_type == "last", 0, TimeSinceLastDet),
+             MinutesSinceLastDet = round(TimeSinceLastDet, 4),
+             HoursSinceLastDet = round((TimeSinceLastDet/60), 2),
+             DaysSinceLastDet = round((TimeSinceLastDet/1440), 2),
+             Previous_Spp = lag(Species),
+             Predator_pair = paste0(Previous_Spp, "-", Species)) %>%
+      ungroup() %>%
+      # relocate(Previous_Spp, .before = Species) %>%
+      # relocate(Predator_pair, .after = Species) %>%
+      filter(Det_type == "first") %>%
+      dplyr::select(-c(TriggerMode, OpState, Category, Count, caps_new, cam, same_time, pred_pair, uniqueID)) #Det_type, second_pred, first_pred, 
     return(detection_data)
   }
   #'  Calculate time between detections for different pairs of species of interest
@@ -394,12 +392,78 @@
   #'  to make calculations in (options are: "sec", "min", "hour", "day")
   #'  Note: there should be NO negative values! If there are negative values this
   #'  means the script is calculating times between detections across camera sites
-  tbd_pred.prey_smr <- tbd(predator_pairs, spp1 = "Predator", unittime = "min")
+  tbd_pred_pairs <- lapply(b2b_predators, tbd, det_type = "last", unittime = "min")
+  # tbd_pred_pairs_20s <- tbd(b2b_predators[[1]], det_type = "last", unittime = "min")
   
+  tbd_pred_pairs[[1]]$Year <- "Smr20"
+  tbd_pred_pairs[[3]]$Year <- "Smr21"
+  tbd_pred_pairs_all <- rbind(tbd_pred_pairs[[1]], tbd_pred_pairs[[3]])
   
+  save(tbd_pred_pairs_all, file = paste0("./Outputs/Time_btwn_Detections/TBD_all_predator_pairs_", Sys.Date(), ".RData"))
   
+  #'  ----------------------------------------
+  ####  Summary stats and data visualization  ####
+  #'  ----------------------------------------
+  #'  Total average
+  mean(tbd_pred_pairs_all$MinutesSinceLastDet, na.rm = TRUE); sd(tbd_pred_pairs_all$MinutesSinceLastDet, na.rm = TRUE)
+  mean(tbd_pred_pairs_all$HoursSinceLastDet, na.rm = TRUE); sd(tbd_pred_pairs_all$HoursSinceLastDet, na.rm = TRUE)
   
-  ### eventually thin to just predator data, no other observations in between
+  #'  Average by species pairing
+  avg_tbd <- tbd_pred_pairs_all %>%
+    group_by(Predator_pair) %>%
+    summarise(total_obs = n(),
+              mean_tbd = mean(HoursSinceLastDet),
+              sd_tbd = sd(HoursSinceLastDet)) %>%
+    ungroup()
   
+  hist(tbd_pred_pairs_all$HoursSinceLastDet, na.rm = TRUE, breaks = 50, main = "Elapsed time between sequential detections of predators", xlab = "Hours between detection events")
+  hist(tbd_pred_pairs_all$DaysSinceLastDet, na.rm = TRUE, breaks = 50, main = "Elapsed time between sequential detections of predators", xlab = "Days between detection events")
   
+  #'  Split by species-pairs
+  wolfbear <- filter(tbd_pred_pairs_all, Predator_pair == "wolf-bear_black" | Predator_pair == "bear_black-wolf")
+  wolflion <- filter(tbd_pred_pairs_all, Predator_pair == "wolf-mountain_lion" | Predator_pair == "mountain_lion-wolf")
+  wolfcoy <- filter(tbd_pred_pairs_all, Predator_pair == "wolf-coyote" | Predator_pair == "coyote-wolf")
+  lionbear <- filter(tbd_pred_pairs_all, Predator_pair == "mountain_lion-bear_black" | Predator_pair == "bear_black-mountain_lion")
+  lionbob <- filter(tbd_pred_pairs_all, Predator_pair == "mountain_lion-bobcat" | Predator_pair == "bobcat-mountain_lion")
+  coybob <- filter(tbd_pred_pairs_all, Predator_pair == "coyote-bobcat" | Predator_pair == "bobcat-coyote")
+  
+  #'  Focus in on specific pairings
+  focal_pairs <- rbind(wolfbear, wolfcoy, wolflion, lionbear, lionbob, coybob) %>%
+    mutate(Predator_pair = gsub("_", " ", Predator_pair))
+  
+  #'  Summary stats of just focal species pairings
+  avg_tbd_focal_pairs <- focal_pairs %>%
+    group_by(Predator_pair) %>%
+    summarise(total_obs = n(),
+              mean_tbd_hr = round(mean(HoursSinceLastDet), 2),
+              sd = round(sd(HoursSinceLastDet), 2),
+              se = round(sd(HoursSinceLastDet)/sqrt(total_obs), 2)) %>%
+    ungroup() %>%
+    arrange(desc(total_obs)) %>%
+    mutate(Predator_pair = gsub("_", " ", Predator_pair))
+  # write.csv(avg_tbd_focal_pairs, "./Outputs/Tables/Summary_stats_TBD.csv")
+  
+  #'  Visualize tbd data for data sets with >50 observations
+  coy_bob_his <- ggplot(coybob, aes(x=HoursSinceLastDet, fill=Predator_pair)) +
+    geom_histogram(color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 5) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) 
+  wolf_coy_his <- ggplot(wolfcoy, aes(x=HoursSinceLastDet, fill=Predator_pair)) +
+    geom_histogram(color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 5) +
+    scale_fill_manual(values=c("#69b3a2", "#404080"))
+  plot(coy_bob_his)
+  plot(wolf_coy_his)
+  
+  #'  Add summary data to each observation
+  focal_pairs <- full_join(focal_pairs, avg_tbd_focal_pairs, by = "Predator_pair") 
+  
+  #'  Boxplots of all data, organized by sample size
+  pred_pair_box <- ggplot(focal_pairs, aes(x = reorder(Predator_pair, total_obs), y=HoursSinceLastDet, fill=Predator_pair)) +
+    geom_boxplot() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    geom_text(data = avg_tbd_focal_pairs,
+              aes(Predator_pair, Inf, label = paste("n =",total_obs)), vjust = 8) +
+    ggtitle("Boxplots summarizing elapsed time between detections of predators") +
+    xlab("Predator pairings") + ylab("Hours between sequential detections") +
+    labs(fill = "First - Second Predator")
+  plot(pred_pair_box)
   
