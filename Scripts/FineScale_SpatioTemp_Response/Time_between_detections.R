@@ -49,7 +49,7 @@
   #'  most cameras were active each season (Detection_data_cleaning.R script)
   detections <- function(dets, start_date, end_date) {
     dets <- dets %>%
-      dplyr::select("NewLocationID", "CamID", "Date", "Time", "posix_date_time", "TriggerMode",
+      dplyr::select("NewLocationID", "CamID", "File", "Date", "Time", "posix_date_time", "TriggerMode",
                     "OpState", "Species", "Vehicle", "Count") %>%
       filter(Species != "none") %>%
       mutate(
@@ -235,7 +235,7 @@
       #'  i.e., arrange by predator that was detected first and is leaving (last)
       #'  followed by predator that was detected second and just showed up (first)
       group_by(NewLocationID) %>%
-      arrange(posix_date_time) %>% #, desc(Det_type)
+      arrange(posix_date_time, File) %>% #, desc(Det_type)
       ungroup() %>%
       arrange(NewLocationID) %>%
       #'  Make sure no "Other" category observations get labeled "Y"
@@ -272,7 +272,7 @@
       filter(any(pred_pair == "Y")) %>%
       ungroup() %>%
       group_by(NewLocationID) %>%
-      arrange(posix_date_time, desc(Det_type)) %>%
+      arrange(posix_date_time, File) %>% #, desc(Det_type)
       ungroup() %>%
       arrange(NewLocationID)
     return(double_obs)
@@ -280,17 +280,20 @@
   double_dets <- lapply(predator_pairs, id_duplicate_times)
   
   #'  List all uniqueIDs of observations that need to be removed in a giant vector
-  rm_20s <- c("GMU10A_P_104_2020-09-03 14:52:14_bobcat_first", "GMU10A_P_104_2020-09-03 14:52:15_coyote_last", "GMU10A_P_15_2020-08-07 00:27:15_bobcat_first", "GMU10A_P_23_2020-07-22 01:35:58_bobcat_first",
-    "GMU10A_P_40_2020-08-03 00:16:27_coyote_last", "GMU10A_P_40_2020-08-03 00:16:27_wolf_first", "GMU10A_P_41_2020-07-16 22:01:43_coyote_last", "GMU10A_P_5_2020-09-15 07:27:58_bobcat_last",  # changed from GMU10A_P_5_2020-09-15 07:27:58_bobcat_first
-    "GMU10A_P_59_2020-09-14 06:53:24_coyote_last", "GMU10A_P_86_2020-07-27 01:47:41_wolf_last", "GMU10A_P_86_2020-07-27 01:47:42_coyote_last", "GMU10A_P_86_2020-08-11 02:31:28_bobcat_last", # changed from GMU10A_P_86_2020-07-27 01:47:41_wolf_first, GMU10A_P_86_2020-08-11 02:31:28_bobcat_first
-    "GMU10A_P_86_2020-08-11 02:31:44_coyote_last", "GMU10A_P_86_2020-08-11 02:40:03_coyote_last", "GMU10A_P_86_2020-08-11 02:40:03_bobcat_last", "GMU6_P_17_2020-07-01 22:36:24_coyote_last", # changed from GMU10A_P_86_2020-08-11 02:40:03_bobcat_first
-    "GMU6_P_17_2020-07-01 22:36:25_mountain_lion_last", "GMU6_P_18_2020-08-15 22:20:59_bobcat_last", "GMU6_P_18_2020-08-15 22:21:07_coyote_last", "GMU6_P_37_2020-07-28 00:11:29_coyote_first", # changed from GMU6_P_18_2020-08-15 22:20:59_bobcat_first
-    "GMU6_P_37_2020-07-28 00:11:30_wolf_last", "GMU6_P_38_2020-08-28 21:03:42_wolf_last", "GMU6_P_38_2020-08-28 21:03:42_wolf_first", "GMU6_P_45_2020-08-01 03:56:05_coyote_last", 
-    "GMU6_P_56_2020-08-23 23:24:19_coyote_last", "GMU6_P_56_2020-08-28 00:58:18_bobcat_last", "GMU6_P_56_2020-08-28 00:58:21_coyote_last", "GMU6_P_58_2020-07-16 02:08:36_coyote_last", # changed from GMU6_P_56_2020-08-28 00:58:18_bobcat_first, GMU6_P_58_2020-07-16 02:08:36_coyote_first
-    "GMU6_P_58_2020-07-16 02:08:47_wolf_last", "GMU6_P_66_2020-07-31 22:16:15_bobcat_last", "GMU6_P_66_2020-07-31 22:16:18_coyote_last", "GMU6_P_94_2020-07-10 05:24:20_bobcat_first", # changed from GMU6_P_66_2020-07-31 22:16:15_bobcat_first, GMU6_P_94_2020-07-10 05:24:20_bobcat_last
-    "GMU6_P_94_2020-09-09 01:52:26_mountain_lion_last", "GMU6_P_94_2020-09-09 01:53:41_bobcat_last", "GMU6_U_130_2020-08-21 23:57:41_wolf_first", "GMU6_U_130_2020-08-21 23:58:48_coyote_last", #changed from "GMU6_P_94_2020-09-09 01:52:26_mountain_lion_first"
-    "GMU6_U_90_2020-09-04 13:27:34_mountain_lion_last", "GMU6_U_90_2020-09-04 13:27:50_bear_black_last", "GMU10A_P_23_2020-07-22 01:36:01_coyote_last", "GMU10A_U_169_2020-08-07 22:40:17_wolf_last", # changed from GMU6_U_90_2020-09-04 13:27:34_mountain_lion_first, 
-    "GMU10A_U_169_2020-08-07 22:40:19_coyote_last", "GMU6_P_94_2020-07-10 05:24:20_bobcat_last", "GMU6_P_94_2020-07-10 05:24:20_coyote_last") # added GMU10A_P_23_2020-07-22 01:36:01_coyote_last, GMU10A_U_169_2020-08-07 22:40:17_wolf_last, GMU10A_U_169_2020-08-07 22:40:19_coyote_last, GMU6_P_94_2020-07-10 05:24:20_bobcat_last, GMU6_P_94_2020-07-10 05:24:20_coyote_last
+  rm_20s <- c("GMU10A_P_104_2020-09-03 14:52:14_bobcat_first", "GMU10A_P_104_2020-09-03 14:52:15_coyote_last", "GMU10A_P_15_2020-08-07 00:27:16_mountain_lion_last", 
+              "GMU10A_P_23_2020-07-22 01:35:58_bobcat_last", "GMU10A_P_23_2020-07-22 01:36:01_coyote_last", "GMU10A_P_40_2020-08-03 00:16:27_coyote_first", 
+              "GMU10A_P_40_2020-08-03 00:16:27_wolf_last", "GMU10A_P_5_2020-09-15 07:27:58_bobcat_last", "GMU10A_P_86_2020-07-27 01:47:41_wolf_first",  # removed "GMU10A_P_41_2020-07-16 22:01:43_coyote_last", 
+              "GMU10A_P_86_2020-07-27 01:47:42_coyote_last", "GMU10A_P_86_2020-08-11 02:31:28_bobcat_last", "GMU10A_P_86_2020-08-11 02:31:44_coyote_last", # removed "GMU10A_P_59_2020-09-14 06:53:24_coyote_last", 
+              "GMU10A_P_86_2020-08-11 02:40:03_bobcat_last", "GMU10A_P_86_2020-08-11 02:40:03_coyote_last", "GMU6_P_17_2020-07-01 22:36:24_coyote_last", 
+              "GMU6_P_17_2020-07-01 22:36:25_mountain_lion_last", "GMU6_P_18_2020-08-15 22:20:59_bobcat_last", "GMU6_P_18_2020-08-15 22:21:07_coyote_last", 
+              "GMU6_P_37_2020-07-28 00:11:29_coyote_last", "GMU6_P_37_2020-07-28 00:11:30_wolf_last", "GMU6_P_38_2020-08-28 21:03:42_wolf_last", 
+              "GMU6_P_38_2020-08-28 21:03:51_coyote_last", "GMU6_P_56_2020-08-23 23:24:15_bobcat_last", "GMU6_P_56_2020-08-23 23:24:19_coyote_last", # removed "GMU6_P_45_2020-08-01 03:56:05_coyote_last", 
+              "GMU6_P_56_2020-08-28 00:58:18_bobcat_last", "GMU6_P_56_2020-08-28 00:58:21_coyote_last", "GMU6_P_58_2020-07-16 02:08:36_coyote_last", 
+              "GMU6_P_58_2020-07-16 02:08:47_wolf_last", "GMU6_P_66_2020-07-31 22:16:15_bobcat_last", "GMU6_P_66_2020-07-31 22:16:18_coyote_last", 
+              "GMU6_P_94_2020-07-10 05:24:20_bobcat_last", "GMU6_P_94_2020-07-10 05:24:20_coyote_last", "GMU6_P_94_2020-09-09 01:52:26_mountain_lion_last", 
+              "GMU6_P_94_2020-09-09 01:53:41_bobcat_last", "GMU6_U_130_2020-08-21 23:57:41_wolf_last", "GMU6_U_130_2020-08-21 23:58:48_coyote_last", 
+              "GMU6_U_90_2020-09-04 13:27:34_mountain_lion_last", "GMU6_U_90_2020-09-04 13:27:50_bear_black_last", "GMU10A_U_169_2020-08-07 22:40:17_wolf_last", 
+              "GMU10A_U_169_2020-08-07 22:40:19_coyote_last") 
   rm_21s <- c("GMU6_P_9_2021-09-02 21:57:37_bear_black_last", "GMU6_P_9_2021-09-02 21:57:38_wolf_last")
   
   #'  List all uniqueIDs of observations that need to switch the Det_type from
@@ -298,12 +301,16 @@
   #'  the first predator is still present when the second predator is detected so
   #'  need to artificially force these images to be the "last" image before the 
   #'  second predator shows up
-  change_to_last_20s <- c("GMU10A_P_5_2020-09-15 07:27:50_coyote_first", "GMU10A_P_86_2020-07-27 01:47:12_coyote_first", 
-                      "GMU10A_P_86_2020-07-29 00:55:50_coyote_first", "GMU10A_P_86_2020-08-11 02:31:26_coyote_first", 
-                      "GMU10A_P_86_2020-08-11 02:39:57_coyote_first", "GMU10A_U_169_2020-08-07 22:36:03_coyote_first", 
-                      "GMU6_P_18_2020-08-15 22:19:16_coyote_first", "GMU6_P_56_2020-08-28 00:58:17_coyote_first",  
-                      "GMU6_P_58_2020-07-16 02:08:28_wolf_first", "GMU6_P_66_2020-07-31 22:16:13_coyote_first", 
-                      "GMU6_U_90_2020-09-04 13:27:28_bear_black_first")
+  change_to_last_20s <- c("GMU10A_P_15_2020-08-07 00:27:15_bobcat_first", "GMU10A_P_23_2020-07-22 01:35:58_coyote_first",
+                          "GMU10A_P_5_2020-09-15 07:27:50_coyote_first", "GMU10A_P_86_2020-07-27 01:47:12_coyote_first", 
+                          "GMU10A_P_86_2020-07-29 00:55:50_coyote_first", "GMU10A_P_86_2020-08-11 02:31:26_coyote_first", 
+                          "GMU10A_P_86_2020-08-11 02:39:57_coyote_first", "GMU10A_U_169_2020-08-07 22:36:03_coyote_first", 
+                          "GMU6_P_17_2020-07-01 22:35:41_mountain_lion_first", "GMU6_P_18_2020-08-15 22:19:16_coyote_first",
+                          "GMU6_P_37_2020-07-28 00:11:27_wolf_first", "GMU6_P_38_2020-08-28 21:03:00_coyote_first", 
+                          "GMU6_P_56_2020-08-23 23:24:14_bobcat_first", "GMU6_P_56_2020-08-28 00:58:17_coyote_first", 
+                          "GMU6_P_58_2020-07-16 02:08:28_wolf_first", "GMU6_P_66_2020-07-31 22:16:13_coyote_first", 
+                          "GMU6_P_94_2020-07-10 05:24:19_coyote_first", "GMU6_P_94_2020-09-09 01:52:23_bobcat_first",
+                          "GMU6_U_130_2020-08-21 23:54:00_coyote_first", "GMU6_U_90_2020-09-04 13:27:28_bear_black_first")
   change_to_last_21s <- c("GMU6_P_9_2021-09-02 21:57:09_wolf_first")
   
   #'  Function to remove specific observations that screw up the last-first detection order
@@ -319,7 +326,7 @@
     reduced_predator_pairs <- anti_join(reduced_predator_pairs, change_det_type) %>%
       bind_rows(last_det_type) %>%
       #'  Arrange everything back in order
-      arrange(NewLocationID, posix_date_time, desc(Det_type))
+      arrange(NewLocationID, posix_date_time, File, desc(Det_type))
     return(reduced_predator_pairs)
   }
   predator_pairs_20s <- remove_obs(predator_pairs[[1]], rm_obs = rm_20s, new_last = change_to_last_20s)
@@ -328,6 +335,18 @@
   
   #'  Re-list cleaned predator-pair data sets
   predator_pairs_thinned <- list(predator_pairs_20s, predator_pairs[[2]], predator_pairs_21s)
+  
+  #'  Pull out series of images to review based on the capture identifier
+  #'  In these cases, 2 species were detected within ~1 min of each other, often
+  #'  with spp2 showing up between images of spp1, so need to make sure these 
+  #'  are not topological errors or miss-classifications
+  caps_20s <- c(539, 1930, 2353, 4049, 5108, 8684, 8753, 18180, 18499, 22218, 22533, 
+                24840, 25000, 26015, 34178, 34234, 35783, 40143, 13811)
+  caps_21s <- c(44018)
+  obs_to_check_20s <- predator_pairs[[1]][predator_pairs[[1]]$caps_new %in% caps_20s,]
+  obs_to_check_21s <- predator_pairs[[3]][predator_pairs[[3]]$caps_new %in% caps_21s,]
+  
+
   
   #'  Reduce to sequential detections of different predator species
   back_to_back_predators <- function(pred_pairs) {
@@ -466,4 +485,12 @@
     xlab("Predator pairings") + ylab("Hours between sequential detections") +
     labs(fill = "First - Second Predator")
   plot(pred_pair_box)
+  
+  #'  List of questionable images
+  #'  GMU10A_P_104 2020-09-03 14:52:15 EOE2020_IDFG2882_20200903_145215_MD_2.JPG bobcat and coyote
+  #'  GMU10A_P_15 2020-08-07 00:27:16 EOE2020_IDFG1586_20200807_002716_MD_3.JPG bobcat and mountain lion
+  #'  GMU10A_P_23 2020-07-22 01:35:58 EOE2020_IDFG2643_20200722_013558_MD_1.JPG bobcat and coyote
+  #'  GMU10A_P_40 2020-08-03 00:16:27 EOE2020_IDFG2201_20200803_001627_MD_2.JPG wolf and coyote
+  #'  GMU10A_P_41 2020-07-01 01:09:56 EOE2020_IDFG2492_20200701_010956_MD_2.JPG bobcat and coyote
+
   
