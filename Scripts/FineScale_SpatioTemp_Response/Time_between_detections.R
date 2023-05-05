@@ -4,17 +4,16 @@
   #'  Sarah Bassing
   #'  April 2023
   #'  ---------------------------------------
+  #'  Filter detection data down to just back-to-back pairs for focal species.
   #'  Calculate time-between-detections of one predator species following the 
   #'  detection of another predator species at the same camera site.
+  #'  Summarize and visualize elapsed time between detections.
   #'  ---------------------------------------
   
-
   #'  Load libraries
   library(data.table)
   library(lubridate)
   library(chron)
-  # library(sp)
-  # library(raster)
   library(tidyverse)
   
   #'  --------------------------------
@@ -30,7 +29,7 @@
   load("./Data/IDFG camera data/Problem images/eoe20w_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
   
-  
+
   #'  ------------------------
   ####  Filter detection data  ####
   #'  ------------------------
@@ -72,6 +71,7 @@
   eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15")
   eoe20w_dets <- detections(eoe20w_allM_skinny, start_date = "2020-12-01", end_date = "2021-02-01")
   eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15")
+  
   
   #'  -----------------------------------------
   ####  Generate independent detection events  ####
@@ -129,6 +129,7 @@
     return(firstlast_img)
   }
   firstlast_img <- lapply(eoe_5min_list, first_last_image)
+  
   
   #'  --------------------------------------
   ####  Filter to specific pairs of images  ####
@@ -317,6 +318,7 @@
   #'  Re-list cleaned predator-pair data sets
   predator_pairs_thinned <- list(predator_pairs_20s, predator_pairs[[2]], predator_pairs_21s)
   
+  
   #'  --------------------------------
   #####  Suspicious series of images  ####
   #'  --------------------------------
@@ -333,6 +335,7 @@
   obs_to_check <- rbind(obs_to_check_20s, obs_to_check_21s) %>%
     dplyr::select(-c(Category, Det_type, caps_new, cam, second_pred, first_pred, pred_pair, same_time, uniqueID))
   # write.csv(obs_to_check, "./Outputs/Tables/Images_to_double_check.csv")
+  
   
   #'  ------------------------------------------
   ####  Final filtering to just focal pairings  ####
@@ -381,6 +384,7 @@
   tst <- b2b_predators[[1]]
   tst2 <- b2b_predators[[3]]
   
+  
   #'  ---------------------------------------------
   ####  Calculate times between detection events   ####
   #'  ---------------------------------------------
@@ -417,6 +421,7 @@
   tbd_pred_pairs_all <- rbind(tbd_pred_pairs[[1]], tbd_pred_pairs[[3]])
   
   save(tbd_pred_pairs_all, file = paste0("./Outputs/Time_btwn_Detections/TBD_all_predator_pairs_", Sys.Date(), ".RData"))
+  
   
   #'  ----------------------------------------
   ####  Summary stats and data visualization  ####
