@@ -144,23 +144,6 @@
   #'  6. Thin image set to just detections of different predator species
   #'  --------------------------------------
   
-  #' #'  Detections with only one image get duplicated b/c its the first & last image
-  #' #'  Identify duplicate images (ignoring last column where they differ) and filter
-  #' #'  to just one image per detection event
-  #' drop_duplicates <- function(dets) {
-  #'   dups <- dets %>%
-  #'     dplyr::select("NewLocationID", "Date", "Time", "posix_date_time",
-  #'                   "TriggerMode", "Species", "Category", "Det_type") %>%
-  #'     group_by_at(vars(-Det_type)) %>%
-  #'     filter(n() > 1) %>%
-  #'     filter(Det_type == "last")
-  #'   #'  Remove the duplicate images from the larger data set & arrange by date/time/location
-  #'   no_dups <- anti_join(dets, dups) %>%
-  #'     arrange(NewLocationID, posix_date_time)
-  #'   return(no_dups)
-  #' }
-  #' firstlast_img <- lapply(firstlast_img, drop_duplicates)
-  
   #'  Group multiple detection events of same category (but of different species) 
   #'  when they occur sequentially, then reduce groups of "other" category to a 
   #'  single observation (e.g., we only care that a predator sequence was broken
@@ -341,15 +324,19 @@
   #'  In these cases, 2 species were detected within ~1 min of each other, often
   #'  with spp2 showing up between images of spp1, so need to make sure these 
   #'  are not topological errors or miss-classifications
-  caps_20s <- c(539, 1930, 2353, 4049, 5108, 8684, 8753, 18180, 18499, 22218, 22533, 
-                24840, 25000, 26015, 34178, 34234, 35783, 40143, 13811)
+  caps_20s <- c(539, 1930, 2353, 4049, 5108, 8653, 8684, 8703, 8753, 18180, 18499, 
+                22218, 22494, 22533, 24840, 25000, 26015, 34178, 34234, 35783, 40143, 
+                11119, 13811)
   caps_21s <- c(44018)
   obs_to_check_20s <- predator_pairs[[1]][predator_pairs[[1]]$caps_new %in% caps_20s,]
   obs_to_check_21s <- predator_pairs[[3]][predator_pairs[[3]]$caps_new %in% caps_21s,]
-  obs_to_check <- rbind(obs_to_check_20s, obs_to_check_21s)
+  obs_to_check <- rbind(obs_to_check_20s, obs_to_check_21s) %>%
+    dplyr::select(-c(Category, Det_type, caps_new, cam, second_pred, first_pred, pred_pair, same_time, uniqueID))
   # write.csv(obs_to_check, "./Outputs/Tables/Images_to_double_check.csv")
   
-  
+  #'  ------------------------------------------
+  ####  Final filtering to just focal pairings  ####
+  #'  ------------------------------------------
   #'  Reduce to sequential detections of different predator species
   back_to_back_predators <- function(pred_pairs) {
     b2b_pred <- filter(pred_pairs, pred_pair == "Y") %>%
@@ -358,8 +345,8 @@
   }
   b2b_predators <- lapply(predator_pairs_thinned, back_to_back_predators)
   
-  #'  Repeat two bobcat observations so sequence of detections has correct number 
-  #'  of last/first observations
+  #'  Repeat 2 coyote & 2 bobcat observations so sequence of detections has 
+  #'  correct number of last/first observations
   GMU6_P_18 <- b2b_predators[[1]] %>% filter(NewLocationID == "GMU6_P_18")
   extra_obs1 <- GMU6_P_18 %>% filter(uniqueID == "GMU6_P_18_2020-08-15 22:19:16_coyote_first") %>%
     mutate(Det_type = "last")
@@ -389,17 +376,6 @@
     bind_rows(GMU6_P_18_new) %>%
     #'  Arrange everything back in order
     arrange(NewLocationID, posix_date_time, File) #desc(Det_type)
-  
-  #'  Note: first/last labels are off for a few predator pairings b/c of desc(Det_type)    ###### NOPE! NEED TO FIX THIS!!! Can I switch first/last when everything but that is identical (spp, time, location)
-  #'  but the detection sequence is correct so leaving for now for: 
-  #'  Summer 2020
-  #'  wolf - coyote, coyote - wolf detections at GMU10A_P_51, GMU10A_P_93, GMU6_P_73
-  #'  coyote - bobcat, bobcat - coyote detections at GMU10A_P_89
-  #'  black bear - bobcat, bobcat - coyote detections at GMU10A_P_93
-  #'  coyote - bobcat, bobcat - mountain lion detections at GMU6_P_94
-  #'  Summer 2021
-  #'  black bear - coyote, coyote - black bear detections at GMU10A_U_112
-  #'  coyote - mountain lion, mountain lion - coyote detections at GMU6_P_18
   
   #'  Double check everything looks alright
   tst <- b2b_predators[[1]]
@@ -508,11 +484,5 @@
     labs(fill = "First - Second Predator")
   plot(pred_pair_box)
   
-  #'  List of questionable images
-  #'  GMU10A_P_104 2020-09-03 14:52:15 EOE2020_IDFG2882_20200903_145215_MD_2.JPG bobcat and coyote
-  #'  GMU10A_P_15 2020-08-07 00:27:16 EOE2020_IDFG1586_20200807_002716_MD_3.JPG bobcat and mountain lion
-  #'  GMU10A_P_23 2020-07-22 01:35:58 EOE2020_IDFG2643_20200722_013558_MD_1.JPG bobcat and coyote
-  #'  GMU10A_P_40 2020-08-03 00:16:27 EOE2020_IDFG2201_20200803_001627_MD_2.JPG wolf and coyote
-  #'  GMU10A_P_41 2020-07-01 01:09:56 EOE2020_IDFG2492_20200701_010956_MD_2.JPG bobcat and coyote
-
+  
   
