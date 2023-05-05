@@ -414,13 +414,20 @@
   #'  Note: there should be NO negative values! If there are negative values this
   #'  means the script is calculating times between detections across camera sites
   tbd_pred_pairs <- lapply(b2b_predators, tbd, det_type = "last", unittime = "min")
-  # tbd_pred_pairs_20s <- tbd(b2b_predators[[1]], det_type = "last", unittime = "min")
   
+  #'  Add a column for GMU
+  gmu_col <- function(tbd) {
+    tbd <- mutate(tbd, GMU = sub("_.*", "", NewLocationID))
+    return(tbd)
+  }
+  tbd_pred_pairs <- lapply(tbd_pred_pairs, gmu_col)
+  
+  #'  Add column for year
   tbd_pred_pairs[[1]]$Year <- "Smr20"
   tbd_pred_pairs[[3]]$Year <- "Smr21"
   tbd_pred_pairs_all <- rbind(tbd_pred_pairs[[1]], tbd_pred_pairs[[3]])
   
-  save(tbd_pred_pairs_all, file = paste0("./Outputs/Time_btwn_Detections/TBD_all_predator_pairs_", Sys.Date(), ".RData"))
+  save(tbd_pred_pairs_all, file = paste0("./Data/Time_btwn_Detections/TBD_all_predator_pairs_", Sys.Date(), ".RData"))
   
   
   #'  ----------------------------------------
