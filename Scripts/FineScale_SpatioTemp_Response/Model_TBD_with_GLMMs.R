@@ -14,6 +14,7 @@
   
   library(jagsUI)
   library(mcmcplots)
+  library(AICcmodavg)
   library(tidyverse)
   
   #'  Read in data
@@ -90,52 +91,22 @@
     print(tbd)
   }
   gmu_summary <- lapply(pred_tbd_short, gmu_tbd)
-
-  #'  Standardize covariates
-  z_transform_covs <- function(tbd) {
-    z_covs <- tbd %>%
-      transmute(NewLocationID = NewLocationID, 
-                Species = Species,
-                Previous_Spp = as.factor(as.character(Previous_Spp)),
-                GMU = factor(GMU, levels = c("GMU10A", "GMU6", "GMU1")),
-                TBD_mins = TimeSinceLastDet,
-                TBD_hrs = HoursSinceLastDet,
-                TBD_days = DaysSinceLastDet,
-                Elev = scale(Elevation__10m2), 
-                PercForest = scale(perc_forest),
-                SppDiversity = scale(H),
-                Nelk = scale(elk_perday),
-                Nmoose = scale(moose_perday),
-                Nmd = scale(muledeer_perday),
-                Nwtd = scale(whitetaileddeer_perday),
-                Nlagomorph = scale(lagomorphs_perday),
-                Nlivestock = scale(livestock_perday))
-    return(z_covs)
-  }
-  pred_tbd_zcov <- lapply(pred_tbd_short, z_transform_covs)
-  
-  
-  #'  Call Tyra, we need our Next Top Model!
   
   #'  ---------------------------------------
   ####  Set up MCMC settings and run models  ####
   #'  ---------------------------------------
-  #'  MCMC settigns
-  nc <- 3
-  ni <- 50000
-  nt <- 10
-  na <- 5000
-  
   #'  Function to define and bundle data
-  bundle_dat_data <- function(dat) {
+  bundle_dat_data <- function(dat, npreyspp, species_order) {
     #'  Number of observations
     ntbd <- nrow(dat)
     #'  Number of unique camera locations
     ncams <- length(unique(dat$NewLocationID))
+    #'  Number of primary prey species
+    npp <- npreyspp
     #'  Format covariate data
     tbd_dat <- dat %>%
-      transmute(cams = as.numeric(factor(NewLocationID), levels = NewLocationID), # must be 1 - n (not 0 - n) for nested indexing 
-                CompetitorID = as.numeric(factor(Previous_Spp), levels = c("bear_black", "bobcat", "coyote", "mountain_lion", "wolf")), # must be 1-5 for nested indexing
+      transmute(cams = as.numeric(factor(NewLocationID), levels = NewLocationID), # must be 1-n (not 0-n) for nested indexing 
+                CompetitorID = as.numeric(factor(Previous_Spp), levels = species_order), # must be 1-4 for nested indexing
                 GMU = as.numeric(factor(GMU), levels = c("GMU10A", "GMU6", "GMU1")),
                 TBD_mins = TimeSinceLastDet,
                 TBD_hrs = HoursSinceLastDet,
@@ -153,7 +124,7 @@
     print(head(tbd_dat))
     
     #'  Covariate matrix for JAGS
-    covs <- matrix(NA, ncol = 10, nrow = ntdb)
+    covs <- matrix(NA, ncol = 10, nrow = ntbd)
     covs[,1] <- tbd_dat$GMU
     covs[,2] <- tbd_dat$CompetitorID
     covs[,3] <- tbd_dat$Elev
@@ -166,11 +137,11 @@
     covs[,10] <- tbd_dat$SppDiversity
     
     #'  Generate range of covariate values to predict across
-    newElk <- seq(from = min(tbd_dat$Nelk), to = max(tbd_dat$Nelk))
-    newMoose <- seq(from = min(tbd_dat$Nmoose), to = max(tbd_dat$Nmoose))
-    newWTD <- seq(from = min(tbd_dat$Nwtd), to = max(tbd_dat$Nwtd))
-    newBunnies <- seq(from = min(tbd_dat$Nlagomorph), to = max(tbd_dat$Nlagomorph))
-    newSppDiv <- seq(from = min(tbd_dat$SppDiversity), to = max(tbd_dat$SppDiversity))
+    newElk <- seq(from = min(tbd_dat$Nelk), to = max(tbd_dat$Nelk), length.out = 100)
+    newMoose <- seq(from = min(tbd_dat$Nmoose), to = max(tbd_dat$Nmoose), length.out = 100)
+    newWTD <- seq(from = min(tbd_dat$Nwtd), to = max(tbd_dat$Nwtd), length.out = 100)
+    newBunnies <- seq(from = min(tbd_dat$Nlagomorph), to = max(tbd_dat$Nlagomorph), length.out = 100)
+    newSppDiv <- seq(from = min(tbd_dat$SppDiversity), to = max(tbd_dat$SppDiversity), length.out = 100)
     newcovs <- as.matrix(cbind(newElk, newMoose, newWTD, newBunnies, newSppDiv))
     
     #'  Number of covariates
@@ -182,9 +153,729 @@
     hist(tbd)
     
     bundled <- list(y = tbd, covs = covs, ncams = ncams, ncovs = ncovs, ntbd = ntbd,
-                    site = tbd_dat$cams, newcovs = newcovs)
+                    npp = npp, site = tbd_dat$cams, newcovs = newcovs)
+    return(bundled)
     
   }
+  #'  Provide specific order for CompetitorID levels - will differ for each species
+  #'  Order generally goes black bear, bobcat, coyote, mountain lion, wolf
+  bear_bundled <- bundle_dat_data(pred_tbd_short[[1]], npreyspp = 2, species_order = c("coyote", "bobcat", "mountain_lion", "wolf")) # note COYOTE is the intercept!
+  bob_bundled <- bundle_dat_data(pred_tbd_short[[2]], npreyspp = 2, species_order = c("bear_black", "coyote", "mountain_lion", "wolf"))
+  coy_bundled <- bundle_dat_data(pred_tbd_short[[3]], npreyspp = 2, species_order = c("bear_black", "bobcat", "mountain_lion", "wolf"))
+  lion_bundled <- bundle_dat_data(pred_tbd_short[[4]], npreyspp = 2, species_order = c("bear_black", "bobcat", "coyote", "wolf"))
+  wolf_bundled <- bundle_dat_data(pred_tbd_short[[5]], npreyspp = 3, species_order = c("bear_black", "bobcat", "coyote", "mountain_lion"))
+  
+  #' #'  Save for making figures later
+  #' save(bear_bundled, file = "./Data/Time_btwn_Detections/bear_bundled.RData")
+  #' save(bob_bundled, file = "./Data/Time_btwn_Detections/bob_bundled.RData")
+  #' save(coy_bundled, file = "./Data/Time_btwn_Detections/coy_bundled.RData")
+  #' save(lion_bundled, file = "./Data/Time_btwn_Detections/lion_bundled.RData")
+  #' save(wolf_bundled, file = "./Data/Time_btwn_Detections/wolf_bundled.RData")
+  
+  #'  MCMC settings
+  nc <- 3
+  ni <- 25000
+  nb <- 5000
+  nt <- 10
+  na <- 1000
+  
+  #'  Parameters to monitor
+  params <- c("alpha0", "beta.competitor", "beta.prey", "beta.div", "beta.interaction", 
+              "beta.interaction.elk", "beta.interaction.wtd", "beta.interaction.moose",
+              "beta.interaction.lago", "sigma", "mu.tbd", "spp.tbd", "spp.tbd.elk", 
+              "spp.tbd.moose", "spp.tbd.wtd", "spp.tbd.lago", "spp.tbd.div")
+  
+  
+  #'  Call Tyra, we need our Next Top Model!
+  
+  
+  #'  -----------------
+  ####  BEAR Analyses  ####
+  #'  -----------------
+  #'  Setup initial values
+  bear.init <- log(aggregate(bear_bundled$y, list(bear_bundled$site), FUN = mean)[,2])
+  inits <- function(){list(alpha = bear.init)}
+  
+  #####  Null model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_intercept_only.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bear.null <- jags(bear_bundled, params, './Outputs/Time_btwn_Detections/tbd_intercept_only.txt', 
+                      inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                      n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bear.null$summary)
+  mcmcplot(tbd.bear.null$samples)
+  save(tbd.bear.null, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_intercept_only.RData") 
+    
+  #####  Competitor model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bear.compID <- jags(bear_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_noRE.txt', 
+                          inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                          n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bear.compID$summary)
+  mcmcplot(tbd.bear.compID$samples)
+  save(tbd.bear.compID, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_detection.RData") 
+  #'  Keep in mind CompetitorID levels are coyote [1], bobcat [2], lion [3], wolf [4]
+  
+  #####  Prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bear.div <- jags(bear_bundled, params, './Outputs/Time_btwn_Detections/tbd_preydiversity_noRE.txt', 
+                       inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                       n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bear.div$summary[1:5,])
+  mcmcplot(tbd.bear.div$samples)
+  save(tbd.bear.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_preydiversity.RData") 
+  
+  #####  Prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_elk_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bear.preyabund <- jags(bear_bundled, params, './Outputs/Time_btwn_Detections/tbd_elk_wtd_abundance_noRE.txt', 
+                             inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                             n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bear.preyabund$summary[1:5,])
+  mcmcplot(tbd.bear.preyabund$samples)
+  save(tbd.bear.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_preyRAI.RData") 
+  
+  #####  Competitor + prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bear.compID.div <- jags(bear_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_preydiversity_noRE.txt', 
+                              inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                              n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bear.compID.div$summary[1:15,])
+  mcmcplot(tbd.bear.compID.div$samples)
+  save(tbd.bear.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_preydiv.RData") 
+  #'  Keep in mind CompetitorID levels are coyote [1], bobcat [2], lion [3], wolf [4]
+  
+  #####  Competitor * prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bear.compIDxdiv <- jags(bear_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_preydiversity_noRE.txt', 
+                              inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                              n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bear.compIDxdiv$summary[1:15,])
+  mcmcplot(tbd.bear.compIDxdiv$samples)
+  save(tbd.bear.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_X_preydiv.RData") 
+  #'  Keep in mind CompetitorID levels are coyote [1], bobcat [2], lion [3], wolf [4]
+ 
+  #####  Competitor + prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_elk_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bear.compID.preyabund <- jags(bear_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_elk_wtd_abundance_noRE.txt', 
+                                    inits = inits, n.chains = nc, n.iter = ni, 
+                                    n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bear.compID.preyabund$summary[1:15,])
+  mcmcplot(tbd.bear.compID.preyabund$samples)
+  save(tbd.bear.compID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_preyRAI.RData") 
+  #'  Keep in mind CompetitorID levels are coyote [1], bobcat [2], lion [3], wolf [4]
+  
+  #####  Competitor * prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_elk_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bear.compIDxpreyabund <- jags(bear_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_elk_wtd_abundance_noRE.txt', 
+                                    inits = inits, n.chains = nc, n.iter = ni, 
+                                    n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bear.compIDxpreyabund$summary[1:21,])
+  mcmcplot(tbd.bear.compIDxpreyabund$samples)
+  save(tbd.bear.compIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_X_preyRAI.RData") 
+  #'  Keep in mind CompetitorID levels are coyote [1], bobcat [2], lion [3], wolf [4]
+  
+  #####  Global model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_global_elk_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bear.global <- jags(bear_bundled, params, './Outputs/Time_btwn_Detections/tbd_global_elk_wtd_abundance_noRE.txt', 
+                                    inits = inits, n.chains = nc, n.iter = ni, 
+                                    n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bear.global$summary[1:21,])
+  mcmcplot(tbd.bear.global$samples)
+  save(tbd.bear.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_global.RData") 
+  #'  Keep in mind CompetitorID levels are coyote [1], bobcat [2], lion [3], wolf [4]
+  
+  #' #'  DIC for model selection
+  #' bear_tbd_list <- list(tbd.bear.null, tbd.bear.compID, tbd.bear.div, tbd.bear.preyabund, tbd.bear.compID.div, tbd.bear.compIDxdiv, tbd.bear.compID.preyabund, tbd.bear.compIDxpreyabund, tbd.bear.global) 
+  #' bear_tbd_name <- c("tbd.bear.null", "tbd.bear.compID", "tbd.bear.div", "tbd.bear.preyabund", "tbd.bear.compID.div", "tbd.bear.compIDxdiv", "tbd.bear.compID.preyabund", "tbd.bear.compIDxpreyabund", "tbd.bear.global") 
+  #' (topmod_beartbd <- dictab(cand.set = bear_tbd_list, modnames = bear_tbd_name, sort = TRUE)) 
+  
+  
+  #'  -----------------
+  ####  BOBCAT Analyses  ####
+  #'  -----------------
+  #'  Setup initial values
+  bob.init <- log(aggregate(bob_bundled$y, list(bob_bundled$site), FUN = mean)[,2])
+  inits <- function(){list(alpha = bob.init)}
+  
+  #####  Null model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_intercept_only.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bob.null <- jags(bob_bundled, params, './Outputs/Time_btwn_Detections/tbd_intercept_only.txt', 
+                        inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                        n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bob.null$summary)
+  mcmcplot(tbd.bob.null$samples)
+  save(tbd.bob.null, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_intercept_only.RData") 
+  
+  #####  Competitor model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bob.compID <- jags(bob_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_noRE.txt', 
+                          inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                          n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bob.compID$summary)
+  mcmcplot(tbd.bob.compID$samples)
+  save(tbd.bob.compID, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_detection.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
+  
+  #####  Prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bob.div <- jags(bob_bundled, params, './Outputs/Time_btwn_Detections/tbd_preydiversity_noRE.txt', 
+                       inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                       n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bob.div$summary[1:5,])
+  mcmcplot(tbd.bob.div$samples)
+  save(tbd.bob.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_preydiversity.RData") 
+  
+  #####  Prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_wtd_lago_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bob.preyabund <- jags(bob_bundled, params, './Outputs/Time_btwn_Detections/tbd_wtd_lago_abundance_noRE.txt', 
+                             inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                             n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bob.preyabund$summary[1:5,])
+  mcmcplot(tbd.bob.preyabund$samples)
+  save(tbd.bob.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_preyRAI.RData") 
+  
+  #####  Competitor + prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bob.compID.div <- jags(bob_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_preydiversity_noRE.txt', 
+                              inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                              n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bob.compID.div$summary[1:15,])
+  mcmcplot(tbd.bob.compID.div$samples)
+  save(tbd.bob.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_preydiv.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
+  
+  #####  Competitor * prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bob.compIDxdiv <- jags(bob_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_preydiversity_noRE.txt', 
+                              inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                              n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bob.compIDxdiv$summary[1:18,])
+  mcmcplot(tbd.bob.compIDxdiv$samples)
+  save(tbd.bob.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_X_preydiv.RData") # Not converging well, probably over-parameterized
+  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
+  
+  #####  Competitor + prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_wtd_lago_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bob.compID.preyabund <- jags(bob_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_wtd_lago_abundance_noRE.txt', 
+                                    inits = inits, n.chains = nc, n.iter = ni, 
+                                    n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bob.compID.preyabund$summary[1:15,])
+  mcmcplot(tbd.bob.compID.preyabund$samples)
+  save(tbd.bob.compID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_preyRAI.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
+  
+  #####  Competitor * prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_wtd_lago_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bob.compIDxpreyabund <- jags(bob_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_wtd_lago_abundance_noRE.txt', 
+                                    inits = inits, n.chains = nc, n.iter = ni, 
+                                    n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bob.compIDxpreyabund$summary[1:21,])
+  mcmcplot(tbd.bob.compIDxpreyabund$samples)
+  save(tbd.bob.compIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_X_preyRAI.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
+  
+  #####  Global model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_global_wtd_lago_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.bob.global <- jags(bob_bundled, params, './Outputs/Time_btwn_Detections/tbd_global_wtd_lago_abundance_noRE.txt', 
+                                   inits = inits, n.chains = nc, n.iter = ni, 
+                                   n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.bob.global$summary[1:21,])
+  mcmcplot(tbd.bob.global$samples)
+  save(tbd.bob.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_global.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
+  
+  #' #'  DIC for model selection
+  #' bob_tbd_list <- list(tbd.bob.null, tbd.bob.compID, tbd.bob.div, tbd.bob.preyabund, tbd.bob.compID.div, tbd.bob.compIDxdiv, tbd.bob.compID.preyabund, tbd.bob.compIDxpreyabund) 
+  #' bob_tbd_name <- c("tbd.bob.null", "tbd.bob.compID", "tbd.bob.div", "tbd.bob.preyabund", "tbd.bob.compID.div", "tbd.bob.compIDxdiv", "tbd.bob.compID.preyabund", "tbd.bob.compIDxpreyabund") 
+  #' (topmod_bobtbd <- dictab(cand.set = bob_tbd_list, modnames = bob_tbd_name, sort = TRUE)) 
+  
+  
+  #'  -------------------
+  ####  COYOTE Analyses  ####
+  #'  -------------------
+  #'  Setup initial values
+  coy.init <- log(aggregate(coy_bundled$y, list(coy_bundled$site), FUN = mean)[,2])
+  inits <- function(){list(alpha = coy.init)}
+  #'  NOTE: random effect for site excluded from these models owing to model failure when included
+  #'  Error in checkForRemoteErrors(val): 3 nodes produced errors; first error: Error in node tbd_lambda[5] Invalid parent values
+  
+  #####  Null model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_intercept_only.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.coy.null <- jags(coy_bundled, params, './Outputs/Time_btwn_Detections/tbd_intercept_only.txt', 
+                       inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                       n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.coy.null$summary)
+  mcmcplot(tbd.coy.null$samples)
+  save(tbd.coy.null, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_intercept_only.RData") 
+  
+  #####  Competitor model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.coy.compID <- jags(coy_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_noRE.txt', 
+                         inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                         n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.coy.compID$summary)
+  mcmcplot(tbd.coy.compID$samples)
+  save(tbd.coy.compID, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_detection.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], lion [3], wolf [4]
+  
+  #####  Prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.coy.div <- jags(coy_bundled, params, './Outputs/Time_btwn_Detections/tbd_preydiversity_noRE.txt', 
+                      inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                      n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.coy.div$summary[1:5,])
+  mcmcplot(tbd.coy.div$samples)
+  save(tbd.coy.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_preydiversity.RData") 
+  
+  #####  Prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_wtd_lago_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.coy.preyabund <- jags(coy_bundled, params, './Outputs/Time_btwn_Detections/tbd_wtd_lago_abundance_noRE.txt', 
+                            inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                            n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.coy.preyabund$summary[1:5,])
+  mcmcplot(tbd.coy.preyabund$samples)
+  save(tbd.coy.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_preyRAI.RData") 
+  
+  #####  Competitor + prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.coy.compID.div <- jags(coy_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_preydiversity_noRE.txt', 
+                             inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                             n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.coy.compID.div$summary[1:15,])
+  mcmcplot(tbd.coy.compID.div$samples)
+  save(tbd.coy.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_preydiv.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], lion [3], wolf [4]
+  
+  #####  Competitor * prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.coy.compIDxdiv <- jags(coy_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_preydiversity_noRE.txt', 
+                             inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                             n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.coy.compIDxdiv$summary[1:18,])
+  mcmcplot(tbd.coy.compIDxdiv$samples)
+  save(tbd.coy.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_X_preydiv.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], lion [3], wolf [4]
+  
+  #####  Competitor + prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_wtd_lago_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.coy.compID.preyabund <- jags(coy_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_wtd_lago_abundance_noRE.txt', 
+                                   inits = inits, n.chains = nc, n.iter = ni, 
+                                   n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.coy.compID.preyabund$summary[1:15,])
+  mcmcplot(tbd.coy.compID.preyabund$samples)
+  save(tbd.coy.compID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_preyRAI.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], lion [3], wolf [4]
+  
+  #####  Competitor * prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_wtd_lago_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.coy.compIDxpreyabund <- jags(coy_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_wtd_lago_abundance_noRE.txt', 
+                                   inits = inits, n.chains = nc, n.iter = ni, 
+                                   n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.coy.compIDxpreyabund$summary[1:21,])
+  mcmcplot(tbd.coy.compIDxpreyabund$samples)
+  save(tbd.coy.compIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_X_preyRAI.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], lion [3], wolf [4]
+  
+  #####  Global model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_global_wtd_lago_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.coy.global <- jags(coy_bundled, params, './Outputs/Time_btwn_Detections/tbd_global_wtd_lago_abundance_noRE.txt', 
+                                   inits = inits, n.chains = nc, n.iter = ni, 
+                                   n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.coy.global$summary[1:21,])
+  mcmcplot(tbd.coy.global$samples)
+  save(tbd.coy.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_global.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], lion [3], wolf [4]
+
+  #' #'  DIC for model selection
+  #' coy_tbd_list <- list(tbd.coy.null, tbd.coy.compID, tbd.coy.div, tbd.coy.preyabund, tbd.coy.compID.div, tbd.coy.compIDxdiv, tbd.coy.compID.preyabund, tbd.coy.compIDxpreyabund, tbd.coy.global) 
+  #' coy_tbd_name <- c("tbd.coy.null", "tbd.coy.compID", "tbd.coy.div", "tbd.coy.preyabund", "tbd.coy.compID.div", "tbd.coy.compIDxdiv", "tbd.coy.compID.preyabund", "tbd.coy.compIDxpreyabund", "tbd.coy.global") 
+  #' (topmod_coytbd <- dictab(cand.set = coy_tbd_list, modnames = coy_tbd_name, sort = TRUE)) 
+  
+  
+  #'  --------------------------
+  ####  MOUNTAIN LION Analyses  ####
+  #'  --------------------------
+  #'  Setup initial values
+  lion.init <- log(aggregate(lion_bundled$y, list(lion_bundled$site), FUN = mean)[,2])
+  inits <- function(){list(alpha = lion.init)} 
+  
+  #####  Null model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_intercept_only.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.lion.null <- jags(lion_bundled, params, './Outputs/Time_btwn_Detections/tbd_intercept_only.txt', 
+                       inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                       n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.lion.null$summary)
+  mcmcplot(tbd.lion.null$samples)
+  save(tbd.lion.null, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_intercept_only.RData") 
+  
+  #####  Competitor model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.lion.compID <- jags(lion_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_noRE.txt', 
+                         inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                         n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.lion.compID$summary[1:6,])
+  mcmcplot(tbd.lion.compID$samples)
+  save(tbd.lion.compID, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_detection.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
+  
+  #####  Prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.lion.div <- jags(lion_bundled, params, './Outputs/Time_btwn_Detections/tbd_preydiversity_noRE.txt', 
+                      inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                      n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.lion.div$summary[1:5,])
+  mcmcplot(tbd.lion.div$samples)
+  save(tbd.lion.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_preydiversity.RData") 
+  
+  #####  Prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_elk_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.lion.preyabund <- jags(lion_bundled, params, './Outputs/Time_btwn_Detections/tbd_elk_wtd_abundance_noRE.txt', 
+                            inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                            n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.lion.preyabund$summary[1:5,])
+  mcmcplot(tbd.lion.preyabund$samples)
+  save(tbd.lion.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_preyRAI.RData") 
+  
+  #####  Competitor + prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.lion.compID.div <- jags(lion_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_preydiversity_noRE.txt', 
+                             inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                             n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.lion.compID.div$summary[1:15,])
+  mcmcplot(tbd.lion.compID.div$samples)
+  save(tbd.lion.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_preydiv.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
+  
+  #####  Competitor * prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.lion.compIDxdiv <- jags(lion_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_preydiversity_noRE.txt', 
+                             inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                             n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.lion.compIDxdiv$summary[1:18,])
+  mcmcplot(tbd.lion.compIDxdiv$samples)
+  save(tbd.lion.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_X_preydiv.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
+  
+  #####  Competitor + prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_elk_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.lion.compID.preyabund <- jags(lion_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_elk_wtd_abundance_noRE.txt', 
+                                   inits = inits, n.chains = nc, n.iter = ni, 
+                                   n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.lion.compID.preyabund$summary[1:15,])
+  mcmcplot(tbd.lion.compID.preyabund$samples)
+  save(tbd.lion.compID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_preyRAI.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
+  
+  #####  Competitor * prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_elk_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.lion.compIDxpreyabund <- jags(lion_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_elk_wtd_abundance_noRE.txt', 
+                                   inits = inits, n.chains = nc, n.iter = ni, 
+                                   n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.lion.compIDxpreyabund$summary[1:21,])
+  mcmcplot(tbd.lion.compIDxpreyabund$samples)
+  save(tbd.lion.compIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_X_preyRAI.RData") # Not converging well, probably over-parameterized
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
+  
+  #####  Global model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_global_elk_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.lion.global <- jags(lion_bundled, params, './Outputs/Time_btwn_Detections/tbd_global_elk_wtd_abundance_noRE.txt', 
+                                    inits = inits, n.chains = nc, n.iter = ni, 
+                                    n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.lion.global$summary[1:21,])
+  mcmcplot(tbd.lion.global$samples)
+  save(tbd.lion.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_global.RData") # Not converging well, probably over-parameterized
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
+  
+  #' #'  DIC for model selection
+  #' lion_tbd_list <- list(tbd.lion.null, tbd.lion.compID, tbd.lion.div, tbd.lion.preyabund, tbd.lion.compID.div, tbd.lion.compIDxdiv, tbd.lion.compID.preyabund)#, tbd.lion.compIDxpreyabund, tbd.lion.global) 
+  #' lion_tbd_name <- c("tbd.lion.null", "tbd.lion.compID", "tbd.lion.div", "tbd.lion.preyabund", "tbd.lion.compID.div", "tbd.lion.compIDxdiv", "tbd.lion.compID.preyabund")#, "tbd.lion.compIDxpreyabund", "tbd.lion.global") 
+  #' (topmod_liontbd <- dictab(cand.set = lion_tbd_list, modnames = lion_tbd_name, sort = TRUE)) 
+  
+  
+  #'  -----------------
+  ####  WOLF Analyses  ####
+  #'  -----------------
+  #'  Setup initial values
+  wolf.init <- log(aggregate(wolf_bundled$y, list(wolf_bundled$site), FUN = mean)[,2])
+  inits <- function(){list(alpha = wolf.init)}
+  
+  #####  Null model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_intercept_only.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.wolf.null <- jags(wolf_bundled, params, './Outputs/Time_btwn_Detections/tbd_intercept_only.txt', 
+                        inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                        n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.wolf.null$summary)
+  mcmcplot(tbd.wolf.null$samples)
+  save(tbd.wolf.null, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_intercept_only.RData") 
+  
+  #####  Competitor model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.wolf.compID <- jags(wolf_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_noRE.txt', 
+                          inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                          n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.wolf.compID$summary[1:10,])
+  mcmcplot(tbd.wolf.compID$samples)
+  save(tbd.wolf.compID, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_detection.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
+  
+  #####  Prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.wolf.div <- jags(wolf_bundled, params, './Outputs/Time_btwn_Detections/tbd_preydiversity_noRE.txt', 
+                       inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                       n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.wolf.div$summary[1:5,])
+  mcmcplot(tbd.wolf.div$samples)
+  save(tbd.wolf.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_preydiversity.RData") 
+  
+  #####  Prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_elk_moose_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.wolf.preyabund <- jags(wolf_bundled, params, './Outputs/Time_btwn_Detections/tbd_elk_moose_wtd_abundance_noRE.txt', 
+                             inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                             n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.wolf.preyabund$summary[1:5,])
+  mcmcplot(tbd.wolf.preyabund$samples)
+  save(tbd.wolf.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_preyRAI.RData") 
+  
+  #####  Competitor + prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.wolf.compID.div <- jags(wolf_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_preydiversity_noRE.txt', 
+                              inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, 
+                              n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.wolf.compID.div$summary[1:15,])
+  mcmcplot(tbd.wolf.compID.div$samples)
+  save(tbd.wolf.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_preydiv.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
+  
+  #####  Competitor * prey diversity model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.wolf.compIDxdiv <- jags(wolf_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_preydiversity_noRE.txt', 
+                              inits = inits, n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt,
+                              n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.wolf.compIDxdiv$summary[1:15,])
+  mcmcplot(tbd.wolf.compIDxdiv$samples)
+  save(tbd.wolf.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_X_preydiv.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
+  
+  #####  Competitor + prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_elk_moose_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.wolf.compID.preyabund <- jags(wolf_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_elk_moose_wtd_abundance_noRE.txt', 
+                                    inits = inits, n.chains = nc, n.iter = ni, 
+                                    n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.wolf.compID.preyabund$summary[1:15,])
+  mcmcplot(tbd.wolf.compID.preyabund$samples)
+  save(tbd.wolf.compID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_preyRAI.RData") 
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
+  
+  #####  Competitor * prey relative abundance model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_elk_moose_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.wolf.compIDxpreyabund <- jags(wolf_bundled, params, './Outputs/Time_btwn_Detections/tbd_competitor_X_elk_moose_wtd_abundance_noRE.txt', 
+                                    inits = inits, n.chains = nc, n.iter = ni, 
+                                    n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.wolf.compIDxpreyabund$summary[1:21,])
+  mcmcplot(tbd.wolf.compIDxpreyabund$samples)
+  save(tbd.wolf.compIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_X_preyRAI.RData") # Not converging well, probably over-parameterized
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
+  
+  #####  Global model  ####
+  source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_global_elk_moose_wtd_abundance_noRE.R")
+  
+  #'  Run model
+  start.time <- Sys.time()
+  tbd.wolf.global <- jags(wolf_bundled, params, './Outputs/Time_btwn_Detections/tbd_global_elk_moose_wtd_abundance_noRE.txt', 
+                                    inits = inits, n.chains = nc, n.iter = ni, 
+                                    n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(tbd.wolf.global$summary[1:30,])
+  mcmcplot(tbd.wolf.global$samples)
+  save(tbd.wolf.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_global.RData") # Not converging well, probably over-parameterized
+  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
+  
+  #' #'  DIC for model selection
+  #' wolf_tbd_list <- list(tbd.wolf.null, tbd.wolf.compID, tbd.wolf.div, tbd.wolf.preyabund, tbd.wolf.compID.div, tbd.wolf.compIDxdiv, tbd.wolf.compID.preyabund) #, tbd.wolf.compIDxpreyabund, tbd.wolf.global) 
+  #' wolf_tbd_name <- c("tbd.wolf.null", "tbd.wolf.compID", "tbd.wolf.div", "tbd.wolf.preyabund", "tbd.wolf.compID.div", "tbd.wolf.compIDxdiv", "tbd.wolf.compID.preyabund") #, "tbd.wolf.compIDxpreyabund", "tbd.wolf.global") 
+  #' (topmod_wolftbd <- dictab(cand.set = wolf_tbd_list, modnames = wolf_tbd_name, sort = TRUE)) 
+  
+  
+  #'  Fin
+  #'  Next stop, TBD_Model_Selection_DIC.R for model selection and table formatting
+  
+  
+  
   
   
   
