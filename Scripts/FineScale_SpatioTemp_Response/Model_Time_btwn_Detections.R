@@ -78,6 +78,15 @@
   #'  List data sets with extreme values removed
   pred_tbd_short <- list(bear_short, bob_short, coy_short, lion_short, wolf_short)
   
+  #'  Table observations with each competitor to get a feel for sample size
+  table(bear_short$Previous_Spp)
+  table(bob_short$Previous_Spp)
+  table(coy_short$Previous_Spp)
+  table(lion_short$Previous_Spp)
+  table(wolf_short$Previous_Spp)
+  #'  Oof not a lot of observations for some of these species combos
+  #'  Use coyote as indicator variable since has the most observations per species
+  
   #'  Are there differences by GMU? 
   #'  Remember: GMUs 10A & 6 have 2 yrs data, GMU 1 only has 1 yr data
   gmu_tbd <- function(tbd) {
@@ -159,11 +168,11 @@
   }
   #'  Provide specific order for CompetitorID levels - will differ for each species
   #'  Order generally goes black bear, bobcat, coyote, mountain lion, wolf
-  bear_bundled <- bundle_dat_data(pred_tbd_short[[1]], npreyspp = 2, species_order = c("coyote", "bobcat", "mountain_lion", "wolf")) # note COYOTE is the intercept!
-  bob_bundled <- bundle_dat_data(pred_tbd_short[[2]], npreyspp = 2, species_order = c("bear_black", "coyote", "mountain_lion", "wolf"))
+  bear_bundled <- bundle_dat_data(pred_tbd_short[[1]], npreyspp = 2, species_order = c("coyote", "bobcat", "mountain_lion", "wolf")) 
+  bob_bundled <- bundle_dat_data(pred_tbd_short[[2]], npreyspp = 2, species_order = c("coyote", "bear_black", "mountain_lion", "wolf"))
   coy_bundled <- bundle_dat_data(pred_tbd_short[[3]], npreyspp = 2, species_order = c("bear_black", "bobcat", "mountain_lion", "wolf"))
-  lion_bundled <- bundle_dat_data(pred_tbd_short[[4]], npreyspp = 2, species_order = c("bear_black", "bobcat", "coyote", "wolf"))
-  wolf_bundled <- bundle_dat_data(pred_tbd_short[[5]], npreyspp = 3, species_order = c("bear_black", "bobcat", "coyote", "mountain_lion"))
+  lion_bundled <- bundle_dat_data(pred_tbd_short[[4]], npreyspp = 2, species_order = c("coyote", "bear_black", "bobcat", "wolf"))
+  wolf_bundled <- bundle_dat_data(pred_tbd_short[[5]], npreyspp = 3, species_order = c("coyote", "bear_black", "bobcat", "mountain_lion"))
   
   #' #'  Save for making figures later
   #' save(bear_bundled, file = "./Data/Time_btwn_Detections/bear_bundled.RData")
@@ -261,7 +270,6 @@
   print(tbd.bear.compID.div$summary[1:15,])
   mcmcplot(tbd.bear.compID.div$samples)
   save(tbd.bear.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_preydiv.RData") 
-  #'  Keep in mind CompetitorID levels are coyote [1], bobcat [2], lion [3], wolf [4]
   
   #####  Competitor * prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
@@ -275,7 +283,6 @@
   print(tbd.bear.compIDxdiv$summary[1:15,])
   mcmcplot(tbd.bear.compIDxdiv$samples)
   save(tbd.bear.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_X_preydiv.RData") 
-  #'  Keep in mind CompetitorID levels are coyote [1], bobcat [2], lion [3], wolf [4]
  
   #####  Competitor + prey relative abundance model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_elk_wtd_abundance_noRE.R")
@@ -319,11 +326,6 @@
   save(tbd.bear.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.bear_global.RData") 
   #'  Keep in mind CompetitorID levels are coyote [1], bobcat [2], lion [3], wolf [4]
   
-  #' #'  DIC for model selection
-  #' bear_tbd_list <- list(tbd.bear.null, tbd.bear.compID, tbd.bear.div, tbd.bear.preyabund, tbd.bear.compID.div, tbd.bear.compIDxdiv, tbd.bear.compID.preyabund, tbd.bear.compIDxpreyabund, tbd.bear.global) 
-  #' bear_tbd_name <- c("tbd.bear.null", "tbd.bear.compID", "tbd.bear.div", "tbd.bear.preyabund", "tbd.bear.compID.div", "tbd.bear.compIDxdiv", "tbd.bear.compID.preyabund", "tbd.bear.compIDxpreyabund", "tbd.bear.global") 
-  #' (topmod_beartbd <- dictab(cand.set = bear_tbd_list, modnames = bear_tbd_name, sort = TRUE)) 
-  
   
   #'  -----------------
   ####  BOBCAT Analyses  ####
@@ -357,7 +359,7 @@
   print(tbd.bob.compID$summary)
   mcmcplot(tbd.bob.compID$samples)
   save(tbd.bob.compID, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_detection.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], lion [3], wolf [4]
   
   #####  Prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
@@ -383,7 +385,7 @@
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.bob.preyabund$summary[1:5,])
   mcmcplot(tbd.bob.preyabund$samples)
-  save(tbd.bob.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_preyRAI.RData") 
+  save(tbd.bob.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_preyRAI.RData")
   
   #####  Competitor + prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_preydiversity_noRE.R")
@@ -397,7 +399,6 @@
   print(tbd.bob.compID.div$summary[1:15,])
   mcmcplot(tbd.bob.compID.div$samples)
   save(tbd.bob.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_preydiv.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
   
   #####  Competitor * prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
@@ -411,7 +412,6 @@
   print(tbd.bob.compIDxdiv$summary[1:18,])
   mcmcplot(tbd.bob.compIDxdiv$samples)
   save(tbd.bob.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_X_preydiv.RData") # Not converging well, probably over-parameterized
-  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
   
   #####  Competitor + prey relative abundance model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_wtd_lago_abundance_noRE.R")
@@ -425,7 +425,7 @@
   print(tbd.bob.compID.preyabund$summary[1:15,])
   mcmcplot(tbd.bob.compID.preyabund$samples)
   save(tbd.bob.compID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_preyRAI.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], lion [3], wolf [4]
   
   #####  Competitor * prey relative abundance model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_wtd_lago_abundance_noRE.R")
@@ -439,7 +439,7 @@
   print(tbd.bob.compIDxpreyabund$summary[1:21,])
   mcmcplot(tbd.bob.compIDxpreyabund$samples)
   save(tbd.bob.compIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_X_preyRAI.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], lion [3], wolf [4]
   
   #####  Global model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_global_wtd_lago_abundance_noRE.R")
@@ -453,12 +453,7 @@
   print(tbd.bob.global$summary[1:21,])
   mcmcplot(tbd.bob.global$samples)
   save(tbd.bob.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.bob_global.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], coyote [2], lion [3], wolf [4]
-  
-  #' #'  DIC for model selection
-  #' bob_tbd_list <- list(tbd.bob.null, tbd.bob.compID, tbd.bob.div, tbd.bob.preyabund, tbd.bob.compID.div, tbd.bob.compIDxdiv, tbd.bob.compID.preyabund, tbd.bob.compIDxpreyabund) 
-  #' bob_tbd_name <- c("tbd.bob.null", "tbd.bob.compID", "tbd.bob.div", "tbd.bob.preyabund", "tbd.bob.compID.div", "tbd.bob.compIDxdiv", "tbd.bob.compID.preyabund", "tbd.bob.compIDxpreyabund") 
-  #' (topmod_bobtbd <- dictab(cand.set = bob_tbd_list, modnames = bob_tbd_name, sort = TRUE)) 
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], lion [3], wolf [4]
   
   
   #'  -------------------
@@ -535,7 +530,6 @@
   print(tbd.coy.compID.div$summary[1:15,])
   mcmcplot(tbd.coy.compID.div$samples)
   save(tbd.coy.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_preydiv.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], lion [3], wolf [4]
   
   #####  Competitor * prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
@@ -549,7 +543,6 @@
   print(tbd.coy.compIDxdiv$summary[1:18,])
   mcmcplot(tbd.coy.compIDxdiv$samples)
   save(tbd.coy.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_X_preydiv.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], lion [3], wolf [4]
   
   #####  Competitor + prey relative abundance model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_wtd_lago_abundance_noRE.R")
@@ -593,11 +586,6 @@
   save(tbd.coy.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.coy_global.RData") 
   #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], lion [3], wolf [4]
 
-  #' #'  DIC for model selection
-  #' coy_tbd_list <- list(tbd.coy.null, tbd.coy.compID, tbd.coy.div, tbd.coy.preyabund, tbd.coy.compID.div, tbd.coy.compIDxdiv, tbd.coy.compID.preyabund, tbd.coy.compIDxpreyabund, tbd.coy.global) 
-  #' coy_tbd_name <- c("tbd.coy.null", "tbd.coy.compID", "tbd.coy.div", "tbd.coy.preyabund", "tbd.coy.compID.div", "tbd.coy.compIDxdiv", "tbd.coy.compID.preyabund", "tbd.coy.compIDxpreyabund", "tbd.coy.global") 
-  #' (topmod_coytbd <- dictab(cand.set = coy_tbd_list, modnames = coy_tbd_name, sort = TRUE)) 
-  
   
   #'  --------------------------
   ####  MOUNTAIN LION Analyses  ####
@@ -631,7 +619,7 @@
   print(tbd.lion.compID$summary[1:6,])
   mcmcplot(tbd.lion.compID$samples)
   save(tbd.lion.compID, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_detection.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], bobcat [3], wolf [4]
   
   #####  Prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
@@ -671,7 +659,6 @@
   print(tbd.lion.compID.div$summary[1:15,])
   mcmcplot(tbd.lion.compID.div$samples)
   save(tbd.lion.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_preydiv.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
   
   #####  Competitor * prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
@@ -685,7 +672,6 @@
   print(tbd.lion.compIDxdiv$summary[1:18,])
   mcmcplot(tbd.lion.compIDxdiv$samples)
   save(tbd.lion.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_X_preydiv.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
   
   #####  Competitor + prey relative abundance model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_elk_wtd_abundance_noRE.R")
@@ -699,7 +685,7 @@
   print(tbd.lion.compID.preyabund$summary[1:15,])
   mcmcplot(tbd.lion.compID.preyabund$samples)
   save(tbd.lion.compID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_preyRAI.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], bobcat [3], wolf [4]
   
   #####  Competitor * prey relative abundance model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_elk_wtd_abundance_noRE.R")
@@ -713,7 +699,7 @@
   print(tbd.lion.compIDxpreyabund$summary[1:21,])
   mcmcplot(tbd.lion.compIDxpreyabund$samples)
   save(tbd.lion.compIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_X_preyRAI.RData") # Not converging well, probably over-parameterized
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], bobcat [3], wolf [4]
   
   #####  Global model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_global_elk_wtd_abundance_noRE.R")
@@ -727,12 +713,7 @@
   print(tbd.lion.global$summary[1:21,])
   mcmcplot(tbd.lion.global$samples)
   save(tbd.lion.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.lion_global.RData") # Not converging well, probably over-parameterized
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], wolf [4]
-  
-  #' #'  DIC for model selection
-  #' lion_tbd_list <- list(tbd.lion.null, tbd.lion.compID, tbd.lion.div, tbd.lion.preyabund, tbd.lion.compID.div, tbd.lion.compIDxdiv, tbd.lion.compID.preyabund)#, tbd.lion.compIDxpreyabund, tbd.lion.global) 
-  #' lion_tbd_name <- c("tbd.lion.null", "tbd.lion.compID", "tbd.lion.div", "tbd.lion.preyabund", "tbd.lion.compID.div", "tbd.lion.compIDxdiv", "tbd.lion.compID.preyabund")#, "tbd.lion.compIDxpreyabund", "tbd.lion.global") 
-  #' (topmod_liontbd <- dictab(cand.set = lion_tbd_list, modnames = lion_tbd_name, sort = TRUE)) 
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], bobcat [3], wolf [4]
   
   
   #'  -----------------
@@ -767,7 +748,7 @@
   print(tbd.wolf.compID$summary[1:10,])
   mcmcplot(tbd.wolf.compID$samples)
   save(tbd.wolf.compID, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_detection.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], bobcat [3], lion [4]
   
   #####  Prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
@@ -807,7 +788,6 @@
   print(tbd.wolf.compID.div$summary[1:15,])
   mcmcplot(tbd.wolf.compID.div$samples)
   save(tbd.wolf.compID.div, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_preydiv.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
   
   #####  Competitor * prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_preydiversity_noRE.R")
@@ -821,7 +801,6 @@
   print(tbd.wolf.compIDxdiv$summary[1:15,])
   mcmcplot(tbd.wolf.compIDxdiv$samples)
   save(tbd.wolf.compIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_X_preydiv.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
   
   #####  Competitor + prey relative abundance model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_elk_moose_wtd_abundance_noRE.R")
@@ -835,7 +814,7 @@
   print(tbd.wolf.compID.preyabund$summary[1:15,])
   mcmcplot(tbd.wolf.compID.preyabund$samples)
   save(tbd.wolf.compID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_preyRAI.RData") 
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], bobcat [3], lion [4]
   
   #####  Competitor * prey relative abundance model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_competitor_X_elk_moose_wtd_abundance_noRE.R")
@@ -849,7 +828,7 @@
   print(tbd.wolf.compIDxpreyabund$summary[1:21,])
   mcmcplot(tbd.wolf.compIDxpreyabund$samples)
   save(tbd.wolf.compIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_X_preyRAI.RData") # Not converging well, probably over-parameterized
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], bobcat [3], lion [4]
   
   #####  Global model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_global_elk_moose_wtd_abundance_noRE.R")
@@ -863,19 +842,11 @@
   print(tbd.wolf.global$summary[1:30,])
   mcmcplot(tbd.wolf.global$samples)
   save(tbd.wolf.global, file = "./Outputs/Time_btwn_Detections/tbd.comp.wolf_global.RData") # Not converging well, probably over-parameterized
-  #'  Keep in mind CompetitorID levels are bear [1], bobcat [2], coyote [3], lion [4]
-  
-  #' #'  DIC for model selection
-  #' wolf_tbd_list <- list(tbd.wolf.null, tbd.wolf.compID, tbd.wolf.div, tbd.wolf.preyabund, tbd.wolf.compID.div, tbd.wolf.compIDxdiv, tbd.wolf.compID.preyabund) #, tbd.wolf.compIDxpreyabund, tbd.wolf.global) 
-  #' wolf_tbd_name <- c("tbd.wolf.null", "tbd.wolf.compID", "tbd.wolf.div", "tbd.wolf.preyabund", "tbd.wolf.compID.div", "tbd.wolf.compIDxdiv", "tbd.wolf.compID.preyabund") #, "tbd.wolf.compIDxpreyabund", "tbd.wolf.global") 
-  #' (topmod_wolftbd <- dictab(cand.set = wolf_tbd_list, modnames = wolf_tbd_name, sort = TRUE)) 
+  #'  Keep in mind CompetitorID levels are coyote [1], bear [2], bobcat [3], lion [4]
   
   
   #'  Fin
   #'  Next stop, TBD_Model_Selection_DIC.R for model selection and table formatting
-  
-  
-  
   
   
   
