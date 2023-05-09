@@ -40,7 +40,7 @@
       
       #'  Mean TBD across range of elk relative abundance values
       for(i in 1:100){
-        pp.tbd.elk[i] <- exp(alpha0 + beta.prey[1]*newcovs[i,1] + beta.prey[2]*0)
+        spp.tbd.elk[i] <- exp(alpha0 + beta.prey[1]*newcovs[i,1] + beta.prey[2]*0)
       }
       
       #'  Mean TBD across range of wtd relative abundance values 
