@@ -338,8 +338,7 @@
   #'  -----------------------------------
   #####  Plot coefficient effect sizes  ####
   #'  -----------------------------------
-  #'  Format coefficients
-  #'  Format results tables for plotting
+  #'  Format coefficients for plotting
   parameter_est <- tbd.coefs %>%
     arrange(Species) %>%
     mutate(Species = factor(Species, levels = c("Black bear", "Bobcat", "Coyote", "Mountain lion", "Wolf")),
@@ -353,6 +352,7 @@
            lci = as.numeric(lci),
            uci = as.numeric(uci)) 
   
+  #####  Coefficient effect sizes  ####
   meso_coef_plot <- filter(parameter_est, Species == "Bobcat" | Species == "Coyote") %>%
     mutate(Species = factor(Species, levels = c("Coyote", "Bobcat"))) %>%
     filter(Parameter != "Intercept") %>%  ############### NOTE: Excluding intercept so 95% CRIs of other coeffs are more visible!!!
@@ -388,6 +388,11 @@
   apex_coef_plot
   
   
+  #'  Save
+  ggsave("./Outputs/Time_btwn_Detections/Figures/Coefficient_size_mesopredators.tiff", meso_coef_plot, 
+         units = "in", width = 7, height = 6, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Time_btwn_Detections/Figures/Coefficient_size_largepredators.tiff", apex_coef_plot, 
+         units = "in", width = 7, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
   
