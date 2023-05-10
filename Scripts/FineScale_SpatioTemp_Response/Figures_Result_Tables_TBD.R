@@ -26,7 +26,11 @@
   load("./Outputs/Time_btwn_Detections/tbd.comp.lion_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_preyRAI.RData")
   
-  #'  Snag and rename coefficents from each model
+  
+  #'  ------------------
+  ####  Format results  ####
+  #'  ------------------
+  #'  Snag and reformat coefficents and predictions from each top model
   coefs <- function(mod_out, spp, prey1, prey2, prey3, comp1, comp2, comp3, comp4) {
     Species <- spp
     Estimate <- round(unlist(mod_out$mean), 2)
@@ -73,26 +77,59 @@
   tbd.wolf.out <- coefs(tbd.wolf.preyabund, spp = "Wolf", prey1 = "Elk", prey2 = "Moose", prey3 = "White-tailed deer")
   
   #'  Pull out just coefficient estimates
-  bear.coefs <- tbd.bear.out[1:4,1:4]
-  bob.coefs <- tbd.bob.out[1:11,1:4]
-  coy.coefs <- tbd.coy.out[1:17,1:4]
-  lion.coefs <- tbd.lion.out[1:4,1:4]
-  wolf.coefs <- tbd.wolf.out[1:5,1:4]
+  bear.coefs <- tbd.bear.out[1:3,1:4]
+  bob.coefs <- tbd.bob.out[1:6,1:4]
+  coy.coefs <- tbd.coy.out[1:12,1:4]
+  lion.coefs <- tbd.lion.out[1:3,1:4]
+  wolf.coefs <- tbd.wolf.out[1:4,1:4]
   
   #'  Pull out mean TBD estimates
-  bear.mean.tbd
-  bob.mean.tbd
-  coy.mean.tbd
-  lion.mean.tbd
-  wolf.mean.tbd
+  bear.mean.tbd <- tbd.bear.out[4,1:4]
+  bob.mean.tbd <- tbd.bob.out[7:11,1:4]
+  coy.mean.tbd <- tbd.coy.out[13:17,1:4]
+  lion.mean.tbd <- tbd.lion.out[4,1:4]
+  wolf.mean.tbd <- tbd.wolf.out[5,1:4]
   
   #'  Pull out predicted TBD values
-  bear.tbd.predictions <- tbd.bear.out[]
-  bob.tbd.predictions <- tbd.bob.out[]
-  coy.tbd.predictions <- tbd.coy.out[]
-  lion.tbd.predictions <- tbd.lion.out[]
-  wolf.tbd.predictions <- tbd.wolf.out[]
+  bear.tbd.predictions <- tbd.bear.out[5:204,1:4]
+  bob.tbd.predictions <- tbd.bob.out[12:811,1:4]
+  coy.tbd.predictions <- tbd.coy.out[18:817,1:4]
+  lion.tbd.predictions <- tbd.lion.out[5:204,1:4]
+  wolf.tbd.predictions <- tbd.wolf.out[6:305,1:4]
   
+  
+  #'  ------------------
+  ####  Result tables  ####
+  #'  -----------------
   tbd.coefs <- rbind(bear.coefs, bob.coefs, coy.coefs, lion.coefs, wolf.coefs)
-  # write.csv(tbd.coefs, "./Outputs/Tables/TBD_coefficient_estimates_allSpp.csv")
+  mean.tbd <- rbind(bear.mean.tbd, bob.mean.tbd, coy.mean.tbd, lion.mean.tbd, wolf.mean.tbd)
+  predicted.tbd <- rbind(bear.tbd.predictions, bob.tbd.predictions, coy.tbd.predictions, lion.tbd.predictions, wolf.tbd.predictions) %>%
+    #'  Split out predictions based on categorical variable (mostly important for bobcat & coyote results)
+    mutate(Prey_species = str_replace(Parameter, "tbd ", ""),
+           Prey_species = str_extract(Prey_species, "[aA-zZ]+"),
+           Obs_nmbr = as.numeric(str_extract(Parameter, "[0-9]+")),
+           #'  If competitor ID had no effect, use reference category (coyote)
+           Competitor_ID = ifelse(Species == "Black bear" | Species == "Mountain lion" | Species == "Wolf", "Coyote", NA),
+           #'  If competitor ID had an effect, assign correct species to each data chunk
+           Competitor_ID = ifelse(Species == "Bobcat" & Obs_nmbr <101, "Coyote", Competitor_ID),
+           Competitor_ID = ifelse(Species == "Bobcat" & Obs_nmbr >100, "Black bear", Competitor_ID),
+           Competitor_ID = ifelse(Species == "Bobcat" & Obs_nmbr >200, "Mountain lion", Competitor_ID), 
+           Competitor_ID = ifelse(Species == "Bobcat" & Obs_nmbr >300, "Wolf", Competitor_ID),
+           Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr <101, "Black bear", Competitor_ID),
+           Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr >100, "Bobcat", Competitor_ID),
+           Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr >200, "Mountain lion", Competitor_ID), 
+           Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr >300, "Wolf", Competitor_ID))
+  
+  #' #'  Save
+  #' write.csv(tbd.coefs, "./Outputs/Tables/TBD_coefficient_estimates_allSpp.csv")
+  #' write.csv(mean.tbd, "./Outputs/Tables/TBD_estimated_means_allSpp.csv")
+  #' write.csv(predicted.tbd, "./Outputs/Tables/TBD_predicted_TBD_allSpp.csv")
+  
+  
+  #'  --------------------
+  ####  Plot TBD results  ####
+  #'  --------------------
+  
+  
+  
   
