@@ -154,9 +154,9 @@
   #' write.csv(predicted.tbd, "./Outputs/Tables/TBD_predicted_TBD_allSpp.csv")
   
   
-  #'  --------------------
-  ####  Plot TBD results  ####
-  #'  --------------------
+  #'  ---------------------------------
+  ####  Plot TBD by covariate effects  ####
+  #'  ---------------------------------
   #'  Format new covariate data based on length of predictions for each predator species
   bear.covs <- c(bear_bundled$newcovs[,1], bear_bundled$newcovs[,3]) %>%
     as.data.frame() %>%
@@ -335,10 +335,57 @@
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
+  #'  -----------------------------------
+  #####  Plot coefficient effect sizes  ####
+  #'  -----------------------------------
+  #'  Format coefficients
+  #'  Format results tables for plotting
+  parameter_est <- tbd.coefs %>%
+    arrange(Species) %>%
+    mutate(Species = factor(Species, levels = c("Black bear", "Bobcat", "Coyote", "Mountain lion", "Wolf")),
+           Parameter = factor(Parameter, levels =  c("Competitor:Prey (Wolf x Lagomorph)", "Competitor:Prey (Wolf x White-tailed deer)", 
+                                                     "Competitor:Prey (Mountain lion x Lagomorph)", "Competitor:Prey (Mountain lion x White-tailed deer)", 
+                                                     "Competitor:Prey (Bobcat x Lagomorph)", "Competitor:Prey (Bobcat x White-tailed deer)", 
+                                                     "Prey RAI: Lagomorph", "Prey RAI: White-tailed deer", "Prey RAI: Moose", "Prey RAI: Elk",
+                                                     "Competitor: Wolf", "Competitor: Mountain lion", "Competitor: Coyote", "Competitor: Bobcat", 
+                                                     "Competitor: Black bear", "Intercept")),
+           Estimate = as.numeric(Estimate),
+           lci = as.numeric(lci),
+           uci = as.numeric(uci)) 
   
+  meso_coef_plot <- filter(parameter_est, Species == "Bobcat" | Species == "Coyote") %>%
+    mutate(Species = factor(Species, levels = c("Coyote", "Bobcat"))) %>%
+    filter(Parameter != "Intercept") %>%  ############### NOTE: Excluding intercept so 95% CRIs of other coeffs are more visible!!!
+    ggplot(aes(x = Parameter, y = (Estimate/60))) +
+    geom_errorbar(aes(ymin = (lci/60), ymax = (uci/60), color = Species), width = 0, position = position_dodge(width = 0.4)) +
+    geom_point(stat = "identity", aes(col = Species), size = 2.5, position = position_dodge(width = 0.4)) +
+    geom_hline(yintercept = 0, linetype="dashed") +
+    theme_bw() +
+    coord_flip() +
+    facet_wrap(~Species, scales = "free_x") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+          legend.position = "none") +
+    xlab("Parameter") +
+    ylab("Estimated coefficient (95% CRI)") +
+    ggtitle("Coefficient estimates for bobcat and coyote analyses")
+  meso_coef_plot
   
-  
-  
+  apex_coef_plot <- filter(parameter_est, Species == "Black bear" | Species == "Mountain lion" | Species == "Wolf") %>%
+    mutate(Species = factor(Species, levels = c("Black bear", "Mountain lion", "Wolf"))) %>%
+    filter(Parameter != "Intercept") %>%  ############### NOTE: Excluding intercept so 95% CRIs of other coeffs are more visible!!!
+    ggplot(aes(x = Parameter, y = (Estimate/60))) +
+    geom_errorbar(aes(ymin = (lci/60), ymax = (uci/60), color = Species), width = 0, position = position_dodge(width = 0.4)) +
+    geom_point(stat = "identity", aes(col = Species), size = 2.5, position = position_dodge(width = 0.4)) +
+    geom_hline(yintercept = 0, linetype="dashed") +
+    theme_bw() +
+    coord_flip() +
+    facet_wrap(~Species, scales = "free_x") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+          legend.position = "none") +
+    xlab("Parameter") +
+    ylab("Estimated coefficient (95% CRI)") +
+    ggtitle("Coefficient estimates for black bear, mountain lion, and wolf analyses")
+  apex_coef_plot
   
   
   
