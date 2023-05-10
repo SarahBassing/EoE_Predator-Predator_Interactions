@@ -415,9 +415,25 @@
           legend.position = "none") +
     xlab("Parameter") +
     ylab("Estimated coefficient (95% CRI)") +
-    ggtitle("Coefficient estimates for bobcat and coyote analyses") +
-    annotation_custom(beargrid, xmin=11.75, xmax=12.5) 
+    ggtitle("Coefficient estimates for bobcat and coyote analyses") #+
+    #annotation_custom(beargrid, xmin=11.75, xmax=12.5) 
   meso_coef_plot
+  
+  coy_coef_plot <- filter(parameter_est, Species == "Coyote") %>%
+    filter(Parameter != "Intercept") %>%  ############### NOTE: Excluding intercept so 95% CRIs of other coeffs are more visible!!!
+    ggplot(aes(x = Parameter, y = (Estimate/60))) +
+    geom_errorbar(aes(ymin = (lci/60), ymax = (uci/60), color = Species), width = 0, position = position_dodge(width = 0.4)) +
+    geom_point(stat = "identity", aes(col = Species), size = 2.5, position = position_dodge(width = 0.4)) +
+    geom_hline(yintercept = 0, linetype="dashed") +
+    theme_bw() +
+    coord_flip() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+          legend.position = "none") +
+    xlab("Parameter") +
+    ylab("Estimated coefficient (95% CRI)") +
+    ggtitle("Coefficient estimates for bobcat and coyote analyses") +
+    add_phylopic(wolfimg, x = 7.05, y = 0.3, ysize = 0.5, color = "black", alpha = 1)
+  coy_coef_plot
     
     add_phylopic(wolfimg, x = 7.05, y = 0.8, ysize = 0.5, color = "black", alpha = 1) +
     add_phylopic(wtdimgGB1, x = 6.1, y = 0.8, ysize = 1, color = "black", alpha = 1) +
