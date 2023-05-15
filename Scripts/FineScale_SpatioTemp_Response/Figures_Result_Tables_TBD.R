@@ -159,8 +159,8 @@
   wolf.mean.tbd <- tbd.wolf.out[5,1:6]
   
   bear.comp.tbd <- tbd.bear.comp[5:9,1:6]
-  bob.comp.tbd <- tbd.bob.comp[5:9,1:6]
-  coy.comp.tbd <- tbd.coy.comp[5:9,1:6]
+  bob.comp.tbd <- tbd.bob.out[7:11,1:6] #tbd.bob.comp[5:9,1:6]
+  coy.comp.tbd <- tbd.coy.out[13:17,1:6] #tbd.coy.comp[5:9,1:6]
   lion.comp.tbd <- tbd.lion.comp[5:9,1:6]
   wolf.comp.tbd <- tbd.wolf.comp[5:9,1:6]
   
@@ -300,7 +300,7 @@
     geom_point(stat = "identity", aes(col = Previous_Species), size = 2.5, position = position_dodge(width = 0.4)) +
     theme_bw() +
     guides(color = guide_legend(title = "Previously detected species")) +
-    facet_wrap(~Species) + #, scales = "free_y"
+    facet_wrap(~Species, scales = "free_y") + #, scales = "free_y"
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
     theme(legend.position = c(1, 0), legend.justification = c(1, 0)) +
     xlab("Previously detected species") +
@@ -367,7 +367,9 @@
     xlab("Relative abundance of elk (scaled)") +
     ylab("Mean number of hours between detections") +
     ggtitle("Effect of recent competitor detection and elk abundance on latency of site use") +
-    theme(legend.position = "none") +
+    # theme(legend.position = "none") +
+    guides(color = guide_legend(title = "Previously detected\ncompetitor"),
+           fill = guide_legend(title = "Previously detected\ncompetitor")) +
     facet_wrap(~Species, scale = "free_x")
   tbd_elkRAI_plot
 
