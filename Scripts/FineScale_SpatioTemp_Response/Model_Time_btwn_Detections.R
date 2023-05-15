@@ -77,6 +77,8 @@
   
   #'  List data sets with extreme values removed
   pred_tbd_short <- list(bear_short, bob_short, coy_short, lion_short, wolf_short)
+  #' #'  Save for permutation test
+  #' save(pred_tbd_short, file = paste0("./Data/Time_btwn_Detections/pred_tbd_short_", Sys.Date(), ".RData")) 
   
   #'  Table observations with each competitor to get a feel for sample size
   table(bear_short$Previous_Spp)
