@@ -249,6 +249,27 @@
   ####  Permutation test  ####
   #'  --------------------
   #'  Grab posterior means from each permutation
+  perm_coefs <- function(mod_out) {
+    mu_tbd <- unlist(mod_out$mean)
+    alpha0 <- mu_tbd[[1]]
+    mean_tbd <- mu_tbd[[2]]
+    mu_tbd <- cbind(alpha0, mean_tbd)
+    mu_tbd <- as.data.frame(mu_tbd) 
+    return(mu_tbd)
+  }
+  mu_bear_tbd <- lapply(tbd_null_bear_perm, perm_coefs)
+  tst <- unlist(mu_bear_tbd)
+  mu_bob_tbd <- lapply(tbd_null_bob_perm, perm_coefs)
+  mu_coy_tbd <- lapply(tbd_null_coy_perm, perm_coefs)
+  mu_lion_tbd <- lapply(tbd_null_lion_perm, perm_coefs)
+  mu_wolf_tbd <- lapply(tbd_null_wolf_perm, perm_coefs)
+  
+  top_mu_bear_tbd <- lapply(tbd_preyabund_bear_perm, perm_coefs)
+  top_mu_bob_tbd <- lapply(tbd_compID_preyabund_bob_perm, perm_coefs)
+  top_mu_coy_tbd <- lapply(tbd_compIDxpreyabund_coy_perm, perm_coefs)
+  top_mu_lion_tbd <- lapply(tbd_preyabund_lion_perm, perm_coefs)
+  top_mu_wolf_tbd <- lapply(tbd_preyabund_wolf_perm, perm_coefs)
+  
   #'  Grab posterior means from original analyses
   #'  Compare permutations to observed mean
   #'  Plot results
