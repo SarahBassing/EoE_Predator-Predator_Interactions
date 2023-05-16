@@ -19,7 +19,7 @@
   library(tidyverse)
   
   # load("./Data/Time_btwn_Detections/TBD_all_predator_pairs_2023-05-05.RData")
-  load("./Data/Time_btwn_Detections/pred_tbd_short_2023-05-15 .RData")
+  load("./Data/Time_btwn_Detections/pred_tbd_short_2023-05-15.RData")
   
   #'  ---------------------
   ####  Scramble TBD data  ####
@@ -44,7 +44,7 @@
   #'  List and save
   pred_tbd_short_resampled <- list(new_bear_tbd, new_bob_tbd, new_coy_tbd, new_lion_tbd, new_wolf_tbd)
   # save(pred_tbd_short_resampled, file = paste0("./Data/Time_btwn_Detections/pred_tbd_short_resampled_", Sys.Date(), ".RData"))
-  
+  load("./Data/Time_btwn_Detections/pred_tbd_short_resampled_2023-05-15.RData")
   
   #'  ---------------------------------------
   ####  Set up MCMC settings and run models  ####
@@ -244,34 +244,92 @@
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   save(tbd_compIDxpreyabund_coy_perm, file = "./Outputs/Time_btwn_Detections/permutation_tbd_competitor_X_preyRAI_coy.RData")
   
+  #'  Load permutation runs
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_null_bear.RData")
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_null_bob.RData")
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_null_coy.RData")
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_null_lion.RData")
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_null_wolf.RData")
+  
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_preyabund_bear.RData")
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_competitor_preyRAI_bob.RData")
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_competitor_X_preyRAI_coy.RData")
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_preyabund_lion.RData")
+  load("./Outputs/Time_btwn_Detections/permutation_tbd_preyabund_wolf.RData")
+  
   
   #'  --------------------
   ####  Permutation test  ####
   #'  --------------------
   #'  Grab posterior means from each permutation
   perm_coefs <- function(mod_out) {
-    mu_tbd <- unlist(mod_out$mean)
-    alpha0 <- mu_tbd[[1]]
-    mean_tbd <- mu_tbd[[2]]
+    alpha0 <- as.numeric(mod_out$mean$alpha0) 
+    mean_tbd <- as.numeric(mod_out$mean$mu.tbd) 
     mu_tbd <- cbind(alpha0, mean_tbd)
     mu_tbd <- as.data.frame(mu_tbd) 
     return(mu_tbd)
   }
-  mu_bear_tbd <- lapply(tbd_null_bear_perm, perm_coefs)
-  tst <- unlist(mu_bear_tbd)
-  mu_bob_tbd <- lapply(tbd_null_bob_perm, perm_coefs)
-  mu_coy_tbd <- lapply(tbd_null_coy_perm, perm_coefs)
-  mu_lion_tbd <- lapply(tbd_null_lion_perm, perm_coefs)
-  mu_wolf_tbd <- lapply(tbd_null_wolf_perm, perm_coefs)
+  mu_bear_tbd <- lapply(tbd_null_bear_perm, perm_coefs); null_mu_tbd_bear <- as.data.frame(do.call(rbind, mu_bear_tbd))
+  mu_bob_tbd <- lapply(tbd_null_bob_perm, perm_coefs); null_mu_tbd_bob <- as.data.frame(do.call(rbind, mu_bob_tbd))
+  mu_coy_tbd <- lapply(tbd_null_coy_perm, perm_coefs); null_mu_tbd_coy <- as.data.frame(do.call(rbind, mu_coy_tbd))
+  mu_lion_tbd <- lapply(tbd_null_lion_perm, perm_coefs); null_mu_tbd_lion <- as.data.frame(do.call(rbind, mu_lion_tbd))
+  mu_wolf_tbd <- lapply(tbd_null_wolf_perm, perm_coefs); null_mu_tbd_wolf <- as.data.frame(do.call(rbind, mu_wolf_tbd))
   
-  top_mu_bear_tbd <- lapply(tbd_preyabund_bear_perm, perm_coefs)
-  top_mu_bob_tbd <- lapply(tbd_compID_preyabund_bob_perm, perm_coefs)
-  top_mu_coy_tbd <- lapply(tbd_compIDxpreyabund_coy_perm, perm_coefs)
-  top_mu_lion_tbd <- lapply(tbd_preyabund_lion_perm, perm_coefs)
-  top_mu_wolf_tbd <- lapply(tbd_preyabund_wolf_perm, perm_coefs)
+  top_mu_bear_tbd <- lapply(tbd_preyabund_bear_perm, perm_coefs); top_mu_tbd_bear <- as.data.frame(do.call(rbind, top_mu_bear_tbd))
+  top_mu_bob_tbd <- lapply(tbd_compID_preyabund_bob_perm, perm_coefs); top_mu_tbd_bob <- as.data.frame(do.call(rbind, top_mu_bob_tbd))
+  top_mu_coy_tbd <- lapply(tbd_compIDxpreyabund_coy_perm, perm_coefs); top_mu_tbd_coy <- as.data.frame(do.call(rbind, top_mu_coy_tbd))
+  top_mu_lion_tbd <- lapply(tbd_preyabund_lion_perm, perm_coefs); top_mu_tbd_lion <- as.data.frame(do.call(rbind, top_mu_lion_tbd))
+  top_mu_wolf_tbd <- lapply(tbd_preyabund_wolf_perm, perm_coefs); top_mu_tbd_wolf <- as.data.frame(do.call(rbind, top_mu_wolf_tbd))
+  
+  #'  Load top models
+  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_X_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_preyRAI.RData")
+  
+  #'  Load competitor models
+  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_detection.RData")
+  # load("./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_detection.RData")
+  # load("./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_detection.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_detection.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_detection.RData")
   
   #'  Grab posterior means from original analyses
+  perm_coefs_og <- function(mod_out) {
+    alpha0 <- as.numeric(mod_out$mean$alpha0)
+    mean_tbd <- as.numeric(mod_out$mean$mu.tbd)
+    mu_tbd <- cbind(alpha0, mean_tbd)
+    mu_tbd <- as.data.frame(mu_tbd)
+    colnames(mu_tbd) <- c("alpha0", "mean.tbd")
+    return(mu_tbd)
+  }
+  og_mu_bear_tbd <- perm_coefs_og(tbd.bear.preyabund)
+  og_mu_lion_tbd <- perm_coefs_og(tbd.lion.preyabund)
+  og_mu_wolf_tbd <- perm_coefs_og(tbd.wolf.preyabund)
+  
+  perm_coefs_compID <- function(mod_out, spp1tbd, spp2tbd, spp3tbd, spp4tbd) {
+    alpha0 <- as.numeric(mod_out$mean$alpha0)
+    mean_tbd <- as.numeric(mod_out$mean$mu.tbd)
+    spp_tbd1 <- as.numeric(mod_out$mean$spp.tbd[[1]])
+    spp_tbd2 <- as.numeric(mod_out$mean$spp.tbd[[2]])
+    spp_tbd3 <- as.numeric(mod_out$mean$spp.tbd[[3]])
+    spp_tbd4 <- as.numeric(mod_out$mean$spp.tbd[[4]])
+    mu_tbd <- cbind(alpha0, mean_tbd, spp_tbd1, spp_tbd2, spp_tbd3, spp_tbd4)
+    mu_tbd <- as.data.frame(mu_tbd)
+    colnames(mu_tbd) <- c("alpha0", "mean.tbd", spp1tbd, spp2tbd, spp3tbd, spp4tbd)
+    return(mu_tbd)
+  }
+  og_mu_bob_tbd <- perm_coefs_compID(tbd.bob.compID.preyabund, spp1tbd = "coy.tbd", spp2tbd = "bear.tbd", spp3tbd = "lion.tbd", spp4tbd = "wolf.tbd")
+  og_mu_coy_tbd <- perm_coefs_compID(tbd.coy.compIDxpreyabund, spp1tbd = "bear.tbd", spp2tbd = "bob.tbd", spp3tbd = "lion.tbd", spp4tbd = "wolf.tbd")
+  comp_mu_bear_tbd <- perm_coefs_compID(tbd.bear.compID, spp1tbd = "coy.tbd", spp2tbd = "bob.tbd", spp3tbd = "lion.tbd", spp4tbd = "wolf.tbd")
+  comp_mu_lion_tbd <- perm_coefs_compID(tbd.lion.compID, spp1tbd = "coy.tbd", spp2tbd = "bear.tbd", spp3tbd = "bob.tbd", spp4tbd = "wolf.tbd")
+  comp_mu_wolf_tbd <- perm_coefs_compID(tbd.wolf.compID, spp1tbd = "coy.tbd", spp2tbd = "bear.tbd", spp3tbd = "bob.tbd", spp4tbd = "lion.tbd")
+  
   #'  Compare permutations to observed mean
+  
+    
   #'  Plot results
+  hist(top_mu_tbd_bear$mean_tbd); abline(v = c(mean(top_mu_tbd_bear$mean_tbd), og_mu_bear_tbd$mean.tbd), col = c("red", "blue"), lty = c(2, 1), lwd = c(2, 2))
   
   
