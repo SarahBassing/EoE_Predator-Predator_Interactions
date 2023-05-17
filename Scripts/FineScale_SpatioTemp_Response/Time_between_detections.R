@@ -29,6 +29,43 @@
   load("./Data/IDFG camera data/Problem images/eoe20w_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
   
+  #'  Load corrected species ID and update larger datasets
+  newSppID <- read.csv("./Data/IDFG camera data/questionable_images_doublecheck.csv") %>%
+    mutate(posix_date_time = as.POSIXct(posix_date_time, format="%m/%d/%Y %H:%M", tz="UTC"), 
+           Year = as.numeric(format(posix_date_time, "%Y"))) %>%
+    distinct() %>%
+    dplyr::select(c("CamID", "NewLocationID", "File", "Location_Relative_Project", "posix_date_time", "Species", "NewSpecies", "Year"))
+  #'  Filter by year and only observations with misidentified species
+  newSppID_20s <- filter(newSppID, Year == "2020") %>% dplyr::select(-Year) %>% filter(Species != NewSpecies)
+  newSppID_21s <- filter(newSppID, Year == "2021") %>% dplyr::select(-Year) %>% filter(Species != NewSpecies)
+  #'  Snag unique ID for each image
+  change_sppID_20s <- as.vector(newSppID_20s$Location_Relative_Project)
+  change_sppID_21s <- as.vector(newSppID_21s$Location_Relative_Project)
+  
+  #'  Function to correc species misclassifications
+  remove_obs <- function(dets, prob_images, correctSppID) {
+    #'  Grab all rows that have a misID's species
+    obs_to_remove <- dets[dets$Location_Relative_Project %in% prob_images,]
+    #'  Switch original species ID with correct one
+    newspp <- left_join(obs_to_remove, correctSppID, by = c("CamID", "NewLocationID", "File", "Species")) %>%
+      dplyr::select(-c("Location_Relative_Project.y", "posix_date_time.y")) %>%
+      relocate(NewSpecies, .after = Species) %>%
+      dplyr::select(-Species) %>%
+      rename(Species = "NewSpecies", Location_Relative_Project = "Location_Relative_Project.x", posix_date_time = "posix_date_time.x")
+    #'  Remove these rows from the larger df
+    dets_reduced <- anti_join(dets, obs_to_remove)
+    #'  Replace with observation containing correct species ID
+    dets_updated <- bind_rows(dets_reduced, newspp) %>%
+      #'  Arrange everything back in order
+      arrange(NewLocationID, posix_date_time, File)
+    return(dets_updated)
+  }
+  eoe20s_allM_new <- remove_obs(eoe20s_allM, prob_images = change_sppID_20s, correctSppID = newSppID_20s)
+  eoe21s_allM_new <- remove_obs(eoe21s_allM, prob_images = change_sppID_21s, correctSppID = newSppID_21s)
+  
+  #'  Re-assign
+  eoe20s_allM <- eoe20s_allM_new
+  eoe21s_allM <- eoe21s_allM_new
 
   #'  ------------------------
   ####  Filter detection data  ####
@@ -262,23 +299,24 @@
     return(double_obs)
   } 
   double_dets <- lapply(predator_pairs, id_duplicate_times)
-  
+  # check out: GMU10A_P_86 EOE2020_IDFG2489_20200717_231025_MD_1.JPG, EOE2020_IDFG2489_20200729_005552_MD_2
+  # check out: GMU6_P_38 EOE2020_IDFG2272_20200803_210616_MD_1.JPG
   #'  List all uniqueIDs of observations that need to be removed in a giant vector
-  rm_20s <- c("GMU10A_P_104_2020-09-03 14:52:14_bobcat_first", "GMU10A_P_104_2020-09-03 14:52:15_coyote_last", "GMU10A_P_15_2020-08-07 00:27:16_mountain_lion_last", 
-              "GMU10A_P_23_2020-07-22 01:35:58_bobcat_last", "GMU10A_P_23_2020-07-22 01:36:01_coyote_last", "GMU10A_P_40_2020-08-03 00:16:27_coyote_first", 
-              "GMU10A_P_40_2020-08-03 00:16:27_wolf_last", "GMU10A_P_5_2020-09-15 07:27:58_bobcat_last", "GMU10A_P_86_2020-07-27 01:47:41_wolf_last",  
-              "GMU10A_P_86_2020-07-27 01:47:42_coyote_last", "GMU10A_P_86_2020-08-11 02:31:28_bobcat_last", "GMU10A_P_86_2020-08-11 02:31:44_coyote_last", 
-              "GMU10A_P_86_2020-08-11 02:40:03_bobcat_last", "GMU10A_P_86_2020-08-11 02:40:03_coyote_last", "GMU6_P_17_2020-07-01 22:36:24_coyote_last", 
-              "GMU6_P_17_2020-07-01 22:36:25_mountain_lion_last", "GMU6_P_18_2020-08-15 22:20:59_bobcat_last", "GMU6_P_18_2020-08-15 22:21:07_coyote_last", 
-              "GMU6_P_37_2020-07-28 00:11:29_coyote_last", "GMU6_P_37_2020-07-28 00:11:30_wolf_last", "GMU6_P_38_2020-08-28 21:03:42_wolf_last", 
-              "GMU6_P_38_2020-08-28 21:03:51_coyote_last", "GMU6_P_56_2020-08-23 23:24:19_coyote_last", "GMU6_P_56_2020-08-23 23:24:15_bobcat_last",   
-              "GMU6_P_56_2020-08-28 00:58:18_bobcat_last", "GMU6_P_56_2020-08-28 00:58:21_coyote_last", "GMU6_P_58_2020-07-16 02:08:36_coyote_last", 
-              "GMU6_P_58_2020-07-16 02:08:47_wolf_last", "GMU6_P_66_2020-07-31 22:16:15_bobcat_last", "GMU6_P_66_2020-07-31 22:16:18_coyote_last", # GMU6_P_66_2020-08-01 23:53:30_coyote_last & GMU6_P_66_2020-08-01 23:53:31_bobcat_first sould be removed IF the unk deer classification in the middle of them is real
-              "GMU6_P_94_2020-07-10 05:24:20_bobcat_last", "GMU6_P_94_2020-07-10 05:24:20_coyote_last", "GMU6_P_94_2020-09-09 01:52:26_mountain_lion_last", 
-              "GMU6_P_94_2020-09-09 01:53:41_bobcat_last", "GMU6_U_130_2020-08-21 23:57:41_wolf_last", "GMU6_U_130_2020-08-21 23:58:48_coyote_last", 
-              "GMU6_U_90_2020-09-04 13:27:34_mountain_lion_last", "GMU6_U_90_2020-09-04 13:27:50_bear_black_last", "GMU10A_U_169_2020-08-07 22:40:17_wolf_last", 
-              "GMU10A_U_169_2020-08-07 22:40:19_coyote_last") 
-  rm_21s <- c("GMU6_P_9_2021-09-02 21:57:37_bear_black_last", "GMU6_P_9_2021-09-02 21:57:38_wolf_last")
+  rm_20s <- c()#"GMU10A_P_104_2020-09-03 14:52:14_bobcat_first", "GMU10A_P_104_2020-09-03 14:52:15_coyote_last", "GMU10A_P_15_2020-08-07 00:27:16_mountain_lion_last", 
+              #"GMU10A_P_23_2020-07-22 01:35:58_bobcat_last", "GMU10A_P_23_2020-07-22 01:36:01_coyote_last", "GMU10A_P_40_2020-08-03 00:16:27_coyote_first", "GMU10A_P_40_2020-08-03 00:16:27_wolf_last", 
+              #"GMU10A_P_86_2020-07-27 01:47:41_wolf_last",  #"GMU10A_P_5_2020-09-15 07:27:58_bobcat_last", 
+              #"GMU10A_P_86_2020-07-27 01:47:42_coyote_last", "GMU10A_P_86_2020-08-11 02:31:28_bobcat_last", "GMU10A_P_86_2020-08-11 02:31:44_coyote_last", 
+              #"GMU10A_P_86_2020-08-11 02:40:03_bobcat_last", "GMU10A_P_86_2020-08-11 02:40:03_coyote_last", "GMU6_P_17_2020-07-01 22:36:24_coyote_last", "GMU6_P_17_2020-07-01 22:36:25_mountain_lion_last", 
+              #"GMU6_P_18_2020-08-15 22:20:59_bobcat_last", "GMU6_P_18_2020-08-15 22:21:07_coyote_last", 
+              #"GMU6_P_37_2020-07-28 00:11:29_coyote_last", "GMU6_P_37_2020-07-28 00:11:30_wolf_last", "GMU6_P_38_2020-08-28 21:03:42_wolf_last", "GMU6_P_38_2020-08-28 21:03:51_coyote_last", 
+              #"GMU6_P_56_2020-08-23 23:24:19_coyote_last", "GMU6_P_56_2020-08-23 23:24:15_bobcat_last",   
+              #"GMU6_P_56_2020-08-28 00:58:18_bobcat_last", "GMU6_P_56_2020-08-28 00:58:21_coyote_last", #"GMU6_P_58_2020-07-16 02:08:36_coyote_last", "GMU6_P_58_2020-07-16 02:08:47_wolf_last", 
+              #"GMU6_P_66_2020-07-31 22:16:15_bobcat_last", "GMU6_P_66_2020-07-31 22:16:18_coyote_last", # GMU6_P_66_2020-08-01 23:53:30_coyote_last & GMU6_P_66_2020-08-01 23:53:31_bobcat_first should be removed IF the unk deer classification in the middle of them is real
+              #"GMU6_P_94_2020-07-10 05:24:20_bobcat_last", "GMU6_P_94_2020-07-10 05:24:20_coyote_last", "GMU6_P_94_2020-09-09 01:52:26_mountain_lion_last", 
+              #"GMU6_P_94_2020-09-09 01:53:41_bobcat_last", "GMU6_U_130_2020-08-21 23:57:41_wolf_last", "GMU6_U_130_2020-08-21 23:58:48_coyote_last", #
+              #"GMU6_U_90_2020-09-04 13:27:34_mountain_lion_last", "GMU6_U_90_2020-09-04 13:27:50_bear_black_last" 
+              #"GMU10A_U_169_2020-08-07 22:40:17_wolf_last", "GMU10A_U_169_2020-08-07 22:40:19_coyote_last") 
+  rm_21s <- c()#"GMU6_P_9_2021-09-02 21:57:37_bear_black_last", "GMU6_P_9_2021-09-02 21:57:38_wolf_last")
   
   #'  List all uniqueIDs of observations that need to switch the Det_type from
   #'  "first" to "last". These are truly the first image from each detection BUT
