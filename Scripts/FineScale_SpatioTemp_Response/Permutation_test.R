@@ -44,7 +44,7 @@
   #'  List and save
   pred_tbd_short_resampled <- list(new_bear_tbd, new_bob_tbd, new_coy_tbd, new_lion_tbd, new_wolf_tbd)
   # save(pred_tbd_short_resampled, file = paste0("./Data/Time_btwn_Detections/pred_tbd_short_resampled_", Sys.Date(), ".RData"))
-  load("./Data/Time_btwn_Detections/pred_tbd_short_resampled_2023-05-15.RData")
+  load("./Data/Time_btwn_Detections/pred_tbd_short_resampled_2023-05-17.RData")
   
   #'  ---------------------------------------
   ####  Set up MCMC settings and run models  ####
@@ -206,7 +206,7 @@
     return(tbd.preyabund)
   } 
   start.time <- Sys.time()
-  tbd_preyabund_wolf_perm <- lapply(new_bear_bundled, preyabund_elkmoosewtd_mod_permutation)
+  tbd_preyabund_wolf_perm <- lapply(new_wolf_bundled, preyabund_elkmoosewtd_mod_permutation)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   save(tbd_preyabund_wolf_perm, file = "./Outputs/Time_btwn_Detections/permutation_tbd_preyabund_wolf.RData")
   
@@ -223,7 +223,7 @@
     return(tbd.preyabund)
   } 
   start.time <- Sys.time()
-  tbd_compID_preyabund_bob_perm <- lapply(new_bear_bundled, compID_preyabund_mod_permutation)
+  tbd_compID_preyabund_bob_perm <- lapply(new_bob_bundled, compID_preyabund_mod_permutation)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   save(tbd_compID_preyabund_bob_perm, file = "./Outputs/Time_btwn_Detections/permutation_tbd_competitor_preyRAI_bob.RData")
   
@@ -240,7 +240,7 @@
     return(tbd.preyabund)
   } 
   start.time <- Sys.time()
-  tbd_compIDxpreyabund_coy_perm <- lapply(new_bear_bundled, compIDxpreyabund_mod_permutation)
+  tbd_compIDxpreyabund_coy_perm <- lapply(new_coy_bundled, compIDxpreyabund_mod_permutation)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   save(tbd_compIDxpreyabund_coy_perm, file = "./Outputs/Time_btwn_Detections/permutation_tbd_competitor_X_preyRAI_coy.RData")
   
@@ -326,10 +326,22 @@
   comp_mu_lion_tbd <- perm_coefs_compID(tbd.lion.compID, spp1tbd = "coy.tbd", spp2tbd = "bear.tbd", spp3tbd = "bob.tbd", spp4tbd = "wolf.tbd")
   comp_mu_wolf_tbd <- perm_coefs_compID(tbd.wolf.compID, spp1tbd = "coy.tbd", spp2tbd = "bear.tbd", spp3tbd = "bob.tbd", spp4tbd = "lion.tbd")
   
-  #'  Compare permutations to observed mean
+  #'  Compare permutations to observed mean TBD
+  #'  Adjusting methods described in Galindo-Aguilar et al. 2022 (pg. 288) 
+  #'  who cite Davison & Hinkley (1997) Bootstrap Methods and their Application. USA: Cambridge University Press.
+  #'  p-value: p(spp1, spp2, k) = (1 + sum(H)) / (N + 1), where H = 1 if s >= s0, 0 if not
+  #'  and s is observed number of associations btwn spp1 and spp2 in observed data whereas
+  #'  s0 is observed number of associations from resampled data (bootstrap), 
+  #'  k is the day an observation occurred, and N is number of resampled datasets.
+  s <- rep(og_mu_bear_tbd$mean.tbd, nrow(top_mu_tbd_bear))
+  s0 <- top_mu_tbd_bear$mean_tbd
+  H <- bind_cols(s, s0) %>%
+    mutate(H = ifelse(s >= s0, 1, 0)) # or should it be <=  or should it be a two-tailed test?
+  colnames(H) <- c("s", "s0", "H")
+  p <- (1 + sum(H$H))/(nrow(top_mu_tbd_bear + 1))
   
-    
+  
   #'  Plot results
   hist(top_mu_tbd_bear$mean_tbd); abline(v = c(mean(top_mu_tbd_bear$mean_tbd), og_mu_bear_tbd$mean.tbd), col = c("red", "blue"), lty = c(2, 1), lwd = c(2, 2))
-  
+ 
   
