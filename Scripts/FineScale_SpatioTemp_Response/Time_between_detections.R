@@ -30,7 +30,7 @@
   load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
   
   #'  Load corrected species ID and update larger datasets
-  newSppID <- read.csv("./Data/IDFG camera data/questionable_images_doublecheck.csv") %>%
+  newSppID <- read.csv("./Data/IDFG camera data/questionable_images_doublecheck_SBBupdated.csv") %>%
     mutate(posix_date_time = as.POSIXct(posix_date_time, format="%m/%d/%Y %H:%M", tz="UTC"), 
            Year = as.numeric(format(posix_date_time, "%Y"))) %>%
     distinct() %>%
@@ -301,78 +301,79 @@
   double_dets <- lapply(predator_pairs, id_duplicate_times)
   # check out: GMU10A_P_86 EOE2020_IDFG2489_20200717_231025_MD_1.JPG, EOE2020_IDFG2489_20200729_005552_MD_2
   # check out: GMU6_P_38 EOE2020_IDFG2272_20200803_210616_MD_1.JPG
-  #'  List all uniqueIDs of observations that need to be removed in a giant vector
-  rm_20s <- c()#"GMU10A_P_104_2020-09-03 14:52:14_bobcat_first", "GMU10A_P_104_2020-09-03 14:52:15_coyote_last", "GMU10A_P_15_2020-08-07 00:27:16_mountain_lion_last", 
-              #"GMU10A_P_23_2020-07-22 01:35:58_bobcat_last", "GMU10A_P_23_2020-07-22 01:36:01_coyote_last", "GMU10A_P_40_2020-08-03 00:16:27_coyote_first", "GMU10A_P_40_2020-08-03 00:16:27_wolf_last", 
-              #"GMU10A_P_86_2020-07-27 01:47:41_wolf_last",  #"GMU10A_P_5_2020-09-15 07:27:58_bobcat_last", 
-              #"GMU10A_P_86_2020-07-27 01:47:42_coyote_last", "GMU10A_P_86_2020-08-11 02:31:28_bobcat_last", "GMU10A_P_86_2020-08-11 02:31:44_coyote_last", 
-              #"GMU10A_P_86_2020-08-11 02:40:03_bobcat_last", "GMU10A_P_86_2020-08-11 02:40:03_coyote_last", "GMU6_P_17_2020-07-01 22:36:24_coyote_last", "GMU6_P_17_2020-07-01 22:36:25_mountain_lion_last", 
-              #"GMU6_P_18_2020-08-15 22:20:59_bobcat_last", "GMU6_P_18_2020-08-15 22:21:07_coyote_last", 
-              #"GMU6_P_37_2020-07-28 00:11:29_coyote_last", "GMU6_P_37_2020-07-28 00:11:30_wolf_last", "GMU6_P_38_2020-08-28 21:03:42_wolf_last", "GMU6_P_38_2020-08-28 21:03:51_coyote_last", 
-              #"GMU6_P_56_2020-08-23 23:24:19_coyote_last", "GMU6_P_56_2020-08-23 23:24:15_bobcat_last",   
-              #"GMU6_P_56_2020-08-28 00:58:18_bobcat_last", "GMU6_P_56_2020-08-28 00:58:21_coyote_last", #"GMU6_P_58_2020-07-16 02:08:36_coyote_last", "GMU6_P_58_2020-07-16 02:08:47_wolf_last", 
-              #"GMU6_P_66_2020-07-31 22:16:15_bobcat_last", "GMU6_P_66_2020-07-31 22:16:18_coyote_last", # GMU6_P_66_2020-08-01 23:53:30_coyote_last & GMU6_P_66_2020-08-01 23:53:31_bobcat_first should be removed IF the unk deer classification in the middle of them is real
-              #"GMU6_P_94_2020-07-10 05:24:20_bobcat_last", "GMU6_P_94_2020-07-10 05:24:20_coyote_last", "GMU6_P_94_2020-09-09 01:52:26_mountain_lion_last", 
-              #"GMU6_P_94_2020-09-09 01:53:41_bobcat_last", "GMU6_U_130_2020-08-21 23:57:41_wolf_last", "GMU6_U_130_2020-08-21 23:58:48_coyote_last", #
-              #"GMU6_U_90_2020-09-04 13:27:34_mountain_lion_last", "GMU6_U_90_2020-09-04 13:27:50_bear_black_last" 
-              #"GMU10A_U_169_2020-08-07 22:40:17_wolf_last", "GMU10A_U_169_2020-08-07 22:40:19_coyote_last") 
-  rm_21s <- c()#"GMU6_P_9_2021-09-02 21:57:37_bear_black_last", "GMU6_P_9_2021-09-02 21:57:38_wolf_last")
   
-  #'  List all uniqueIDs of observations that need to switch the Det_type from
-  #'  "first" to "last". These are truly the first image from each detection BUT
-  #'  the first predator is still present when the second predator is detected so
-  #'  need to artificially force these images to be the "last" image before the 
-  #'  second predator shows up
-  change_to_last_20s <- c("GMU10A_P_15_2020-08-07 00:27:15_bobcat_first", "GMU10A_P_23_2020-07-22 01:35:58_coyote_first",
-                          "GMU10A_P_5_2020-09-15 07:27:50_coyote_first", "GMU10A_P_86_2020-07-27 01:47:12_coyote_first", 
-                          "GMU10A_P_86_2020-07-29 00:55:50_coyote_first", "GMU10A_P_86_2020-08-11 02:31:26_coyote_first", 
-                          "GMU10A_P_86_2020-08-11 02:39:57_coyote_first", "GMU10A_U_169_2020-08-07 22:36:03_coyote_first", 
-                          "GMU6_P_17_2020-07-01 22:35:41_mountain_lion_first", "GMU6_P_37_2020-07-28 00:11:27_wolf_first", 
-                          "GMU6_P_38_2020-08-28 21:03:00_coyote_first", "GMU6_P_56_2020-08-28 00:58:17_coyote_first", 
-                          "GMU6_P_58_2020-07-16 02:08:28_wolf_first", "GMU6_P_66_2020-07-31 22:16:13_coyote_first", 
-                          "GMU6_U_130_2020-08-21 23:54:00_coyote_first", "GMU6_U_90_2020-09-04 13:27:28_bear_black_first")
-  change_to_last_21s <- c("GMU6_P_9_2021-09-02 21:57:09_wolf_first")
-  
-  #'  Function to remove specific observations that screw up the last-first detection order
-  remove_obs <- function(pred_pairs, rm_obs, new_last) {
-    #'  Grab all rows that meet criteria based on uniqueID
-    obs_to_remove <- pred_pairs[pred_pairs$uniqueID %in% rm_obs,]
-    #'  Remove these rows from the larger df
-    reduced_predator_pairs <- anti_join(pred_pairs, obs_to_remove)
-    #'  Grab all rows that need Det_type changed and change them
-    change_det_type <- reduced_predator_pairs[reduced_predator_pairs$uniqueID %in% new_last,]
-    last_det_type <- change_det_type %>% mutate(Det_type = "last")
-    #'  Remove observations with the original Det_type and replace with new
-    reduced_predator_pairs <- anti_join(reduced_predator_pairs, change_det_type) %>%
-      bind_rows(last_det_type) %>%
-      #'  Arrange everything back in order
-      arrange(NewLocationID, posix_date_time, File, desc(Det_type))
-    return(reduced_predator_pairs)
-  }
-  predator_pairs_20s <- remove_obs(predator_pairs[[1]], rm_obs = rm_20s, new_last = change_to_last_20s)
-  predator_pairs_21s <- remove_obs(predator_pairs[[3]], rm_obs = rm_21s, new_last = change_to_last_21s)
-  #'  Being lazy and not doing this for wtr20 data right now
-  
-  #'  Re-list cleaned predator-pair data sets
-  predator_pairs_thinned <- list(predator_pairs_20s, predator_pairs[[2]], predator_pairs_21s)
-  
-  
-  #'  --------------------------------
-  #####  Suspicious series of images  ####
-  #'  --------------------------------
-  #'  Pull out series of images to review based on the capture identifier
-  #'  In these cases, 2 species were detected within ~1 min of each other, often
-  #'  with spp2 showing up between images of spp1, so need to make sure these 
-  #'  are not topological errors or miss-classifications
-  caps_20s <- c(539, 1930, 2353, 4049, 5108, 8653, 8684, 8703, 8753, 18180, 18499, 
-                22218, 22494, 22533, 24840, 25000, 26015, 34178, 34234, 35783, 40143, 
-                11119, 13811)
-  caps_21s <- c(44018)
-  obs_to_check_20s <- predator_pairs[[1]][predator_pairs[[1]]$caps_new %in% caps_20s,]
-  obs_to_check_21s <- predator_pairs[[3]][predator_pairs[[3]]$caps_new %in% caps_21s,]
-  obs_to_check <- rbind(obs_to_check_20s, obs_to_check_21s) %>%
-    dplyr::select(-c(Category, Det_type, caps_new, cam, second_pred, first_pred, pred_pair, same_time, uniqueID))
-  # write.csv(obs_to_check, "./Outputs/Tables/Images_to_double_check.csv")
+  #' #'  List all uniqueIDs of observations that need to be removed in a giant vector
+  #' rm_20s <- c()#"GMU10A_P_104_2020-09-03 14:52:14_bobcat_first", "GMU10A_P_104_2020-09-03 14:52:15_coyote_last", "GMU10A_P_15_2020-08-07 00:27:16_mountain_lion_last", 
+  #'             #"GMU10A_P_23_2020-07-22 01:35:58_bobcat_last", "GMU10A_P_23_2020-07-22 01:36:01_coyote_last", "GMU10A_P_40_2020-08-03 00:16:27_coyote_first", "GMU10A_P_40_2020-08-03 00:16:27_wolf_last", 
+  #'             #"GMU10A_P_86_2020-07-27 01:47:41_wolf_last",  #"GMU10A_P_5_2020-09-15 07:27:58_bobcat_last", 
+  #'             #"GMU10A_P_86_2020-07-27 01:47:42_coyote_last", "GMU10A_P_86_2020-08-11 02:31:28_bobcat_last", "GMU10A_P_86_2020-08-11 02:31:44_coyote_last", 
+  #'             #"GMU10A_P_86_2020-08-11 02:40:03_bobcat_last", "GMU10A_P_86_2020-08-11 02:40:03_coyote_last", "GMU6_P_17_2020-07-01 22:36:24_coyote_last", "GMU6_P_17_2020-07-01 22:36:25_mountain_lion_last", 
+  #'             #"GMU6_P_18_2020-08-15 22:20:59_bobcat_last", "GMU6_P_18_2020-08-15 22:21:07_coyote_last", 
+  #'             #"GMU6_P_37_2020-07-28 00:11:29_coyote_last", "GMU6_P_37_2020-07-28 00:11:30_wolf_last", "GMU6_P_38_2020-08-28 21:03:42_wolf_last", "GMU6_P_38_2020-08-28 21:03:51_coyote_last", 
+  #'             #"GMU6_P_56_2020-08-23 23:24:19_coyote_last", "GMU6_P_56_2020-08-23 23:24:15_bobcat_last",   
+  #'             #"GMU6_P_56_2020-08-28 00:58:18_bobcat_last", "GMU6_P_56_2020-08-28 00:58:21_coyote_last", #"GMU6_P_58_2020-07-16 02:08:36_coyote_last", "GMU6_P_58_2020-07-16 02:08:47_wolf_last", 
+  #'             #"GMU6_P_66_2020-07-31 22:16:15_bobcat_last", "GMU6_P_66_2020-07-31 22:16:18_coyote_last", # GMU6_P_66_2020-08-01 23:53:30_coyote_last & GMU6_P_66_2020-08-01 23:53:31_bobcat_first should be removed IF the unk deer classification in the middle of them is real
+  #'             #"GMU6_P_94_2020-07-10 05:24:20_bobcat_last", "GMU6_P_94_2020-07-10 05:24:20_coyote_last", "GMU6_P_94_2020-09-09 01:52:26_mountain_lion_last", 
+  #'             #"GMU6_P_94_2020-09-09 01:53:41_bobcat_last", "GMU6_U_130_2020-08-21 23:57:41_wolf_last", "GMU6_U_130_2020-08-21 23:58:48_coyote_last", #
+  #'             #"GMU6_U_90_2020-09-04 13:27:34_mountain_lion_last", "GMU6_U_90_2020-09-04 13:27:50_bear_black_last" 
+  #'             #"GMU10A_U_169_2020-08-07 22:40:17_wolf_last", "GMU10A_U_169_2020-08-07 22:40:19_coyote_last") 
+  #' rm_21s <- c()#"GMU6_P_9_2021-09-02 21:57:37_bear_black_last", "GMU6_P_9_2021-09-02 21:57:38_wolf_last")
+  #' 
+  #' #'  List all uniqueIDs of observations that need to switch the Det_type from
+  #' #'  "first" to "last". These are truly the first image from each detection BUT
+  #' #'  the first predator is still present when the second predator is detected so
+  #' #'  need to artificially force these images to be the "last" image before the 
+  #' #'  second predator shows up
+  #' change_to_last_20s <- c("GMU10A_P_15_2020-08-07 00:27:15_bobcat_first", "GMU10A_P_23_2020-07-22 01:35:58_coyote_first",
+  #'                         "GMU10A_P_5_2020-09-15 07:27:50_coyote_first", "GMU10A_P_86_2020-07-27 01:47:12_coyote_first", 
+  #'                         "GMU10A_P_86_2020-07-29 00:55:50_coyote_first", "GMU10A_P_86_2020-08-11 02:31:26_coyote_first", 
+  #'                         "GMU10A_P_86_2020-08-11 02:39:57_coyote_first", "GMU10A_U_169_2020-08-07 22:36:03_coyote_first", 
+  #'                         "GMU6_P_17_2020-07-01 22:35:41_mountain_lion_first", "GMU6_P_37_2020-07-28 00:11:27_wolf_first", 
+  #'                         "GMU6_P_38_2020-08-28 21:03:00_coyote_first", "GMU6_P_56_2020-08-28 00:58:17_coyote_first", 
+  #'                         "GMU6_P_58_2020-07-16 02:08:28_wolf_first", "GMU6_P_66_2020-07-31 22:16:13_coyote_first", 
+  #'                         "GMU6_U_130_2020-08-21 23:54:00_coyote_first", "GMU6_U_90_2020-09-04 13:27:28_bear_black_first")
+  #' change_to_last_21s <- c("GMU6_P_9_2021-09-02 21:57:09_wolf_first")
+  #' 
+  #' #'  Function to remove specific observations that screw up the last-first detection order
+  #' remove_obs <- function(pred_pairs, rm_obs, new_last) {
+  #'   #'  Grab all rows that meet criteria based on uniqueID
+  #'   obs_to_remove <- pred_pairs[pred_pairs$uniqueID %in% rm_obs,]
+  #'   #'  Remove these rows from the larger df
+  #'   reduced_predator_pairs <- anti_join(pred_pairs, obs_to_remove)
+  #'   #'  Grab all rows that need Det_type changed and change them
+  #'   change_det_type <- reduced_predator_pairs[reduced_predator_pairs$uniqueID %in% new_last,]
+  #'   last_det_type <- change_det_type %>% mutate(Det_type = "last")
+  #'   #'  Remove observations with the original Det_type and replace with new
+  #'   reduced_predator_pairs <- anti_join(reduced_predator_pairs, change_det_type) %>%
+  #'     bind_rows(last_det_type) %>%
+  #'     #'  Arrange everything back in order
+  #'     arrange(NewLocationID, posix_date_time, File, desc(Det_type))
+  #'   return(reduced_predator_pairs)
+  #' }
+  #' predator_pairs_20s <- remove_obs(predator_pairs[[1]], rm_obs = rm_20s, new_last = change_to_last_20s)
+  #' predator_pairs_21s <- remove_obs(predator_pairs[[3]], rm_obs = rm_21s, new_last = change_to_last_21s)
+  #' #'  Being lazy and not doing this for wtr20 data right now
+  #' 
+  #' #'  Re-list cleaned predator-pair data sets
+  #' predator_pairs_thinned <- list(predator_pairs_20s, predator_pairs[[2]], predator_pairs_21s)
+  #' 
+  #' 
+  #' #'  --------------------------------
+  #' #####  Suspicious series of images  ####
+  #' #'  --------------------------------
+  #' #'  Pull out series of images to review based on the capture identifier
+  #' #'  In these cases, 2 species were detected within ~1 min of each other, often
+  #' #'  with spp2 showing up between images of spp1, so need to make sure these 
+  #' #'  are not topological errors or miss-classifications
+  #' caps_20s <- c(539, 1930, 2353, 4049, 5108, 8653, 8684, 8703, 8753, 18180, 18499, 
+  #'               22218, 22494, 22533, 24840, 25000, 26015, 34178, 34234, 35783, 40143, 
+  #'               11119, 13811)
+  #' caps_21s <- c(44018)
+  #' obs_to_check_20s <- predator_pairs[[1]][predator_pairs[[1]]$caps_new %in% caps_20s,]
+  #' obs_to_check_21s <- predator_pairs[[3]][predator_pairs[[3]]$caps_new %in% caps_21s,]
+  #' obs_to_check <- rbind(obs_to_check_20s, obs_to_check_21s) %>%
+  #'   dplyr::select(-c(Category, Det_type, caps_new, cam, second_pred, first_pred, pred_pair, same_time, uniqueID))
+  #' # write.csv(obs_to_check, "./Outputs/Tables/Images_to_double_check.csv")
   
   
   #'  ------------------------------------------
@@ -384,7 +385,7 @@
       arrange(NewLocationID, posix_date_time, Species)
     return(b2b_pred)
   }
-  b2b_predators <- lapply(predator_pairs_thinned, back_to_back_predators)
+  b2b_predators <- lapply(predator_pairs, back_to_back_predators) #predator_pairs_thinned
   
   #'  Repeat 2 coyote & 2 bobcat observations so sequence of detections has 
   #'  correct number of last/first observations
