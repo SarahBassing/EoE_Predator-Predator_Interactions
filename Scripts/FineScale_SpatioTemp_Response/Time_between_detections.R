@@ -447,30 +447,34 @@
   tst <- b2b_predators[[1]]
   tst2 <- b2b_predators[[3]]
   
-  #'  Flag back-to-back predator pairings where the gap between detections may
-  #'  fall within problematic time period (when camera was inoperable)
-  flag_artificial_b2b_pairs <- function(pred_pairs, seqprobs, start_date, end_date) {
+  #'  Review cameras with problem time periods and the dates of back-to-back predator 
+  #'  detections to make sure elapsed time between detections does not encompass
+  #'  problematic time periods (don't want inoperable cameras to bias TBD data)
+  problem_dates_and_b2b_dets <- function(pred_pairs, seqprobs, start_date, end_date) {
+    #'  Format and thin problem camera data
     prob_date_range <- seqprobs %>%
       mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
-      #'  Filter to start and end of problem period
+      #'  Filter to just start and end of problem period
       group_by(NewLocationID) %>%
       filter(row_number()==1 | row_number()==n()) %>%
       ungroup()
-    #'  Filter to just cameras where b2b predator observations occurred
+    
+    #'  Identify cameras that were temporarily inoperable and also had b2b predator detections
     reduced_prob_dates <- prob_date_range[prob_date_range$NewLocationID %in% pred_pairs$NewLocationID,]
+    #'  Identify cameras that had b2b predator detections but were also inoperable for some period of time
     b2b_prob_cams <- pred_pairs[pred_pairs$NewLocationID %in% prob_date_range$NewLocationID,]
-    #'  Print how many cameras with problem date ranges are also in the b2b predator data set?
-    print(nrow(reduced_prob_dates))
-    print(nrow(b2b_prob_cams))
     
-    #'  Do dates in reduced_prob_dates fall between dates in b2b_prob_cams for each predator pairing at a given site???
-    
-    return(reduced_prob_dates)
+    #'  Print problem date ranges and dates of b2b predator detections at the same 
+    #'  camera site to see if they overlap
+    print(reduced_prob_dates[,1:9])
+    print(b2b_prob_cams[,1:10])
   }
-  b2b_predators_20s <- flag_artificial_b2b_pairs(b2b_predators[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15")
-  b2b_predators_21s <- flag_artificial_b2b_pairs(b2b_predators[[3]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
+  b2b_predators_20s <- problem_dates_and_b2b_dets(b2b_predators[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15")
+  b2b_predators_21s <- problem_dates_and_b2b_dets(b2b_predators[[3]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
+  #'  IF PROBLEM DATES & B2B DETECTIONS OVERLAP, NEED TO EXCLUDE THOSE B2B OBSERVATIONS
+  #'  FROM TBD ANALYSIS B/C COULD BIAS TBD DATA
   
   
   #'  ---------------------------------------------
