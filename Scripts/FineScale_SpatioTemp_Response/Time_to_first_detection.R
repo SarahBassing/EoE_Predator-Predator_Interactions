@@ -231,14 +231,14 @@
   }
   firstlast_img_random_20s <- add_random_times(start_date = "2020-07-01", end_date = "2020-09-15", nobs = 1000, firstlast = firstlast_img[[1]])
   firstlast_img_random_21s <- add_random_times(start_date = "2021-07-01", end_date = "2021-09-15", nobs = 1000, firstlast = firstlast_img[[3]])
-  
+  firstlast_img_random <- list(firstlast_img_random_20s, firstlast_img_random_21s)
     
     
   #'  --------------------------------------
   ####  Filter to specific pairs of images  ####
   #'  --------------------------------------
-  #'  1. Thin image set to only single "other" image within sequential group of
-  #'     other images.
+  #'  1. Thin image set to only single "other" image or single "random" time 
+  #'     within sequential group of other images/random times.
   #'  2. Flag pairs of different predator species detected back-to-back within
   #'     the same set of sequential detection events.
   #'  3. Identify instances where order of last pred1 - first pred2 is incorrect
@@ -282,8 +282,9 @@
       arrange(NewLocationID, posix_date_time)
     return(dets)
   }
-  full_predator_sequences <- lapply(firstlast_random, thin_dat_by_category) 
+  full_predator_sequences <- lapply(firstlast_img_random, thin_dat_by_category) 
   
+  tst <- full_predator_sequences[[1]]
   
   
   
