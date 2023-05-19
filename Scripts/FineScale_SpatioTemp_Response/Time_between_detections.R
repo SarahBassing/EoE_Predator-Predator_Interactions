@@ -301,8 +301,13 @@
   double_dets <- lapply(predator_pairs, id_duplicate_times)
   
   #'  List all uniqueIDs of observations that need to be removed in a giant vector
-  rm_20s <- c("GMU6_P_14_2020-08-28 08:56:54_coyote_first", "GMU6_P_14_2020-08-28 08:56:55_bear_black_first",
-              "GMU6_P_14_2020-08-28 08:58:35_coyote_last", "GMU6_P_14_2020-08-28 09:00:02_bear_black_last")
+  #'  CURRENT LIST is just to make my life easier for now - pretty sure these are incorrect
+  #'  species classifications that need to be corrected. Once corrected I can revert to rm_20s <- c(NA)
+  rm_20s <- c(#"GMU10A_P_59_2020-09-14 06:53:24_coyote_last", # this one actually needs to be removed - duplicated single detection of coyote but next row is a new camera so need to remove this "last" image
+              "GMU6_P_14_2020-08-28 08:56:54_coyote_first", "GMU6_P_14_2020-08-28 08:56:55_bear_black_first",
+              "GMU6_P_14_2020-08-28 08:58:35_coyote_last", "GMU6_P_14_2020-08-28 09:00:02_bear_black_last",
+              "GMU10A_P_89_2020-08-22 00:32:19_coyote_last", "GMU10A_P_89_2020-08-22 00:32:20_bobcat_last",
+              "GMU10A_P_89_2020-08-22 00:32:20_bobcat_first", "GMU10A_P_89_2020-08-22 10:04:19_coyote_first")
               #"GMU10A_P_104_2020-09-03 14:52:14_bobcat_first", "GMU10A_P_104_2020-09-03 14:52:15_coyote_last", "GMU10A_P_15_2020-08-07 00:27:16_mountain_lion_last",
               #"GMU10A_P_23_2020-07-22 01:35:58_bobcat_last", "GMU10A_P_23_2020-07-22 01:36:01_coyote_last", "GMU10A_P_40_2020-08-03 00:16:27_coyote_first", "GMU10A_P_40_2020-08-03 00:16:27_wolf_last",
               #"GMU10A_P_86_2020-07-27 01:47:41_wolf_last",  #"GMU10A_P_5_2020-09-15 07:27:58_bobcat_last",
@@ -348,7 +353,7 @@
     reduced_predator_pairs <- anti_join(reduced_predator_pairs, change_det_type) %>%
       bind_rows(last_det_type) %>%
       #'  Arrange everything back in order
-      arrange(NewLocationID, posix_date_time, File, desc(Det_type))
+      arrange(NewLocationID, posix_date_time, File) #, desc(Det_type)
     return(reduced_predator_pairs)
   }
   predator_pairs_20s <- remove_obs(predator_pairs[[1]], rm_obs = rm_20s, new_last = change_to_last_20s)
@@ -386,7 +391,7 @@
       arrange(NewLocationID, posix_date_time, Species)
     return(b2b_pred)
   }
-  b2b_predators <- lapply(predator_pairs_thinned, back_to_back_predators) #predator_pairs_thinned
+  b2b_predators <- lapply(predator_pairs_thinned, back_to_back_predators) #predator_pairs
   
   #' #'  Repeat 2 coyote & 2 bobcat observations so sequence of detections has 
   #' #'  correct number of last/first observations
@@ -420,9 +425,52 @@
   #'   #'  Arrange everything back in order
   #'   arrange(NewLocationID, posix_date_time, File) #desc(Det_type)
   
+  #'  Flag sequences that are out of order (e.g., last - last - first - first instead of last - first - last - first)
+  #'  Usually occurs when next row is switching to a new camera location (ignore, 
+  #'  not an issue for following code) OR there's only one image of a species & it's 
+  #'    1) duplicated so that detection has a "first" and "last" image (ignore, 
+  #'    not an issue for following code);
+  #'    2) it's sandwiched between images of another species, likely due to species 
+  #'    miss-classification, which MUST be corrected or can bias future TBD analyses
+  flag_out_of_order_sequences <- function(dets) {
+    whoops1 <- filter(dets, Det_type == lag(Det_type))
+    whoops2 <- filter(dets, Det_type == lead(Det_type))
+    whoops <- rbind(whoops1, whoops2) %>%
+      distinct() %>%
+      arrange(NewLocationID, posix_date_time, File)
+    return(whoops)
+  }
+  double_check_order_20s <- flag_out_of_order_sequences(b2b_predators[[1]])
+  double_check_order_21s <- flag_out_of_order_sequences(b2b_predators[[3]])
+  
   #'  Double check everything looks alright
   tst <- b2b_predators[[1]]
   tst2 <- b2b_predators[[3]]
+  
+  #'  Flag back-to-back predator pairings where the gap between detections may
+  #'  fall within problematic time period (when camera was inoperable)
+  flag_artificial_b2b_pairs <- function(pred_pairs, seqprobs, start_date, end_date) {
+    prob_date_range <- seqprobs %>%
+      mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
+      #'  Filter to images to desired date range
+      filter(Date >= start_date & Date <= end_date) %>%
+      #'  Filter to start and end of problem period
+      group_by(NewLocationID) %>%
+      filter(row_number()==1 | row_number()==n()) %>%
+      ungroup()
+    #'  Filter to just cameras where b2b predator observations occurred
+    reduced_prob_dates <- prob_date_range[prob_date_range$NewLocationID %in% pred_pairs$NewLocationID,]
+    b2b_prob_cams <- pred_pairs[pred_pairs$NewLocationID %in% prob_date_range$NewLocationID,]
+    #'  Print how many cameras with problem date ranges are also in the b2b predator data set?
+    print(nrow(reduced_prob_dates))
+    print(nrow(b2b_prob_cams))
+    
+    #'  Do dates in reduced_prob_dates fall between dates in b2b_prob_cams for each predator pairing at a given site???
+    
+    return(reduced_prob_dates)
+  }
+  b2b_predators_20s <- flag_artificial_b2b_pairs(b2b_predators[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15")
+  b2b_predators_21s <- flag_artificial_b2b_pairs(b2b_predators[[3]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
   
   
   #'  ---------------------------------------------
@@ -485,8 +533,8 @@
               sd_tbd = sd(HoursSinceLastDet)) %>%
     ungroup()
   
-  hist(tbd_pred_pairs_all$HoursSinceLastDet, na.rm = TRUE, breaks = 50, main = "Elapsed time between sequential detections of predators", xlab = "Hours between detection events")
-  hist(tbd_pred_pairs_all$DaysSinceLastDet, na.rm = TRUE, breaks = 50, main = "Elapsed time between sequential detections of predators", xlab = "Days between detection events")
+  hist(tbd_pred_pairs_all$HoursSinceLastDet, breaks = 50, main = "Elapsed time between sequential detections of predators", xlab = "Hours between detection events")
+  hist(tbd_pred_pairs_all$DaysSinceLastDet, breaks = 50, main = "Elapsed time between sequential detections of predators", xlab = "Days between detection events")
   
   #'  Split by species-pairs
   wolfbear <- filter(tbd_pred_pairs_all, Predator_pair == "wolf-bear_black" | Predator_pair == "bear_black-wolf")
