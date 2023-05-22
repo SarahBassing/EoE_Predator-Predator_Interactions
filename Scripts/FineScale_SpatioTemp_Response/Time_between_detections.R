@@ -42,7 +42,7 @@
   change_sppID_20s <- as.vector(newSppID_20s$Location_Relative_Project)
   change_sppID_21s <- as.vector(newSppID_21s$Location_Relative_Project)
   
-  #'  Function to correc species misclassifications
+  #'  Function to correct species misclassifications
   remove_obs <- function(dets, prob_images, correctSppID) {
     #'  Grab all rows that have a misID's species
     obs_to_remove <- dets[dets$Location_Relative_Project %in% prob_images,]
@@ -122,13 +122,30 @@
   #'  -----------------------------------------
   unique_detections <- function(dets, elapsed_time) {
     #'  Generate unique detection events
-    det_events <- dets %>%
-      arrange(NewLocationID, posix_date_time) %>%
-      #'  Flag images of same species at same camera as being a different detection event
-      #'  when time since last image of that species is greater than defined time interval
-      group_by(Species, NewLocationID) %>%
-      mutate(det_events = cumsum(c(1, diff(posix_date_time) > elapsed_time))) %>% # units in seconds!
-      ungroup()
+    dat <- arrange(dets, NewLocationID, posix_date_time)
+    det_events <- c()
+    det_events[1] <- 1
+    for (i in 2:nrow(dat)){
+      if (dat$NewLocationID[i-1] != dat$NewLocationID[i]) det_events[i] = i
+      else (if (dat$Species[i-1] != dat$Species[i]) det_events[i] = i
+            else (if (difftime(dat$posix_date_time[i], dat$posix_date_time[i-1], units = c("secs")) > elapsed_time) det_events[i] = i
+                  else det_events[i] = det_events[i-1]))
+    }
+    
+    det_events <- as.factor(det_events)
+    
+    #'  Add new column to larger data set
+    det_events <- cbind(as.data.frame(dat), det_events)
+    
+    #' #'  Generate unique detection events
+    #' det_events <- dets %>%
+    #'   arrange(NewLocationID, posix_date_time) %>%
+    #'   #'  Flag images of same species at same camera as being a different detection event
+    #'   #'  when time since last image of that species is greater than defined time interval
+    #'   group_by(Species, NewLocationID) %>%
+    #'   mutate(det_events = cumsum(c(1, diff(posix_date_time) > elapsed_time))) %>% # units in seconds!
+    #'   ungroup()
+    
     return(det_events)
   }
   eoe20s_5min_dets <- unique_detections(eoe20s_dets, elapsed_time = 300) # (5*60 = 300 seconds)
@@ -306,7 +323,10 @@
   #'  species classifications that need to be corrected. Once corrected I can revert to rm_20s <- c(NA)
   rm_20s <- c(#"GMU10A_P_59_2020-09-14 06:53:24_coyote_last", # this one actually needs to be removed - duplicated single detection of coyote but next row is a new camera so need to remove this "last" image
               "GMU6_P_14_2020-08-28 08:56:54_coyote_first", "GMU6_P_14_2020-08-28 08:56:55_bear_black_first",
-              "GMU6_P_14_2020-08-28 08:58:35_coyote_last", "GMU6_P_14_2020-08-28 09:00:02_bear_black_last",
+              "GMU6_P_14_2020-08-28 08:56:55_bear_black_last", "GMU6_P_14_2020-08-28 08:56:59_bear_black_first", 
+              "GMU6_P_14_2020-08-28 08:56:59_bear_black_last", "GMU6_P_14_2020-08-28 08:57:02_bear_black_first",
+              "GMU6_P_14_2020-08-28 08:58:27_bear_black_last", "GMU6_P_14_2020-08-28 08:58:35_coyote_last", 
+              "GMU6_P_14_2020-08-28 08:59:14_bear_black_first", "GMU6_P_14_2020-08-28 09:00:02_bear_black_last",
               "GMU10A_P_89_2020-08-22 00:32:19_coyote_last", "GMU10A_P_89_2020-08-22 00:32:20_bobcat_last",
               "GMU10A_P_89_2020-08-22 00:32:20_bobcat_first", "GMU10A_P_89_2020-08-22 10:04:19_coyote_first")
               #"GMU10A_P_104_2020-09-03 14:52:14_bobcat_first", "GMU10A_P_104_2020-09-03 14:52:15_coyote_last", "GMU10A_P_15_2020-08-07 00:27:16_mountain_lion_last",
