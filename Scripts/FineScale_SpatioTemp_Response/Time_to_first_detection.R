@@ -23,6 +23,11 @@
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
   
+  #'  Problem cameras
+  load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
+  load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
+  load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
+  
   #'  Sequential problem images
   load("./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe20w_sequential_probimgs.RData")
@@ -44,7 +49,7 @@
   change_sppID_20s <- as.vector(newSppID_20s$Location_Relative_Project)
   change_sppID_21s <- as.vector(newSppID_21s$Location_Relative_Project)
   
-  #'  Function to correc species misclassifications
+  #'  Function to correct species misclassifications
   remove_obs <- function(dets, prob_images, correctSppID) {
     #'  Grab all rows that have a misID's species
     obs_to_remove <- dets[dets$Location_Relative_Project %in% prob_images,]
@@ -125,13 +130,30 @@
   #'  -----------------------------------------
   unique_detections <- function(dets, elapsed_time) {
     #'  Generate unique detection events
-    det_events <- dets %>%
-      arrange(NewLocationID, posix_date_time) %>%
-      #'  Flag images of same species at same camera as being a different detection event
-      #'  when time since last image of that species is greater than defined time interval
-      group_by(Species, NewLocationID) %>%
-      mutate(det_events = cumsum(c(1, diff(posix_date_time) > elapsed_time))) %>% # units in seconds!
-      ungroup()
+    dat <- arrange(dets, NewLocationID, posix_date_time)
+    det_events <- c()
+    det_events[1] <- 1
+    for (i in 2:nrow(dat)){
+      if (dat$NewLocationID[i-1] != dat$NewLocationID[i]) det_events[i] = i
+      else (if (dat$Species[i-1] != dat$Species[i]) det_events[i] = i
+            else (if (difftime(dat$posix_date_time[i], dat$posix_date_time[i-1], units = c("secs")) > elapsed_time) det_events[i] = i
+                  else det_events[i] = det_events[i-1]))
+    }
+    
+    det_events <- as.factor(det_events)
+    
+    #'  Add new column to larger data set
+    det_events <- cbind(as.data.frame(dat), det_events)
+    
+    #' #'  Generate unique detection events
+    #' det_events <- dets %>%
+    #'   arrange(NewLocationID, posix_date_time) %>%
+    #'   #'  Flag images of same species at same camera as being a different detection event
+    #'   #'  when time since last image of that species is greater than defined time interval
+    #'   group_by(Species, NewLocationID) %>%
+    #'   mutate(det_events = cumsum(c(1, diff(posix_date_time) > elapsed_time))) %>% # units in seconds!
+    #'   ungroup()
+    #'   
     return(det_events)
   }
   eoe20s_5min_dets <- unique_detections(eoe20s_dets, elapsed_time = 300) # (5*60 = 300 seconds)
@@ -211,7 +233,7 @@
   # firstlast_random_20s <- map_df(random_times_list, ~as.data.frame(.x), .id="id")
   
   #'  Function to resample random times for each NewLocationID and add to larger first/last dataset
-  add_random_times <- function(firstlast, start_date, end_date, nobs) {
+  add_random_times <- function(firstlast, start_date, end_date, deploy_data, nobs) {
     #'  Snag NewLocationID for each camera site
     NewLocationID <- unique(firstlast$NewLocationID)
     
@@ -232,15 +254,23 @@
     firstlast_random <- full_join(firstlast, random_df, by = c("NewLocationID", "Date", "posix_date_time", "Species", "Category")) %>%
       arrange(NewLocationID, posix_date_time)
     
-    return(firstlast_random)
+    #'  Remove random start times that occurred before camera was deployed or after
+    #'  camera was retrieved
+    deploy_data <- dplyr::select(deploy_data, c("NewLocationID", "Setup_date", "Retrieval_date"))
+    firstlast_random_truncate <- left_join(firstlast_random, deploy_data, by = "NewLocationID") %>%
+      filter(Date >= Setup_date) %>%
+      filter(Date <= Retrieval_date) %>%
+      dplyr::select(-c("Setup_date", "Retrieval_date"))
+    
+    return(firstlast_random_truncate)
   }
-  firstlast_img_random_20s <- add_random_times(start_date = "2020-07-01", end_date = "2020-09-15", nobs = 1000, firstlast = firstlast_img[[1]])
-  firstlast_img_random_21s <- add_random_times(start_date = "2021-07-01", end_date = "2021-09-15", nobs = 1000, firstlast = firstlast_img[[3]])
+  firstlast_img_random_20s <- add_random_times(start_date = "2020-07-01", end_date = "2020-09-15", nobs = 1000, deploy_data = eoe_probcams_20s, firstlast = firstlast_img[[1]])
+  firstlast_img_random_21s <- add_random_times(start_date = "2021-07-01", end_date = "2021-09-15", nobs = 1000, deploy_data = eoe_probcams_21s, firstlast = firstlast_img[[3]])
   firstlast_img_random <- list(firstlast_img_random_20s, firstlast_img_random_21s)
     
     
   #'  --------------------------------------
-  ####  Filter to specific seets of images  ####
+  ####  Filter to specific sets of images  ####
   #'  --------------------------------------
   #'  1. Thin image set to only single image within sequential group of each
   #'     category. Retain first image from predator and random categories, last
