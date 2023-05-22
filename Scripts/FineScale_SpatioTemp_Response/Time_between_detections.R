@@ -178,8 +178,9 @@
   #'  3. Identify instances where order of last pred1 - first pred2 is incorrect 
   #'     owing to duplicated observations for same image.
   #'  4. Remove these images from larger last/first data set.
-  #'  5. Calculate time-between-detections of different species
-  #'  6. Thin image set to just detections of different predator species
+  #'  5. Double check inoperable date periods don't overlap back-to-back detections.
+  #'  6. Calculate time-between-detections of different species
+  #'  7. Thin image set to just detections of different predator species
   #'  --------------------------------------
   
   #'  Group multiple detection events of same category (but of different species) 
@@ -456,8 +457,12 @@
       mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
-      #'  Filter to just start and end of problem period
       group_by(NewLocationID) %>%
+      #'  Group problem time periods separately if camera is operable for > 1 day 
+      #'  within larger problem date range
+      mutate(New_problem = cumsum(c(1, diff(Date) > 1))) %>%
+      #'  Filter to just start and end of each problem period
+      group_by(NewLocationID, New_problem) %>%
       filter(row_number()==1 | row_number()==n()) %>%
       ungroup()
     
@@ -466,15 +471,55 @@
     #'  Identify cameras that had b2b predator detections but were also inoperable for some period of time
     b2b_prob_cams <- pred_pairs[pred_pairs$NewLocationID %in% prob_date_range$NewLocationID,]
     
-    #'  Print problem date ranges and dates of b2b predator detections at the same 
-    #'  camera site to see if they overlap
-    print(reduced_prob_dates[,1:9])
-    print(b2b_prob_cams[,1:10])
+    #'  Create data frame with start and end of problem dates
+    prob_dates <- reduced_prob_dates %>%
+      group_by(NewLocationID) %>%
+      mutate(Prob_start = posix_date_time,
+             Prob_end = lead(posix_date_time)) %>%
+      ungroup() %>%
+      #'  Retain correct date ranges in few instances where there are multiple 
+      #'  different problem time periods at a camera site
+      group_by(NewLocationID, New_problem) %>%
+      slice(1L) %>%
+      ungroup() %>%
+      dplyr::select(c("NewLocationID", "Prob_start", "Prob_end")) 
+    
+    #'  Create data frame with start and end of b2b data that potentially overlap problem dates
+    b2b <- b2b_prob_cams %>%
+      group_by(NewLocationID) %>%
+      mutate(Spp1_detection = posix_date_time,
+             Spp2_detection = lead(posix_date_time),
+             Previous_predator = lead(Species)) %>%
+      ungroup() %>%
+      filter(!is.na(Spp2_detection)) %>%
+      dplyr::select(c("NewLocationID", "Species", "Category", "Spp1_detection", "Spp2_detection", "Previous_predator"))
+    
+    #'  Flag which observations fall within problematic date range. These snuck in 
+    #'  and should be removed from data set.
+    b2b_prob_overlap <- b2b %>%
+      left_join(prob_dates, by = "NewLocationID") %>%
+      mutate(sneaky_mf = ifelse(Spp1_detection >= Prob_start & Spp1_detection <= Prob_end, 1, NA),
+             sneaky_mf = ifelse(Spp2_detection >= Prob_start & Spp2_detection <= Prob_end, 1, sneaky_mf)) %>%
+      filter(!is.na(sneaky_mf))
+    print(b2b_prob_overlap)
+    
+    #'  Create data frame of just images to remove based on those listed in tbd_prob_overlap
+    problem_cam <- pred_pairs[pred_pairs$NewLocationID %in% b2b_prob_overlap$NewLocationID,]
+    problem_spp1_obs <- problem_cam[problem_cam$posix_date_time %in% b2b_prob_overlap$Spp1_detection,]
+    problem_spp2_obs <- problem_cam[problem_cam$posix_date_time %in% b2b_prob_overlap$Spp2_detection,]
+    problem_obs <- rbind(problem_spp1_obs, problem_spp2_obs) %>% arrange(posix_date_time)
+    #'  Double check correct images are being removed (posix_date_time should match
+    #'  Spp1_detection and Spp2_detection columns from tbd_prob_overlap)
+    print(problem_obs)
+    
+    #'  Remove observations from larger time-to-detection data frame if they fall
+    #'  within a problematic time period at a camera site
+    thinned_b2b_dat <- anti_join(pred_pairs, problem_obs)
+    
+    return(thinned_b2b_dat)
   }
   b2b_predators_20s <- problem_dates_and_b2b_dets(b2b_predators[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15")
   b2b_predators_21s <- problem_dates_and_b2b_dets(b2b_predators[[3]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
-  #'  IF PROBLEM DATES & B2B DETECTIONS OVERLAP, NEED TO EXCLUDE THOSE B2B OBSERVATIONS
-  #'  FROM TBD ANALYSIS B/C COULD BIAS TBD DATA
   
   
   #'  ---------------------------------------------
