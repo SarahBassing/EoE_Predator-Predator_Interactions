@@ -28,6 +28,9 @@
   load("./Data/IDFG camera data/Problem images/eoe20w_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
   
+  #'  Time between detections data
+  load("./Data/Time_btwn_Detections/TBD_all_predator_pairs_2023-05-22.RData")
+  
   #'  Load corrected species ID and update larger datasets
   newSppID <- read.csv("./Data/IDFG camera data/questionable_images_doublecheck_SBBupdated.csv") %>%
     mutate(posix_date_time = as.POSIXct(posix_date_time, format="%m/%d/%Y %H:%M", tz="UTC"), 
@@ -72,6 +75,8 @@
   #'  1) Remove sequential problem images from larger image set
   thin_detections <- function(dets, seqprobs) {
     skinny_dets <- dets[!(dets$File %in% seqprobs$File),]
+    # skinny_dets <- skinny_dets %>%
+    #   filter(NewLocationID != "GMU6_U_29")
     return(skinny_dets)
   }
   eoe20s_allM_skinny <- thin_detections(eoe20s_allM, eoe_seqprob_20s)
@@ -243,7 +248,9 @@
   #'  2. Flag & retain sequences when a random time is followed by a predator img.
   #'  3. Double check problem date ranges don't fall within time from random start
   #'     to first image of a predator detection.
-  #'  4. Calculate time-between-detections of different species
+  #'  4. Reduce to only sites where we have back-to-back predator detections as 
+  #'     well to keep spatial extent of analyses consistent.
+  #'  5. Calculate time-between-detections of different species
   #'  --------------------------------------
 
   #'  1) Group multiple detection events of same category (but of different species)
@@ -377,9 +384,19 @@
       
     return(thinned_t2d_dat)
   }
-  b2b_predators_20s <- problem_dates_and_t2b_dets(random_predators[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15")
-  b2b_predators_21s <- problem_dates_and_t2b_dets(random_predators[[2]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
+  rand_predators_20s <- problem_dates_and_t2b_dets(random_predators[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15")
+  rand_predators_21s <- problem_dates_and_t2b_dets(random_predators[[2]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
 
+  #'  4) Remove camera data from any cameras not included in the Time_between_detections
+  #'  analysis to keep any site-specific heterogeneity (e.g., local density) consistent
+  #'  across analyses
+  tbd_cams_20s <- unique(tbd_pred_pairs_all$NewLocationID[tbd_pred_pairs_all$Year == "Smr20"])
+  tbd_cams_21s <- unique(tbd_pred_pairs_all$NewLocationID[tbd_pred_pairs_all$Year == "Smr21"])
+  rand_predators_20s_skinny <- rand_predators_20s[rand_predators_20s$NewLocationID %in% tbd_cams_20s,]
+  rand_predators_21s_skinny <- rand_predators_21s[rand_predators_21s$NewLocationID %in% tbd_cams_21s,]
+  
+  random_predators_skinny <- list(rand_predators_20s_skinny, rand_predators_21s_skinny)
+  
   
   #'  ----------------------------------------
   ####  Calculate times to detection events   ####
@@ -405,12 +422,75 @@
   #'  to make calculations in (options are: "sec", "min", "hour", "day")
   #'  Note: there should be NO negative values! If there are negative values this
   #'  means the script is calculating times between detections across camera sites
-  t2d_preds <- lapply(random_predators, t2d, unittime = "min")
+  t2d_preds <- lapply(random_predators_skinny, t2d, unittime = "min")
+  
+  #'  Add column for year
+  t2d_preds[[1]]$Year <- "Smr20"
+  t2d_preds[[2]]$Year <- "Smr21"
+  t2d_preds_all <- rbind(t2d_preds[[1]], t2d_preds[[2]])
 
-  save(t2d_preds, file = paste0("./Data/Time_btwn_Detections/T2D_all_predators_", Sys.Date(), ".RData"))  
+  save(t2d_preds_all, file = paste0("./Data/Time_btwn_Detections/T2D_all_predators_", Sys.Date(), ".RData"))  
   
     
+  #'  ----------------------------------------
+  ####  Summary stats and data visualization  ####
+  #'  ----------------------------------------
+  #'  Total average
+  mean(t2d_preds_all$MinutesSinceLastDet, na.rm = TRUE); sd(t2d_preds_all$MinutesSinceLastDet, na.rm = TRUE)
+  mean(t2d_preds_all$HoursSinceLastDet, na.rm = TRUE); sd(t2d_preds_all$HoursSinceLastDet, na.rm = TRUE)
   
+  #'  Summary stats for average time to first detection per predator species
+  avg_t2d <- t2d_preds_all %>%
+    group_by(Species) %>%
+    summarise(total_obs = n(),
+              mean_tbd_hr = round(mean(HoursSinceLastDet), 2),
+              sd = round(sd(HoursSinceLastDet), 2),
+              se = round(sd(HoursSinceLastDet)/sqrt(total_obs), 2)) %>%
+    ungroup() %>%
+    arrange(desc(total_obs))
+  
+  # write.csv(avg_tbd_focal_pairs, "./Outputs/Tables/Summary_stats_TBD.csv")
+  
+  hist(t2d_preds_all$HoursSinceLastDet, breaks = 50, main = "Elapsed time to first detection of predators", xlab = "Hours between detection events")
+  hist(t2d_preds_all$DaysSinceLastDet, breaks = 50, main = "Elapsed time to first detection of predators", xlab = "Days between detection events")
+
+  #'  Visualize data
+  bear_his <- t2d_preds_all[t2d_preds_all$Species == "bear_black",] %>%
+    ggplot(aes(x=HoursSinceLastDet, fill = Species)) +
+    geom_histogram(color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 10) +
+    scale_fill_manual(values="#69b3a2")
+  bob_his <- t2d_preds_all[t2d_preds_all$Species == "bobcat",] %>%
+    ggplot(aes(x=HoursSinceLastDet, fill = Species)) +
+    geom_histogram(color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 10) +
+    scale_fill_manual(values="#404080")
+  coy_his <- t2d_preds_all[t2d_preds_all$Species == "coyote",] %>%
+    ggplot(aes(x=HoursSinceLastDet, fill = Species)) +
+    geom_histogram(color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 10) +
+    scale_fill_manual(values="#69b3a2")
+  lion_his <- t2d_preds_all[t2d_preds_all$Species == "mountain_lion",] %>%
+    ggplot(aes(x=HoursSinceLastDet, fill = Species)) +
+    geom_histogram(color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 10) +
+    scale_fill_manual(values="#69b3a2")
+  wolf_his <- t2d_preds_all[t2d_preds_all$Species == "wolf",] %>%
+    ggplot(aes(x=HoursSinceLastDet, fill=Species)) +
+    geom_histogram(color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 10) +
+    scale_fill_manual(values="#404080")
+  plot(bear_his)
+  plot(bob_his)
+  plot(coy_his)
+  plot(lion_his)
+  plot(wolf_his)
+  
+  #'  Boxplots of all data, organized by sample size
+  pred_box <- ggplot(t2d_preds_all, aes(x = Species, y=HoursSinceLastDet, fill=Species)) +
+    geom_boxplot() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    geom_text(data = avg_t2d,
+              aes(Species, Inf, label = paste("n =",total_obs)), vjust = 8) +
+    ggtitle("Boxplots summarizing time to first detection of predators") +
+    xlab("Predator speceis") + ylab("Hours to first detection") +
+    labs(fill = "Species")
+  plot(pred_box)
   
   
   
