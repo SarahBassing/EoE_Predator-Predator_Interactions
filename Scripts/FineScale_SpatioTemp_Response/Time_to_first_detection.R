@@ -481,8 +481,8 @@
   
   # write.csv(avg_tbd_focal_pairs, "./Outputs/Tables/Summary_stats_TBD.csv")
   
-  hist(t2d_preds_all$HoursSinceLastDet, breaks = 50, main = "Elapsed time to first detection of predators", xlab = "Hours between detection events")
-  hist(t2d_preds_all$DaysSinceLastDet, breaks = 50, main = "Elapsed time to first detection of predators", xlab = "Days between detection events")
+  hist(t2d_preds_all$HoursSinceLastDet, breaks = 50, main = "Elapsed time to first detection of predators", xlab = "Hours to first event")
+  hist(t2d_preds_all$DaysSinceLastDet, breaks = 50, main = "Elapsed time to first detection of predators", xlab = "Days to first event")
 
   #'  Visualize data
   bear_his <- t2d_preds_all[t2d_preds_all$Species == "bear_black",] %>%
