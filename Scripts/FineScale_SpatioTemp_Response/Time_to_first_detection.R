@@ -249,9 +249,9 @@
   #'  --------------------------------------
 
   #'  Group multiple detection events of same category (but of different species)
-  #'  when they occur sequentially, then reduce groups of "other" category to a
-  #'  single observation (e.g., we only care that a predator sequence was broken
-  #'  up but don't need all "other" detections).
+  #'  when they occur sequentially, then reduce groups to a single observation 
+  #'  (e.g., we only care that a predator sequence was broken up but don't need 
+  #'  all "other" detections).
   thin_dat_by_category <- function(dets) {
     dat <- arrange(dets, NewLocationID, posix_date_time) %>%
       dplyr::select(-det_events)
@@ -269,25 +269,73 @@
     capdata <- cbind(as.data.frame(dat), caps_new)
 
     #'  Remove all extra detections when multiple detections of same category occur in a row
-    predspp <- capdata[capdata$Category == "Predator",] #%>%
-    # group_by(caps_new) %>%
-    # slice(1L) %>%
-    # ungroup()
-    lasteverythingelse <- capdata[capdata$Category != "Predator",] %>%
+    #'  Save the first of a group of predator detections
+    predspp <- capdata[capdata$Category == "Predator",] %>%
+    group_by(caps_new) %>%
+    slice(1L) %>%
+    ungroup()
+    #'  Save the first of a group of random detections
+    randtime <- capdata[capdata$Category == "random",] %>%
+      group_by(caps_new) %>%
+      slice(1L) %>%
+      ungroup() %>%
+      mutate(Det_type = "random")
+    #'  Save the last of a group other detections (non-predator or non-random)
+    lasteverythingelse <- capdata[capdata$Category == "Other",] %>%
       group_by(caps_new) %>%
       slice_tail() %>%
       ungroup()
     #'  Combine into final data set
-    dets <- rbind(predspp, lasteverythingelse) %>%
+    dets <- rbind(predspp, randtime, lasteverythingelse) %>%
       arrange(NewLocationID, posix_date_time)
     return(dets)
   }
-  full_predator_sequences <- lapply(firstlast_img_random, thin_dat_by_category) 
+  thinned_sequences <- lapply(firstlast_img_random, thin_dat_by_category) 
   
   tst <- full_predator_sequences[[1]]
+
+  #'  Filter to just the random time followed by a predator time
+  random_to_predator <- function(dat) {
+    rnd_pred <- dat %>%
+      group_by(NewLocationID) %>%
+      #'  Flag pairings of random time followed by a predator deteciton
+      mutate(keep = ifelse(Category == "random" & lead(Category == "Predator"), "Y", "N"),
+             keep = ifelse(Category == "Predator" & lag(Category == "random"), "Y", keep)) %>%
+      ungroup() %>%
+      #'  Filter to just those pairings
+      filter(keep == "Y")
+    return(rnd_pred)
+  } 
+  random_predators <- lapply(thinned_sequences, random_to_predator)
+
   
-  
-  
+  #'  ----------------------------------------
+  ####  Calculate times to detection events   ####
+  #'  ----------------------------------------
+  #'  Function to calculate time to detection event from a random starting point
+  #'  Data structured so only first random time followed by first image of focal 
+  #'  species are included in data frame.
+  t2d <- function(detection_data, unittime) {
+    detection_data <- detection_data %>%
+      group_by(NewLocationID) %>%
+      mutate(TimeSinceLastDet = difftime(posix_date_time, lag(posix_date_time), units = unittime),
+             TimeSinceLastDet = ifelse(Det_type == "random", 0, TimeSinceLastDet),
+             MinutesSinceLastDet = round(TimeSinceLastDet, 4),
+             HoursSinceLastDet = round((TimeSinceLastDet/60), 2),
+             DaysSinceLastDet = round((TimeSinceLastDet/1440), 2)) %>%
+      ungroup() %>%
+      filter(Category == "Predator") %>%
+      dplyr::select(-c(TriggerMode, OpState, Category, Count, caps_new, Det_type, keep)) 
+    return(detection_data)
+  }
+  #'  Calculate time between detections for different pairs of species of interest
+  #'  spp1 should be the species detected first, unittime is the unit of time 
+  #'  to make calculations in (options are: "sec", "min", "hour", "day")
+  #'  Note: there should be NO negative values! If there are negative values this
+  #'  means the script is calculating times between detections across camera sites
+  t2d_preds <- lapply(random_predators, t2d, unittime = "min")
+
+  save(t2d_preds, file = paste0("./Data/Time_btwn_Detections/T2D_all_predators_", Sys.Date(), ".RData"))  
   
     
   
