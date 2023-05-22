@@ -235,20 +235,18 @@
     
     
   #'  --------------------------------------
-  ####  Filter to specific pairs of images  ####
+  ####  Filter to specific seets of images  ####
   #'  --------------------------------------
-  #'  1. Thin image set to only single "other" image or single "random" time 
-  #'     within sequential group of other images/random times.
-  #'  2. Flag pairs of different predator species detected back-to-back within
-  #'     the same set of sequential detection events.
-  #'  3. Identify instances where order of last pred1 - first pred2 is incorrect
-  #'     owing to duplicated observations for same image.
-  #'  4. Remove these images from larger last/first data set.
-  #'  5. Calculate time-between-detections of different species
-  #'  6. Thin image set to just detections of different predator species
+  #'  1. Thin image set to only single image within sequential group of each
+  #'     category. Retain first image from predator and random categories, last
+  #'     image from other category.
+  #'  2. Flag & retain sequences when a random time is followed by a predator img.
+  #'  3. Double check problem date ranges don't fall within time from random start
+  #'     to first image of a predator detection.
+  #'  4. Calculate time-between-detections of different species
   #'  --------------------------------------
 
-  #'  Group multiple detection events of same category (but of different species)
+  #'  1) Group multiple detection events of same category (but of different species)
   #'  when they occur sequentially, then reduce groups to a single observation 
   #'  (e.g., we only care that a predator sequence was broken up but don't need 
   #'  all "other" detections).
@@ -292,9 +290,9 @@
   }
   thinned_sequences <- lapply(firstlast_img_random, thin_dat_by_category) 
   
-  tst <- full_predator_sequences[[1]]
+  tst <- thinned_sequences[[1]]
 
-  #'  Filter to just the random time followed by a predator time
+  #'  2) Filter to just the random time followed by a predator time
   random_to_predator <- function(dat) {
     rnd_pred <- dat %>%
       group_by(NewLocationID) %>%
@@ -307,6 +305,80 @@
     return(rnd_pred)
   } 
   random_predators <- lapply(thinned_sequences, random_to_predator)
+  
+  #'  3) Review cameras with problem time periods and the dates of random - predator 
+  #'  detections to make sure elapsed time to detections do not encompass
+  #'  problematic time periods (don't want inoperable cameras to bias T2D data)
+  problem_dates_and_t2b_dets <- function(rand_preds, seqprobs, start_date, end_date) {
+    #'  Format and thin problem camera data
+    prob_date_range <- seqprobs %>%
+      mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
+      #'  Filter to images to desired date range
+      filter(Date >= start_date & Date <= end_date) %>%
+      group_by(NewLocationID) %>%
+      #'  Group problem time periods separately if camera is operable for > 1 day 
+      #'  within larger problem date range
+      mutate(New_problem = cumsum(c(1, diff(Date) > 1))) %>%
+      #'  Filter to just start and end of each problem period
+      group_by(NewLocationID, New_problem) %>%
+      filter(row_number()==1 | row_number()==n()) %>%
+      ungroup()
+    
+    #'  Identify cameras that were temporarily inoperable and also had b2b predator detections
+    reduced_prob_dates <- prob_date_range[prob_date_range$NewLocationID %in% rand_preds$NewLocationID,]
+    #'  Identify cameras that had b2b predator detections but were also inoperable for some period of time
+    t2b_prob_cams <- rand_preds[rand_preds$NewLocationID %in% prob_date_range$NewLocationID,]
+    
+    #'  Create data frame with start and end of problem dates
+    prob_dates <- reduced_prob_dates %>%
+      group_by(NewLocationID) %>%
+      mutate(Prob_start = posix_date_time,
+             Prob_end = lead(posix_date_time)) %>%
+      ungroup() %>%
+      #'  Retain correct date ranges in few instances where there are multiple 
+      #'  different problem time periods at a camera site
+      group_by(NewLocationID, New_problem) %>%
+      slice(1L) %>%
+      ungroup() %>%
+      dplyr::select(c("NewLocationID", "Prob_start", "Prob_end")) 
+    
+    #'  Create data frame with start and end of t2d data that potentially overlap problem dates
+    t2d <- t2b_prob_cams %>%
+      group_by(NewLocationID) %>%
+      mutate(Random_time = posix_date_time,
+             Predator_detection = lead(posix_date_time),
+             Detected_predator = lead(Species)) %>%
+      ungroup() %>%
+      filter(Category == "random") %>%
+      dplyr::select(c("NewLocationID", "Species", "Category", "Random_time", "Predator_detection", "Detected_predator"))
+    
+    #'  Flag which observations fall within problematic date range. These snuck in 
+    #'  and should be removed from data set.
+    t2d_prob_overlap <- t2d %>%
+      left_join(prob_dates, by = "NewLocationID") %>%
+      mutate(sneaky_mf = ifelse(Random_time >= Prob_start & Random_time <= Prob_end, 1, NA),
+             sneaky_mf = ifelse(Predator_detection >= Prob_start & Predator_detection <= Prob_end, 1, sneaky_mf)) %>%
+      filter(!is.na(sneaky_mf))
+    print(t2d_prob_overlap)
+    
+    #'  Create data frame of just images to remove based on those listed in t2d_prob_overlap
+    #'  (need to remove predator obs AND random starting times assocaited w/ them)
+    problem_cam <- rand_preds[rand_preds$NewLocationID %in% t2d_prob_overlap$NewLocationID,]
+    problem_random_obs <- problem_cam[problem_cam$posix_date_time %in% t2d_prob_overlap$Random_time,]
+    problem_pred_obs <- problem_cam[problem_cam$posix_date_time %in% t2d_prob_overlap$Predator_detection,]
+    problem_obs <- rbind(problem_random_obs, problem_pred_obs) %>% arrange(posix_date_time)
+    #'  Double check correct images are being removed (posix_date_time should match
+    #'  Random_time and Predator_detection columns from t2d_prob_overlap)
+    print(problem_obs)
+    
+    #'  Remove observations from larger time-to-detection data frame if they fall
+    #'  within a problematic time period at a camera site
+    thinned_t2d_dat <- anti_join(rand_preds, problem_obs)
+      
+    return(thinned_t2d_dat)
+  }
+  b2b_predators_20s <- problem_dates_and_t2b_dets(random_predators[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15")
+  b2b_predators_21s <- problem_dates_and_t2b_dets(random_predators[[2]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
 
   
   #'  ----------------------------------------
