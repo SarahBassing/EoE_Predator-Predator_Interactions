@@ -24,11 +24,11 @@
   load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_preydiv.RData")
   load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_X_preydiv.RData")
   load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_X_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_X_preyRAI.RData") # Not converging well, probably over-parameterized
   load("./Outputs/Time_btwn_Detections/tbd.comp.bear_global.RData")
   #'  List for model selection
-  bear_tbd_list <- list(tbd.bear.null, tbd.bear.compID, tbd.bear.div, tbd.bear.preyabund, tbd.bear.compID.div, tbd.bear.compIDxdiv, tbd.bear.compID.preyabund, tbd.bear.compIDxpreyabund, tbd.bear.global) 
-  bear_tbd_name <- c("tbd.bear.null", "tbd.bear.compID", "tbd.bear.div", "tbd.bear.preyabund", "tbd.bear.compID.div", "tbd.bear.compIDxdiv", "tbd.bear.compID.preyabund", "tbd.bear.compIDxpreyabund", "tbd.bear.global") 
+  bear_tbd_list <- list(tbd.bear.null, tbd.bear.compID, tbd.bear.div, tbd.bear.preyabund, tbd.bear.compID.div, tbd.bear.compIDxdiv, tbd.bear.compID.preyabund, tbd.bear.global) #tbd.bear.compIDxpreyabund, 
+  bear_tbd_name <- c("tbd.bear.null", "tbd.bear.compID", "tbd.bear.div", "tbd.bear.preyabund", "tbd.bear.compID.div", "tbd.bear.compIDxdiv", "tbd.bear.compID.preyabund", "tbd.bear.global") #"tbd.bear.compIDxpreyabund", 
   
   #'  Bobcat models
   load("./Outputs/Time_btwn_Detections/tbd.comp.bob_intercept_only.RData")
