@@ -1,5 +1,5 @@
   #'  ---------------------------------------
-  #'  Calculate time between detections v3
+  #'  Calculate time between detections 
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  May 2023
