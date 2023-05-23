@@ -234,89 +234,123 @@
       arrange(NewLocationID, posix_date_time)
     return(dets)
   }
-  full_predator_sequences <- lapply(firstlast_img, thin_dat_by_category) #firstlast_img_skinny
+  full_predator_sequence <- lapply(firstlast_img, thin_dat_by_category) #firstlast_img_skinny
   
-  #'  Flag sequential detections of two different predators
-  flag_sequential_predators <- function(dets) {
-    #'  Assign same ID to all detection events from the same camera
-    dat <- arrange(dets, NewLocationID, posix_date_time)
-    cam <- c()
-    cam[1] <- 1
-    for (i in 2:nrow(dat)){
-      if (dat$NewLocationID[i-1] != dat$NewLocationID[i]) cam[i] = i
-      else cam[i] = cam[i-1]
+  #'  Remove "other" detections and group detections by predator species (even if
+  #'  a prey species was detected between independent detections of the same predator)
+  predators_only <- function(full_seq) {
+    only_preds <- full_seq %>%
+      filter(Category == "Predator") %>%
+      arrange(NewLocationID, posix_date_time) 
+    same_pred <- c()
+    same_pred[1] <- 1
+    for (i in 2:nrow(only_preds)){
+      if (only_preds$NewLocationID[i-1] != only_preds$NewLocationID[i]) same_pred[i] = i
+      else(if (only_preds$Species[i-1] != only_preds$Species[i]) same_pred[i] = i
+           else same_pred[i] = same_pred[i-1])
     }
-    #'  Identify images where predator spp2 is detected right after predator spp1
-    second_pred <- c()
-    second_pred[1] <- "N"
-    for (i in 2:nrow(dat)){
-      if (dat$Category[i-1] != dat$Category[i]) second_pred[i] = "N"
-      else(if (dat$Species[i-1] != dat$Species[i]) second_pred[i] = "Y"
-           else(second_pred[i] = "N"))
-      
-    }
-    #'  Identify images where predator spp1 is detected right before predator spp2
-    first_pred <- c()
-    first_pred[1] <- "N"
-    for (i in 2:nrow(dat)){
-      if (dat$Category[i-1] != dat$Category[i]) first_pred[i-1] = "N"
-      else(if (dat$Species[i-1] != dat$Species[i]) first_pred[i-1] = "Y"
-           else(first_pred[i-1] = "N"))
-      
-    }
-    #'  Add "N" to very end of vector so the length matches number of rows in dets
-    first_pred[nrow(dat)] <- "N"
- 
+    
+    same_pred <- as.factor(same_pred)
+    
     #'  Add new column to larger data set
-    capdata <- cbind(as.data.frame(dat), cam, second_pred, first_pred) %>%
-      #'  Rearrange observations so that duplicate images with different species
-      #'  are ordered by sequence of when each species first arrived and left
-      #'  i.e., arrange by predator that was detected first and is leaving (last)
-      #'  followed by predator that was detected second and just showed up (first)
+    predator_series <- cbind(as.data.frame(only_preds), same_pred) %>%
+      #'  Organize images by site and time
       group_by(NewLocationID) %>%
-      arrange(posix_date_time, File) %>% #, desc(Det_type)
+      arrange(posix_date_time, File) %>% 
+      #'  Retain the first and last image of each predator in a series of the same species
+      group_by(same_pred) %>%
+      slice(1, n()) %>%
       ungroup() %>%
-      arrange(NewLocationID) %>%
-      #'  Make sure no "Other" category observations get labeled "Y"
-      mutate(second_pred = ifelse(second_pred == "Y" & Category == "Other", "N", second_pred),
-             first_pred = ifelse(first_pred == "Y" & Category == "Other", "N", first_pred),
-             #'  Change very last/very first predator image at a site to "N" in the few 
-             #'  instances where it looks like sequential detections of different predator 
-             #'  species but it's b/c it's a new camera location
-             second_pred = ifelse(lag(NewLocationID) != NewLocationID & second_pred == "Y", "N", second_pred),
-             first_pred = ifelse(NewLocationID != lead(NewLocationID) & first_pred == "Y", "N", first_pred),
-             #'  Create column flagging detections of interest
-             pred_pair = ifelse(second_pred == "Y", "Y", "N"),
-             pred_pair = ifelse(first_pred == "Y", "Y", pred_pair),
-             #'  Flag images with identical date/times
-             same_time = ifelse(lag(posix_date_time) == posix_date_time, "same", "diff"),
-             same_time = ifelse(is.na(same_time), "diff", same_time),
-             #'  Create a unique ID so I can more easily remove specific observations
-             uniqueID = paste0(NewLocationID, "_", posix_date_time, "_", Species, "_", Det_type))
-    return(capdata)
+      #'  Create a unique ID so I can more easily remove specific observations
+      mutate(uniqueID = paste0(NewLocationID, "_", posix_date_time, "_", Species, "_", Det_type))
+    
+    return(predator_series)
   }
-  predator_pairs <- lapply(full_predator_sequences, flag_sequential_predators) 
+  predator_pairs <- lapply(full_predator_sequence, predators_only)
+
   
-  #'  Pull out predator sequences that contain observations of different species
-  #'  detected at the same exact time. Identify which images need to be removed
-  #'  b/c order of last/first species detected gets messy, especially when only
-  #'  one image of both species so first/last image is same for both species. UGH.
-  id_duplicate_times <- function(capdata) {
-    double_obs <-  capdata %>%
-      group_by(caps_new) %>%
-      #'  Filter to any image within group of where... 
-      #'  at least one image has same time as another
-      filter(any(same_time == "same")) %>%
-      #'  and at least one is part of a predator pairing
-      filter(any(pred_pair == "Y")) %>%
-      ungroup() %>%
-      group_by(NewLocationID) %>%
-      arrange(posix_date_time, File) %>% #, desc(Det_type)
-      ungroup() %>%
-      arrange(NewLocationID)
-    return(double_obs)
-  } 
-  double_dets <- lapply(predator_pairs, id_duplicate_times)
+  #' ####  OLD APPROACH TO GENERATING TIME-BTWN-DETECTIONS OF BACK-TO-BACK PREDATORS  ####
+  #' #'  Flag sequential detections of two different predators
+  #' flag_sequential_predators <- function(dets) {
+  #'   #'  Assign same ID to all detection events from the same camera
+  #'   dat <- arrange(dets, NewLocationID, posix_date_time)
+  #'   cam <- c()
+  #'   cam[1] <- 1
+  #'   for (i in 2:nrow(dat)){
+  #'     if (dat$NewLocationID[i-1] != dat$NewLocationID[i]) cam[i] = i
+  #'     else cam[i] = cam[i-1]
+  #'   }
+  #'   #'  Identify images where predator spp2 is detected right after predator spp1
+  #'   second_pred <- c()
+  #'   second_pred[1] <- "N"
+  #'   for (i in 2:nrow(dat)){
+  #'     if (dat$Category[i-1] != dat$Category[i]) second_pred[i] = "N"
+  #'     else(if (dat$Species[i-1] != dat$Species[i]) second_pred[i] = "Y"
+  #'          else(second_pred[i] = "N"))
+  #' 
+  #'   }
+  #'   #'  Identify images where predator spp1 is detected right before predator spp2
+  #'   first_pred <- c()
+  #'   first_pred[1] <- "N"
+  #'   for (i in 2:nrow(dat)){
+  #'     if (dat$Category[i-1] != dat$Category[i]) first_pred[i-1] = "N"
+  #'     else(if (dat$Species[i-1] != dat$Species[i]) first_pred[i-1] = "Y"
+  #'          else(first_pred[i-1] = "N"))
+  #' 
+  #'   }
+  #'   #'  Add "N" to very end of vector so the length matches number of rows in dets
+  #'   first_pred[nrow(dat)] <- "N"
+  #' 
+  #'   #'  Add new column to larger data set
+  #'   capdata <- cbind(as.data.frame(dat), cam, second_pred, first_pred) %>%
+  #'     #'  Rearrange observations so that duplicate images with different species
+  #'     #'  are ordered by sequence of when each species first arrived and left
+  #'     #'  i.e., arrange by predator that was detected first and is leaving (last)
+  #'     #'  followed by predator that was detected second and just showed up (first)
+  #'     group_by(NewLocationID) %>%
+  #'     arrange(posix_date_time, File) %>% #, desc(Det_type)
+  #'     ungroup() %>%
+  #'     arrange(NewLocationID) %>%
+  #'     #'  Make sure no "Other" category observations get labeled "Y"
+  #'     mutate(second_pred = ifelse(second_pred == "Y" & Category == "Other", "N", second_pred),
+  #'            first_pred = ifelse(first_pred == "Y" & Category == "Other", "N", first_pred),
+  #'            #'  Change very last/very first predator image at a site to "N" in the few
+  #'            #'  instances where it looks like sequential detections of different predator
+  #'            #'  species but it's b/c it's a new camera location
+  #'            second_pred = ifelse(lag(NewLocationID) != NewLocationID & second_pred == "Y", "N", second_pred),
+  #'            first_pred = ifelse(NewLocationID != lead(NewLocationID) & first_pred == "Y", "N", first_pred),
+  #'            #'  Create column flagging detections of interest
+  #'            pred_pair = ifelse(second_pred == "Y", "Y", "N"),
+  #'            pred_pair = ifelse(first_pred == "Y", "Y", pred_pair),
+  #'            #'  Flag images with identical date/times
+  #'            same_time = ifelse(lag(posix_date_time) == posix_date_time, "same", "diff"),
+  #'            same_time = ifelse(is.na(same_time), "diff", same_time),
+  #'            #'  Create a unique ID so I can more easily remove specific observations
+  #'            uniqueID = paste0(NewLocationID, "_", posix_date_time, "_", Species, "_", Det_type))
+  #'   return(capdata)
+  #' }
+  #' predator_pairs <- lapply(full_predator_sequences, flag_sequential_predators)
+  #' 
+  #' #'  Pull out predator sequences that contain observations of different species
+  #' #'  detected at the same exact time. Identify which images need to be removed
+  #' #'  b/c order of last/first species detected gets messy, especially when only
+  #' #'  one image of both species so first/last image is same for both species. UGH.
+  #' id_duplicate_times <- function(capdata) {
+  #'   double_obs <-  capdata %>%
+  #'     group_by(caps_new) %>%
+  #'     #'  Filter to any image within group of where...
+  #'     #'  at least one image has same time as another
+  #'     filter(any(same_time == "same")) %>%
+  #'     #'  and at least one is part of a predator pairing
+  #'     filter(any(pred_pair == "Y")) %>%
+  #'     ungroup() %>%
+  #'     group_by(NewLocationID) %>%
+  #'     arrange(posix_date_time, File) %>% #, desc(Det_type)
+  #'     ungroup() %>%
+  #'     arrange(NewLocationID)
+  #'   return(double_obs)
+  #' }
+  #' double_dets <- lapply(predator_pairs, id_duplicate_times)
   
   #'  List all uniqueIDs of observations that need to be removed in a giant vector
   #'  CURRENT LIST is just to make my life easier for now - pretty sure these are incorrect
@@ -345,128 +379,89 @@
               #"GMU10A_U_169_2020-08-07 22:40:17_wolf_last", "GMU10A_U_169_2020-08-07 22:40:19_coyote_last")
   rm_21s <- c(NA)#"GMU6_P_9_2021-09-02 21:57:37_bear_black_last", "GMU6_P_9_2021-09-02 21:57:38_wolf_last")
 
-  #'  List all uniqueIDs of observations that need to switch the Det_type from
-  #'  "first" to "last". These are truly the first image from each detection BUT
-  #'  the first predator is still present when the second predator is detected so
-  #'  need to artificially force these images to be the "last" image before the
-  #'  second predator shows up
-  change_to_last_20s <- c(NA)
-  #                         "GMU10A_P_15_2020-08-07 00:27:15_bobcat_first", "GMU10A_P_23_2020-07-22 01:35:58_coyote_first",
-  #                         "GMU10A_P_5_2020-09-15 07:27:50_coyote_first", "GMU10A_P_86_2020-07-27 01:47:12_coyote_first",
-  #                         "GMU10A_P_86_2020-07-29 00:55:50_coyote_first", "GMU10A_P_86_2020-08-11 02:31:26_coyote_first",
-  #                         "GMU10A_P_86_2020-08-11 02:39:57_coyote_first", "GMU10A_U_169_2020-08-07 22:36:03_coyote_first",
-  #                         "GMU6_P_17_2020-07-01 22:35:41_mountain_lion_first", "GMU6_P_37_2020-07-28 00:11:27_wolf_first",
-  #                         "GMU6_P_38_2020-08-28 21:03:00_coyote_first", "GMU6_P_56_2020-08-28 00:58:17_coyote_first",
-  #                         "GMU6_P_58_2020-07-16 02:08:28_wolf_first", "GMU6_P_66_2020-07-31 22:16:13_coyote_first",
-  #                         "GMU6_U_130_2020-08-21 23:54:00_coyote_first", "GMU6_U_90_2020-09-04 13:27:28_bear_black_first")
-  change_to_last_21s <- c(NA) #"GMU6_P_9_2021-09-02 21:57:09_wolf_first")
-
   #'  Function to remove specific observations that screw up the last-first detection order
-  remove_obs <- function(pred_pairs, rm_obs, new_last) {
+  remove_obs <- function(pred_pairs, rm_obs) {
     #'  Grab all rows that meet criteria based on uniqueID
     obs_to_remove <- pred_pairs[pred_pairs$uniqueID %in% rm_obs,]
     #'  Remove these rows from the larger df
-    reduced_predator_pairs <- anti_join(pred_pairs, obs_to_remove)
-    #'  Grab all rows that need Det_type changed and change them
-    change_det_type <- reduced_predator_pairs[reduced_predator_pairs$uniqueID %in% new_last,]
-    last_det_type <- change_det_type %>% mutate(Det_type = "last")
-    #'  Remove observations with the original Det_type and replace with new
-    reduced_predator_pairs <- anti_join(reduced_predator_pairs, change_det_type) %>%
-      bind_rows(last_det_type) %>%
+    reduced_predator_pairs <- anti_join(pred_pairs, obs_to_remove) %>%
       #'  Arrange everything back in order
       arrange(NewLocationID, posix_date_time, File) #, desc(Det_type)
     return(reduced_predator_pairs)
   }
-  predator_pairs_20s <- remove_obs(predator_pairs[[1]], rm_obs = rm_20s, new_last = change_to_last_20s)
-  predator_pairs_21s <- remove_obs(predator_pairs[[3]], rm_obs = rm_21s, new_last = change_to_last_21s)
+  predator_pairs_20s <- remove_obs(predator_pairs[[1]], rm_obs = rm_20s)
+  predator_pairs_21s <- remove_obs(predator_pairs[[3]], rm_obs = rm_21s)
   #'  Being lazy and not doing this for wtr20 data right now
 
   #'  Re-list cleaned predator-pair data sets
   predator_pairs_thinned <- list(predator_pairs_20s, predator_pairs[[2]], predator_pairs_21s)
-
-
-  #' #'  --------------------------------
-  #' #####  Suspicious series of images  ####
-  #' #'  --------------------------------
-  #' #'  Pull out series of images to review based on the capture identifier
-  #' #'  In these cases, 2 species were detected within ~1 min of each other, often
-  #' #'  with spp2 showing up between images of spp1, so need to make sure these 
-  #' #'  are not topological errors or miss-classifications
-  #' caps_20s <- c(539, 1930, 2353, 4049, 5108, 8653, 8684, 8703, 8753, 18180, 18499, 
-  #'               22218, 22494, 22533, 24840, 25000, 26015, 34178, 34234, 35783, 40143, 
-  #'               11119, 13811)
-  #' caps_21s <- c(44018)
-  #' obs_to_check_20s <- predator_pairs[[1]][predator_pairs[[1]]$caps_new %in% caps_20s,]
-  #' obs_to_check_21s <- predator_pairs[[3]][predator_pairs[[3]]$caps_new %in% caps_21s,]
-  #' obs_to_check <- rbind(obs_to_check_20s, obs_to_check_21s) %>%
-  #'   dplyr::select(-c(Category, Det_type, caps_new, cam, second_pred, first_pred, pred_pair, same_time, uniqueID))
-  #' # write.csv(obs_to_check, "./Outputs/Tables/Images_to_double_check.csv")
   
   
-  #'  ------------------------------------------
-  ####  Final filtering to just focal pairings  ####
-  #'  ------------------------------------------
-  #'  Reduce to sequential detections of different predator species
-  back_to_back_predators <- function(pred_pairs) {
-    b2b_pred <- filter(pred_pairs, pred_pair == "Y") %>%
-      arrange(NewLocationID, posix_date_time, Species)
-    return(b2b_pred)
-  }
-  b2b_predators <- lapply(predator_pairs_thinned, back_to_back_predators) #predator_pairs
-  
-  #' #'  Repeat 2 coyote & 2 bobcat observations so sequence of detections has 
-  #' #'  correct number of last/first observations
-  #' GMU6_P_18 <- b2b_predators[[1]] %>% filter(NewLocationID == "GMU6_P_18")
-  #' extra_obs1 <- GMU6_P_18 %>% filter(uniqueID == "GMU6_P_18_2020-08-15 22:19:16_coyote_first") %>%
-  #'   mutate(Det_type = "last")
-  #' GMU6_P_18_new <- bind_rows(GMU6_P_18, extra_obs1) %>%
-  #'   arrange(posix_date_time, File)
+  #' ####  OLD APPROACH FOR BACK-TO-BACK PREDATOR DETECTIONS  ####
+  #' #'  ------------------------------------------
+  #' ####  Final filtering to just focal pairings  ####
+  #' #'  ------------------------------------------
+  #' #'  Reduce to sequential detections of different predator species
+  #' back_to_back_predators <- function(pred_pairs) {
+  #'   b2b_pred <- filter(pred_pairs, pred_pair == "Y") %>%
+  #'     arrange(NewLocationID, posix_date_time, Species)
+  #'   return(b2b_pred)
+  #' }
+  #' b2b_predators <- lapply(predator_pairs_thinned, back_to_back_predators) #predator_pairs
   #' 
-  #' GMU6_P_94 <- b2b_predators[[1]] %>% filter(NewLocationID == "GMU6_P_94")
-  #' extra_obs2a <- GMU6_P_94 %>% filter(uniqueID == "GMU6_P_94_2020-07-10 05:24:19_coyote_first") %>%
-  #'   mutate(Det_type = "last")
-  #' extra_obs2b <- GMU6_P_94 %>% filter(uniqueID == "GMU6_P_94_2020-09-09 01:52:23_bobcat_first") %>%
-  #'   mutate(Det_type = "last")
-  #' GMU6_P_94_new <- bind_rows(GMU6_P_94, extra_obs2a, extra_obs2b) %>%
-  #'   arrange(posix_date_time, File)
+  #' #' #'  Repeat 2 coyote & 2 bobcat observations so sequence of detections has
+  #' #' #'  correct number of last/first observations
+  #' #' GMU6_P_18 <- b2b_predators[[1]] %>% filter(NewLocationID == "GMU6_P_18")
+  #' #' extra_obs1 <- GMU6_P_18 %>% filter(uniqueID == "GMU6_P_18_2020-08-15 22:19:16_coyote_first") %>%
+  #' #'   mutate(Det_type = "last")
+  #' #' GMU6_P_18_new <- bind_rows(GMU6_P_18, extra_obs1) %>%
+  #' #'   arrange(posix_date_time, File)
+  #' #'
+  #' #' GMU6_P_94 <- b2b_predators[[1]] %>% filter(NewLocationID == "GMU6_P_94")
+  #' #' extra_obs2a <- GMU6_P_94 %>% filter(uniqueID == "GMU6_P_94_2020-07-10 05:24:19_coyote_first") %>%
+  #' #'   mutate(Det_type = "last")
+  #' #' extra_obs2b <- GMU6_P_94 %>% filter(uniqueID == "GMU6_P_94_2020-09-09 01:52:23_bobcat_first") %>%
+  #' #'   mutate(Det_type = "last")
+  #' #' GMU6_P_94_new <- bind_rows(GMU6_P_94, extra_obs2a, extra_obs2b) %>%
+  #' #'   arrange(posix_date_time, File)
+  #' #'
+  #' #' GMU6_P_56 <- b2b_predators[[1]] %>% filter(NewLocationID == "GMU6_P_56")
+  #' #' extra_obs3 <- GMU6_P_56 %>% filter(uniqueID == "GMU6_P_56_2020-08-23 23:24:14_bobcat_first") %>%
+  #' #'   mutate(Det_type = "last")
+  #' #' GMU6_P_56_new <- bind_rows(GMU6_P_56, extra_obs3) %>%
+  #' #'   arrange(posix_date_time, File)
+  #' #'
+  #' #' #'  Remove these rows from the larger df and replace with updated dataframe
+  #' #' b2b_predators[[1]] <- anti_join(b2b_predators[[1]], GMU6_P_94) %>%
+  #' #'   bind_rows(GMU6_P_94_new) %>%
+  #' #'   anti_join(GMU6_P_56) %>%
+  #' #'   bind_rows(GMU6_P_56_new) %>%
+  #' #'   anti_join(GMU6_P_18) %>%
+  #' #'   bind_rows(GMU6_P_18_new) %>%
+  #' #'   #'  Arrange everything back in order
+  #' #'   arrange(NewLocationID, posix_date_time, File) #desc(Det_type)
   #' 
-  #' GMU6_P_56 <- b2b_predators[[1]] %>% filter(NewLocationID == "GMU6_P_56")
-  #' extra_obs3 <- GMU6_P_56 %>% filter(uniqueID == "GMU6_P_56_2020-08-23 23:24:14_bobcat_first") %>%
-  #'   mutate(Det_type = "last")
-  #' GMU6_P_56_new <- bind_rows(GMU6_P_56, extra_obs3) %>%
-  #'   arrange(posix_date_time, File)
+  #' #'  Flag sequences that are out of order (e.g., last - last - first - first instead of last - first - last - first)
+  #' #'  Usually occurs when next row is switching to a new camera location (ignore,
+  #' #'  not an issue for following code) OR there's only one image of a species & it's
+  #' #'    1) duplicated so that detection has a "first" and "last" image (ignore,
+  #' #'    not an issue for following code);
+  #' #'    2) it's sandwiched between images of another species, likely due to species
+  #' #'    miss-classification, which MUST be corrected or can bias future TBD analyses
+  #' flag_out_of_order_sequences <- function(dets) {
+  #'   whoops1 <- filter(dets, Det_type == lag(Det_type))
+  #'   whoops2 <- filter(dets, Det_type == lead(Det_type))
+  #'   whoops <- rbind(whoops1, whoops2) %>%
+  #'     distinct() %>%
+  #'     arrange(NewLocationID, posix_date_time, File)
+  #'   return(whoops)
+  #' }
+  #' double_check_order_20s <- flag_out_of_order_sequences(b2b_predators[[1]])
+  #' double_check_order_21s <- flag_out_of_order_sequences(b2b_predators[[3]])
   #' 
-  #' #'  Remove these rows from the larger df and replace with updated dataframe
-  #' b2b_predators[[1]] <- anti_join(b2b_predators[[1]], GMU6_P_94) %>%
-  #'   bind_rows(GMU6_P_94_new) %>%
-  #'   anti_join(GMU6_P_56) %>%
-  #'   bind_rows(GMU6_P_56_new) %>%
-  #'   anti_join(GMU6_P_18) %>%
-  #'   bind_rows(GMU6_P_18_new) %>%
-  #'   #'  Arrange everything back in order
-  #'   arrange(NewLocationID, posix_date_time, File) #desc(Det_type)
-  
-  #'  Flag sequences that are out of order (e.g., last - last - first - first instead of last - first - last - first)
-  #'  Usually occurs when next row is switching to a new camera location (ignore, 
-  #'  not an issue for following code) OR there's only one image of a species & it's 
-  #'    1) duplicated so that detection has a "first" and "last" image (ignore, 
-  #'    not an issue for following code);
-  #'    2) it's sandwiched between images of another species, likely due to species 
-  #'    miss-classification, which MUST be corrected or can bias future TBD analyses
-  flag_out_of_order_sequences <- function(dets) {
-    whoops1 <- filter(dets, Det_type == lag(Det_type))
-    whoops2 <- filter(dets, Det_type == lead(Det_type))
-    whoops <- rbind(whoops1, whoops2) %>%
-      distinct() %>%
-      arrange(NewLocationID, posix_date_time, File)
-    return(whoops)
-  }
-  double_check_order_20s <- flag_out_of_order_sequences(b2b_predators[[1]])
-  double_check_order_21s <- flag_out_of_order_sequences(b2b_predators[[3]])
-  
-  #'  Double check everything looks alright
-  tst <- b2b_predators[[1]]
-  tst2 <- b2b_predators[[3]]
+  #' #'  Double check everything looks alright
+  #' tst <- b2b_predators[[1]]
+  #' tst2 <- b2b_predators[[3]]
   
   #'  Review cameras with problem time periods and the dates of back-to-back predator 
   #'  detections to make sure elapsed time between detections does not encompass
@@ -538,9 +533,10 @@
     
     return(thinned_b2b_dat)
   }
-  b2b_predators_20s <- problem_dates_and_b2b_dets(b2b_predators[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15")
-  b2b_predators_21s <- problem_dates_and_b2b_dets(b2b_predators[[3]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
+  b2b_predators_20s <- problem_dates_and_b2b_dets(predator_pairs_thinned[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15") #b2b_predators[[1]]
+  b2b_predators_21s <- problem_dates_and_b2b_dets(predator_pairs_thinned[[3]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15") #b2b_predators[[3]]
   
+  b2b_predators <- list(b2b_predators_20s, b2b_predators_21s)
   
   #'  ---------------------------------------------
   ####  Calculate times between detection events   ####
@@ -559,10 +555,9 @@
              Previous_Spp = lag(Species),
              Predator_pair = paste0(Previous_Spp, "-", Species)) %>%
       ungroup() %>%
-      # relocate(Previous_Spp, .before = Species) %>%
-      # relocate(Predator_pair, .after = Species) %>%
       filter(Det_type == "first") %>%
-      dplyr::select(-c(TriggerMode, OpState, Category, Count, caps_new, cam, same_time, pred_pair, uniqueID)) #Det_type, second_pred, first_pred, 
+      filter(!is.na(TimeSinceLastDet)) %>%
+      dplyr::select(-c(TriggerMode, OpState, Category, Count, caps_new, uniqueID)) #Det_type, second_pred, first_pred, pred_pair, cam, same_time,
     return(detection_data)
   }
   #'  Calculate time between detections for different pairs of species of interest
@@ -581,10 +576,10 @@
   
   #'  Add column for year
   tbd_pred_pairs[[1]]$Year <- "Smr20"
-  tbd_pred_pairs[[3]]$Year <- "Smr21"
-  tbd_pred_pairs_all <- rbind(tbd_pred_pairs[[1]], tbd_pred_pairs[[3]])
+  tbd_pred_pairs[[2]]$Year <- "Smr21"
+  tbd_pred_pairs_all <- rbind(tbd_pred_pairs[[1]], tbd_pred_pairs[[2]])
   
-  save(tbd_pred_pairs_all, file = paste0("./Data/Time_btwn_Detections/TBD_all_predator_pairs_", Sys.Date(), ".RData"))
+  save(tbd_pred_pairs_all, file = paste0("./Data/Time_btwn_Detections/TBD_all_predator_pairs_prey_embedded_", Sys.Date(), ".RData"))
   
   
   #'  ----------------------------------------
