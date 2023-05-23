@@ -93,8 +93,8 @@
         Time = chron(times = Time),
         Species = ifelse(Vehicle == "TRUE", "human_motorized", Species),
         Category = ifelse(Species == "bobcat" | Species == "bear_black" | 
-                                   Species == "coyote" | Species == "mountain_lion" | 
-                                   Species == "wolf", "Predator", "Other")) %>%
+                            Species == "coyote" | Species == "mountain_lion" | 
+                            Species == "wolf", "Predator", "Other")) %>%
       dplyr::select(-Vehicle) %>%
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
@@ -200,8 +200,9 @@
   #'  7. Thin image set to just detections of different predator species
   #'  --------------------------------------
   
-  #'  Group multiple detection events of same category (but of different species) 
-  #'  when they occur sequentially, then reduce groups of "other" category to a 
+  ####  Allows non-target species to be btwn predator detections  ####
+  #'  Group multiple detection events of same category (but of different species)
+  #'  when they occur sequentially, then reduce groups of "other" category to a
   #'  single observation (e.g., we only care that a predator sequence was broken
   #'  up but don't need all "other" detections).
   thin_dat_by_category <- function(dets) {
@@ -214,19 +215,19 @@
       else(if (dat$Category[i-1] != dat$Category[i]) caps_new[i] = i
            else caps_new[i] = caps_new[i-1])
     }
-    
+
     caps_new <- as.factor(caps_new)
-    
+
     #'  Add new column to larger data set
     capdata <- cbind(as.data.frame(dat), caps_new)
-    
+
     #'  Remove all extra detections when multiple detections of same category occur in a row
     predspp <- capdata[capdata$Category == "Predator",] #%>%
       # group_by(caps_new) %>%
       # slice(1L) %>%
       # ungroup()
     lasteverythingelse <- capdata[capdata$Category != "Predator",] %>%
-      group_by(caps_new) %>% 
+      group_by(caps_new) %>%
       slice_tail() %>%
       ungroup()
     #'  Combine into final data set
@@ -234,14 +235,14 @@
       arrange(NewLocationID, posix_date_time)
     return(dets)
   }
-  full_predator_sequence <- lapply(firstlast_img, thin_dat_by_category) #firstlast_img_skinny
-  
+  full_predator_sequence <- lapply(firstlast_img, thin_dat_by_category) 
+
   #'  Remove "other" detections and group detections by predator species (even if
   #'  a prey species was detected between independent detections of the same predator)
   predators_only <- function(full_seq) {
     only_preds <- full_seq %>%
       filter(Category == "Predator") %>%
-      arrange(NewLocationID, posix_date_time) 
+      arrange(NewLocationID, posix_date_time)
     same_pred <- c()
     same_pred[1] <- 1
     for (i in 2:nrow(only_preds)){
@@ -249,21 +250,21 @@
       else(if (only_preds$Species[i-1] != only_preds$Species[i]) same_pred[i] = i
            else same_pred[i] = same_pred[i-1])
     }
-    
+
     same_pred <- as.factor(same_pred)
-    
+
     #'  Add new column to larger data set
     predator_series <- cbind(as.data.frame(only_preds), same_pred) %>%
       #'  Organize images by site and time
       group_by(NewLocationID) %>%
-      arrange(posix_date_time, File) %>% 
+      arrange(posix_date_time, File) %>%
       #'  Retain the first and last image of each predator in a series of the same species
       group_by(same_pred) %>%
       slice(1, n()) %>%
       ungroup() %>%
       #'  Create a unique ID so I can more easily remove specific observations
       mutate(uniqueID = paste0(NewLocationID, "_", posix_date_time, "_", Species, "_", Det_type))
-    
+
     return(predator_series)
   }
   predator_pairs <- lapply(full_predator_sequence, predators_only)
