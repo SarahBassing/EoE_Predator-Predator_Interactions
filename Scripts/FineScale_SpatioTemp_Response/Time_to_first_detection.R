@@ -243,6 +243,7 @@
     random_times_list <- list()
     
     #'  Loop through each camera and sample a collection of random datetimes
+    set.seed(624)
     for(i in 1:length(NewLocationID)){
       random_times_list[[i]] <- random_start_times(start_date = start_date, end_date = end_date, nobs = nobs, firstlast = firstlast)
     }
@@ -266,32 +267,31 @@
     
     return(firstlast_random_truncate)
   }
-  firstlast_img_random_20s <- add_random_times(start_date = "2020-07-01", end_date = "2020-09-15", nobs = 1000, deploy_data = eoe_probcams_20s, firstlast = firstlast_img[[1]])
-  firstlast_img_random_21s <- add_random_times(start_date = "2021-07-01", end_date = "2021-09-15", nobs = 1000, deploy_data = eoe_probcams_21s, firstlast = firstlast_img[[3]])
+  firstlast_img_random_20s <- add_random_times(start_date = "2020-07-01", end_date = "2020-09-15", nobs = 500, deploy_data = eoe_probcams_20s, firstlast = firstlast_img[[1]])
+  firstlast_img_random_21s <- add_random_times(start_date = "2021-07-01", end_date = "2021-09-15", nobs = 500, deploy_data = eoe_probcams_21s, firstlast = firstlast_img[[3]])
   firstlast_img_random <- list(firstlast_img_random_20s, firstlast_img_random_21s)
     
     
   #'  --------------------------------------
   ####  Filter to specific sets of images  ####
   #'  --------------------------------------
-  #'  1. Thin image set to only single image within sequential group of each
-  #'     category. Retain first image from predator and random categories, last
-  #'     image from other category.
-  #'  2. Flag & retain sequences when a random time is followed by a predator img.
+  #'  1. Thin image set to only first image from predator and a randomly selected
+  #'     random time prior to that predator image
+  #'  2. 
   #'  3. Double check problem date ranges don't fall within time from random start
   #'     to first image of a predator detection.
   #'  4. Reduce to only sites where we have back-to-back predator detections as 
   #'     well to keep spatial extent of analyses consistent.
-  #'  5. Calculate time-between-detections of different species
   #'  --------------------------------------
 
-  #'  1) Group multiple detection events of same category (but of different species)
-  #'  when they occur sequentially, then reduce groups to a single observation 
-  #'  (e.g., we only care that a predator sequence was broken up but don't need 
-  #'  all "other" detections).
+  #'  1) Remove non-target detections, group multiple detection events of 
+  #'  same category when they occur sequentially, reduce to first image of each
+  #'  predator species and a randomly selected "random" time within sequential
+  #'  random times prior to a predator detection.
   thin_dat_by_category <- function(dets) {
+    #'  Organize, filter, and group detections by category
     dat <- arrange(dets, NewLocationID, posix_date_time) %>%
-      dplyr::select(-det_events)
+      filter(Category != "Other")
     caps_new <- c()
     caps_new[1] <- 1
     for (i in 2:nrow(dat)){
@@ -299,51 +299,106 @@
       else(if (dat$Category[i-1] != dat$Category[i]) caps_new[i] = i
            else caps_new[i] = caps_new[i-1])
     }
-
     caps_new <- as.factor(caps_new)
-
     #'  Add new column to larger data set
     capdata <- cbind(as.data.frame(dat), caps_new)
-
-    #'  Remove all extra detections when multiple detections of same category occur in a row
-    #'  Save the first of a group of predator detections
+    
+    #'  Save the first image of each predator detection
     predspp <- capdata[capdata$Category == "Predator",] %>%
-    group_by(caps_new) %>%
-    slice(1L) %>%
-    ungroup()
-    #'  Save the first of a group of random detections
-    randtime <- capdata[capdata$Category == "random",] %>%
       group_by(caps_new) %>%
       slice(1L) %>%
+      ungroup()
+    #'  Randomly sample 1 random start time when there are sequential random times
+    #'  (Remember - non-target species detections were removed from this data set
+    #'  but may have occurred somewhere within the a series of random times)
+    set.seed(2016)
+    randtime <- capdata[capdata$Category == "random",] %>%
+      group_by(caps_new) %>%
+      slice_sample(n=1) %>%
       ungroup() %>%
       mutate(Det_type = "random")
-    #'  Save the last of a group other detections (non-predator or non-random)
-    lasteverythingelse <- capdata[capdata$Category == "Other",] %>%
-      group_by(caps_new) %>%
-      slice_tail() %>%
-      ungroup()
     #'  Combine into final data set
-    dets <- rbind(predspp, randtime, lasteverythingelse) %>%
+    dets <- rbind(predspp, randtime) %>%
       arrange(NewLocationID, posix_date_time)
     return(dets)
   }
   thinned_sequences <- lapply(firstlast_img_random, thin_dat_by_category) 
   
   tst <- thinned_sequences[[1]]
-
-  #'  2) Filter to just the random time followed by a predator time
-  random_to_predator <- function(dat) {
-    rnd_pred <- dat %>%
-      group_by(NewLocationID) %>%
-      #'  Flag pairings of random time followed by a predator deteciton
-      mutate(keep = ifelse(Category == "random" & lead(Category == "Predator"), "Y", "N"),
-             keep = ifelse(Category == "Predator" & lag(Category == "random"), "Y", keep)) %>%
-      ungroup() %>%
-      #'  Filter to just those pairings
-      filter(keep == "Y")
-    return(rnd_pred)
-  } 
-  random_predators <- lapply(thinned_sequences, random_to_predator)
+  
+  
+  #' #'  --------------------------------------
+  #' ####  Filter to specific sets of images  ####
+  #' #'  --------------------------------------
+  #' #'  1. Thin image set to only single image within sequential group of each
+  #' #'     category. Retain first image from predator and random categories, last
+  #' #'     image from other category.
+  #' #'  2. Flag & retain sequences when a random time is followed by a predator img.
+  #' #'  3. Double check problem date ranges don't fall within time from random start
+  #' #'     to first image of a predator detection.
+  #' #'  4. Reduce to only sites where we have back-to-back predator detections as 
+  #' #'     well to keep spatial extent of analyses consistent.
+  #' #'  --------------------------------------
+  #' 
+  #' #'  1) Group multiple detection events of same category (but of different species)
+  #' #'  when they occur sequentially, then reduce groups to a single observation
+  #' #'  (e.g., we only care that a predator sequence was broken up but don't need
+  #' #'  all "other" detections).
+  #' thin_dat_by_category <- function(dets) {
+  #'   dat <- arrange(dets, NewLocationID, posix_date_time) %>%
+  #'     dplyr::select(-det_events)
+  #'   caps_new <- c()
+  #'   caps_new[1] <- 1
+  #'   for (i in 2:nrow(dat)){
+  #'     if (dat$NewLocationID[i-1] != dat$NewLocationID[i]) caps_new[i] = i
+  #'     else(if (dat$Category[i-1] != dat$Category[i]) caps_new[i] = i
+  #'          else caps_new[i] = caps_new[i-1])
+  #'   }
+  #' 
+  #'   caps_new <- as.factor(caps_new)
+  #' 
+  #'   #'  Add new column to larger data set
+  #'   capdata <- cbind(as.data.frame(dat), caps_new)
+  #' 
+  #'   #'  Remove all extra detections when multiple detections of same category occur in a row
+  #'   #'  Save the first of a group of predator detections
+  #'   predspp <- capdata[capdata$Category == "Predator",] %>%
+  #'   group_by(caps_new) %>%
+  #'   slice(1L) %>%
+  #'   ungroup()
+  #'   #'  Save the first of a group of random detections
+  #'   randtime <- capdata[capdata$Category == "random",] %>%
+  #'     group_by(caps_new) %>%
+  #'     slice(1L) %>%
+  #'     ungroup() %>%
+  #'     mutate(Det_type = "random")
+  #'   #'  Save the last of a group other detections (non-predator or non-random)
+  #'   lasteverythingelse <- capdata[capdata$Category == "Other",] %>%
+  #'     group_by(caps_new) %>%
+  #'     slice_tail() %>%
+  #'     ungroup()
+  #'   #'  Combine into final data set
+  #'   dets <- rbind(predspp, randtime, lasteverythingelse) %>%
+  #'     arrange(NewLocationID, posix_date_time)
+  #'   return(dets)
+  #' }
+  #' thinned_sequences <- lapply(firstlast_img_random, thin_dat_by_category)
+  #' 
+  #' tst <- thinned_sequences[[1]]
+  #' 
+  #' #'  2) Filter to just the random time followed by a predator time
+  #' random_to_predator <- function(dat) {
+  #'   rnd_pred <- dat %>%
+  #'     group_by(NewLocationID) %>%
+  #'     #'  Flag pairings of random time followed by a predator deteciton
+  #'     mutate(keep = ifelse(Category == "random" & lead(Category == "Predator"), "Y", "N"),
+  #'            keep = ifelse(Category == "Predator" & lag(Category == "random"), "Y", keep)) %>%
+  #'     ungroup() %>%
+  #'     #'  Filter to just those pairings
+  #'     filter(keep == "Y")
+  #'   return(rnd_pred)
+  #' } 
+  #' random_predators <- lapply(thinned_sequences, random_to_predator)
   
   #'  3) Review cameras with problem time periods and the dates of random - predator 
   #'  detections to make sure elapsed time to detections do not encompass
@@ -416,8 +471,8 @@
       
     return(thinned_t2d_dat)
   }
-  rand_predators_20s <- problem_dates_and_t2b_dets(random_predators[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15")
-  rand_predators_21s <- problem_dates_and_t2b_dets(random_predators[[2]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
+  rand_predators_20s <- problem_dates_and_t2b_dets(thinned_sequences[[1]], eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15") #random_predators[[1]]
+  rand_predators_21s <- problem_dates_and_t2b_dets(thinned_sequences[[2]], eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15") #random_predators[[2]]
 
   #'  4) Remove camera data from any cameras not included in the Time_between_detections
   #'  analysis to keep any site-specific heterogeneity (e.g., local density) consistent
@@ -446,7 +501,7 @@
              DaysSinceLastDet = round((TimeSinceLastDet/1440), 2)) %>%
       ungroup() %>%
       filter(Category == "Predator") %>%
-      dplyr::select(-c(TriggerMode, OpState, Category, Count, caps_new, Det_type, keep)) 
+      dplyr::select(-c(TriggerMode, OpState, Category, Count, caps_new, Det_type))  #, keep
     return(detection_data)
   }
   #'  Calculate time between detections for different pairs of species of interest
@@ -461,7 +516,7 @@
   t2d_preds[[2]]$Year <- "Smr21"
   t2d_preds_all <- rbind(t2d_preds[[1]], t2d_preds[[2]])
 
-  save(t2d_preds_all, file = paste0("./Data/Time_btwn_Detections/T2D_all_predators_", Sys.Date(), ".RData"))  
+  save(t2d_preds_all, file = paste0("./Data/Time_btwn_Detections/T2D_all_predators_prey_embedded_", Sys.Date(), ".RData"))  
   
     
   #'  ----------------------------------------
