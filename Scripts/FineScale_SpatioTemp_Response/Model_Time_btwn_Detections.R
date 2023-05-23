@@ -18,7 +18,7 @@
   library(tidyverse)
   
   #'  Read in data
-  load("./Data/Time_btwn_Detections/TBD_all_predator_pairs_2023-05-22.RData") #2023-05-05 includes species miss-IDs
+  load("./Data/Time_btwn_Detections/TBD_all_predator_pairs_prey_embedded_2023-05-22.RData") #TBD_all_predator_pairs_2023-05-22
   
   #'  Covariates
   load("./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
@@ -41,7 +41,7 @@
   #'  List data sets with extreme values removed
   pred_tbd <- list(bear, bob, coy, lion, wolf)
   
-  #'  Function to identify potential outliers
+  #'  Function to identify potential outliers and remove extreme observations
   tbd_summary <- function(tbd, spp, quant) {
     #'  Plot frequency of time-between-detections (should look exponential)
     hist(tbd$DaysSinceLastDet, breaks = 50, main = paste("Number of days between detections for\n", spp))
@@ -56,8 +56,8 @@
     
     #'  Re-plot frequency of time-btwn-detections after removing extreme values
     short_tbd <- filter(tbd, DaysSinceLastDet <= quantile(tbd$DaysSinceLastDet, c(quant)))
-    hist(short_tbd$DaysSinceLastDet, breaks = 25, main = paste("Number of days between detections for\n", spp, "up to quantile =", quant))
-    boxplot(short_tbd$DaysSinceLastDet, ylab = "Days", main = paste("Number of days between detections for\n", spp, "up to quantile =", quant))
+    hist(short_tbd$DaysSinceLastDet, breaks = 25, main = paste("Number of days between detections for\n", spp, "up to quantile =", quant)); abline(v = 20, col = "red", lty = 2)
+    boxplot(short_tbd$DaysSinceLastDet, ylab = "Days", main = paste("Number of days between detections for\n", spp, "up to quantile =", quant)); abline(h = 20, col = "red", lty = 2)
     
     #'  Summary of observations with each predator species
     print("Total TBDs with each predator species")
@@ -66,8 +66,12 @@
     print("Total TBDs for each year")
     print(table(short_tbd$Year))
     
+    #'  Actually just remove any observations over 20 days long since don't expect most 
+    #'  cues from previous predator to still be detectable beyond then
+    tbd_20day_max <- filter(short_tbd, DaysSinceLastDet <= 20)
+    
     #'  Return dataset after removing extreme values
-    return(short_tbd)
+    return(tbd_20day_max)
   }
   bear_short <- tbd_summary(bear, spp = "bear", quant = 1.0) #0.99
   bob_short <- tbd_summary(bob, spp = "bob", quant = 1.0)
