@@ -34,7 +34,9 @@
   load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
   
   #'  Time between detections data
-  load("./Data/Time_btwn_Detections/TBD_all_predator_pairs_2023-05-22.RData")
+  # load("./Data/Time_btwn_Detections/TBD_all_predator_pairs_2023-05-22.RData")
+  load("./Data/Time_btwn_Detections/TBD_all_predator_pairs_prey_embedded_2023-05-22.RData")
+  
   
   #'  Load corrected species ID and update larger datasets
   newSppID <- read.csv("./Data/IDFG camera data/questionable_images_doublecheck_SBBupdated.csv") %>%
