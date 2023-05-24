@@ -4,7 +4,7 @@
   #'  Sarah Bassing
   #'  May 2023
   #'  ----------------------------------------
-  #'  Model sourced to Model_TBD_with_GLMMs.R
+  #'  Model sourced to Model_Time_btwn_Detections_v2.R
   #'  
   #'  Estimate mean number of minutes elapsed between sequential detections of
   #'  different predators and test whether relative abundance of elk/wtd influences TBD. 

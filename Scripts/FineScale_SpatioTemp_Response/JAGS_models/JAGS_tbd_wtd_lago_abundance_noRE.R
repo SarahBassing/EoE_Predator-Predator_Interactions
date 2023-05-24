@@ -38,13 +38,9 @@
       #'  Mean TBD at average prey RAI
       mu.tbd <- exp(alpha0 + beta.prey[1]*0 + beta.prey[2]*0)
       
-      #'  Mean TBD across range of wtd relative abundance values
+      #'  Mean TBD across range of wtd/lagomorphs relative abundance values
       for(i in 1:100){
         spp.tbd.wtd[i] <- exp(alpha0 + beta.prey[1]*newcovs[i,3] + beta.prey[2]*0)
-      }
-      
-      #'  Mean TBD across range of lagomorphs relative abundance values 
-      for(i in 1:100){
         spp.tbd.lago[i] <- exp(alpha0 + beta.prey[1]*0 + beta.prey[2]*newcovs[i,4])
       }
       
