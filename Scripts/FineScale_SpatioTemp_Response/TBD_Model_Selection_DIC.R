@@ -15,78 +15,82 @@
   library(AICcmodavg)
   library(tidyverse)
   
-  #'  Load model outputs and list
-  #'  Black bear models
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_intercept_only.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_detection.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_preydiversity.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_X_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_X_preyRAI.RData") # Not converging well, probably over-parameterized
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_global.RData")
-  #'  List for model selection
-  bear_tbd_list <- list(tbd.bear.null, tbd.bear.compID, tbd.bear.div, tbd.bear.preyabund, tbd.bear.compID.div, tbd.bear.compIDxdiv, tbd.bear.compID.preyabund, tbd.bear.global) #tbd.bear.compIDxpreyabund, 
-  bear_tbd_name <- c("tbd.bear.null", "tbd.bear.compID", "tbd.bear.div", "tbd.bear.preyabund", "tbd.bear.compID.div", "tbd.bear.compIDxdiv", "tbd.bear.compID.preyabund", "tbd.bear.global") #"tbd.bear.compIDxpreyabund", 
+  #'  -------------------------------
+  ####  COMPETITOR - FOCAL PREDATOR  ####
+  #'  -------------------------------
+  #'  Model selection for models estimating time between detections of two different predators
   
-  #'  Bobcat models
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_intercept_only.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_detection.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_preydiversity.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_X_preydiv.RData")  # Not converging well, probably over-parameterized
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_X_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_global.RData")                # Not converging well, probably over-parameterized
+  #####  Black bear models  ####
+  load("./Outputs/Time_btwn_Detections/tbd.bear_intercept_only.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bear_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bear_preydiversity.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bear_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bear_sppID_preydiv.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bear_sppID_X_preydiv.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bear_sppID_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bear_sppID_X_preyRAI.RData") # Converged poorly; over-parameterized
+  load("./Outputs/Time_btwn_Detections/tbd.bear_global.RData")          # Converged poorly; over-parameterized
   #'  List for model selection
-  bob_tbd_list <- list(tbd.bob.null, tbd.bob.compID, tbd.bob.div, tbd.bob.preyabund, tbd.bob.compID.div, tbd.bob.compID.preyabund, tbd.bob.compIDxpreyabund) # tbd.bob.compIDxdiv, tbd.bob.global 
-  bob_tbd_name <- c("tbd.bob.null", "tbd.bob.compID", "tbd.bob.div", "tbd.bob.preyabund", "tbd.bob.compID.div", "tbd.bob.compID.preyabund", "tbd.bob.compIDxpreyabund") # "tbd.bob.compIDxdiv", "tbd.bob.global" 
-    
-  #'  Coyote models
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_intercept_only.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_detection.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_preydiversity.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_X_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_X_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_global.RData")
-  #'  List for model selection
-  coy_tbd_list <- list(tbd.coy.null, tbd.coy.compID, tbd.coy.div, tbd.coy.preyabund, tbd.coy.compID.div, tbd.coy.compIDxdiv, tbd.coy.compID.preyabund, tbd.coy.compIDxpreyabund, tbd.coy.global) 
-  coy_tbd_name <- c("tbd.coy.null", "tbd.coy.compID", "tbd.coy.div", "tbd.coy.preyabund", "tbd.coy.compID.div", "tbd.coy.compIDxdiv", "tbd.coy.compID.preyabund", "tbd.coy.compIDxpreyabund", "tbd.coy.global") 
+  bear_tbd_list <- list(tbd.bear.null, tbd.bear.sppID, tbd.bear.div, tbd.bear.preyabund, tbd.bear.sppID.div, tbd.bear.sppIDxdiv, tbd.bear.sppID.preyabund) #tbd.bear.sppIDxpreyabund, tbd.bear.global
+  bear_tbd_name <- c("tbd.bear.null", "tbd.bear.sppID", "tbd.bear.div", "tbd.bear.preyabund", "tbd.bear.sppID.div", "tbd.bear.sppIDxdiv", "tbd.bear.sppID.preyabund") #"tbd.bear.sppIDxpreyabund", "tbd.bear.global"
   
-  #'  Mountain lion models
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_intercept_only.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_detection.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_preydiversity.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_X_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_preyRAI.RData")   
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_X_preyRAI.RData") # Not converging well, probably over-parameterized
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_global.RData")               # Not converging well, probably over-parameterized
+  #####  Bobcat models  ####
+  load("./Outputs/Time_btwn_Detections/tbd.bob_intercept_only.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bob_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bob_preydiversity.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bob_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bob_sppID_preydiv.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bob_sppID_X_preydiv.RData")  # Converged poorly; over-parameterized
+  load("./Outputs/Time_btwn_Detections/tbd.bob_sppID_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bob_sppID_X_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bob_global.RData")           # Converged poorly; over-parameterized
   #'  List for model selection
-  lion_tbd_list <- list(tbd.lion.null, tbd.lion.compID, tbd.lion.div, tbd.lion.preyabund, tbd.lion.compID.div, tbd.lion.compIDxdiv, tbd.lion.compID.preyabund)#, tbd.lion.compIDxpreyabund, tbd.lion.global) 
-  lion_tbd_name <- c("tbd.lion.null", "tbd.lion.compID", "tbd.lion.div", "tbd.lion.preyabund", "tbd.lion.compID.div", "tbd.lion.compIDxdiv", "tbd.lion.compID.preyabund")#, "tbd.lion.compIDxpreyabund", "tbd.lion.global") 
+  bob_tbd_list <- list(tbd.bob.null, tbd.bob.sppID, tbd.bob.div, tbd.bob.preyabund, tbd.bob.sppID.div, tbd.bob.sppID.preyabund, tbd.bob.sppIDxpreyabund) # tbd.bob.sppIDxdiv, tbd.bob.global 
+  bob_tbd_name <- c("tbd.bob.null", "tbd.bob.sppID", "tbd.bob.div", "tbd.bob.preyabund", "tbd.bob.sppID.div", "tbd.bob.sppID.preyabund", "tbd.bob.sppIDxpreyabund") # "tbd.bob.sppIDxdiv", "tbd.bob.global" 
     
-  #'  Wolf models
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_intercept_only.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_detection.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_preydiversity.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_X_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_X_preyRAI.RData") # Not converging well, probably over-parameterized
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_global.RData")               # Not converging well, probably over-parameterized
+  #####  Coyote models  ####
+  load("./Outputs/Time_btwn_Detections/tbd.coy_intercept_only.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_preydiversity.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_preydiv.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preydiv.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_global.RData")
   #'  List for model selection
-  wolf_tbd_list <- list(tbd.wolf.null, tbd.wolf.compID, tbd.wolf.div, tbd.wolf.preyabund, tbd.wolf.compID.div, tbd.wolf.compIDxdiv, tbd.wolf.compID.preyabund) #, tbd.wolf.compIDxpreyabund, tbd.wolf.global) 
-  wolf_tbd_name <- c("tbd.wolf.null", "tbd.wolf.compID", "tbd.wolf.div", "tbd.wolf.preyabund", "tbd.wolf.compID.div", "tbd.wolf.compIDxdiv", "tbd.wolf.compID.preyabund") #, "tbd.wolf.compIDxpreyabund", "tbd.wolf.global") 
+  coy_tbd_list <- list(tbd.coy.null, tbd.coy.sppID, tbd.coy.div, tbd.coy.preyabund, tbd.coy.sppID.div, tbd.coy.sppIDxdiv, tbd.coy.sppID.preyabund, tbd.coy.sppIDxpreyabund, tbd.coy.global) 
+  coy_tbd_name <- c("tbd.coy.null", "tbd.coy.sppID", "tbd.coy.div", "tbd.coy.preyabund", "tbd.coy.sppID.div", "tbd.coy.sppIDxdiv", "tbd.coy.sppID.preyabund", "tbd.coy.sppIDxpreyabund", "tbd.coy.global") 
+  
+  #####  Mountain lion models  ####
+  load("./Outputs/Time_btwn_Detections/tbd.lion_intercept_only.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.lion_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.lion_preydiversity.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.lion_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_preydiv.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_X_preydiv.RData") # Converged poorly; over-parameterized
+  load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_preyRAI.RData")   
+  load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_X_preyRAI.RData") # Converged poorly; over-parameterized
+  load("./Outputs/Time_btwn_Detections/tbd.lion_global.RData")          # Converged poorly; over-parameterized
+  #'  List for model selection
+  lion_tbd_list <- list(tbd.lion.null, tbd.lion.sppID, tbd.lion.div, tbd.lion.preyabund, tbd.lion.sppID.div, tbd.lion.sppID.preyabund) #tbd.lion.sppIDxdiv, tbd.lion.sppIDxpreyabund, tbd.lion.global) 
+  lion_tbd_name <- c("tbd.lion.null", "tbd.lion.sppID", "tbd.lion.div", "tbd.lion.preyabund", "tbd.lion.sppID.div", "tbd.lion.sppID.preyabund") #"tbd.lion.sppIDxdiv", "tbd.lion.sppIDxpreyabund", "tbd.lion.global") 
     
-  ####  Create model selection table using DIC, deltaDIC, and model weights  ####
+  #####  Wolf models  ####
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_intercept_only.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_preydiversity.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID_preydiv.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID_X_preydiv.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID_X_preyRAI.RData") # Converged poorly; over-parameterized
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_global.RData")          # Converged poorly; over-parameterized
+  #'  List for model selection
+  wolf_tbd_list <- list(tbd.wolf.null, tbd.wolf.sppID, tbd.wolf.div, tbd.wolf.preyabund, tbd.wolf.sppID.div, tbd.wolf.sppIDxdiv, tbd.wolf.sppID.preyabund) #, tbd.wolf.sppIDxpreyabund, tbd.wolf.global) 
+  wolf_tbd_name <- c("tbd.wolf.null", "tbd.wolf.sppID", "tbd.wolf.div", "tbd.wolf.preyabund", "tbd.wolf.sppID.div", "tbd.wolf.sppIDxdiv", "tbd.wolf.sppID.preyabund") #, "tbd.wolf.sppIDxpreyabund", "tbd.wolf.global") 
+    
+  #####  Model selection using DIC  ####
   (topmod_beartbd <- dictab(cand.set = bear_tbd_list, modnames = bear_tbd_name, sort = TRUE)) 
   (topmod_bobtbd <- dictab(cand.set = bob_tbd_list, modnames = bob_tbd_name, sort = TRUE)) 
   (topmod_coytbd <- dictab(cand.set = coy_tbd_list, modnames = coy_tbd_name, sort = TRUE)) 
@@ -95,6 +99,16 @@
   
   #'  Best supported model per species-pair
   (topmodels <- rbind(topmod_beartbd[1,], topmod_bobtbd[1,], topmod_coytbd[1,], topmod_liontbd[1,], topmod_wolftbd[1,]))
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   #'  Full table of models ranked by DIC for all species-pairs
   model_list_DIC <- rbind(topmod_beartbd, topmod_bobtbd, topmod_coytbd, topmod_liontbd, topmod_wolftbd) %>%
