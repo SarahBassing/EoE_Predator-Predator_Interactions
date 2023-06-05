@@ -35,9 +35,14 @@
            Year = as.numeric(format(posix_date_time, "%Y"))) %>%
     distinct() %>%
     dplyr::select(c("CamID", "NewLocationID", "File", "Location_Relative_Project", "posix_date_time", "Species", "NewSpecies", "Year"))
+  newnewSppID <- read.csv("./Data/IDFG camera data/more_questionable_IDs_ST_SBB.csv") %>%
+    mutate(posix_date_time = as.POSIXct(posix_date_time, format="%Y-%m-%d %H:%M", tz="UTC")) %>%
+    dplyr::select(-X) %>%
+    dplyr::select(c("CamID", "NewLocationID", "File", "Location_Relative_Project", "posix_date_time", "Species", "NewSpecies", "Year"))
+  newSppID <- rbind(newSppID, newnewSppID) %>% distinct() 
   #'  Filter by year and only observations with misidentified species
-  newSppID_20s <- filter(newSppID, Year == "2020") %>% dplyr::select(-Year) %>% filter(Species != NewSpecies)
-  newSppID_21s <- filter(newSppID, Year == "2021") %>% dplyr::select(-Year) %>% filter(Species != NewSpecies)
+  newSppID_20s <- filter(newSppID, Year == "2020") %>% dplyr::select(-Year) %>% filter(Species != NewSpecies) 
+  newSppID_21s <- filter(newSppID, Year == "2021") %>% dplyr::select(-Year) %>% filter(Species != NewSpecies) 
   #'  Snag unique ID for each image
   change_sppID_20s <- as.vector(newSppID_20s$Location_Relative_Project)
   change_sppID_21s <- as.vector(newSppID_21s$Location_Relative_Project)
