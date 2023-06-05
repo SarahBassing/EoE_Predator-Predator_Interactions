@@ -24,18 +24,25 @@
   library(rphylopic)
   
   #'  Load top models
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_X_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bear_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bob_sppID_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_preyRAI.RData")
   
-  #'  Load competitor models
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bear_competitor_detection.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.bob_competitor_detection.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.coy_competitor_detection.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.lion_competitor_detection.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.comp.wolf_competitor_detection.RData")
+  #'  Load competitor SppID models
+  load("./Outputs/Time_btwn_Detections/tbd.bear_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bob_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.lion_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID.RData")
+  
+  #'  Load prey - predator SppID models
+  load("./Outputs/Time_btwn_Detections/tbd.nontarget.bear_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.nontarget.bob_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.nontarget.coy_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.nontarget.lion_sppID.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.nontarget.wolf_sppID.RData")
   
   #'  Load bundled data, including new covariate data
   load("./Data/Time_btwn_Detections/bear_bundled.RData")
@@ -43,6 +50,12 @@
   load("./Data/Time_btwn_Detections/coy_bundled.RData")
   load("./Data/Time_btwn_Detections/lion_bundled.RData")
   load("./Data/Time_btwn_Detections/wolf_bundled.RData")
+  
+  load("./Data/Time_btwn_Detections/bear_bundled_nontarget.RData")
+  load("./Data/Time_btwn_Detections/bob_bundled_nontarget.RData")
+  load("./Data/Time_btwn_Detections/coy_bundled_nontarget.RData")
+  load("./Data/Time_btwn_Detections/lion_bundled_nontarget.RData")
+  load("./Data/Time_btwn_Detections/wolf_bundled_nontarget.RData")
   
   #'  ------------------------
   ####  Species silhouettes  ####
@@ -83,10 +96,7 @@
   bunnyurl <- "https://images.phylopic.org/images/f69eb95b-3d0d-491d-9a7f-acddd419afed/raster/925x1024.png?v=177f427b3d8.png"
   bunnyimg <- readPNG(getURLContent(bunnyurl), native = T)
   bunnygrid <- rasterGrob(bunnyimg, interpolate = TRUE)
-  
-  bear <- get_phylopic("369a7880-4798-41bf-851a-ec5da17fafa3")
-  
-  
+ 
   
   #'  ------------------
   ####  Format results  ####
@@ -108,10 +118,10 @@
              Parameter = ifelse(Parameter == "beta.prey1", paste("Prey RAI:", prey1), Parameter),
              Parameter = ifelse(Parameter == "beta.prey2", paste("Prey RAI:", prey2), Parameter),
              Parameter = ifelse(Parameter == "beta.prey3", paste("Prey RAI:", prey3), Parameter),
-             Parameter = ifelse(Parameter == "beta.competitor1", paste("Competitor:", comp1), Parameter), 
-             Parameter = ifelse(Parameter == "beta.competitor2", paste("Competitor:", comp2), Parameter), 
-             Parameter = ifelse(Parameter == "beta.competitor3", paste("Competitor:", comp3), Parameter), 
-             Parameter = ifelse(Parameter == "beta.competitor4", paste("Competitor:", comp4), Parameter),
+             Parameter = ifelse(Parameter == "beta.sppID1", paste("Competitor:", comp1), Parameter), 
+             Parameter = ifelse(Parameter == "beta.sppID2", paste("Competitor:", comp2), Parameter), 
+             Parameter = ifelse(Parameter == "beta.sppID3", paste("Competitor:", comp3), Parameter), 
+             Parameter = ifelse(Parameter == "beta.sppID4", paste("Competitor:", comp4), Parameter),
              Parameter = ifelse(Parameter == "spp.tbd1", paste("Mean TBD:", comp1), Parameter),
              Parameter = ifelse(Parameter == "spp.tbd2", paste("Mean TBD:", comp2), Parameter),
              Parameter = ifelse(Parameter == "spp.tbd3", paste("Mean TBD:", comp3), Parameter),
@@ -133,42 +143,42 @@
     return(renamed_out)
   }
   tbd.bear.out <- coefs(tbd.bear.preyabund, spp = "Black bear", prey1 = "Elk", prey2 = "White-tailed deer")
-  tbd.bob.out <- coefs(tbd.bob.compID.preyabund, spp = "Bobcat", prey1 = "White-tailed deer", prey2 = "Lagomorph", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Mountain lion", comp4 = "Wolf")
-  tbd.coy.out <- coefs(tbd.coy.compIDxpreyabund, spp = "Coyote", prey1 = "White-tailed deer", prey2 = "Lagomorph", comp1 = "Black bear", comp2 = "Bobcat", comp3 = "Mountain lion", comp4 = "Wolf")
-  tbd.lion.out <- coefs(tbd.lion.preyabund, spp = "Mountain lion", prey1 = "Elk", prey2 = "White-tailed deer")
+  tbd.bob.out <- coefs(tbd.bob.sppID.preyabund, spp = "Bobcat", prey1 = "White-tailed deer", prey2 = "Lagomorph", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Mountain lion", comp4 = "Wolf")
+  tbd.coy.out <- coefs(tbd.coy.sppIDxpreyabund, spp = "Coyote", prey1 = "White-tailed deer", prey2 = "Lagomorph", comp1 = "Black bear", comp2 = "Bobcat", comp3 = "Mountain lion", comp4 = "Wolf")
+  tbd.lion.out <- coefs(tbd.lion.sppID.preyabund, spp = "Mountain lion", prey1 = "Elk", prey2 = "White-tailed deer", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Bobcat", comp4 = "Wolf")
   tbd.wolf.out <- coefs(tbd.wolf.preyabund, spp = "Wolf", prey1 = "Elk", prey2 = "Moose", prey3 = "White-tailed deer")
   
-  tbd.bear.comp <- coefs(tbd.bear.compID, spp = "Black bear", comp1 = "Coyote", comp2 = "Bobcat", comp3 = "Mountain lion", comp4 = "Wolf")
-  tbd.bob.comp <- coefs(tbd.bob.compID, spp = "Bobcat", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Mountain lion", comp4 = "Wolf")
-  tbd.coy.comp <- coefs(tbd.coy.compID, spp = "Coyote", comp1 = "Black bear", comp2 = "Bobcat", comp3 = "Mountain lion", comp4 = "Wolf")
-  tbd.lion.comp <- coefs(tbd.lion.compID, spp = "Mountain lion", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Bobcat", comp4 = "Wolf")
-  tbd.wolf.comp <- coefs(tbd.wolf.compID, spp = "Wolf", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Bobcat", comp4 = "Mountain lion")
+  tbd.bear.comp <- coefs(tbd.bear.sppID, spp = "Black bear", comp1 = "Coyote", comp2 = "Bobcat", comp3 = "Mountain lion", comp4 = "Wolf")
+  tbd.bob.comp <- coefs(tbd.bob.sppID, spp = "Bobcat", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Mountain lion", comp4 = "Wolf")
+  tbd.coy.comp <- coefs(tbd.coy.sppID, spp = "Coyote", comp1 = "Black bear", comp2 = "Bobcat", comp3 = "Mountain lion", comp4 = "Wolf")
+  tbd.lion.comp <- coefs(tbd.lion.sppID, spp = "Mountain lion", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Bobcat", comp4 = "Wolf")
+  tbd.wolf.comp <- coefs(tbd.wolf.sppID, spp = "Wolf", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Bobcat", comp4 = "Mountain lion")
   
   #'  Pull out just coefficient estimates
   bear.coefs <- tbd.bear.out[1:3,]
   bob.coefs <- tbd.bob.out[1:6,]
   coy.coefs <- tbd.coy.out[1:12,]
-  lion.coefs <- tbd.lion.out[1:3,]
+  lion.coefs <- tbd.lion.out[1:6,]
   wolf.coefs <- tbd.wolf.out[1:4,]
   
   #'  Pull out mean TBD estimates
   bear.mean.tbd <- tbd.bear.out[4,1:6]
   bob.mean.tbd <- tbd.bob.out[7:11,1:6]
   coy.mean.tbd <- tbd.coy.out[13:17,1:6]
-  lion.mean.tbd <- tbd.lion.out[4,1:6]
+  lion.mean.tbd <- tbd.lion.out[7:11,1:6]
   wolf.mean.tbd <- tbd.wolf.out[5,1:6]
   
   bear.comp.tbd <- tbd.bear.comp[5:9,1:6]
   bob.comp.tbd <- tbd.bob.out[7:11,1:6] #tbd.bob.comp[5:9,1:6]
   coy.comp.tbd <- tbd.coy.out[13:17,1:6] #tbd.coy.comp[5:9,1:6]
-  lion.comp.tbd <- tbd.lion.comp[5:9,1:6]
+  lion.comp.tbd <- tbd.lion.out[7:11,1:6] #tbd.lion.comp[5:9,1:6]
   wolf.comp.tbd <- tbd.wolf.comp[5:9,1:6]
   
   #'  Pull out predicted TBD values
   bear.tbd.predictions <- tbd.bear.out[5:204,1:6]
   bob.tbd.predictions <- tbd.bob.out[12:811,1:6]
   coy.tbd.predictions <- tbd.coy.out[18:817,1:6]
-  lion.tbd.predictions <- tbd.lion.out[5:204,1:6]
+  lion.tbd.predictions <- tbd.lion.out[12:811,1:6]
   wolf.tbd.predictions <- tbd.wolf.out[6:305,1:6]
   
   
@@ -184,12 +194,16 @@
            Prey_species = str_extract(Prey_species, "[aA-zZ]+"),
            Obs_nmbr = as.numeric(str_extract(Parameter, "[0-9]+")),
            #'  If competitor ID had no effect, use reference category (coyote)
-           Competitor_ID = ifelse(Species == "Black bear" | Species == "Mountain lion" | Species == "Wolf", "Coyote", NA),
+           Competitor_ID = ifelse(Species == "Black bear" | Species == "Wolf", "Coyote", NA), #Species == "Mountain lion" | 
            #'  If competitor ID had an effect, assign correct species to each data chunk
            Competitor_ID = ifelse(Species == "Bobcat" & Obs_nmbr <101, "Coyote", Competitor_ID),
            Competitor_ID = ifelse(Species == "Bobcat" & Obs_nmbr >100, "Black bear", Competitor_ID),
            Competitor_ID = ifelse(Species == "Bobcat" & Obs_nmbr >200, "Mountain lion", Competitor_ID), 
            Competitor_ID = ifelse(Species == "Bobcat" & Obs_nmbr >300, "Wolf", Competitor_ID),
+           Competitor_ID = ifelse(Species == "Mountain lion" & Obs_nmbr <101, "Coyote", Competitor_ID),
+           Competitor_ID = ifelse(Species == "Mountain lion" & Obs_nmbr >100, "Black bear", Competitor_ID),
+           Competitor_ID = ifelse(Species == "Mountain lion" & Obs_nmbr >200, "Bobcat", Competitor_ID), 
+           Competitor_ID = ifelse(Species == "Mountain lion" & Obs_nmbr >300, "Wolf", Competitor_ID),
            Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr <101, "Black bear", Competitor_ID),
            Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr >100, "Bobcat", Competitor_ID),
            Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr >200, "Mountain lion", Competitor_ID), 
@@ -218,9 +232,9 @@
     as.data.frame() %>%
     mutate(prey_spp = rep(c("wtd", "lago"), each = 400)) %>%
     rename("cov" = ".")
-  lion.covs <- c(lion_bundled$newcovs[,1], lion_bundled$newcovs[,3]) %>%
+  lion.covs <- c(lion_bundled$newcovs[,1], lion_bundled$newcovs[,1], lion_bundled$newcovs[,1], lion_bundled$newcovs[,1], lion_bundled$newcovs[,3], lion_bundled$newcovs[,3], lion_bundled$newcovs[,3], lion_bundled$newcovs[,3]) %>%
     as.data.frame() %>%
-    mutate(prey_spp = rep(c("elk", "wtd"), each = 100)) %>%
+    mutate(prey_spp = rep(c("elk", "wtd"), each = 400)) %>%
     rename("cov" = ".")
   wolf.covs <- c(wolf_bundled$newcovs[,1], wolf_bundled$newcovs[,2], wolf_bundled$newcovs[,3]) %>%
     as.data.frame() %>%
@@ -243,16 +257,16 @@
     dplyr::select(-prey_spp) %>%
     filter(Prey_species == "elk") %>%
     mutate(Competitor_ID = "Any species")
-  bob.predicted <- filter(predicted.tbd, Species == "Bobcat") %>%
+  bob.predicted <- filter(predicted.tbd, Species == "Bobcat") %>%    #NEEDS TO BE UPDATED
     bind_cols(bob.covs) %>%
     dplyr::select(-prey_spp) %>%
     filter(Prey_species == "wtd")
-  coy.predicted <- filter(predicted.tbd, Species == "Coyote") %>%
+  coy.predicted <- filter(predicted.tbd, Species == "Coyote") %>%    #NEEDS TO BE UPDATED
     bind_cols(coy.covs) %>%
     dplyr::select(-prey_spp) %>%
     filter(Prey_species != "lago" | Competitor_ID != "Bobcat") %>%
     filter(Prey_species != "lago" | Competitor_ID != "Mountain lion")
-  lion.predicted <- filter(predicted.tbd, Species == "Mountain lion") %>%
+  lion.predicted <- filter(predicted.tbd, Species == "Mountain lion") %>%   #NEEDS TO BE UPDATED
     bind_cols(lion.covs) %>%
     dplyr::select(-prey_spp) %>%
     mutate(Competitor_ID = "Any species")
