@@ -18,7 +18,7 @@
   library(tidyverse)
   
   #'  Read in data
-  load("./Data/Time_btwn_Detections/TBD_all_spp-pred_pairs_2023-05-23.RData") 
+  load("./Data/Time_btwn_Detections/TBD_all_spp-pred_pairs_2023-06-05.RData") #TBD_all_spp-pred_pairs_2023-05-23
   
   #'  Covariates
   load("./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
@@ -73,33 +73,33 @@
     #'  Return dataset after removing extreme values
     return(short_tbd)
   }
-  bear_short <- tbd_summary(bear, spp = "bear", quant = 1.0) #0.99
-  bob_short <- tbd_summary(bob, spp = "bob", quant = 1.0)
-  coy_short <- tbd_summary(coy, spp = "coy", quant = 1.0)
+  bear_short <- tbd_summary(bear, spp = "bear", quant = 0.99) #0.99 for some species if 100% quantile > 20days
+  bob_short <- tbd_summary(bob, spp = "bob", quant = 0.99)
+  coy_short <- tbd_summary(coy, spp = "coy", quant = 0.99)
   lion_short <- tbd_summary(lion, spp = "lion", quant = 1.0)
   wolf_short <- tbd_summary(wolf, spp = "wolf", quant = 1.0)
   
   #'  List data sets with extreme values removed
   pred_tbd_short_list <- list(bear_short, bob_short, coy_short, lion_short, wolf_short)
   
-  #'  Filter to focal predator species and handful of non-target species for comparison
-  less_species <- function(tbd_dat) {
+  #'  Filter to focal predator species 
+  focal_species <- function(tbd_dat) {
     tbd_dat <- tbd_dat %>%
       filter(Previous_Spp == "bear_black" | Previous_Spp == "bobcat" | Previous_Spp == "coyote" | 
                Previous_Spp == "mountain_lion" | Previous_Spp == "wolf")
     return(tbd_dat)
   }
-  pred_tbd_short <- lapply(pred_tbd_short_list, less_species)
+  pred_tbd_short <- lapply(pred_tbd_short_list, focal_species)
   
   #'  Filter to focal predator species and handful of non-target species for comparison
-  less_species <- function(tbd_dat) {
+  nontarget_species <- function(tbd_dat) {
     tbd_dat <- tbd_dat %>%
       filter(Previous_Spp == "elk" | Previous_Spp == "moose" | Previous_Spp == "whitetaileddeer" | Previous_Spp == "rabbit_hare") %>% 
               #Previous_Spp == "human_motorized"Previous_Spp == "squirrel" | Previous_Spp == "turkey" | Previous_Spp == "muledeer" | 
       mutate(Previous_Spp = ifelse(Previous_Spp == "rabbit_hare", "lagomorph", Previous_Spp)) 
     return(tbd_dat)
   }
-  prey_pred_tbd_short <- lapply(pred_tbd_short_list, less_species)
+  prey_pred_tbd_short <- lapply(pred_tbd_short_list, nontarget_species)
   
   #' #'  Save for permutation test
   #' save(pred_tbd_short, file = paste0("./Data/Time_btwn_Detections/pred_tbd_short_", Sys.Date(), ".RData"))
