@@ -36,6 +36,12 @@
            Year = as.numeric(format(posix_date_time, "%Y"))) %>%
     distinct() %>%
     dplyr::select(c("CamID", "NewLocationID", "File", "Location_Relative_Project", "posix_date_time", "Species", "NewSpecies", "Year"))
+  newnewSppID <- read.csv("./Data/IDFG camera data/More questionable IDs_ST_SBB.csv") %>% 
+    mutate(posix_date_time = gsub("<a0>", " ", posix_date_time),
+           posix_date_time = as.POSIXct(posix_date_time, format="%Y-%m-%d %H:%M", tz="UTC"),
+           Year = as.numeric(format(posix_date_time, "%Y"))) %>%
+    dplyr::select(c("CamID", "NewLocationID", "File", "Location_Relative_Project", "posix_date_time", "Species", "NewSpecies", "Year"))
+  newSppID <- rbind(newSppID, newnewSppID) %>% distinct() 
   #'  Filter by year and only observations with misidentified species
   newSppID_20s <- filter(newSppID, Year == "2020") %>% dplyr::select(-Year) %>% filter(Species != NewSpecies)
   newSppID_21s <- filter(newSppID, Year == "2021") %>% dplyr::select(-Year) %>% filter(Species != NewSpecies)
@@ -237,15 +243,10 @@
   #'  ------------------------------------------
   #####  1) Remove instances of known species miss-classification  #####
   #'  List all uniqueIDs of observations that need to be removed in a giant vector
-  #'  CURRENT LIST is just to make my life easier for now - pretty sure these are incorrect
+  #'  CURRENT LIST is just to make my life easier for now - these are incorrect
   #'  species classifications that need to be corrected. Once corrected I can revert to rm_20s <- c(NA)
-  rm_20s <- c("GMU6_P_14_2020-08-28 08:56:54_coyote_first", "GMU6_P_14_2020-08-28 08:56:55_bear_black_first",
-              "GMU6_P_14_2020-08-28 08:56:55_bear_black_last", "GMU6_P_14_2020-08-28 08:56:59_bear_black_first", 
-              "GMU6_P_14_2020-08-28 08:56:59_bear_black_last", "GMU6_P_14_2020-08-28 08:57:02_bear_black_first",
-              "GMU6_P_14_2020-08-28 08:58:27_bear_black_last", "GMU6_P_14_2020-08-28 08:58:35_coyote_last", 
-              "GMU6_P_14_2020-08-28 08:59:14_bear_black_first", "GMU6_P_14_2020-08-28 09:00:02_bear_black_last",
-              "GMU10A_P_89_2020-08-22 00:32:19_coyote_last", "GMU10A_P_89_2020-08-22 00:32:20_bobcat_last",
-              "GMU10A_P_89_2020-08-22 00:32:20_bobcat_first", "GMU10A_P_89_2020-08-22 10:04:19_coyote_first")
+  # rm_20s <- c("GMU6_P_14_2020-08-28 08:58:35_coyote_last", "GMU6_P_14_2020-08-28 09:00:02_bear_black_last")
+  rm_20s <- c(NA)
   rm_21s <- c(NA)
   
   #'  Function to remove specific observations that screw up the last-first detection order
