@@ -56,6 +56,6 @@
       
       #'  Mean TBD
       #'  Note: this overlooks unequal sample sizes contributing to each spp.tbd
-      # mu.tbd <- mean(spp.tbd[])
+      mu.tbd <- mean(spp.tbd[])
       
       } ")
