@@ -463,7 +463,6 @@
     labs(fill = "First - Second Predator")
   plot(pred_pair_box)
   
-  
   #'  Focal species boxplots
   bear_response <- tbd_spp_pairs_all[tbd_spp_pairs_all$Focal_predator == "bear_black",] %>%
     ggplot(aes(x = Species_pair, y=HoursSinceLastDet, fill=Species_pair)) +
@@ -506,4 +505,13 @@
   coy_response
   lion_response
   wolf_response
+  
+  #'  Table of non-target mean tbd
+  lago <- filter(avg_tbd, grepl("rabbit_hare", Species_pair))
+  elk <- filter(avg_tbd, grepl("elk", Species_pair))
+  moose <- filter(avg_tbd, grepl("moose", Species_pair))
+  wtd <- filter(avg_tbd, grepl("whitetaileddeer", Species_pair))
+  nt_pairs <- rbind(lago, elk, moose, wtd) %>%
+    mutate(Species_pair = gsub("_", " ", Species_pair)) %>%
+    arrange(Species_pair)
   
