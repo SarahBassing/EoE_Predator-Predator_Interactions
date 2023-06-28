@@ -102,7 +102,7 @@ cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_
             #'  Mmmk don't freak out over this section!
             #'  Example 1: when only Spp1 is observed and only Spp1 is truly 
             #'  present, the detection probability is rhoSpp1.
-            #'  Example 2: when only Spp1 is observed by in reality Spp1 & Spp2
+            #'  Example 2: when only Spp1 is observed but in reality Spp1 & Spp2
             #'  are truly present, the detection probability is rhoSpp12
             #'  True state = unoccupied (z = 1 --> 00)
             rdm[i, j, 1, 1] <- 1 # ------------------------------------ OS = unoccupied
