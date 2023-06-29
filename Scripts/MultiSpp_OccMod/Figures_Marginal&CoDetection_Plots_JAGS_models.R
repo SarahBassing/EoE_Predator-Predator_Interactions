@@ -207,11 +207,11 @@
   
   save.image(file = paste0("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_rho-cov_relationships_", Sys.Date(), ".RData"))
   
-  load("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_rho-cov_relationships_2023-06-29.RData")
-  
   #'  --------------------------------
   ####  Plot marginal Pr(detection)  ####
   #'  --------------------------------
+  load("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_rho-cov_relationships_2023-06-29.RData")
+  
   #'  Color-blind friendly color palette from Khroma
   plot_scheme(colour("sunset")(11))
   colour("sunset")(11)
