@@ -439,7 +439,7 @@
   #'  Function to reformat data for easier use with ggplot2 and plot marginal occupancy
   plot_conditional_occ <- function(predicted, spp1, spp2, x, covname, setup, spppair) {
     #'  Reformat data for ggplot
-    #'  Snag marginal occupancy for each species, convert from wide to long format, 
+    #'  Snag conditional occupancy for each species, convert from wide to long format, 
     #'  and assign species name
     condish.occ <- as.data.frame(predicted[[2]][,,"mean"]) %>%
       pivot_longer(cols = c(Spp1.alone, Spp1.given.Spp2, Spp2.alone, Spp2.given.Spp1), 
@@ -469,7 +469,7 @@
     predicted.conditional.occ <- cbind(condish.occ, lower.condish[,2], upper.condish[,2], covs, scaled.covs)
     names(predicted.conditional.occ) <- c("Species", "Species_interaction", "conditional_occ", "lowerCRI", "upperCRI", "covs", "scaled_covs")
     
-    #'  Plot species-specific marginal occupancy probabilities & 95% CRI
+    #'  Plot species-specific conditional occupancy probabilities & 95% CRI
     condish_occ_plot <- ggplot(predicted.conditional.occ, aes(x = covs, y = conditional_occ, group = Species_interaction)) + 
       geom_line(aes(color = Species_interaction), lwd = 1.25) + 
       scale_color_manual(values = four_colors, labels = c(paste(spp1, "absent"), paste(spp1, "present"), paste(spp2, "absent"), paste(spp2, "present"))) + 
@@ -537,75 +537,75 @@
   #'  -----------------------------
   #'  Marginal occupancy probabilities
   #'  Wolf-bear
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_ung_marginal_plots.tiff", wolf.bear.marg.plots[[1]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_ung_marginal_occ_plots.tiff", wolf.bear.marg.plots[[1]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_pred_marginal_plots.tiff", wolf.bear.marg.plots[[2]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_pred_marginal_occ_plots.tiff", wolf.bear.marg.plots[[2]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_ung_marginal_plots.tiff", wolf.bear.marg.plots[[3]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_ung_marginal_occ_plots.tiff", wolf.bear.marg.plots[[3]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_pred_marginal_plots.tiff", wolf.bear.marg.plots[[4]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_pred_marginal_occ_plots.tiff", wolf.bear.marg.plots[[4]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_div_ung_marginal_plots.tiff", wolf.bear.marg.plots[[5]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_div_ung_marginal_occ_plots.tiff", wolf.bear.marg.plots[[5]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_div_pred_marginal_plots.tiff", wolf.bear.marg.plots[[6]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_div_pred_marginal_occ_plots.tiff", wolf.bear.marg.plots[[6]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   #'  Wolf-coyote
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_ung_marginal_plots.tiff", wolf.coy.marg.plots[[1]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_ung_marginal_occ_plots.tiff", wolf.coy.marg.plots[[1]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_pred_marginal_plots.tiff", wolf.coy.marg.plots[[2]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_pred_marginal_occ_plots.tiff", wolf.coy.marg.plots[[2]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_ung_marginal_plots.tiff", wolf.coy.marg.plots[[3]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_ung_marginal_occ_plots.tiff", wolf.coy.marg.plots[[3]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_pred_marginal_plots.tiff", wolf.coy.marg.plots[[4]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_pred_marginal_occ_plots.tiff", wolf.coy.marg.plots[[4]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   #'  Coyote-bobcat
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_elev_ung_marginal_plots.tiff", coy.bob.marg.plots[[1]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_elev_ung_marginal_occ_plots.tiff", coy.bob.marg.plots[[1]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_elev_pred_marginal_plots.tiff", coy.bob.marg.plots[[2]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_elev_pred_marginal_occ_plots.tiff", coy.bob.marg.plots[[2]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_for_ung_marginal_plots.tiff", coy.bob.marg.plots[[3]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_for_ung_marginal_occ_plots.tiff", coy.bob.marg.plots[[3]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_for_pred_marginal_plots.tiff", coy.bob.marg.plots[[4]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_for_pred_marginal_occ_plots.tiff", coy.bob.marg.plots[[4]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   #'  Combined by covariate
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_elevation_plot.tiff", marginal_elev_plot, 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_elevation_plot.tiff", marginal_elev_plot, 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_forestcov_plot.tiff", marginal_for_plot, 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_forestcov_plot.tiff", marginal_for_plot, 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_preydiversity_plot.tiff", marginal_dif_plot, 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_preydiversity_plot.tiff", marginal_dif_plot, 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   
   #' #'  Conditional occupancy probabilities
   #' #'  Wolf-bear  
-  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_ung_conditional_plots.tiff", wolf.bear.condish.plots[[1]],
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_ung_conditional_occ_plots.tiff", wolf.bear.condish.plots[[1]],
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_pred_conditional_plots.tiff", wolf.bear.condish.plots[[2]],
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_elev_pred_conditional_occ_plots.tiff", wolf.bear.condish.plots[[2]],
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_ung_conditional_plots.tiff", wolf.bear.condish.plots[[3]],
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_ung_conditional_occ_plots.tiff", wolf.bear.condish.plots[[3]],
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_pred_conditional_plots.tiff", wolf.bear.condish.plots[[4]],
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-bear_for_pred_conditional_occ_plots.tiff", wolf.bear.condish.plots[[4]],
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   #' #'  Wolf-coyote 
-  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_ung_conditional_plots.tiff", wolf.coy.condish.plots[[1]], 
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_ung_conditional_occ_plots.tiff", wolf.coy.condish.plots[[1]], 
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_pred_conditional_plots.tiff", wolf.coy.condish.plots[[2]], 
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_elev_pred_conditional_occ_plots.tiff", wolf.coy.condish.plots[[2]], 
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_ung_conditional_plots.tiff", wolf.coy.condish.plots[[3]], 
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_ung_conditional_occ_plots.tiff", wolf.coy.condish.plots[[3]], 
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_pred_conditional_plots.tiff", wolf.coy.condish.plots[[4]], 
+  #' ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/wolf-coy_for_pred_conditional_occ_plots.tiff", wolf.coy.condish.plots[[4]], 
   #'        units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   #'  Coyote-bobcat 
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_wtd_ung_conditional_plots.tiff", coy.bob.condish.plots[[5]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_wtd_ung_conditional_occ_plots.tiff", coy.bob.condish.plots[[5]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_wtd_pred_conditional_plots.tiff", coy.bob.condish.plots[[6]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_wtd_pred_conditional_occ_plots.tiff", coy.bob.condish.plots[[6]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_lago_ung_conditional_plots.tiff", coy.bob.condish.plots[[7]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_lago_ung_conditional_occ_plots.tiff", coy.bob.condish.plots[[7]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_lago_pred_conditional_plots.tiff", coy.bob.condish.plots[[8]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_lago_pred_conditional_occ_plots.tiff", coy.bob.condish.plots[[8]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_div_ung_conditional_plots.tiff", coy.bob.condish.plots[[9]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_div_ung_conditional_occ_plots.tiff", coy.bob.condish.plots[[9]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_div_pred_conditional_plots.tiff", coy.bob.condish.plots[[10]], 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_div_pred_conditional_occ_plots.tiff", coy.bob.condish.plots[[10]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
