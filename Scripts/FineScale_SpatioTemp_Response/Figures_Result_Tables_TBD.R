@@ -421,18 +421,24 @@
     ggtitle("Effect of recent competitor detection on latency of site use")
   competitorID_plot
   
+  wolf_coy_signif <- data.frame(Species = "Coyote", Previous_Species = "Wolf", Estimate = 2400, lab = "*")
+  lion_bob_signif <- data.frame(Species = "Bobcat", Previous_Species = "Mountain lion", Estimate = 6000, lab = "*")
+  bear_lion_signif <- data.frame(Species = "Mountain lion", Previous_Species = "Black bear", Estimate = 12000, lab = "*")
+  tbd_signif <- rbind(wolf_coy_signif, lion_bob_signif, bear_lion_signif)
+  
   competitorID_and_meanprey_plot <- ggplot(tbd_meanPrey_and_competitorID, aes(x = Previous_Species, y = (Estimate/60), group = Species)) +
     geom_errorbar(aes(ymin = (lci/60), ymax = (uci/60), color = Previous_Species), width = 0, position = position_dodge(width = 0.4)) +
     geom_point(stat = "identity", aes(col = Previous_Species), size = 2.5, position = position_dodge(width = 0.4)) +
     theme_bw() +
     scale_color_manual(values = any.bear.bob.coy.lion.wolf_colors) +
     guides(color = guide_legend(title = "Previously detected species")) +
-    facet_wrap(~Species, scales = "free_y") + #, scales = "free_y"
+    facet_wrap(~Species, scales = "free_y") + 
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
     theme(legend.position = c(1, 0), legend.justification = c(1, 0)) +
     xlab("Previously detected species") +
     ylab("Mean number of hours between detections") +
-    ggtitle("Effect of recent competitor or average prey detection on latency of site use")
+    ggtitle("Effect of recent competitor or average prey detection on latency of site use") +
+    geom_text(data = tbd_signif, label = "*", size = 12)
   competitorID_and_meanprey_plot
   
   competitorID_and_preyID_plot <- ggplot(tbd_by_PreyID_and_competitorID, aes(x = Previous_Species, y = (Estimate/60), group = Species)) +
