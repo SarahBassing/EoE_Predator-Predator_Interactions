@@ -454,7 +454,7 @@
   wolf.lion.coy.bob_colors <- c("#364B9A", "#98CAE1", "#FDB366", "#A50026")
   
   #'  Plot all conditional detection probabilities covariate together
-  plot_all_condish_det <- function(predicted, x, covname, ncolor) {
+  plot_all_condish_det <- function(predicted, x, ncolor) {
     cond_det_plot <- ggplot(predicted, aes(x = Detection, y = conditional_det, group = Species)) + 
       geom_errorbar(aes(ymin = lowerCRI, ymax = upperCRI, color = Species), width = 0, position = position_dodge(width = 0.4)) +
       scale_color_manual(values = four_colors) + 
@@ -467,9 +467,9 @@
       ylim(0,1.0) +
       #'  Use list name as X-axis title
       xlab(x) +
-      ylab("Conditional detection probability, trail sites") +
-      labs(title = paste("Species-specific detection probability conditional on", covname), 
-           fill = "Species", color = "Species") +
+      ylab("Conditional probability of detection (trail sites)") +
+      labs(title = "Species-specific detection probability, conditional on prior detection of competitor", 
+           fill = "Species detected following competitor detection", color = "Species detected following competitor detection") +
       facet_wrap(~Species_pair, scales = "free_y") +
       coord_cartesian(ylim = c(0, 0.70)) +
       theme(legend.position="bottom")
@@ -478,8 +478,65 @@
     
     return(cond_det_plot)
   }
-  condish_plot <- plot_all_condish_det(predicted = conditional_det, x = "Competitor detection", covname = "competitor detection", ncolor = wolf.lion.coy.bob_colors)
+  condish_plot <- plot_all_condish_det(predicted = conditional_det, x = "Whether competitor was detected at same site", 
+                                       ncolor = wolf.lion.coy.bob_colors)
   
+  #'  Plot each species separately while keeping pairings together
+  cond_coybob_plot <- ggplot(conditional_det[conditional_det$Species_pair == "Coyote - Bobcat",], aes(x = Detection, y = conditional_det, group = Species)) + 
+    geom_errorbar(aes(ymin = lowerCRI, ymax = upperCRI, color = Species), width = 0, position = position_dodge(width = 0.4)) +
+    scale_color_manual(values = wolf.lion.coy.bob_colors) + 
+    geom_point(stat = 'identity', aes(col = Species), size = 2.5, position = position_dodge(width = 0.4)) +   
+    #'  Get rid of lines and gray background
+    theme_bw() +
+    theme(panel.border = element_blank()) +
+    theme(axis.line = element_line(color = 'black')) +
+    #'  Force y-axis from 0 to 1
+    ylim(0,1.0) +
+    #'  Use list name as X-axis title
+    xlab("") +
+    ylab("Conditional probability of detection (trail sites)") +
+    facet_wrap(~Species, ncol = 1, scales = "free_y") +
+    coord_cartesian(ylim = c(0, 0.70)) +
+    #theme(strip.text = element_text(face = "bold", color = "black", hjust = 0, size = 12)) +
+    theme(legend.position="none")
+  cond_coybob_plot
+  
+  cond_apexmeso_plot <- ggplot(conditional_det[conditional_det$Species_pair != "Coyote - Bobcat",], aes(x = Detection, y = conditional_det, group = Species)) + 
+      geom_errorbar(aes(ymin = lowerCRI, ymax = upperCRI, color = Species), width = 0, position = position_dodge(width = 0.4)) +
+      scale_color_manual(values = four_colors) + 
+      geom_point(stat = 'identity', aes(col = Species), size = 2.5, position = position_dodge(width = 0.4)) +   
+      #'  Get rid of lines and gray background
+      theme_bw() +
+      theme(panel.border = element_blank()) +
+      theme(axis.line = element_line(color = 'black')) +
+      theme(axis.title.y = element_blank()) +
+      #'  Force y-axis from 0 to 1
+      ylim(0,1.0) +
+      #'  Use list name as X-axis title
+      xlab("") +
+      labs(fill = "Species detected after competitor detection", color = "Species detected after competitor detection") +
+      facet_wrap(~Species, ncol = 2, scales = "free_y") +
+      coord_cartesian(ylim = c(0, 0.70)) +
+      #theme(strip.text = element_text(face = "bold", color = "black", hjust = 0, size = 12)) +
+      theme(legend.position = "bottom") 
+  cond_apexmeso_plot
+  
+  #'  remove legend from coy-bob plot
+  coybob_guide <- cond_coybob_plot + guides(colour = "none")
+  
+  #'  Merge coybob and apexmeso plots into single figure
+  condish_det_patchwork <- coybob_guide + cond_apexmeso_plot +
+    plot_layout(widths = c(1,2)) + plot_annotation(title = 'Species-specific detection probability conditional on prior detection of competitor') +
+    plot_layout(guides = "collect") & theme(legend.position = "bottom")
+
+  #'  Add a single unifying xaxis title to bottom of plot
+  condish_det_patchwork <- wrap_elements(panel = condish_det_patchwork) +
+    labs(tag = "Whether competitor was detected at same site") +
+    theme(
+      plot.tag = element_text(size = rel(1)),
+      plot.tag.position = c(0.5, 0.10) #"bottom" # note: providing coordinates for tag position makes things a bit complicated when saving
+    )
+  condish_det_patchwork
   
   #'  -----------------------------
   ####  Save all the pretty plots  ####
@@ -525,6 +582,8 @@
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/all_signif_pairs_mean_pred_conditional_det_plots.tiff", condish_plot, 
          units = "in", width = 8, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/all_signif_pairs_mean_pred_conditional_det_plots_v2.tiff", condish_det_patchwork, 
+         units = "in", width = 8, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
   
