@@ -525,9 +525,6 @@
     theme(legend.position = "none") +
     xlab("Lagomorph relative abundance (scaled)") +
     ylab("Mean number of hours between detections") +
-    #ggtitle("Effect of recent competitor detection and lagomorph abundance on latency of site use") +
-    # guides(color = guide_legend(title = "Previously detected\ncompetitor"),
-    #        fill = guide_legend(title = "Previously detected\ncompetitor")) +
     facet_wrap(~Species, ncol = 1, scale = "free_y") +
     inset_element(p = bunnyimg, left = 0.80, bottom = 0.88, right = 0.95, top = 0.98) +
     theme(rect = element_rect(fill = "transparent", linetype = "blank")) + 
@@ -546,7 +543,6 @@
     xlab("Relative abundance of elk (scaled)") +
     ylab("Mean number of hours between detections") +
     ggtitle("Effect of recent competitor detection and elk abundance on latency of site use") +
-    # theme(legend.position = "none") +
     guides(color = guide_legend(title = "Previously detected\ncompetitor"),
            fill = guide_legend(title = "Previously detected\ncompetitor")) +
     facet_wrap(~Species, scale = "free_x")
