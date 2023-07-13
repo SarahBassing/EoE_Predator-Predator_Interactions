@@ -248,7 +248,29 @@
   
   save.image(file = paste0("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_psi-cov_relationships_", Sys.Date(), ".RData"))
   
-    
+  
+  #'  Explore influence of different WTD RAI values on predicted coyote-bobcat 
+  #'  responses to lagomorph RAI
+  #'  WTD RAI values range 0 - 16 deer hours/day, mean = 0.3067603 and sd = 0.5986775
+  #'  Low wtd RAI = 0 deer hr/day, scaled value = -0.5123966
+  #'  Medium wtd RAI = 2 deer hr/day, scaled value = 2.8283 
+  #'  High wtd RAI = 6 deer hr/day, scaled value = 9.509694 ---> "high" RAI because anything higher and coy conditional occ is 1.0 given magnitude of wtd coefficient
+  coy.bob.lago.pred.yr1_lowwtd <- predict_occupancy(mod = coy.bob.global, ncat = 4, npoints = 500,
+                                                   focal_cov = stations_skinny_eoe20s21s$Nlagomorph,
+                                                   psi_cov = c(1, 1, 0, 0, 0, -0.5123966, 0, 0), psi_cov_index = 7,
+                                                   psi_inxs_cov = c(1, 1, -0.5123966, 0, 0), psi_inxs_cov_index = 4)
+  coy.bob.lago.pred.yr1_medwtd <- predict_occupancy(mod = coy.bob.global, ncat = 4, npoints = 500,
+                                             focal_cov = stations_skinny_eoe20s21s$Nlagomorph,
+                                             psi_cov = c(1, 1, 0, 0, 0, 2.8283, 0, 0), psi_cov_index = 7,
+                                             psi_inxs_cov = c(1, 1, 2.8283, 0, 0), psi_inxs_cov_index = 4)
+  coy.bob.lago.pred.yr1_hiwtd <- predict_occupancy(mod = coy.bob.global, ncat = 4, npoints = 500,
+                                                   focal_cov = stations_skinny_eoe20s21s$Nlagomorph,
+                                                   psi_cov = c(1, 1, 0, 0, 0, 9.509694, 0, 0), psi_cov_index = 7,
+                                                   psi_inxs_cov = c(1, 1, 9.509694, 0, 0), psi_inxs_cov_index = 4)
+  
+  coy.bob.lago.pred.yr1_LowHiWTD <-  list(coy.bob.lago.pred.yr1_lowwtd, coy.bob.lago.pred.yr1_medwtd, coy.bob.lago.pred.yr1_hiwtd)
+  save(coy.bob.lago.pred.yr1_LowHiWTD, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_psi-cov_coy-bob-lago_LowHiWTD_", Sys.Date(), ".RData"))
+
   #'  --------------------------------
   ####  Plot marginal Pr(occupancy)  ####
   #'  --------------------------------
@@ -532,6 +554,13 @@
   coy.bob.condish.plots <- list(coy.bob.condish.elev.ung, coy.bob.condish.elev.pred, coy.bob.condish.for.ung, coy.bob.condish.for.pred, coy.bob.condish.wtd.ung, coy.bob.condish.wtd.pred, 
                                 coy.bob.condish.lago.ung, coy.bob.condish.lago.pred, coy.bob.condish.div.ung, coy.bob.condish.div.pred)
   
+  #'  Effect of low and high WTD RAI values on coyote-bobcat conditional occupancy 
+  #'  with increasing lagomorph activity
+  load("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_psi-cov_coy-bob-lago_LowHiWTD_2023-07-13.RData")
+  coy.bob.condish.lago.pred.lowWTD <- plot_conditional_occ(predicted = coy.bob.lago.pred.yr1_LowHiWTD[[1]], spp1 = "Coyote", spp2 = "Bobcat", x = "Lagomorph relative abundance (RAI)", covname = "lagomorph relative abundance", setup = "random sites, low WTD RAI", spppair = "Coyote - Bobcat")
+  coy.bob.condish.lago.pred.medWTD <- plot_conditional_occ(predicted = coy.bob.lago.pred.yr1_LowHiWTD[[2]], spp1 = "Coyote", spp2 = "Bobcat", x = "Lagomorph relative abundance (RAI) ", covname = "lagomorph relative abundance", setup = "trail sites, medium WTD RAI", spppair = "Coyote - Bobcat")
+  coy.bob.condish.lago.pred.hiWTD <- plot_conditional_occ(predicted = coy.bob.lago.pred.yr1_LowHiWTD[[3]], spp1 = "Coyote", spp2 = "Bobcat", x = "Lagomorph relative abundance (RAI) ", covname = "lagomorph relative abundance", setup = "trail sites, high WTD RAI", spppair = "Coyote - Bobcat")
+  
   
   #'  -----------------------------
   ####  Save all the pretty plots  ####
@@ -607,6 +636,13 @@
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_div_ung_conditional_occ_plots.tiff", coy.bob.condish.plots[[9]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_div_pred_conditional_occ_plots.tiff", coy.bob.condish.plots[[10]], 
+         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_lago_pred_conditional_occ_plots_wtd0.tiff", coy.bob.condish.lago.pred.lowWTD, 
+         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_lago_pred_conditional_occ_plots_wtd2.tiff", coy.bob.condish.lago.pred.medWTD, 
+         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/coy-bob_lago_pred_conditional_occ_plots_wtd6.tiff", coy.bob.condish.lago.pred.hiWTD, 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
