@@ -445,16 +445,28 @@
     
     return(marg_occ_plot)
   }
-  marginal_elev_plot <- plot_margingal_occ_by_cov(marginal_elev[marginal_elev$Setup == "Trail sites",], x = "Elevation (m)", ylab = "Marginal occupancy probability", plottitle = "", ncolor = wolf.bear_colors)
-  marginal_for_plot <- plot_margingal_occ_by_cov(marginal_for[marginal_for$Setup == "Trail sites",], x = "Percent forest cover", ylab = "", plottitle = "", ncolor = wolf.bear.coy.bob_colors)
-  marginal_dif_plot <- plot_margingal_occ_by_cov(marginal_div[marginal_div$Setup == "Trail sites",], x = "Shannon's diversity index (H)", ylab = "", plottitle = "", ncolor = bear_colors)
+  marginal_elev_pred_plot <- plot_margingal_occ_by_cov(marginal_elev[marginal_elev$Setup == "Trail sites",], x = "Elevation (m)", ylab = "Marginal occupancy probability", plottitle = "", ncolor = wolf.bear_colors)
+  marginal_for_pred_plot <- plot_margingal_occ_by_cov(marginal_for[marginal_for$Setup == "Trail sites",], x = "Percent forest cover", ylab = "", plottitle = "", ncolor = wolf.bear.coy.bob_colors)
+  marginal_dif_pred_plot <- plot_margingal_occ_by_cov(marginal_div[marginal_div$Setup == "Trail sites",], x = "Shannon's diversity index (H)", ylab = "", plottitle = "", ncolor = bear_colors)
+  
+  marginal_elev_ung_plot <- plot_margingal_occ_by_cov(marginal_elev[marginal_elev$Setup == "Random sites",], x = "Elevation (m)", ylab = "Marginal occupancy probability", plottitle = "", ncolor = wolf.bear_colors)
+  marginal_for_ung_plot <- plot_margingal_occ_by_cov(marginal_for[marginal_for$Setup == "Random sites",], x = "Percent forest cover", ylab = "", plottitle = "", ncolor = wolf.bear.coy.bob_colors)
+  marginal_dif_ung_plot <- plot_margingal_occ_by_cov(marginal_div[marginal_div$Setup == "Random sites",], x = "Shannon's diversity index (H)", ylab = "", plottitle = "", ncolor = bear_colors)
+  
   
   #'  remove legend from for and dif plots
-  elev_guide <- marginal_elev_plot + guides(colour = "none", fill = "none")
-  dif_guide <- marginal_dif_plot + guides(colour = "none", fill = "none")
+  elev_pred_guide <- marginal_elev_pred_plot + guides(colour = "none", fill = "none")
+  dif_pred_guide <- marginal_dif_pred_plot + guides(colour = "none", fill = "none")
+  elev_ung_guide <- marginal_elev_ung_plot + guides(colour = "none", fill = "none")
+  dif_ung_guide <- marginal_dif_ung_plot + guides(colour = "none", fill = "none")
   
-  marginal_patchwork <- elev_guide + marginal_for_plot + dif_guide + 
+  marginal_pred_patchwork <- elev_pred_guide + marginal_for_pred_plot + dif_pred_guide + 
     plot_annotation(title = "Species-specific marginal occupancy across elevation, percent forest cover, and prey diveristy gradients") +
+    plot_annotation(tag_levels = 'a') + 
+    plot_layout(guides = "collect") & theme(legend.position = "bottom")
+  marginal_ung_patchwork <- elev_ung_guide + marginal_for_ung_plot + dif_ung_guide + 
+    plot_annotation(title = "Species-specific marginal occupancy across elevation, percent forest cover, and prey diveristy gradients") +
+    plot_annotation(tag_levels = 'a') + 
     plot_layout(guides = "collect") & theme(legend.position = "bottom")
   
   
@@ -612,7 +624,9 @@
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_preydiversity_plot.tiff", marginal_dif_plot, 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_allcov_trailsites_plot.tiff", marginal_patchwork, 
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_allcov_trailsites_plot.tiff", marginal_pred_patchwork, 
+         units = "in", width = 9, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_allcov_randsites_plot.tiff", marginal_ung_patchwork, 
          units = "in", width = 9, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
