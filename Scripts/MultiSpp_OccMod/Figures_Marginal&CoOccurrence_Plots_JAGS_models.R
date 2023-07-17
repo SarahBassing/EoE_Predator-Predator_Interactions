@@ -445,9 +445,11 @@
     
     return(marg_occ_plot)
   }
-  marginal_elev_plot <- plot_margingal_occ_by_cov(marginal_elev, x = "Elevation (m)", covname = "across elevation", ncolor = wolf.bear_colors)
-  marginal_for_plot <- plot_margingal_occ_by_cov(marginal_for, x = "Percent forest cover", covname = "across percent forest cover", ncolor = wolf.bear.coy.bob_colors)
-  marginal_dif_plot <- plot_margingal_occ_by_cov(marginal_div, x = "Shannon's diversity index (H)", covname = "and prey diversity", ncolor = bear_colors)
+  marginal_elev_plot <- plot_margingal_occ_by_cov(marginal_elev[marginal_elev$Setup == "Trail sites",], x = "Elevation (m)", covname = "across elevation", ncolor = wolf.bear_colors)
+  marginal_for_plot <- plot_margingal_occ_by_cov(marginal_for[marginal_for$Setup == "Trail sites",], x = "Percent forest cover", covname = "across percent forest cover", ncolor = wolf.bear.coy.bob_colors)
+  marginal_dif_plot <- plot_margingal_occ_by_cov(marginal_div[marginal_div$Setup == "Trail sites",], x = "Shannon's diversity index (H)", covname = "and prey diversity", ncolor = bear_colors)
+  
+  marginal_patchwork <- marginal_elev_plot + marginal_for_plot + marginal_dif_plot
   
   
   #'  -----------------------------------
@@ -604,6 +606,9 @@
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_preydiversity_plot.tiff", marginal_dif_plot, 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_allcov_trailsites_plot.tiff", marginal_patchwork, 
+         units = "in", width = 8, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  
   
   #' #'  Conditional occupancy probabilities
   #' #'  Wolf-bear  
