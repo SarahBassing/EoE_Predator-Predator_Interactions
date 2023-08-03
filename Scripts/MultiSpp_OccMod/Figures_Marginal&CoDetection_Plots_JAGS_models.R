@@ -380,8 +380,8 @@
       group_by(Species, Species_interaction) %>%
       slice(1L) %>%
       ungroup() %>%
-      mutate(Detection = ifelse(grepl("given", Species_interaction), "Detected", "Not detected"),
-             Detection = factor(Detection, levels = c("Not detected", "Detected")),
+      mutate(Detection = ifelse(grepl("given", Species_interaction), "Competitor \nobserved", "Competitor \nnot observed"),
+             Detection = factor(Detection, levels = c("Competitor \nobserved", "Competitor \nnot observed")),
              Species_detected = ifelse(Species == spp2, paste(spp1, Detection), paste(spp2, Detection)),
              Species_detected = str_to_sentence(Species_detected),
              Species_detected = factor(Species_detected, levels = spp_order))
@@ -467,9 +467,9 @@
       ylim(0,1.0) +
       #'  Use list name as X-axis title
       xlab(x) +
-      ylab("Conditional probability of detection (trail sites)") +
-      labs(title = "Species-specific detection probability, conditional on prior detection of competitor", 
-           fill = "Species detected following competitor detection", color = "Species detected following competitor detection") +
+      ylab("Conditional detection probability (trail sites)") +
+      labs(title = "Co-detection probabilities for predator dyads", 
+           fill = "Focal species in predator dyad", color = "Focal species in predator dyad") +
       facet_wrap(~Species_pair, scales = "free_y") +
       coord_cartesian(ylim = c(0, 0.70)) +
       theme(legend.position="bottom")
@@ -494,7 +494,7 @@
     ylim(0,1.0) +
     #'  Use list name as X-axis title
     xlab("") +
-    ylab("Conditional probability of detection (trail sites)") +
+    ylab("Conditional detection probability (trail sites)") +
     facet_wrap(~Species, ncol = 1, scales = "free_y") +
     coord_cartesian(ylim = c(0, 0.70)) +
     #theme(strip.text = element_text(face = "bold", color = "black", hjust = 0, size = 12)) +
@@ -514,7 +514,7 @@
       ylim(0,1.0) +
       #'  Use list name as X-axis title
       xlab("") +
-      labs(fill = "Species detected after competitor detection", color = "Species detected after competitor detection") +
+      labs(fill = "Focal species in predator dyad", color = "Focal species in predator dyad") +
       facet_wrap(~Species, ncol = 2, scales = "free_y") +
       coord_cartesian(ylim = c(0, 0.70)) +
       #theme(strip.text = element_text(face = "bold", color = "black", hjust = 0, size = 12)) +
@@ -526,7 +526,7 @@
   
   #'  Merge coybob and apexmeso plots into single figure
   condish_det_patchwork <- coybob_guide + cond_apexmeso_plot +
-    plot_layout(widths = c(1,2)) + plot_annotation(title = 'Species-specific detection probability conditional on prior detection of competitor') +
+    plot_layout(widths = c(1,2)) + plot_annotation(title = 'Co-detection probabilities for predator dyads') +
     plot_layout(guides = "collect") & theme(legend.position = "bottom")
 
   #'  Add a single unifying xaxis title to bottom of plot
