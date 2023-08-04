@@ -13,9 +13,6 @@
   rm(list = ls())
   
   #'  Load libraries
-  # library(camtrapR)
-  # library(chron)
-  # library(lubridate)
   library(exactextractr)
   library(sf)
   library(terra)
@@ -29,16 +26,6 @@
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
   cams_list <- list(eoe_probcams_20s, eoe_probcams_21s)
-  
-  #' #'  Detection data (motion trigger observations only)
-  #' # load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
-  #' # load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
-  #' load("./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
-  #' load("./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
-  #' 
-  #' #'  Sequential problem images
-  #' load("./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
-  #' load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
   
   #'  Spatial data
   gmu <- st_read("./Shapefiles/IDFG_Game_Management_Units/Game_Management_Units.shp")
