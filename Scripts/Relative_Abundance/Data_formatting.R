@@ -1,10 +1,10 @@
   #'  -------------------------------
-  #'  Data formatting
+  #'  Camera clustering
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  July 2023
   #'  -------------------------------
-  #'  Explore how to cluster cameras together
+  #'  Explore how to group cameras into clusters based on grid cell size
   #'  
   #'  Camera operations table generated in Detection_data_cleaning.R
   #'  -------------------------------
