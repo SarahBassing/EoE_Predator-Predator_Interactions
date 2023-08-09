@@ -81,6 +81,9 @@
   eoe20s_allM <- eoe20s_allM_new
   eoe21s_allM <- eoe21s_allM_new
   
+  #' #'  Save cleaned data
+  #' save(eoe20s_allM, file = paste0("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allM_", Sys.Date(), ".RData"))
+  #' save(eoe21s_allM, file = paste0("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allM_", Sys.Date(), ".RData"))
   
   #'  ------------------------
   ####  Filter detection data  ####
@@ -90,8 +93,8 @@
     skinny_dets <- dets[!(dets$File %in% seqprobs$File),]
     return(skinny_dets)
   }
-  eoe20s_allM_skinny <- thin_detections(eoe20s_allM, eoe_seqprob_20s)
-  eoe21s_allM_skinny <- thin_detections(eoe21s_allM, eoe_seqprob_21s)
+  eoe20s_allM_skinny <- thin_detections(eoe20s_allM, eoe_seqprob_20s) #eoe20s_allM_2023-08-09 is most recent version
+  eoe21s_allM_skinny <- thin_detections(eoe21s_allM, eoe_seqprob_21s) #eoe21s_allM_2023-08-09 is most recent version
   
   #'  2) Filter detection data to time period and species of interest
   #'  Species of interest are ungulates, humans/vehicles, and domestic animals
@@ -242,7 +245,7 @@
       filter(Species == "bear_black" | Species == "bobcat" | Species == "coyote" |
                Species == "elk" | Species == "human" | Species == "moose" |
                Species == "mountain_lion" | Species == "muledeer" | Species == "rabbit_hare" |
-               Species == "whitetaileddeer" | Species == "wolf") %>%
+               Species == "whitetaileddeer" | Species == "wolf" | Species == "cattle_cow") %>%
       dplyr::select(-NewLocationID) %>%
       group_by(Species) %>%
       #'  Calculate correlation coefficient for each pairwise combo of counts
@@ -253,8 +256,8 @@
     print(pearsons_cor)
     return(pearsons_cor)
   }
-  eoe20s_corr <- compare_counts(eoe20s_det_counts)
-  eoe21s_corr <- compare_counts(eoe21s_det_counts)
+  eoe20s_corr <- compare_counts(eoe20s_RAI)
+  eoe21s_corr <- compare_counts(eoe21s_RAI)
   
   
     
