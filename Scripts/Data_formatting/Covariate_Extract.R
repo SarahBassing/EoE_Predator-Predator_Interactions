@@ -176,7 +176,7 @@
   #'  RA values generated with Relative_abundance_metrics.R script; species diversity 
   #'  indices calculated from RA values in Species_diversity_indices.R script
   #'  Using Hour of Detection as RA index b/c highly correlated with other 
-  #'  definitions of independent detection events and consistent with Ausband et al. in review
+  #'  definitions of independent detection events and consistent with Ausband et al. 2023
   source("./Scripts/MultiSpp_OccMod/Species_diversity_indices.R")
   
   
