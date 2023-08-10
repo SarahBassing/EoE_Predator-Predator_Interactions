@@ -49,6 +49,7 @@
                     "Date", "Time", "posix_date_time", "TriggerMode",
                     "OpState", "Species", "Vehicle", "Count") %>%
       filter(Species != "none") %>%
+      filter(Vehicle != "TRUE") %>%
       mutate(
         Date = as.Date(Date, format = "%d-%b-%Y"),
         Time = chron(times = Time)) %>%
@@ -56,6 +57,8 @@
                Species == "elk" | Species == "human" | Species == "moose" |
                Species == "mountain_lion" | Species == "muledeer" | Species == "rabbit_hare" |
                Species == "whitetaileddeer" | Species == "wolf" | Species == "cattle_cow") %>%
+      #'  Add count = 1 for species missing count data (mainly humans, rabbit_hare, cattle_cow)
+      mutate(Count = ifelse(Count == 0, 1, Count)) %>%
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
       #'  Remove observations that can't be linked to a camera with coordinates
@@ -80,13 +83,6 @@
   #'  Code adapted from Becker et al. 2018 repository
   #'  https://github.com/mabecker89/tifc-method/blob/main/R/base/01_probabilistic-gaps.R
   #'  ---------------------------
-  
-  
-  #'  Function to flag gaps in sequential images where an animal may have left 
-  #'  and returned to the site OR remains but does not trigger the camera for a
-  #'  short period of time (focusing on gaps <= 120 sec)
-  #'  Code adapted from Becker et al. 2018 repository
-  #'  https://github.com/mabecker89/tifc-method/blob/main/R/base/01_probabilistic-gaps.R
   tifc <- function(dets) {
     
     #'  Identify series of consecutive images of the same species and flag gaps 
@@ -184,7 +180,7 @@
     return(tifc_list)
   }
   eoe_total_time_in_FoV <- lapply(eoe_dets, tifc)
-  checkit <- eoe_series_gaps[[1]][[4]]
+  checkit <- eoe_total_time_in_FoV[[2]][[4]]
   
   #'  Save
   save(eoe_total_time_in_FoV, file = "./Data/Time_In_Front_of_Camera/eoe_total_time_in_FoV.RData")
