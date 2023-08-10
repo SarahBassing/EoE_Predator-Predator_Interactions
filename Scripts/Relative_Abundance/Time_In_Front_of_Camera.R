@@ -1,5 +1,5 @@
   #'  --------------------------------
-  #'  Time In Front of Camera (FIFC)
+  #'  Time In Front of Camera (TIFC)
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  August 2023
