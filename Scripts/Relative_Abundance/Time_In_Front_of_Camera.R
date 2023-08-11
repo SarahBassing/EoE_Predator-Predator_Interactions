@@ -18,9 +18,9 @@
   library(lubridate)
   library(tidyverse)
   
-  #'  --------------------------------
-  ####  Read & format detection data  ####
-  #'  --------------------------------
+  #'  ----------------
+  ####  Read in data  ####
+  #'  ----------------
   #'  Detection data (motion trigger observations only)
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allM_2023-08-09.RData")
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allM_2023-08-09.RData")
@@ -242,7 +242,6 @@
   
   #'  Save
   save(eoe_total_time_in_FoV, file = "./Data/Time_In_Front_of_Camera/eoe_total_time_in_FoV.RData")
-  
   
   #'  ----------------------
   ####  Density estimation  ####
