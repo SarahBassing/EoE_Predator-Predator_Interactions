@@ -29,6 +29,11 @@
   load("./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
   
+  #'  Sampling effort data (number of days cameras operation)
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
+  #'  Why is GMU1_U_153 missing from 2021 dataset?
+  
   #'  ------------------------
   ####  Filter detection data  ####
   #'  ------------------------
@@ -43,11 +48,12 @@
   #'  2) Filter  data to time period and species of interest
   #'  Time periods of interest determined by IDFG and plotting histograms of when 
   #'  most cameras were active each season (Detection_data_cleaning.R script)
-  detections <- function(dets, start_date, end_date) {
+  detections <- function(dets, start_date, end_date, days_operable) {
     dets <- dets %>%
       dplyr::select("NewLocationID", "CamID", "File", "Location_Relative_Project", 
                     "Date", "Time", "posix_date_time", "TriggerMode",
-                    "OpState", "Species", "Vehicle", "Count") %>%
+                    "OpState", "Species", "Vehicle", "Count", "Lat", "Long", "Gmu",
+                    "Area_M2") %>%
       filter(Species != "none") %>%
       filter(Vehicle != "TRUE") %>%
       mutate(
@@ -66,11 +72,50 @@
       #'  Remove maintenance images so not included in human/motorized image sets
       filter(OpState != "maintenance") %>%
       arrange(NewLocationID)
+    
+    #'  Add sampling effort to detections data frame
+    effort <- dplyr::select(days_operable, c(NewLocationID, ndays))
+    dets <- left_join(dets, effort, by = "NewLocationID")
+    
     return(dets)
   }
-  eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15")
-  eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15")
+  eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15", days_operable = effort_20s)
+  eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15", days_operable = effort_21s)
   eoe_dets <- list(eoe20s_dets, eoe21s_dets)
+  
+  #'  -------------------------
+  ####  Area of Field-of-View  ####
+  #'  -------------------------
+  #'  Organize area of field-of-view for each site. Area (m2) measured by IDFG 
+  #'  biologists using walk test, flagging, or other methods to estimate detection 
+  #'  zone of each camera.   ####  CAN I ADJUST THESE AREAS BASED ON PUBLISHED EDD FROM BECKER AT AL. FOR EACH SPECIES SINCE OUR MEASUREMENTS AREN'T SPECIES-SPECIFIC???  ####
+  #'  -------------------------
+  fov <- function(dets1, dets2) {
+    #'  Filter detection data to just location and detection zone areas
+    det_zone_20s <- dets1 %>% dplyr::select(c("NewLocationID", "Gmu", "Area_M2")) %>% unique() %>% mutate(Area_M2 = round(Area_M2, 2))
+    det_zone_21s <- dets2 %>% dplyr::select(c("NewLocationID", "Gmu", "Area_M2")) %>% unique() %>% mutate(Area_M2 = round(Area_M2, 2))
+    
+    #'  Bind across years and fill in gaps based on another year's measurement at same site when possible
+    det_zone <- full_join(det_zone_20s, det_zone_21s, by = c("NewLocationID", "Gmu")) %>%
+      rename("Area_M2_20s" = "Area_M2.x") %>% rename("Area_M2_21s" = "Area_M2.y") %>%
+      arrange(NewLocationID) %>% 
+      #'  Fill in missing area measurements with another year's measurements from same site (excluding GMU 1 b/c not sampled in 2020)
+      mutate(Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1" , Area_M2_21s, Area_M2_20s),
+             Area_M2_21s = ifelse(is.na(Area_M2_21s), Area_M2_20s, Area_M2_21s),
+             #'  Fill in missing area measurements with nearby site if no measurement taken at site either year
+             Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1", lead(Area_M2_20s), Area_M2_20s),
+             Area_M2_21s = ifelse(is.na(Area_M2_21s), lead(Area_M2_21s), Area_M2_21s),
+             #'  Repeat this process for the few straggler NAs
+             Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1", lag(Area_M2_20s), Area_M2_20s),
+             Area_M2_21s = ifelse(is.na(Area_M2_21s), lag(Area_M2_21s), Area_M2_21s))
+    
+    return(det_zone)
+  }
+  fov_area <- fov(eoe20s_dets, eoe21s_dets)
+  #'  Split field-of-view data by year and list together
+  fov_area_20s <- fov_area %>% dplyr::select(-Area_M2_21s) %>% filter(!is.na(Area_M2_20s))
+  fov_area_21s <- fov_area %>% dplyr::select(-Area_M2_20s) 
+  fov_list <- list(fov_area_20s, fov_area_21s)
   
   #'  ---------------------------
   ####  TIME IN FRONT of CAMERA  ####
@@ -83,7 +128,10 @@
   #'  Code adapted from Becker et al. 2018 repository
   #'  https://github.com/mabecker89/tifc-method/blob/main/R/base/01_probabilistic-gaps.R
   #'  ---------------------------
-  tifc <- function(dets) {
+  tifc <- function(dets, fov) {
+    
+    #'  Snag number of days each camera was operational
+    cam_op <- dplyr::select(dets, c("NewLocationID", "ndays")) %>% unique()
     
     #'  Identify series of consecutive images of the same species and flag gaps 
     #'  in sequential images where an animal may have left & returned OR remains 
@@ -167,23 +215,87 @@
       #'  Reduce to only necessary columns
       select(NewLocationID, posix_date_time, Species, series_total_time) %>%
       ungroup() %>%
+      #'  Sum total time in front of camera for each species by camera site
+      group_by(NewLocationID, Species) %>%
+      summarise(total_duration = sum(series_total_time)) %>%
+      ungroup() %>%
       #'  Bind average time between images for each species
       left_join(time_btwn_imgs, by = "Species") %>%
-      relocate(NewLocationID, .before = series_ID) %>%
-      relocate(posix_date_time, .after = NewLocationID) %>%
       rename("avg_time_btwn_imgs_spp" = "time_btwn_imgs") %>%
-      rename("total_imgs_spp" = "sample_size")
+      rename("total_imgs_spp" = "sample_size") %>%
+      #'  Bind location and field-of-view data
+      left_join(fov, by = "NewLocationID") %>%
+      #'  Bind total days each camera was operable
+      left_join(cam_op, by = "NewLocationID") %>%
+      relocate(Gmu, .after = NewLocationID)
+    
+    colnames(total_time) <- c("NewLocationID", "Gmu", "Species", "total_duration_sec", 
+                              "avg_time_btwn_imgs_spp", "total_imgs_spp", "Area_M2", "ndays")
     
     #'  List all data frames together
     tifc_list <- list(series_and_gaps, time_btwn_imgs, total_time_per_series, total_time)
     
     return(tifc_list)
   }
-  eoe_total_time_in_FoV <- lapply(eoe_dets, tifc)
+  eoe_total_time_in_FoV <- mapply(tifc, eoe_dets, fov_list, SIMPLIFY = FALSE)
   checkit <- eoe_total_time_in_FoV[[2]][[4]]
   
   #'  Save
   save(eoe_total_time_in_FoV, file = "./Data/Time_In_Front_of_Camera/eoe_total_time_in_FoV.RData")
+  
+  
+  #'  ----------------------
+  ####  Density estimation  ####
+  #'  ----------------------
+  #'  Calculate camera-level density with D = (sum(N * Tf)) / (Af * To) (Becker et al. 2022)
+  #'    D = camera-level density
+  #'    N = number of individuals
+  #'    Tf = time in front of camera
+  #'    Af = area of field-of-view = (pi * detection zone in square meters * viewshed angle) / 360
+  #'    To = total camera operating time
+  #'  Essentially, count/sampling effort --> animal-time per area-time --> animals per area
+  #'  ----------------------
+  #'  Pull out 4th list (with total time in front of camera) from annual tifc lists
+  tifc_dat <- list(eoe_total_time_in_FoV[[1]][[4]], eoe_total_time_in_FoV[[2]][[4]])
+  
+  #'  Define camera field-of-view angle (Reconyx Hyperfire = 42 degrees)
+  cam_angle <- 42
+  
+  #'  Function to calculate monitored area and density
+  camera_level_density <- function(dets) {
+    site_density <- dets %>%
+      #'  Calculate sampling effort (To * Af), dividing by 100 b/c want effort to be per 100 m2... I think
+      mutate(effort = ndays * (Area_M2 * pi * (cam_angle / 360)) / 100,  
+             #'  Catch per unit effort
+             cpue = total_duration_sec / effort,
+             #'  Catch per unit effort in km2
+             density_km2 = cpue / 60 / 60 / 24 * 10000)
+    return(site_density)
+  }
+  eoe_density_list <- lapply(tifc_dat, camera_level_density)
+  
+  #'  Add year to each data set and bind into single data frame
+  eoe_density_20s <- eoe_density_list[[1]] %>%
+    mutate(year = "summer_2020")
+  eoe_density_21s <- eoe_density_list[[2]] %>%
+    mutate(year = "summer_2021")
+  eoe_density <- rbind(eoe_density_20s, eoe_density_21s) %>%
+    relocate(year, .after = "Gmu")
+  
+  #'  Save calculated density (animals per km2)
+  save(eoe_density, file = "./Outputs/Relative_Abundance/TIFC/eoe_density.RData")
+  
+  #'  Visualize density estimates per camera
+  hist(eoe_density$density_km2[eoe_density$Species == "bobcat"])
+  
+  
+  ####  CLEARLY SOME ESTIMATES ARE WILDLY UNREALISTIC  ####
+  ####  NEED TO MAKE ADJUSTMENTS AND CORRECTIONS FOR ASSUMPTIONS WHERE POSSIBLE  ####
+  ####  PROBABLY ADDITIONAL REASONS FOR EXTREMELY HIGH DENSITIES AT SOME SITES  ####
+  
+  ####  NEED TO BOOTSTRAP ESTIMATES TO GET STANDARD ERRORS ON THEM  ####
+  ####  MIGHT BE ABLE TO INCORPORATE THIS INTO FUTURE MODELS  ####
+  
   
   
   
