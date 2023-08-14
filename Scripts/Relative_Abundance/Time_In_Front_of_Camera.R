@@ -23,7 +23,10 @@
   #'  ----------------
   #'  Detection data (motion trigger observations only)
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allM_2023-08-09.RData")
-  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allM_2023-08-09.RData")
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allM_2023-08-09.RData") 
+  eoe21s_allM <- eoe21s_allM %>%
+    mutate(Setup = ifelse(str_detect(NewLocationID, "P"), "P", "U")) %>%
+    relocate(Setup, .after = NewLocationID)
   
   #'  Sequential problem images
   load("./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
@@ -34,8 +37,9 @@
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
   #'  Why is GMU1_U_153 missing from 2021 dataset?
   
-  #'  Predicted leave time from Becker et al. 2022
+  #'  Published species-specific EDD & leave probabilities from Becker et al. 2022
   df_leave_prob_pred <- read.csv("./Data/Becker et al. data/gap-leave-prob_predictions.csv")
+  edd_appendix <- read.csv("./Data/Becker et al. data/abmi_appendix1_EDD.csv")
   
   #'  ------------------------
   ####  Filter detection data  ####
@@ -53,6 +57,7 @@
   #'  most cameras were active each season (Detection_data_cleaning.R script)
   detections <- function(dets, start_date, end_date, days_operable) {
     dets <- dets %>%
+      # filter(Setup != "P") %>%      ####  DROP PREDATOR CAMS FOR NOW  ####
       dplyr::select("NewLocationID", "CamID", "File", "Location_Relative_Project", 
                     "Date", "Time", "posix_date_time", "TriggerMode",
                     "OpState", "Species", "Vehicle", "Count", "Lat", "Long", "Gmu",
@@ -120,11 +125,18 @@
   fov_area_21s <- fov_area %>% dplyr::select(-Area_M2_20s) 
   fov_list <- list(fov_area_20s, fov_area_21s)
   
+  #'  Adjust fov based on published species & habitat specific EDDs (Becker et al. 2022)
+  edd <- edd_appendix %>%
+    group_by(Habitat) %>%
+    mutate(max_EDD = max(EDD_m)) %>%
+    ungroup() %>%
+    mutate(prop_EDD = round(EDD_m/max_EDD, 3))
+  
+  
   #'  -------------------------------
   ####  Predicted leave probability  ####
   #'  -------------------------------
   #'  Currently using published leave probabilities from Becker et al. 2022
-  
   #'  Reformat for northern Idaho species
   bear <- filter(df_leave_prob_pred, gap_group == "Bears") %>%
     mutate(Species = "bear_black")
@@ -144,6 +156,7 @@
     mutate(Species = "muledeer")
   wtd <- filter(df_leave_prob_pred, gap_group == "Most ungulates") %>%
     mutate(Species = "whitetaileddeer")
+  
   #'  Create new df of focal norther Idaho species
   focal_leave_prob_pred <- rbind(bear, bobcat, coyote, lion, wolf, moose, elk, md, wtd) %>%
     relocate(Species, .before = gap_group) %>%
@@ -221,13 +234,24 @@
       summarise(time_btwn_imgs = mean(time_diff),
                 sample_size = n())
     
+    #'  Calculate average number of animals detected per series
+    #'  Becker et al. (2022): use average number of animals in images in a series 
+    #'  as N when multiple animals are simultaneously in field-of-view
+    n_animals <- series_and_gaps %>%
+      dplyr::select(c(Count, series_ID)) %>%
+      group_by(series_ID) %>%
+      summarise(avg_N = mean(Count)) %>%
+      ungroup()
+    
     #'  Calculate total time in front of the camera by series (tts)
     total_time_per_series <- series_and_gaps %>%
+      #'  Bind average time between images
       left_join(time_btwn_imgs, by = "Species") %>%
+      #'  Bind with average number of animals detected per series
+      left_join(n_animals, by = "series_ID") %>%
       group_by(series_ID) %>%
       mutate(#'  Check if image is first or last in series
         bookend = ifelse(row_number() == 1 | row_number() == n(), 1, 0),
-        
         #'  Calculate time for each image 
         image_time = ifelse(bookend == 1,
                             #'  Sum time elapsed between sequential images
@@ -237,9 +261,9 @@
                             ((time_diff_adj + time_diff_next_adj) / 2) + (time_btwn_imgs / 2),
                             #'  Else, add times between images t-1 to t+1, then divide by two
                             (time_diff_adj + time_diff_next_adj) / 2),
-        #'  Multiply image time by the number of animals present
-        image_time_ni = image_time * Count) %>%      ####  NEED TO FIGURE OUT HOW TO GIVE IT AVERAGE # ANIMALS PER SERIES  ####
-      
+        #'  Multiply image time by the number of animals present (adjusted for
+        #'  average number of animals in fov)
+        image_time_ni = image_time * avg_N) %>% 
       #'  Group by species and add to df
       group_by(Species, .add = TRUE) %>%
       #'  Calculate total time and number of images for each series
@@ -322,23 +346,35 @@
   eoe_density_21s <- eoe_density_list[[2]] %>%
     mutate(year = "summer_2021")
   eoe_density <- rbind(eoe_density_20s, eoe_density_21s) %>%
-    relocate(year, .after = "Gmu")
+    relocate(year, .after = "Gmu") %>%
+    mutate(density_100km2 = density_km2 * 100)
   
   #'  Save calculated density (animals per km2)
   save(eoe_density, file = "./Outputs/Relative_Abundance/TIFC/eoe_density.RData")
   
-  #'  Visualize density estimates per camera
-  hist(eoe_density$density_km2[eoe_density$Species == "bobcat"])
+  #'  Visualize density estimates (animals per km2) per camera
+  hist(eoe_density$density_km2[eoe_density$Species == "mountain_lion"], breaks = 20)
+  
+  #'  Summarize by GMU
+  density_by_gmu <- eoe_density %>%
+    filter(!is.na(Gmu)) %>%
+    group_by(Gmu, Species) %>%
+    summarise(average_density_km2 = mean(density_km2, na.rm = TRUE),
+              average_density_100km2 = mean(density_100km2, na.rm = TRUE)) %>%
+    ungroup()
   
   
-  ####  CLEARLY SOME ESTIMATES ARE WILDLY UNREALISTIC  ####
-  ####  NEED TO MAKE ADJUSTMENTS AND CORRECTIONS FOR ASSUMPTIONS WHERE POSSIBLE  ####
-  ####  PROBABLY ADDITIONAL REASONS FOR EXTREMELY HIGH DENSITIES AT SOME SITES  ####
-  
-  ####  NEED TO ADJUST DETECTION ZONE FOR EACH SPECIES ####
-  ####  NEED TO WEIGHT TIFC FOR TIME INVESTIGATING CAMERAS  ####
-  ####  NEED TO BOOTSTRAP ESTIMATES TO GET STANDARD ERRORS ON THEM  ####
-  ####  MIGHT BE ABLE TO INCORPORATE THIS INTO FUTURE MODELS  ####
+  #'  CLEARLY SOME ESTIMATES ARE WILDLY UNREALISTIC
+  ####  NEED TO  ####
+  #'  ACCOUNT FOR NON-RANDOMNESS OF PREDATOR CAMERAS BUMPING UP DETECTION PROBABILITY
+  #'    -only use ungulate cams? estimates still seem unrealistic
+  #'    -ratio of predator:ungulate cam detections and down weight predator cam density by that?
+  #'    -leave as is but include a trail vs random covariate in any future models?
+  #'    -no matter what, this will definitely be an measure of RELATIVE abundance
+  #'  ADJUST DETECTION ZONE BY EDD FOR EACH SPECIES & HABITAT
+  #'  WEIGHT TIFC FOR TIME INVESTIGATING CAMERAS - ESPECIALLY IMPORTANT FOR BEARS
+  #'  BOOTSTRAP ESTIMATES TO GET STANDARD ERRORS ON THEM
+  #'    -MIGHT BE ABLE TO INCORPORATE SEs INFO FUTURE MODELS IF BAYESIAN???
   
   
   
