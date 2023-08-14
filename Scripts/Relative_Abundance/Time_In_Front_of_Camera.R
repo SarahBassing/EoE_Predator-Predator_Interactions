@@ -34,6 +34,9 @@
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
   #'  Why is GMU1_U_153 missing from 2021 dataset?
   
+  #'  Predicted leave time from Becker et al. 2022
+  df_leave_prob_pred <- read.csv("./Data/Becker et al. data/gap-leave-prob_predictions.csv")
+  
   #'  ------------------------
   ####  Filter detection data  ####
   #'  ------------------------
@@ -117,6 +120,36 @@
   fov_area_21s <- fov_area %>% dplyr::select(-Area_M2_20s) 
   fov_list <- list(fov_area_20s, fov_area_21s)
   
+  #'  -------------------------------
+  ####  Predicted leave probability  ####
+  #'  -------------------------------
+  #'  Currently using published leave probabilities from Becker et al. 2022
+  
+  #'  Reformat for northern Idaho species
+  bear <- filter(df_leave_prob_pred, gap_group == "Bears") %>%
+    mutate(Species = "bear_black")
+  bobcat <- filter(df_leave_prob_pred, gap_group == "Small carnivores") %>%
+    mutate(Species = "bobcat")
+  coyote <- filter(df_leave_prob_pred, gap_group == "Canids cougar") %>%
+    mutate(Species = "coyote")
+  lion <- filter(df_leave_prob_pred, gap_group == "Canids cougar") %>%
+    mutate(Species = "mountain_lion")
+  wolf <- filter(df_leave_prob_pred, gap_group == "Canids cougar") %>%
+    mutate(Species = "wolf")
+  moose <- filter(df_leave_prob_pred, gap_group == "Moose") %>%
+    mutate(Species = "moose")
+  elk <- filter(df_leave_prob_pred, gap_group == "Most ungulates") %>%
+    mutate(Species = "elk")
+  md <- filter(df_leave_prob_pred, gap_group == "Most ungulates") %>%
+    mutate(Species = "muledeer")
+  wtd <- filter(df_leave_prob_pred, gap_group == "Most ungulates") %>%
+    mutate(Species = "whitetaileddeer")
+  #'  Create new df of focal norther Idaho species
+  focal_leave_prob_pred <- rbind(bear, bobcat, coyote, lion, wolf, moose, elk, md, wtd) %>%
+    relocate(Species, .before = gap_group) %>%
+    dplyr::select(-gap_group) %>%
+    rename("time_diff" = "diff_time")
+  
   #'  ---------------------------
   ####  TIME IN FRONT of CAMERA  ####
   #'  ---------------------------
@@ -156,16 +189,27 @@
              previous_site_loc = lag(NewLocationID),
              site_diff = ifelse(NewLocationID != previous_site_loc, TRUE, FALSE),
              #'  Flag gaps between sequential images that need to be evaluated
-             gap_check = ifelse(site_diff == FALSE & spp_diff == FALSE & (time_diff <= 120 & time_diff >=120), 1, 0),
+             gap_check = ifelse(site_diff == FALSE & spp_diff == FALSE & (time_diff <= 120 & time_diff >= 20), 1, 0),
+             #' #'  Lagged gap class
+             #' gap_class_previous = replace_na(lag(gap_check), ""),  # only relevant if calculating leave prob w/ EoE data
              #'  Identify new series of images based on a change in location, species, or time gap > 120 s
              new_series = ifelse(site_diff ==  TRUE | spp_diff == TRUE | time_diff > 120, 1, 0),
-             series_ID = c(0, cumsum(new_series[-1]))) %>%
+             series_ID = c(0, cumsum(new_series[-1])),
+             #'  Flag gaps that require leave probability adjustment
+             gap_prob = replace_na(ifelse(gap_check == 1, 1, 0), 0)) %>% # & (gap_class_previous == "" | gap_class_previous == "U") # if calculating leave prob. with EoE data
       group_by(series_ID) %>%
       #'  Force time_diff to 0 if start of new series & time_diff_next to 0 if end of a series
+      #'  Important when new species is detected or next observation is from a different site
       mutate(time_diff = ifelse(row_number() == 1, 0, time_diff),
              time_diff_next = ifelse(row_number() == n(), 0, time_diff_next)) %>%
-      ungroup()
-    #'  Eventually adjust time differences by probability of leaving if gaps 20 - 120 sec
+      ungroup() %>%
+      #'  Join gap leave predictions
+      left_join(focal_leave_prob_pred, by = c("Species", "time_diff")) %>%
+      #'  Adjust time differences for situations where gaps (20 - 120s) need to be updated for leave probability
+      #'  If no adjustment needed, pred = 1.0
+      mutate(pred = replace_na(pred, 1),
+             time_diff_adj = ifelse(gap_prob == 1, time_diff * (1 - pred), time_diff),
+             time_diff_next_adj = ifelse(lead(gap_prob == 1), time_diff_next * (1 - lead(pred)), time_diff_next))
     
     #'  Calculate time between sequential images per species
     time_btwn_imgs <- series_and_gaps %>%
@@ -184,16 +228,15 @@
       mutate(#'  Check if image is first or last in series
         bookend = ifelse(row_number() == 1 | row_number() == n(), 1, 0),
         
-        #'  Calculate time for each image            ####  UPDATE time_diff & time_diff_next WITH PROB. LEAVE ADJUSTED TIMES ONCE CALCULATED  ####
+        #'  Calculate time for each image 
         image_time = ifelse(bookend == 1,
                             #'  Sum time elapsed between sequential images
                             #'  If first/last image in series, add times between images t-1 to t+1, then divide by two, 
                             #'  and add half the average time btwn images for a given species 
                             #'  to account for time before/after first/last image to account for animal entering/leaving trigger zone
-                            ((time_diff + time_diff_next) / 2) + (time_btwn_imgs / 2),
+                            ((time_diff_adj + time_diff_next_adj) / 2) + (time_btwn_imgs / 2),
                             #'  Else, add times between images t-1 to t+1, then divide by two
-                            (time_diff + time_diff_next) / 2),
-        
+                            (time_diff_adj + time_diff_next_adj) / 2),
         #'  Multiply image time by the number of animals present
         image_time_ni = image_time * Count) %>%      ####  NEED TO FIGURE OUT HOW TO GIVE IT AVERAGE # ANIMALS PER SERIES  ####
       
@@ -292,6 +335,8 @@
   ####  NEED TO MAKE ADJUSTMENTS AND CORRECTIONS FOR ASSUMPTIONS WHERE POSSIBLE  ####
   ####  PROBABLY ADDITIONAL REASONS FOR EXTREMELY HIGH DENSITIES AT SOME SITES  ####
   
+  ####  NEED TO ADJUST DETECTION ZONE FOR EACH SPECIES ####
+  ####  NEED TO WEIGHT TIFC FOR TIME INVESTIGATING CAMERAS  ####
   ####  NEED TO BOOTSTRAP ESTIMATES TO GET STANDARD ERRORS ON THEM  ####
   ####  MIGHT BE ABLE TO INCORPORATE THIS INTO FUTURE MODELS  ####
   
