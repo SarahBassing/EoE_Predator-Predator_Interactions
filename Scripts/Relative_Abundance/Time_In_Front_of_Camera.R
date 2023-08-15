@@ -156,9 +156,11 @@
     mutate(Species = "muledeer")
   wtd <- filter(df_leave_prob_pred, gap_group == "Most ungulates") %>%
     mutate(Species = "whitetaileddeer")
+  lago <- filter(df_leave_prob_pred, gap_group == "Small mammals") %>%
+    mutate(Species = "rabbit_hare")
   
   #'  Create new df of focal norther Idaho species
-  focal_leave_prob_pred <- rbind(bear, bobcat, coyote, lion, wolf, moose, elk, md, wtd) %>%
+  focal_leave_prob_pred <- rbind(bear, bobcat, coyote, lion, wolf, moose, elk, md, wtd, lago) %>%
     relocate(Species, .before = gap_group) %>%
     dplyr::select(-gap_group) %>%
     rename("time_diff" = "diff_time")
