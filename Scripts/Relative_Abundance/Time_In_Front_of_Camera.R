@@ -296,10 +296,13 @@
       left_join(fov, by = "NewLocationID") %>%
       #'  Bind total days each camera was operable
       left_join(cam_op, by = "NewLocationID") %>%
+      #'  Convert to total seconds each camera was operable
+      mutate(nseconds = ndays * 24 * 60 * 60) %>%
       relocate(Gmu, .after = NewLocationID)
     
     colnames(total_time) <- c("NewLocationID", "Gmu", "Species", "total_duration_sec", 
-                              "avg_time_btwn_imgs_spp", "total_imgs_spp", "Area_M2", "ndays")
+                              "avg_time_btwn_imgs_spp", "total_imgs_spp", "Area_M2", 
+                              "ndays", "nseconds")
     
     #'  List all data frames together
     tifc_list <- list(series_and_gaps, time_btwn_imgs, total_time_per_series, total_time)
@@ -318,9 +321,9 @@
   #'  Calculate camera-level density with D = (sum(N * Tf)) / (Af * To) (Becker et al. 2022)
   #'    D = camera-level density
   #'    N = number of individuals
-  #'    Tf = time in front of camera
+  #'    Tf = time in front of camera (in seconds)
   #'    Af = area of field-of-view = (pi * detection zone in square meters * viewshed angle) / 360
-  #'    To = total camera operating time
+  #'    To = total camera operating time (in seconds)
   #'  Essentially, count/sampling effort --> animal-time per area-time --> animals per area
   #'  ----------------------
   #'  Pull out 4th list (with total time in front of camera) from annual tifc lists
@@ -333,7 +336,7 @@
   camera_level_density <- function(dets) {
     site_density <- dets %>%
       #'  Calculate sampling effort (To * Af), dividing by 100 b/c want effort to be per 100 m2... I think
-      mutate(effort = ndays * (Area_M2 * pi * (cam_angle / 360)) / 100,  
+      mutate(effort = nseconds * (Area_M2 * pi * (cam_angle / 360)) / 100,  
              #'  Catch per unit effort
              cpue = total_duration_sec / effort,
              #'  Catch per unit effort in km2
@@ -355,7 +358,7 @@
   save(eoe_density, file = "./Outputs/Relative_Abundance/TIFC/eoe_density.RData")
   
   #'  Visualize density estimates (animals per km2) per camera
-  hist(eoe_density$density_km2[eoe_density$Species == "mountain_lion"], breaks = 20)
+  hist(eoe_density$density_km2[eoe_density$Species == "whitetaileddeer"], breaks = 20)
   
   #'  Summarize by GMU
   density_by_gmu <- eoe_density %>%
