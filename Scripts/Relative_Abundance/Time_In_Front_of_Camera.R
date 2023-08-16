@@ -345,13 +345,17 @@
     mutate(year = "summer_2020")
   eoe_density_21s <- eoe_density_list[[2]] %>%
     mutate(year = "summer_2021")
+  
+  #'  Combine years
+  eoe_density_list <- list(eoe_density_20s, eoe_density_21s)
   eoe_density <- rbind(eoe_density_20s, eoe_density_21s) %>%
     relocate(year, .after = "Gmu") %>%
     mutate(density_100km2 = density_km2 * 100)
   
   #'  Save calculated density (animals per km2)
+  save(eoe_density_list, file = "./Outputs/Relative_Abundance/TIFC/eoe_density_list.RData")
   save(eoe_density, file = "./Outputs/Relative_Abundance/TIFC/eoe_density.RData")
-  
+    
   #'  Visualize density estimates (animals per km2) per camera
   hist(eoe_density$density_km2[eoe_density$Species == "mountain_lion"], breaks = 20)
   
