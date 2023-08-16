@@ -237,9 +237,16 @@
   #'  --------------------
   ####  Correlation test  ####
   #'  --------------------
+  #'  Read in TIFC density estimates for comparison
+  load("./Outputs/Relative_Abundance/TIFC/eoe_density_list.RData")
+  
   #'  Test for correlation between different RAI metrics
-  compare_counts <- function(dets) {
+  compare_counts <- function(dets, tifc) {
+    tifc <- dplyr::select(tifc, c("NewLocationID", "Species", "density_km2")) 
+    
     pearsons_cor <- dets %>%
+      #'  Bind tifc density measure to larger RAI data set
+      left_join(tifc, by = c("NewLocationID", "Species")) %>%
       #'  Reduce to species of interest and NAs
       filter(!is.na(RAI_nimgs)) %>%
       filter(Species == "bear_black" | Species == "bobcat" | Species == "coyote" |
@@ -251,13 +258,16 @@
       #'  Calculate correlation coefficient for each pairwise combo of counts
       summarize(img_dets = round(cor(RAI_nimgs, RAI_ndets), 3),
                 img_hrs = round(cor(RAI_nimgs, RAI_nhrs), 3),
-                dets_hrs = round(cor(RAI_nhrs, RAI_ndets), 3)) %>%
+                dets_hrs = round(cor(RAI_nhrs, RAI_ndets), 3),
+                img_tifc = round(cor(RAI_nimgs, density_km2), 3),
+                dets_tifc = round(cor(RAI_ndets, density_km2), 3),
+                hrs_tifc = round(cor(RAI_nhrs, density_km2), 3)) %>%
       ungroup()
     print(pearsons_cor)
     return(pearsons_cor)
   }
-  eoe20s_corr <- compare_counts(eoe20s_RAI)
-  eoe21s_corr <- compare_counts(eoe21s_RAI)
+  eoe20s_corr <- compare_counts(eoe20s_RAI, eoe_density_list[[1]])
+  eoe21s_corr <- compare_counts(eoe21s_RAI, eoe_density_list[[2]])
   
   
     
