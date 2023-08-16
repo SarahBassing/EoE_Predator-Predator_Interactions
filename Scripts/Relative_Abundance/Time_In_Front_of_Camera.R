@@ -158,6 +158,8 @@
     mutate(Species = "whitetaileddeer")
   lago <- filter(df_leave_prob_pred, gap_group == "Small mammals") %>%
     mutate(Species = "rabbit_hare")
+  #'  Note: Becker et al. 2022 did not publish leave probabilities for humans or
+  #'  or cattle so their TIFC are currently un-adjusted for leave probability
   
   #'  Create new df of focal norther Idaho species
   focal_leave_prob_pred <- rbind(bear, bobcat, coyote, lion, wolf, moose, elk, md, wtd, lago) %>%
