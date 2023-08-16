@@ -9,6 +9,7 @@
   #'  
   #'  Camera operations table generated in Detection_data_cleaning.R (Data_Formatting folder)
   #'  Sampling effort data generated in Detection_histories_for_occmod.R (MultiSpp_OccMod folder)
+  #'  TIFC density estimates generated in Time_In_Front_of_Camera.R (Relative_Abundance folder)
   #'  -------------------------------
   
   #'  Load libraries
