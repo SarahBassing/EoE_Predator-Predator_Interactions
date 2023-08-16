@@ -35,7 +35,6 @@
   #'  Sampling effort data (number of days cameras operation)
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
-  #'  Why is GMU1_U_153 missing from 2021 data set? GMU1_U_153 deployed 7/28/21 - 8/14/21, few elk detections
   
   #'  Published species-specific EDD & leave probabilities from Becker et al. 2022
   df_leave_prob_pred <- read.csv("./Data/Becker et al. data/gap-leave-prob_predictions.csv")

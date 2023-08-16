@@ -36,7 +36,6 @@
   #'  Sampling effort data (number of days cameras operation)
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
-  #'  Why is GMU1_U_153 missing from 2021 dataset?
   
   #'  Load corrected species ID and update larger datasets
   newSppID <- read.csv("./Data/IDFG camera data/questionable_images_doublecheck_SBBupdated.csv") %>%
