@@ -35,7 +35,7 @@
   #'  Sampling effort data (number of days cameras operation)
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
-  #'  Why is GMU1_U_153 missing from 2021 dataset?
+  #'  Why is GMU1_U_153 missing from 2021 data set? GMU1_U_153 deployed 7/28/21 - 8/14/21, few elk detections
   
   #'  Published species-specific EDD & leave probabilities from Becker et al. 2022
   df_leave_prob_pred <- read.csv("./Data/Becker et al. data/gap-leave-prob_predictions.csv")
@@ -72,7 +72,8 @@
                Species == "mountain_lion" | Species == "muledeer" | Species == "rabbit_hare" |
                Species == "whitetaileddeer" | Species == "wolf" | Species == "cattle_cow") %>%
       #'  Add count = 1 for species missing count data (mainly humans, rabbit_hare, cattle_cow)
-      mutate(Count = ifelse(Count == 0, 1, Count)) %>%
+      mutate(Count = ifelse(Count == 0, 1, Count),
+             Count = ifelse(is.na(Count), 1, Count)) %>%
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
       #'  Remove observations that can't be linked to a camera with coordinates
@@ -83,13 +84,19 @@
     
     #'  Add sampling effort to detections data frame
     effort <- dplyr::select(days_operable, c(NewLocationID, ndays))
-    dets <- left_join(dets, effort, by = "NewLocationID")
+    dets <- left_join(dets, effort, by = "NewLocationID") %>%
+      #'  Retain data from cameras where camera was operable for 30 days or more
+      filter(ndays >= 30)
     
     return(dets)
   }
   eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15", days_operable = effort_20s)
   eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15", days_operable = effort_21s)
   eoe_dets <- list(eoe20s_dets, eoe21s_dets)
+  
+  #'  Double check all cameras have sampling effort data
+  unique(eoe20s_dets$NewLocationID[is.na(eoe20s_dets$ndays)])
+  unique(eoe21s_dets$NewLocationID[is.na(eoe21s_dets$ndays)])
   
   #'  -------------------------
   ####  Area of Field-of-View  ####
@@ -114,6 +121,8 @@
              Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1", lead(Area_M2_20s), Area_M2_20s),
              Area_M2_21s = ifelse(is.na(Area_M2_21s), lead(Area_M2_21s), Area_M2_21s),
              #'  Repeat this process for the few straggler NAs
+             Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1", lag(Area_M2_20s), Area_M2_20s),
+             Area_M2_21s = ifelse(is.na(Area_M2_21s), lag(Area_M2_21s), Area_M2_21s),
              Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1", lag(Area_M2_20s), Area_M2_20s),
              Area_M2_21s = ifelse(is.na(Area_M2_21s), lag(Area_M2_21s), Area_M2_21s))
     
@@ -226,7 +235,11 @@
       #'  If no adjustment needed, pred = 1.0
       mutate(pred = replace_na(pred, 1),
              time_diff_adj = ifelse(gap_prob == 1, time_diff * (1 - pred), time_diff),
-             time_diff_next_adj = ifelse(lead(gap_prob == 1), time_diff_next * (1 - lead(pred)), time_diff_next))
+             time_diff_next_adj = ifelse(lead(gap_prob == 1), time_diff_next * (1 - lead(pred)), time_diff_next),
+             #'  On the rare occasion a single image of a species is last image at camera, 
+             #'  force time_diff_next_adj = 0 so not left as NA (required for later calculations)
+             #'  e.g., 2020 series_ID 26751 is 1 img of coyote & last photo taken by GMU6_U_97
+             time_diff_next_adj = ifelse(is.na(time_diff_next_adj), 0, time_diff_next_adj))
     
     #'  Calculate time between sequential images per species
     time_btwn_imgs <- series_and_gaps %>%
@@ -366,13 +379,18 @@
   #'  Visualize density estimates (animals per km2) per camera
   hist(eoe_density$density_km2[eoe_density$Species == "whitetaileddeer"], breaks = 20)
   
-  #'  Summarize by GMU
+  #'  Summarize by GMU, only considered sites where a species was detected
+  #'  Ignores sites where density = 0 for a given species
   density_by_gmu <- eoe_density %>%
     filter(!is.na(Gmu)) %>%
     group_by(Gmu, Species) %>%
     summarise(average_density_km2 = mean(density_km2, na.rm = TRUE),
-              average_density_100km2 = mean(density_100km2, na.rm = TRUE)) %>%
+              se_density_km2 = (sd(density_km2, na.rm = TRUE)/sqrt(nrow(.))),
+              average_density_100km2 = mean(density_100km2, na.rm = TRUE),
+              se_density_100km2 = (sd(density_100km2, na.rm = TRUE)/sqrt(nrow(.)))) %>%
     ungroup()
+  
+  write.csv(density_by_gmu, "./Outputs/Relative_Abundance/TIFC/mean_density_by_gmu.csv")
   
   
   #'  CLEARLY SOME ESTIMATES ARE WILDLY UNREALISTIC
