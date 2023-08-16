@@ -247,7 +247,7 @@
     pearsons_cor <- dets %>%
       #'  Bind tifc density measure to larger RAI data set
       left_join(tifc, by = c("NewLocationID", "Species")) %>%
-      #'  Reduce to species of interest and NAs
+      #'  Reduce to species of interest and remove sites with all NAs
       filter(!is.na(RAI_nimgs)) %>%
       filter(Species == "bear_black" | Species == "bobcat" | Species == "coyote" |
                Species == "elk" | Species == "human" | Species == "moose" |
@@ -256,12 +256,12 @@
       dplyr::select(-NewLocationID) %>%
       group_by(Species) %>%
       #'  Calculate correlation coefficient for each pairwise combo of counts
-      summarize(img_dets = round(cor(RAI_nimgs, RAI_ndets), 3),
-                img_hrs = round(cor(RAI_nimgs, RAI_nhrs), 3),
-                dets_hrs = round(cor(RAI_nhrs, RAI_ndets), 3),
-                img_tifc = round(cor(RAI_nimgs, density_km2), 3),
-                dets_tifc = round(cor(RAI_ndets, density_km2), 3),
-                hrs_tifc = round(cor(RAI_nhrs, density_km2), 3)) %>%
+      summarize(img_dets = round(cor(RAI_nimgs, RAI_ndets, use = "complete.obs"), 3),
+                img_hrs = round(cor(RAI_nimgs, RAI_nhrs, use = "complete.obs"), 3),
+                dets_hrs = round(cor(RAI_nhrs, RAI_ndets, use = "complete.obs"), 3),
+                img_tifc = round(cor(RAI_nimgs, density_km2, use = "complete.obs"), 3),
+                dets_tifc = round(cor(RAI_ndets, density_km2, use = "complete.obs"), 3),
+                hrs_tifc = round(cor(RAI_nhrs, density_km2, use = "complete.obs"), 3)) %>%
       ungroup()
     print(pearsons_cor)
     return(pearsons_cor)
