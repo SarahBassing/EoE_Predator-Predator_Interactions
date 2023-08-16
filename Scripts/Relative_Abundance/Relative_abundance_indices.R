@@ -100,7 +100,7 @@
   #'  Species of interest are ungulates, humans/vehicles, and domestic animals
   #'  Time periods of interest determined by IDFG and plotting histograms of when 
   #'  most cameras were active each season (Detection_data_cleaning.R script)
-  detections <- function(dets, start_date, end_date) {
+  detections <- function(dets, start_date, end_date, days_operable) {
     dets <- dets %>%
       dplyr::select("NewLocationID", "CamID", "File", "Location_Relative_Project", 
                     "Date", "Time", "posix_date_time", "TriggerMode",
@@ -118,6 +118,9 @@
       #'  of a known deer species, skewing detection rates & RAI
       filter(Species != "deer_speciesunknown") %>%
       dplyr::select(-Vehicle) %>%
+      #'  Add count = 1 for species missing count data (mainly humans, rabbit_hare, cattle_cow)
+      mutate(Count = ifelse(Count == 0, 1, Count),
+             Count = ifelse(is.na(Count), 1, Count)) %>%
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
       #'  Remove observations that can't be linked to a camera with coordinates
@@ -125,10 +128,21 @@
       #'  Remove maintenance images so not included in human/motorized image sets
       filter(OpState != "maintenance") %>%
       arrange(NewLocationID)
+    
+    #'  Add sampling effort to detections data frame
+    effort <- dplyr::select(days_operable, c(NewLocationID, ndays))
+    dets <- left_join(dets, effort, by = "NewLocationID") %>%
+      #'  Retain data from cameras where camera was operable for 30 days or more
+      filter(ndays >= 30)
+    
     return(dets)
   }
-  eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15")
-  eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15")
+  eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15", days_operable = effort_20s)
+  eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15", days_operable = effort_21s)
+  
+  #'  Double check all cameras have sampling effort data
+  unique(eoe20s_dets$NewLocationID[is.na(eoe20s_dets$ndays)])
+  unique(eoe21s_dets$NewLocationID[is.na(eoe21s_dets$ndays)])
   
   #'  -----------------------------------------
   ####  Generate independent detection events  ####
@@ -244,7 +258,7 @@
   compare_counts <- function(dets, tifc) {
     tifc <- dplyr::select(tifc, c("NewLocationID", "Species", "density_km2")) 
     
-    pearsons_cor <- dets %>%
+    all_RAIs <- dets %>%
       #'  Bind tifc density measure to larger RAI data set
       left_join(tifc, by = c("NewLocationID", "Species")) %>%
       #'  Reduce to species of interest and remove sites with all NAs
@@ -252,16 +266,22 @@
       filter(Species == "bear_black" | Species == "bobcat" | Species == "coyote" |
                Species == "elk" | Species == "human" | Species == "moose" |
                Species == "mountain_lion" | Species == "muledeer" | Species == "rabbit_hare" |
-               Species == "whitetaileddeer" | Species == "wolf" | Species == "cattle_cow") %>%
+               Species == "whitetaileddeer" | Species == "wolf" | Species == "cattle_cow") 
+    
+    #'  Make sure there are no sites with missing TIFC data 
+    print(unique(all_RAIs$NewLocationID[is.na(all_RAIs$density_km2)]))
+    
+    #'  Calculate correlation coefficient for all combinations
+    pearsons_cor <- all_RAIs %>%
       dplyr::select(-NewLocationID) %>%
       group_by(Species) %>%
       #'  Calculate correlation coefficient for each pairwise combo of counts
-      summarize(img_dets = round(cor(RAI_nimgs, RAI_ndets, use = "complete.obs"), 3),
-                img_hrs = round(cor(RAI_nimgs, RAI_nhrs, use = "complete.obs"), 3),
-                dets_hrs = round(cor(RAI_nhrs, RAI_ndets, use = "complete.obs"), 3),
-                img_tifc = round(cor(RAI_nimgs, density_km2, use = "complete.obs"), 3),
-                dets_tifc = round(cor(RAI_ndets, density_km2, use = "complete.obs"), 3),
-                hrs_tifc = round(cor(RAI_nhrs, density_km2, use = "complete.obs"), 3)) %>%
+      summarize(img_dets = round(cor(RAI_nimgs, RAI_ndets), 3), #, use = "complete.obs"
+                img_hrs = round(cor(RAI_nimgs, RAI_nhrs), 3),
+                dets_hrs = round(cor(RAI_nhrs, RAI_ndets), 3),
+                img_tifc = round(cor(RAI_nimgs, density_km2), 3),
+                dets_tifc = round(cor(RAI_ndets, density_km2), 3),
+                hrs_tifc = round(cor(RAI_nhrs, density_km2), 3)) %>%
       ungroup()
     print(pearsons_cor)
     return(pearsons_cor)
@@ -270,7 +290,6 @@
   eoe21s_corr <- compare_counts(eoe21s_RAI, eoe_density_list[[2]])
   
   
-    
   
   
   
