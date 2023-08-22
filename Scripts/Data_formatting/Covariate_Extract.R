@@ -27,7 +27,7 @@
   ####  Spatial data  ####
   #'  ----------------
   #'  Load and review
-  pforest <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForeest_500m.tif")
+  pforest <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForest_500m.tif")
   nlcd <- rast("./Shapefiles/National Land Cover Database (NCLD)/NLCD19_Idaho.tif")
   id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp")
   elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
