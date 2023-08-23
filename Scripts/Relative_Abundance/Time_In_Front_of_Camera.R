@@ -36,6 +36,9 @@
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
   
+  #'  Spatial covariates
+  source("./Scripts/Covariate_extract.R")
+  
   #'  Published species-specific EDD & leave probabilities from Becker et al. 2022
   df_leave_prob_pred <- read.csv("./Data/Becker et al. data/gap-leave-prob_predictions.csv")
   edd_appendix <- read.csv("./Data/Becker et al. data/abmi_appendix1_EDD.csv")
@@ -56,7 +59,7 @@
   #'  most cameras were active each season (Detection_data_cleaning.R script)
   detections <- function(dets, start_date, end_date, days_operable) {
     dets <- dets %>%
-      # filter(Setup != "P") %>%      ####  DROP PREDATOR CAMS FOR NOW  ####
+      # filter(Setup != "P") %>%      
       dplyr::select("NewLocationID", "CamID", "File", "Location_Relative_Project", 
                     "Date", "Time", "posix_date_time", "TriggerMode",
                     "OpState", "Species", "Vehicle", "Count", "Lat", "Long", "Gmu",
