@@ -16,7 +16,6 @@
   #'  Load libraries
   library(sf)
   library(rgeos)
-  # library(raster)
   library(terra)
   library(tidyverse)
   library(ggplot2)
