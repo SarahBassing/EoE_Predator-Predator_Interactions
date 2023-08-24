@@ -382,17 +382,17 @@
   #'  Ignores sites where density = 0 for a given species
   density_by_gmu <- eoe_density %>%
     filter(!is.na(Gmu)) %>%
-    group_by(Gmu, Species) %>%
+    group_by(Gmu, Species, year) %>%
     summarise(average_density_km2 = mean(density_km2, na.rm = TRUE),
               se_density_km2 = (sd(density_km2, na.rm = TRUE)/sqrt(nrow(.))),
               average_density_100km2 = mean(density_100km2, na.rm = TRUE),
               se_density_100km2 = (sd(density_100km2, na.rm = TRUE)/sqrt(nrow(.)))) %>%
-    ungroup()
+    ungroup() %>%
+    arrange(Gmu, year, average_density_km2)
   
   write.csv(density_by_gmu, "./Outputs/Relative_Abundance/TIFC/mean_density_by_gmu.csv")
   
   
-  #'  CLEARLY SOME ESTIMATES ARE WILDLY UNREALISTIC
   ####  NEED TO  ####
   #'  ACCOUNT FOR NON-RANDOMNESS OF PREDATOR CAMERAS BUMPING UP DETECTION PROBABILITY
   #'    -only use ungulate cams? estimates still seem unrealistic
