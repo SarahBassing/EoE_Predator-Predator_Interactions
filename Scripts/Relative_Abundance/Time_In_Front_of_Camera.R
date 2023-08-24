@@ -37,7 +37,7 @@
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
   
   #'  Spatial covariates
-  source("./Scripts/Covariate_extract.R")
+  source("./Scripts/Relative_Abundance/Covariate_extract.R")
   
   #'  Published species-specific EDD & leave probabilities from Becker et al. 2022
   df_leave_prob_pred <- read.csv("./Data/Becker et al. data/gap-leave-prob_predictions.csv")
