@@ -44,8 +44,8 @@
   crs(elev, describe = TRUE, proj = TRUE)
   crs(habclass, describe = TRUE, proj = TRUE)
   crs(dist2suburbs, describe = TRUE, proj = TRUE)
-  crs(id, describe = TRUE, proj = TRUE)
-  crs(rds, describe = TRUE, proj = TRUE)
+  st_crs(id)
+  st_crs(rds)
   
   res(pforest)
   res(nlcd)
