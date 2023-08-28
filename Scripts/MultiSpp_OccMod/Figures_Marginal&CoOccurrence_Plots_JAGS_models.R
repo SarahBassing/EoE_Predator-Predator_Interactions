@@ -461,11 +461,11 @@
   dif_ung_guide <- marginal_dif_ung_plot + guides(colour = "none", fill = "none")
   
   marginal_pred_patchwork <- elev_pred_guide + marginal_for_pred_plot + dif_pred_guide + 
-    plot_annotation(title = "Species-specific marginal occupancy across elevation, percent forest cover, and prey diveristy gradients") +
+    plot_annotation(title = "Species-specific marginal occupancy across elevation, percent forest cover, and prey diversity gradients") +
     plot_annotation(tag_levels = 'a') + 
     plot_layout(guides = "collect") & theme(legend.position = "bottom")
   marginal_ung_patchwork <- elev_ung_guide + marginal_for_ung_plot + dif_ung_guide + 
-    plot_annotation(title = "Species-specific marginal occupancy across elevation, percent forest cover, and prey diveristy gradients") +
+    plot_annotation(title = "Species-specific marginal occupancy across elevation, percent forest cover, and prey diversity gradients") +
     plot_annotation(tag_levels = 'a') + 
     plot_layout(guides = "collect") & theme(legend.position = "bottom")
   
