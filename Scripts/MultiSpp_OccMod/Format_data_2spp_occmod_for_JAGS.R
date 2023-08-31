@@ -55,7 +55,7 @@
       mutate(CameraFacing = ifelse(CameraFacing == "road" | CameraFacing == "atv" | CameraFacing == "gravel" | 
                                    CameraFacing == "decommision" | CameraFacing == "decommission", "road", CameraFacing),
              CameraFacing = ifelse(CameraFacing == "hiking" | CameraFacing == "game" | CameraFacing == "other", "trail", CameraFacing),
-             CameraFacing = ifelse(is.na(CameraFacing), "trail", CameraFacing)) %>% # predator cameras so either trail or road
+             CameraFacing = ifelse(is.na(CameraFacing), "road", CameraFacing)) %>% # missing for two 2021 predator cams deployed on roads in 2020
       arrange(NewLocationID)
     return(cams)
   }
@@ -289,7 +289,7 @@
   #' save.image(file = "./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
   
   #'  Fin!
-  #'  This is all sourced by Multi-Spp_OccMod_2spp_Bayesian.R
+  #'  This is all sourced by Multi-Spp_OccMod_2spp_JAGS.R
   
   
   
