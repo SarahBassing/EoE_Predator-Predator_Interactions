@@ -61,7 +61,7 @@
     dets <- dets %>%
       # filter(Setup != "P") %>%      
       dplyr::select("NewLocationID", "CamID", "File", "Location_Relative_Project", 
-                    "Date", "Time", "posix_date_time", "TriggerMode",
+                    "Date", "Time", "posix_date_time", "TriggerMode", "Setup",
                     "OpState", "Species", "Vehicle", "Count", "Lat", "Long", "Gmu",
                     "Area_M2") %>%
       filter(Species != "none") %>%
@@ -105,7 +105,7 @@
   #'  -------------------------
   #'  Organize area of field-of-view for each site. Area (m2) measured by IDFG 
   #'  biologists using walk test, flagging, or other methods to estimate detection 
-  #'  zone of each camera.   ####  CAN I ADJUST THESE AREAS BASED ON PUBLISHED EDD FROM BECKER AT AL. FOR EACH SPECIES SINCE OUR MEASUREMENTS AREN'T SPECIES-SPECIFIC???  ####
+  #'  zone of each camera.   
   #'  -------------------------
   fov <- function(dets1, dets2) {
     #'  Filter detection data to just location and detection zone areas
@@ -135,15 +135,7 @@
   fov_area_20s <- fov_area %>% dplyr::select(-Area_M2_21s) %>% filter(!is.na(Area_M2_20s))
   fov_area_21s <- fov_area %>% dplyr::select(-Area_M2_20s) 
   fov_list <- list(fov_area_20s, fov_area_21s)
-  
-  #'  Adjust fov based on published species & habitat specific EDDs (Becker et al. 2022)
-  edd <- edd_appendix %>%
-    group_by(Habitat) %>%
-    mutate(max_EDD = max(EDD_m)) %>%
-    ungroup() %>%
-    mutate(prop_EDD = round(EDD_m/max_EDD, 3))
-  
-  
+
   #'  -------------------------------
   ####  Predicted leave probability  ####
   #'  -------------------------------
@@ -192,7 +184,7 @@
   tifc <- function(dets, fov) {
     
     #'  Snag number of days each camera was operational
-    cam_op <- dplyr::select(dets, c("NewLocationID", "ndays")) %>% unique()
+    cam_op <- dplyr::select(dets, c("NewLocationID", "Setup", "ndays")) %>% unique()
     
     #'  Identify series of consecutive images of the same species and flag gaps 
     #'  in sequential images where an animal may have left & returned OR remains 
@@ -299,7 +291,7 @@
       #'  Bind with total time in front of camera
       left_join(total_time_per_series, by = c("series_ID", "Species")) %>%
       #'  Reduce to only necessary columns
-      select(NewLocationID, posix_date_time, Species, series_total_time) %>%
+      dplyr::select(c("NewLocationID", "posix_date_time", "Species", "series_total_time")) %>%
       ungroup() %>%
       #'  Sum total time in front of camera for each species by camera site
       group_by(NewLocationID, Species) %>%
@@ -315,9 +307,10 @@
       left_join(cam_op, by = "NewLocationID") %>%
       #'  Convert to total seconds each camera was operable
       mutate(nseconds = ndays * 24 * 60 * 60) %>%
-      relocate(Gmu, .after = NewLocationID)
+      relocate(Gmu, .after = NewLocationID) %>%
+      relocate(Setup, .after = Gmu)
     
-    colnames(total_time) <- c("NewLocationID", "Gmu", "Species", "total_duration_sec", 
+    colnames(total_time) <- c("NewLocationID", "Gmu", "Setup", "Species", "total_duration_sec", 
                               "avg_time_btwn_imgs_spp", "total_imgs_spp", "Area_M2", 
                               "ndays", "nseconds")
     
@@ -332,6 +325,62 @@
   #'  Save
   save(eoe_total_time_in_FoV, file = "./Data/Time_In_Front_of_Camera/eoe_total_time_in_FoV.RData")
   
+  #'  ------------------------------------------
+  ####  Adjusted FOV by species & habitat type  ####
+  #'  ------------------------------------------
+  #'  Calculate how much each fov needs to be adjusted based on published species 
+  #'  and habitat specific EDDs (Becker et al. 2022)
+  edd <- edd_appendix %>%
+    group_by(Habitat) %>%
+    #'  Identify maximum EDD per habitat type (regardless of species)
+    mutate(max_EDD = max(EDD_m)) %>%
+    ungroup() %>%
+    #'  Calculate the percentage of the max EDD/habitat covered by each species 
+    #'  and habitat-specific Becker et al. 2022 measure of EDD 
+    mutate(perc_EDD = round(EDD_m/max_EDD, 3))
+  
+  #'  Reclassify NLCD habitat types to match Becker et al. 2022 habitat types
+  rename_habitat <- function(covs) {
+    covs <- covs %>%
+      mutate(Habitat = ifelse(Landcover_30m2 == "Evergreen Forest", "Coniferous", Landcover_30m2),
+             Habitat = ifelse(Landcover_30m2 == "Shrub/Scrub", "Shrub", Habitat),
+             Habitat = ifelse(Landcover_30m2 == "Developed, Open Space", "Human_footprint", Habitat),
+             Habitat = ifelse(Landcover_30m2 == "Herbaceous", "Grassland", Habitat),
+             Habitat = ifelse(Landcover_30m2 == "Woody Wetlands", "Treed_wetland", Habitat),
+             Habitat = ifelse(Landcover_30m2 == "Emergent Herbaceous Wetlands", "Open_wetland", Habitat),
+             Habitat = ifelse(Landcover_30m2 == "Cultivated Crops", "Human_footprint", Habitat),
+             Habitat = ifelse(Landcover_30m2 == "Mixed Forest", "Coniferous", Habitat),
+             Habitat = ifelse(Landcover_30m2 == "Barren Land", "Grassland", Habitat),
+             Habitat = ifelse(Landcover_30m2 == "Hay/Pasture", "Human_footprint", Habitat),
+             Habitat = ifelse(Landcover_30m2 == "Deciduous Forest", "Deciduous", Habitat)) %>%
+      relocate(Habitat, .before = "Landcover_30m2")
+    return(covs)
+  }
+  eoe_covs_20s <- rename_habitat(eoe_covs_20s)
+  eoe_covs_21s <- rename_habitat(eoe_covs_21s)
+  
+  #'  Adjust FOV based on species & habitat-specific EDDs
+  tifc_adj <- function(tifc, covs, edd) {
+    #'  Merge covariates and EDD data with TIFC
+    tifc_cov_edd <- left_join(tifc, covs, by = "NewLocationID") %>%
+      left_join(edd, by = c("Species", "Habitat")) %>%
+      relocate(perc_EDD, .after = "Area_M2") %>%
+      dplyr::select(-c("GMU", "EDD_m", "max_EDD")) %>%
+      #'  Adjust FOV proportional to max EDD for each species in habitat
+      mutate(FOV_adj = round(Area_M2 * perc_EDD, 2),
+             #'  Only adjust ungulate cameras b/c assuming P camera EDD does not
+             #'  vary with species or habitat based on how FOV is measured
+             FOV_adj_ung = ifelse(Setup == "U", FOV_adj, Area_M2),
+             #'  No EDD data for livestock or humans so fill in NAs produced above with Area_M2
+             FOV_adj = ifelse(Species == "cattle_cow" | Species == "human", Area_M2, FOV_adj),
+             FOV_adj_ung = ifelse(Species == "cattle_cow" | Species == "human", Area_M2, FOV_adj_ung)) %>%
+      relocate(FOV_adj, .after = Area_M2) %>%
+      relocate(FOV_adj_ung, .after = FOV_adj)
+    return(tifc_cov_edd)
+  }
+  tifc_adj_20s <- tifc_adj(eoe_total_time_in_FoV[[1]][[4]], covs = eoe_covs_20s, edd = edd)
+  tifc_adj_21s <- tifc_adj(eoe_total_time_in_FoV[[2]][[4]], covs = eoe_covs_21s, edd = edd)
+  
   #'  ----------------------
   ####  Density estimation  ####
   #'  ----------------------
@@ -343,8 +392,9 @@
   #'    To = total camera operating time (in seconds)
   #'  Essentially, count/sampling effort --> animal-time per area-time --> animals per area
   #'  ----------------------
-  #'  Pull out 4th list (with total time in front of camera) from annual tifc lists
-  tifc_dat <- list(eoe_total_time_in_FoV[[1]][[4]], eoe_total_time_in_FoV[[2]][[4]])
+  #'  List annual total time in front of camera data sets
+  # tifc_dat <- list(eoe_total_time_in_FoV[[1]][[4]], eoe_total_time_in_FoV[[2]][[4]])
+  tifc_dat <- list(tifc_adj_20s, tifc_adj_21s)
   
   #'  Define camera field-of-view angle (Reconyx Hyperfire = 42 degrees)
   cam_angle <- 42
@@ -353,7 +403,7 @@
   camera_level_density <- function(dets) {
     site_density <- dets %>%
       #'  Calculate sampling effort (To * Af), dividing by 100 b/c want effort to be per 100 m2... I think
-      mutate(effort = nseconds * (Area_M2 * pi * (cam_angle / 360)) / 100,  
+      mutate(effort = nseconds * (FOV_adj * pi * (cam_angle / 360)) / 100,  # Area_M2
              #'  Catch per unit effort
              cpue = total_duration_sec / effort,
              #'  Catch per unit effort in km2
@@ -397,12 +447,6 @@
   
   
   ####  NEED TO  ####
-  #'  ACCOUNT FOR NON-RANDOMNESS OF PREDATOR CAMERAS BUMPING UP DETECTION PROBABILITY
-  #'    -only use ungulate cams? estimates still seem unrealistic
-  #'    -ratio of predator:ungulate cam detections and down weight predator cam density by that?
-  #'    -leave as is but include a trail vs random covariate in any future models?
-  #'    -no matter what, this will definitely be an measure of RELATIVE abundance
-  #'  ADJUST DETECTION ZONE BY EDD FOR EACH SPECIES & HABITAT
   #'  WEIGHT TIFC FOR TIME INVESTIGATING CAMERAS - ESPECIALLY IMPORTANT FOR BEARS
   #'  BOOTSTRAP ESTIMATES TO GET STANDARD ERRORS ON THEM
   #'    -MIGHT BE ABLE TO INCORPORATE SEs INFO FUTURE MODELS IF BAYESIAN???
