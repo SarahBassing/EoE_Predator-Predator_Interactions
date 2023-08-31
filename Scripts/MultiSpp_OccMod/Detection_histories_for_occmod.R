@@ -323,5 +323,13 @@
   #' save(effort_20w, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20w.RData")
   #' save(effort_21s, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData")
   
- 
+  #'  Save for publication
+  DetectionHist_Smr20 <- list(DH_eoe20s_predators[[1]][[1]], DH_eoe20s_predators[[2]][[1]], DH_eoe20s_predators[[3]][[1]], DH_eoe20s_predators[[4]][[1]], DH_eoe20s_predators[[5]][[1]])
+  DetectionHist_Smr21 <- list(DH_eoe21s_predators[[1]][[1]], DH_eoe21s_predators[[2]][[1]], DH_eoe21s_predators[[3]][[1]], DH_eoe21s_predators[[4]][[1]], DH_eoe21s_predators[[5]][[1]])
+  SamplingEffort_Smr20 <- effort_20s
+  SamplingEffort_Smr21 <- effort_21s
+  save(DetectionHist_Smr20, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/DetectionHist_smr20.RData")
+  save(DetectionHist_Smr21, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/DetectionHist_smr21.RData")
+  save(SamplingEffort_Smr20, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/SamplingEffort_smr20.RData")
+  save(SamplingEffort_Smr21, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/SamplingEffort_smr21.RData")
   
