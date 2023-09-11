@@ -35,6 +35,11 @@
   cams_s21_eoe <- dep_dat; save(cams_s21_eoe, file = "./Data/IDFG camera data/eoe2021s_cameras.RData")
   dets_s21_eoe <- pic_dat; save(dets_s21_eoe, file = "./Data/IDFG camera data/eoe2021s_detections.RData")
   
+  #'  EoE 2022 summer
+  load("./Data/IDFG camera data/eoe2022s_pic_dep_loc.RData")
+  cams_s22_eoe <- dep_dat; save(cams_s22_eoe, file = "./Data/IDFG camera data/eoe2022s_cameras.RData")
+  dets_s22_eoe <- pic_dat; save(dets_s22_eoe, file = "./Data/IDFG camera data/eoe2022s_detections.RData")
+  
   #'  Wolf 2019 summer/winter
   load("./Data/IDFG camera data/swwlf2019_dep_pic_loc.RData")
   cams_s19_wolf <- dep_dat; save(cams_s19_wolf, file = "./Data/IDFG camera data/wolf2019s_cameras.RData")
@@ -58,6 +63,7 @@
   load("./Data/IDFG camera data/eoe2020s_detections.RData")
   load("./Data/IDFG camera data/eoe2020w_detections.RData")
   load("./Data/IDFG camera data/eoe2021s_detections.RData")
+  load("./Data/IDFG camera data/eoe2022s_detections.RData")
   
   load("./Data/IDFG camera data/wolf2019s_detections.RData")
   load("./Data/IDFG camera data/wolf2020s_detections.RData")
@@ -94,6 +100,7 @@
   eoe20s_dets <- filter_dets(dets_s20_eoe, prefixname = "eoe20s_")
   eoe20w_dets <- filter_dets(dets_w20_eoe, prefixname = "eoe20w_")
   eoe21s_dets <- filter_dets(dets_s21_eoe, prefixname = "eoe21s_")
+  eoe22s_dets <- filter_dets(dets_s22_eoe, prefixname = "eoe22s_")
   
   wolf19s_dets <- filter_dets(dets_s19_wolf, prefixname = "wolf19s_")
   wolf20s_dets <- filter_dets(dets_s20_wolf, prefixname = "wolf20s_")
@@ -111,6 +118,7 @@
   save_Rdata(eoe20s_dets)
   save_Rdata(eoe20w_dets)
   save_Rdata(eoe21s_dets)
+  save_Rdata(eoe22s_dets)
   
   save_Rdata(wolf19s_dets)
   save_Rdata(wolf20s_dets)
@@ -128,6 +136,7 @@
   load("./Data/IDFG camera data/Split datasets/eoe20s_allM.RData")
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM.RData")
+  load("./Data/IDFG camera data/Split datasets/eoe22s_allM.RData")
   
   load("./Data/IDFG camera data/Split datasets/wolf19s_allM.RData")
   load("./Data/IDFG camera data/Split datasets/wolf20s_allM.RData")
@@ -137,6 +146,7 @@
   load("./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
   load("./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
+  load("./Data/IDFG camera data/Split datasets/eoe22s_allT.RData")
   
   load("./Data/IDFG camera data/Split datasets/wolf19s_allT.RData")
   load("./Data/IDFG camera data/Split datasets/wolf20s_allT.RData")
@@ -148,11 +158,11 @@
     keep_dets <- filter(dets, SetLocation == "KeepSet")
     return(keep_dets)
   }
-  eoe_motion <- list(eoe20s_allM, eoe20w_allM, eoe21s_allM)
+  eoe_motion <- list(eoe20s_allM, eoe20w_allM, eoe21s_allM, eoe22s_allM)
   eoe_motion_skinny <- lapply(eoe_motion, keepers)
   save(eoe_motion_skinny, file = "./Data/IDFG camera data/Split datasets/eoe_motion_skinny.RData")
   
-  eoe_time <- list(eoe20s_allT, eoe20w_allT, eoe21s_allT)
+  eoe_time <- list(eoe20s_allT, eoe20w_allT, eoe21s_allT, eoe22s_allT)
   eoe_time_skinny <- lapply(eoe_time, keepers)
   save(eoe_time_skinny, file = "./Data/IDFG camera data/Split datasets/eoe_time_skinny.RData")
   
