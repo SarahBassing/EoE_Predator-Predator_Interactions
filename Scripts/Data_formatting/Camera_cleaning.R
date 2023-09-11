@@ -22,6 +22,7 @@
   load("./Data/IDFG camera data/eoe2020s_cameras.RData") 
   load("./Data/IDFG camera data/eoe2020w_cameras.RData") 
   load("./Data/IDFG camera data/eoe2021s_cameras.RData")
+  load("./Data/IDFG camera data/eoe2022s_cameras.RData")
   
   load("./Data/IDFG camera data/wolf2019s_cameras.RData")
   load("./Data/IDFG camera data/wolf2020s_cameras.RData")
@@ -53,10 +54,37 @@
   cams_s20_eoe <- format_time1(cams_s20_eoe)
   cams_s21_eoe <- format_time1(cams_s21_eoe)
   
+  #'  Format data when not time is included and date formatted differently in 
+  #'  Date_Deployed and Date_Retrieved
+  format_time2 <- function(dat) {
+    whatistime <- dat %>%
+      mutate(
+        #'  Format to POSIXct based on attributes above
+        Date_Deployed = as.POSIXct(Date_Deployed, format="%Y-%m-%d", tz="UTC"),
+        Date_Retrieved = as.POSIXct(Date_Retrieved, format="%Y-%m-%d", tz="UTC"),
+        Date_Dep = as.Date(Date_Deployed, format = "%Y-%m-%d"),
+        Date_Pull = as.Date(Date_Retrieved, format = "%Y-%m-%d"),
+        real_start = as.POSIXct(End_Date, format="%Y-%m-%d %H:%M:%S", tz="UTC"),
+        real_end = as.POSIXct(Start_Date, format="%Y-%m-%d %H:%M:%S", tz="UTC")) %>%
+      dplyr::select(-c(Date_Deployed, Date_Retrieved, Fcell, Scell, End_Date, Start_Date)) %>%
+      relocate(real_start, .after = T_pics) %>%
+      relocate(real_end, .after = real_start) %>%
+      rename(Start_Date = real_start) %>%
+      rename(End_Date = real_end) %>%
+      relocate(Date_Dep, .before = Observers) %>%
+      rename(Date_Deployed = Date_Dep) %>%
+      relocate(Date_Pull, .before = Observers) %>%
+      rename(Date_Retrieved = Date_Pull)
+    return(whatistime)
+  }
+  cams_s22_eoe <- format_time2(cams_s22_eoe) # looks like start and end dates are swapped
+  
   #'  Format data when time is included in Date_Deployed and Date_Retrieved
   cams_w20_eoe <- mutate(cams_w20_eoe,
         Date_Dep = as.POSIXct(Date_Deployed, format="%m/%d/%Y", tz="UTC"),
-        Date_Pull = as.POSIXct(Date_Retrieved, format="%m/%d/%Y", tz="UTC")) %>%
+        Date_Dep = as.Date(Date_Dep, format = "%Y-%m-%d"),
+        Date_Pull = as.POSIXct(Date_Retrieved, format="%m/%d/%Y", tz="UTC"),
+        Date_Pull = as.Date(Date_Pull, format = "%Y-%m-%d")) %>%
       dplyr::select(-c(Date_Deployed, Date_Retrieved)) %>%
       relocate(Date_Dep, .before = Observers) %>%
       rename(Date_Deployed = Date_Dep) %>%
@@ -107,6 +135,7 @@
   cams_s20_eoe <- uppercase_time(cams_s20_eoe) %>% mutate(Season = "Smr20")
   cams_w20_eoe <- uppercase_time(cams_w20_eoe) %>% mutate(Season = "Wtr20")
   cams_s21_eoe <- uppercase_time(cams_s21_eoe) %>% mutate(Season = "Smr21")
+  cams_s22_eoe <- uppercase_time(cams_s22_eoe) %>% mutate(Season = "Smr22")
   cams_s19_wolf <- uppercase_time(cams_s19_wolf) %>% mutate(Season = "Smr19")
   cams_s20_wolf <- uppercase_time(cams_s20_wolf) %>% mutate(Season = "Smr20")
   cams_s21_wolf <- uppercase_time(cams_s21_wolf) %>% mutate(Season = "Smr21")
@@ -139,9 +168,11 @@
   }
   cams_s20_eoe <- new_LocationID(cams_s20_eoe)
   cams_w20_eoe <- new_LocationID(cams_w20_eoe)
-  #'  Slight tweak for summer 2021 data - need to generate LocationID that matches
-  #'  previous seasons
+  #'  Slight tweak for summer 2021/2022 data - need to generate LocationID that 
+  #'  matches previous seasons
   cams_s21_eoe <- mutate(cams_s21_eoe, NewLocationID = LocationID) %>%
+    relocate(NewLocationID, .after = "LocationID")
+  cams_s22_eoe <- mutate(cams_s22_eoe, NewLocationID = LocationID) %>%
     relocate(NewLocationID, .after = "LocationID")
   #' cams_s21_eoe <- mutate(cams_s21_eoe, NewLocationID = LocationID, 
   #'                        #'  Remove everything before underscore (do twice b/c 2 underscores)
@@ -225,8 +256,17 @@
     dplyr::select(-CameraHeight_M) %>%
     rename(CameraHeight_M = CameraHeight_M2)
   
+  #'  Replace Smr22 NA heights with Smr21 heights
+  all_heights <- tibble(CameraHeight_M = sort(union(cams_s21_eoe$CameraHeight_M, cams_s22_eoe$CameraHeight_M))) %>%
+    left_join(cams_s21_eoe, by = "CameraHeight_M") %>%
+    dplyr::select(c(Gmu, Setup, NewLocationID, CameraHeight_M)) 
+  cams_s22_eoe <- left_join(cams_s22_eoe, all_heights, by = c("Gmu", "Setup", "NewLocationID")) %>%
+    mutate(CameraHeight_M = coalesce(CameraHeight_M.x, CameraHeight_M.y)) %>%
+    dplyr::select(-c(CameraHeight_M.x, CameraHeight_M.y)) %>%
+    relocate(CameraHeight_M, .after = Area_M2)
+  
   #'  Merge all deployment data together
-  eoe_cams <- rbind(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe)
+  eoe_cams <- rbind(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe, cams_s22_eoe)
   length(unique(eoe_cams$LocationID))
   summary(eoe_cams)
   wolf_cams <- rbind(cams_s19_wolf, cams_s20_wolf, cams_s21_wolf)
@@ -279,6 +319,7 @@
   same_s20_w2021_eoe <- samesame(dat1 = cams_s20_eoe, dat2 = cams_w20_eoe, season1 = "Smr20", season2 = "Wtr2021")
   same_w2021_s20_eoe <- samesame(dat1 = cams_w20_eoe, dat2 = cams_s20_eoe, season1 = "Wtr2021", season2 = "Smr20")
   same_s20_s21_eoe <- samesame(dat1 = cams_s20_eoe, dat2 = cams_s21_eoe, season1 = "Smr20", season2 = "Smr21")
+  same_s21_s22_eoe <- samesame(dat1 = cams_s21_eoe, dat2 = cams_s22_eoe, season1 = "Smr21", season2 = "Smr22")
   same_s19_s20_wolf <- samesame(dat1 = cams_s19_wolf, dat2 = cams_s20_wolf, season1 = "Smr19", season2 = "Smr20")
   same_s19_s21_wolf <- samesame(dat1 = cams_s19_wolf, dat2 = cams_s21_wolf, season1 = "Smr19", season2 = "Smr21")
   same_s20_s21_wolf <- samesame(dat1 = cams_s20_wolf, dat2 = cams_s21_wolf, season1 = "Smr20", season2 = "Smr21")
@@ -334,26 +375,29 @@
     return(dat)
   }
   #'  Reformat data in long format
-  eoe_cams_long <- arrange(eoe_cams, LocationID) %>%
+  eoe_cams_long <- arrange(eoe_cams, Gmu, NewLocationID) %>%
     organize_cols(.)
-  # write.csv(eoe_cams_long, file = "./Data/IDFG camera data/cams_eoe_long.csv")
-  wolf_cams_long <- arrange(wolf_cams, LocationID) %>%
+  # write.csv(eoe_cams_long, file = "./Data/IDFG camera data/cams_eoe_long_Smr2020-2022.csv")
+  wolf_cams_long <- arrange(wolf_cams, NewLocationID) %>%
     organize_cols(.)
   # write.csv(wolf_cams_long, file = "./Data/IDFG camera data/cams_wolf_long.csv")
   
   #'  Reformat data in wide format
   #'  Resulting data frame is bananas b/c so many repeat columns that I don't 
   #'  know if they're important or not
-  eoe_list <- list(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe)
+  eoe_list <- list(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe, cams_s22_eoe)
   eoe_trim <- lapply(eoe_list, organize_cols)
-  eoe_cams_wide <- full_join(eoe_trim[[1]], eoe_trim[[2]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "AreaType")) %>%
-    full_join(eoe_trim[[3]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "AreaType")) %>%
-    dplyr::select(-c(DominantHabitatType.x, DominantHabitatType.y, Topography.x, Topography.y, CanopyCover.x, CanopyCover.y))
+  eoe_cams_wide <- right_join(eoe_trim[[1]][,1:18], eoe_trim[[2]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%
+    full_join(eoe_trim[[3]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%
+    full_join(eoe_trim[[4]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%  ### SOMETHING'S NOTE WORKING HERE  ####
+    dplyr::select(-AreaType)
   #'  Make at least some of these repeat columns easier to keep track of
   #'  Final season's worth of data retains original column names
+  names(eoe_cams_wide) <- gsub(".x.x", "_smr21", names(eoe_cams_wide), fixed = T)
+  names(eoe_cams_wide) <- gsub(".y.y", "_smr22", names(eoe_cams_wide), fixed = T)
   names(eoe_cams_wide) <- gsub(".x", "_smr20", names(eoe_cams_wide), fixed = T)
   names(eoe_cams_wide) <- gsub(".y", "_wtr2021", names(eoe_cams_wide), fixed = T)
-  
+    
   wolf_list <- list(cams_s19_wolf, cams_s20_wolf, cams_s21_wolf)
   wolf_trim <- lapply(wolf_list, organize_cols)
   wolf_cams_wide <- full_join(wolf_trim[[1]], wolf_trim[[2]], by = c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "AreaType", "MarkerDistance_A_M", "MarkerType_A", "MarkerDistance_B_M", "MarkerType_B", "MarkerDistance_C_M", "MarkerType_C")) %>%
@@ -365,6 +409,7 @@
   #'  Cameras with same deployment & retrieval date
   same_startend_eoe <- filter(eoe_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date)
   same_startend_wolf <- filter(wolf_cams, Date_Deployed == Date_Retrieved | Start_Date == End_Date) 
+  missing_startend_eoe <- filter(eoe_cams, is.na(Start_Date) | is.na(End_Date))
   
   #'  Cameras with odd locations relative to GMUs
   prob_locs <- eoe_cams_long[eoe_cams_long$NewLocationID == "GMU6_P_109" | eoe_cams_long$NewLocationID == "GMU6_U_122" | eoe_cams_long$NewLocationID == "GMU6_U_109" | eoe_cams_long$NewLocationID == "GMU6_P_63" | eoe_cams_long$NewLocationID == "GMU6_U_63" | eoe_cams_long$NewLocationID == "GMU10A_U_101" | eoe_cams_long$NewLocationID == "UNKNOWN",]
