@@ -383,13 +383,13 @@
   # write.csv(wolf_cams_long, file = "./Data/IDFG camera data/cams_wolf_long.csv")
   
   #'  Reformat data in wide format
-  #'  Resulting data frame is bananas b/c so many repeat columns that I don't 
-  #'  know if they're important or not
+  #'  Resulting data frame is bananas b/c so many repeat columns
+  #'  Join isn't perfect and lots of NAs introduced but ignoring for now
   eoe_list <- list(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe, cams_s22_eoe)
   eoe_trim <- lapply(eoe_list, organize_cols)
-  eoe_cams_wide <- right_join(eoe_trim[[1]][,1:18], eoe_trim[[2]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%
+  eoe_cams_wide <- full_join(eoe_trim[[1]][,1:18], eoe_trim[[2]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%
     full_join(eoe_trim[[3]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%
-    full_join(eoe_trim[[4]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%  ### SOMETHING'S NOTE WORKING HERE  ####
+    full_join(eoe_trim[[4]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%  
     dplyr::select(-AreaType)
   #'  Make at least some of these repeat columns easier to keep track of
   #'  Final season's worth of data retains original column names
@@ -421,15 +421,16 @@
   
   #'  Reduced camera location data set to something more usable
   #'  For simplicity, retain each unique camera location with first lat/long coordinates
-  #'  associated with the location and some site-specific sampling effort/habitat data 
-  eoe_cams_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "Lat_smr20", "Long_smr20", "CameraHeight_M_smr20", "CameraFacing_smr20", "DominantHabitatType", "Topography", "CanopyCover")) %>%
+  #'  associated with the location. Only retaining Smr20 & Smr21 (GMU1 only) sites
+  #'  since the sames sites were sampled each following year (e.g., Smr22) 
+  eoe_cams_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "NewLocationID", "Lat", "Long_smr20", "CameraHeight_M_smr20", "CameraFacing_smr20")) %>%
     #'  Drop data from GMU1 b/c these weren't deployed in 2020
     filter(Gmu != "1")
   names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Lat_smr20"] <- "Lat"
   names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Long_smr20"] <- "Long"
   names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraHeight_M_smr20"] <- "CameraHeight_M"
   names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraFacing_smr20"] <- "CameraFacing"
-  eoe_cams_s21_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "LocationID", "NewLocationID", "Lat", "Long", "CameraHeight_M", "CameraFacing", "DominantHabitatType", "Topography", "CanopyCover")) %>%
+  eoe_cams_s21_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "NewLocationID", "Lat_smr21", "Long_smr21", "CameraHeight_M_smr21", "CameraFacing_smr21")) %>%
     #'  Retain only data from GMU1 to match data from cameras deployed in GMU6 & GMU10A in 2020
     filter(Gmu == "1")
   eoe_cams_skinny <- rbind(eoe_cams_skinny, eoe_cams_s21_skinny) %>%
@@ -452,7 +453,8 @@
   cams_reproj <- st_transform(cams, crs = sa_proj)
   cams_reproj <- mutate(cams_reproj, Season = ifelse(Season == "Smr20", "Summer 2020", Season),
                         Season = ifelse(Season == "Wtr20", "Winter 2020-2021", Season),
-                        Season = ifelse(Season == "Smr21", "Summer 2021", Season))
+                        Season = ifelse(Season == "Smr21", "Summer 2021", Season),
+                        Season = ifelse(Season == "Smr22", "Summer 2022", Season))
   
   wolf_cams_long <- mutate(wolf_cams_long, Target = factor(Target, levels = c("Abundance", "Occupancy", "Abund_Occu")))
   wcams <- st_as_sf(wolf_cams_long, coords = c("Long", "Lat"), crs = wgs84)
@@ -467,7 +469,7 @@
     geom_sf(data = eoe_gmus, aes(fill = NAME)) +
     scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
     geom_sf(data = cams_reproj, aes(color = Season), shape = 16) +
-    scale_color_manual(values=c("#d1495b", "#edae49", "#00798c")) +
+    scale_color_manual(values=c("#d1495b", "#edae49", "#00798c", "black")) +
     guides(fill=guide_legend(title="GMU")) +
     ggtitle("IDFG Cameras for EoE Project") +
     coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
@@ -492,7 +494,7 @@
     scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
     geom_sf(data = cams_reproj, aes(color = Season), shape = 16) +
     geom_sf(data = probs_reproj, aes(color = Probs), shape = 16, size = 3) +
-    scale_color_manual(values=c("#B90E0A", "#d1495b", "#edae49", "#00798c")) +
+    scale_color_manual(values=c("#B90E0A", "#d1495b", "#edae49", "#00798c", "black")) +
     guides(fill = guide_legend(title = "GMU"), color = guide_legend(title = "Camera Setup")) +
     coord_sf(xlim = c(-13050000, -12700000), ylim = c(5700000, 6274865), expand = TRUE) +
     ggtitle("Problematic EoE Cameras?") +
@@ -600,7 +602,7 @@
     mutate(Project = "EoE",
            Season = ifelse(Season == "Wtr20", "Wtr20-21", Season)) %>%
     relocate(Project, .before = Setup)
-  # write.csv(yr_gmu_eoe, file = "./Data/IDFG camera data/camera_EoE_summary.csv")
+  # write.csv(yr_gmu_eoe, file = "./Data/IDFG camera data/camera_EoE_summary_Smr2020-2022.csv")
 
   #'  Number of unique wolf sites (exact coords vary by year but site basically the same)
   n_wolf <- length(unique(wolf_cams_long$NewLocationID))
