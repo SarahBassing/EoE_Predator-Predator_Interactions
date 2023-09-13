@@ -24,19 +24,20 @@
   library(chron)
   
   #'  Camera locations
-  cams_eoe_long <- read.csv("./Data/IDFG camera data/cams_eoe_long.csv") %>%
+  cams_eoe_long <- read.csv("./Data/IDFG camera data/cams_eoe_long_Smr2020-2022.csv") %>% #cams_eoe_long does not include Smr2022 data
     dplyr::select(-X)
   cams_wolf_long <- read.csv("./Data/IDFG camera data/cams_wolf_long.csv") %>%
     dplyr::select(-X)
   
-  #'  ---------------------------------------------
-  ####  INITIAL FORMATTING - SKIP AFTER DONE ONCE  ####
-  #'  ---------------------------------------------
+  #' #'  ---------------------------------------------
+  #' ####  INITIAL FORMATTING - SKIP AFTER DONE ONCE  ####   
+  #' #'  ---------------------------------------------
   #' #'  Full detection data sets - MASSIVE so only load 1-2 at a time
   #' #'  Motion triggered images
   #' load("./Data/IDFG camera data/Split datasets/eoe20s_allM.RData")
   #' load("./Data/IDFG camera data/Split datasets/eoe20w_allM.RData")
   #' load("./Data/IDFG camera data/Split datasets/eoe21s_allM.RData")
+  #' load("./Data/IDFG camera data/Split datasets/eoe22s_allM.RData")
   #' 
   #' load("./Data/IDFG camera data/Split datasets/wolf19s_allM.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf20s_allM.RData")
@@ -46,6 +47,7 @@
   #' load("./Data/IDFG camera data/Split datasets/eoe20s_allT.RData")
   #' load("./Data/IDFG camera data/Split datasets/eoe20w_allT.RData")
   #' load("./Data/IDFG camera data/Split datasets/eoe21s_allT.RData")
+  #' load("./Data/IDFG camera data/Split datasets/eoe22s_allT.RData")
   #' 
   #' load("./Data/IDFG camera data/Split datasets/wolf19s_allT.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf20s_allT.RData")
@@ -58,9 +60,9 @@
   #' load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf_time_skinny.RData")
   #' 
-  #'  Add camera setup info (P/U/O/A) and consistent naming structure to match
-  #'  camera location data
-  #'  EoE cameras
+  #' #'  Add camera setup info (P/U/O/A) and consistent naming structure to match
+  #' #'  camera location data
+  #' #'  EoE cameras
   #' eoe_deploy_info <- function(dets, season, pred) {
   #'   #'  Filter to specific season and predator setup cameras
   #'   sub_cams <- cams_eoe_long %>%
@@ -81,66 +83,146 @@
   #'   return(dets)
   #' }
   #' #'  Run keeper eoe data sets through function
-  #' eoe_seasons <- list("Smr20", "Wtr20", "Smr21")
-  #' eoe_motion_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_motion_skinny, pred = "predator", SIMPLIFY = FALSE) 
-  #' #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
+  #' eoe_seasons <- list("Smr20", "Wtr20", "Smr21", "Smr22")
+  #' eoe_motion_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_motion_skinny, pred = "predator", SIMPLIFY = FALSE)
+  #' #'  Fix NewLocationID info- this was recorded differently for Smr21/Smr22 in
   #' #'  original data set so unnecessary info gets added in this function - need to
   #' #'  revert back to original information
   #' eoe_motion_list[[3]] <- dplyr::select(eoe_motion_list[[3]], -c(NewLocationID)) %>%
   #'   mutate(NewLocationID = LocationID) %>%
   #'   relocate(NewLocationID, .after = LocationID)
+  #' eoe_motion_list[[4]] <- dplyr::select(eoe_motion_list[[4]], -c(NewLocationID)) %>%
+  #'   mutate(NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
   #' #'  Save for later use
-  #' # save(eoe_motion_list, file = "./Data/IDFG camera data/Split datasets/eoe_motion_skinny_NewLocationID.RData")
+  #' # save(eoe_motion_list, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe_motion_skinny_NewLocationID.RData")
   #' 
-  #' eoe_noon_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_time_skinny, pred = "predator", SIMPLIFY = FALSE)  
-  #' #'  Fix NewLocationID info- this was recorded differently for Smr21 images in 
+  #' eoe_noon_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_time_skinny, pred = "predator", SIMPLIFY = FALSE)
+  #' #'  Fix NewLocationID info- this was recorded differently for Smr21/Smr22 in
   #' #'  original data set so unnecessary info gets added in this function - need to
   #' #'  revert back to original information
   #' eoe_noon_list[[3]] <- dplyr::select(eoe_noon_list[[3]], -c(NewLocationID)) %>%
   #'   mutate(NewLocationID = LocationID) %>%
   #'   relocate(NewLocationID, .after = LocationID)
+  #' eoe_noon_list[[4]] <- dplyr::select(eoe_noon_list[[4]], -c(NewLocationID)) %>%
+  #'   mutate(NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
   #' #'  Save for later use
   #' eoe_time_list <- eoe_noon_list
-  #' # save(eoe_time_list, file = "./Data/IDFG camera data/Split datasets/eoe_time_skinny_NewLocationID.RData")
+  #' # save(eoe_time_list, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe_time_skinny_NewLocationID.RData")
   #' 
   #' #'  Double check it worked
   #' eoe21s_noon <- eoe_noon_list[[3]]
   #' 
-  #'  Run full eoe motion trigger data sets through function
-  #' eoe_motion_smr20 <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator")
+  #' #'  Run full eoe motion trigger data sets through function
+  #' eoe_motion_smr20 <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator") %>%
+  #'   #'  Make sure columns match other datasets
+  #'   mutate(AreaType = NA) %>%
+  #'   relocate(Strata, .after = "AreaType")
   #' eoe_motion_wtr20 <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
   #' eoe_motion_smr21 <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator") %>%
   #'   dplyr::select(-c(NewLocationID)) %>%
   #'   mutate(LocationID = toupper(LocationID),
   #'   NewLocationID = LocationID) %>%
   #'   relocate(NewLocationID, .after = LocationID)
-  #' eoe20s_allM <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator")
-  #' eoe20w_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator")
-  #' eoe21s_allM <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator")
-  #' eoe21s_allM <- mutate(eoe21s_allM, NewLocationID = LocationID) %>%
+  #' eoe_motion_smr22 <- eoe_deploy_info(dets = eoe22s_allM, season = "Smr22", pred = "predator") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(LocationID = toupper(LocationID),
+  #'          NewLocationID = LocationID,
+  #'          #'  Add stand alone date and time columns to match previous datasets
+  #'          Date = as.Date(posix_date_time, format = "%Y-%m-%d"),
+  #'          Date = as.character(Date),
+  #'          Time = strftime(posix_date_time, format = "%H:%M:%S")) %>%
   #'   relocate(NewLocationID, .after = LocationID) %>%
-  #'   mutate(NewLocationID = toupper(NewLocationID))
-  #' save(eoe20s_allM, file = "./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
-  #' save(eoe20w_allM, file = "./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
-  #' save(eoe21s_allM, file = "./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
+  #'   relocate(Date, .before = posix_date_time) %>%
+  #'   relocate(Time, .before = posix_date_time)
+  #' eoe20s_allM <- eoe_deploy_info(dets = eoe20s_allM, season = "Smr20", pred = "predator") %>%
+  #'   #'  Make sure columns match other datasets
+  #'   mutate(Date = as.Date(Date, format = "%d-%B-%Y"),
+  #'          Date = as.character(Date),
+  #'          AreaType = NA) %>%
+  #'   relocate(Strata, .after = "AreaType")
+  #' eoe20w_allM <- eoe_deploy_info(dets = eoe20w_allM, season = "Wtr20", pred = "predator") %>%
+  #'   mutate(Date = as.Date(Date, format = "%d-%B-%Y"),
+  #'          Date = as.character(Date))
+  #' eoe21s_allM <- eoe_deploy_info(dets = eoe21s_allM, season = "Smr21", pred = "predator") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(Date = as.Date(Date, format = "%d-%B-%Y"),
+  #'          Date = as.character(Date),
+  #'          LocationID = toupper(LocationID),
+  #'          NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID) 
+  #' eoe22s_allM <- eoe_deploy_info(dets = eoe22s_allM, season = "Smr22", pred = "predator") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(LocationID = toupper(LocationID),
+  #'          NewLocationID = LocationID,
+  #'          #'  Add stand alone date and time columns to match previous datasets
+  #'          Date = as.Date(posix_date_time, format = "%Y-%m-%d"),
+  #'          Date = as.character(Date),
+  #'          Time = strftime(posix_date_time, format = "%H:%M:%S")) %>%
+  #'   relocate(NewLocationID, .after = LocationID) %>%
+  #'   relocate(Date, .before = posix_date_time) %>%
+  #'   relocate(Time, .before = posix_date_time)
+  #' save(eoe20s_allM, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allM_NewLocationID.RData")
+  #' save(eoe20w_allM, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20w_allM_NewLocationID.RData")
+  #' save(eoe21s_allM, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allM_NewLocationID.RData")
+  #' save(eoe22s_allM, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe22s_allM_NewLocationID.RData")
   #' 
   #' #'  Run full eoe timelapse data sets through function
-  #' eoe_time_smr20 <- eoe_deploy_info(dets = eoe20s_allT, season = "Smr20", pred = "predator")
-  #' eoe_time_wtr20 <- eoe_deploy_info(dets = eoe20w_allT, season = "Wtr20", pred = "predator")
+  #' eoe_time_smr20 <- eoe_deploy_info(dets = eoe20s_allT, season = "Smr20", pred = "predator") %>%
+  #'   #'  Make sure columns match other datasets
+  #'   mutate(AreaType = NA) %>%
+  #'   relocate(Strata, .after = "AreaType")
+  #' eoe_time_wtr20 <- eoe_deploy_info(dets = eoe20w_allT, season = "Wtr20", pred = "predator") %>%
+  #'   mutate(Date = as.Date(Date, format = "%d-%B-%Y"),
+  #'          Date = as.character(Date))
   #' eoe_time_smr21 <- eoe_deploy_info(dets = eoe21s_allT, season = "Smr21", pred = "predator") %>%
   #'   dplyr::select(-c(NewLocationID)) %>%
   #'   mutate(LocationID = toupper(LocationID),
-  #'   NewLocationID = LocationID) %>%
+  #'          NewLocationID = LocationID) %>%
   #'   relocate(NewLocationID, .after = LocationID)
-  #' eoe20s_allT <- eoe_deploy_info(season = "Smr20", dets = eoe20s_allT, pred = "predator")
-  #' eoe20w_allT <- eoe_deploy_info(season = "Wtr20", dets = eoe20w_allT, pred = "predator")
-  #' eoe21s_allT <- eoe_deploy_info(season = "Smr21", dets = eoe21s_allT, pred = "predator")
-  #' eoe21s_allT <- mutate(eoe21s_allT, NewLocationID = LocationID) %>%
+  #' eoe_time_smr22 <- eoe_deploy_info(dets = eoe22s_allT, season = "Smr22", pred = "predator") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(LocationID = toupper(LocationID),
+  #'          NewLocationID = LocationID,
+  #'          #'  Add stand alone date and time columns to match previous datasets
+  #'          Date = as.Date(posix_date_time, format = "%Y-%m-%d"),
+  #'          Date = as.character(Date),
+  #'          Time = strftime(posix_date_time, format = "%H:%M:%S")) %>%
   #'   relocate(NewLocationID, .after = LocationID) %>%
-  #'   mutate(NewLocationID = toupper(NewLocationID))
-  #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
-  #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
-  #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
+  #'   relocate(Date, .before = posix_date_time) %>%
+  #'   relocate(Time, .before = posix_date_time)
+  #' eoe20s_allT <- eoe_deploy_info(season = "Smr20", dets = eoe20s_allT, pred = "predator") %>%
+  #'   #'  Make sure columns match other datasets
+  #'   mutate(Date = as.Date(Date, format = "%d-%B-%Y"),
+  #'          Date = as.character(Date),
+  #'          AreaType = NA) %>%
+  #'   relocate(Strata, .after = "AreaType")
+  #' eoe20w_allT <- eoe_deploy_info(season = "Wtr20", dets = eoe20w_allT, pred = "predator") %>%
+  #'   mutate(Date = as.Date(Date, format = "%d-%B-%Y"),
+  #'          Date = as.character(Date))
+  #' eoe21s_allT <- eoe_deploy_info(season = "Smr21", dets = eoe21s_allT, pred = "predator") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(Date = as.Date(Date, format = "%d-%B-%Y"),
+  #'          Date = as.character(Date),
+  #'          LocationID = toupper(LocationID),
+  #'          NewLocationID = LocationID) %>%
+  #'   relocate(NewLocationID, .after = LocationID)
+  #' eoe22s_allT <- eoe_deploy_info(season = "Smr22", dets = eoe21s_allT, pred = "predator") %>%
+  #'   dplyr::select(-c(NewLocationID)) %>%
+  #'   mutate(LocationID = toupper(LocationID),
+  #'          NewLocationID = LocationID,
+  #'          #'  Add stand alone date and time columns to match previous datasets
+  #'          Date = as.Date(posix_date_time, format = "%Y-%m-%d"),
+  #'          Date = as.character(Date),
+  #'          Time = strftime(posix_date_time, format = "%H:%M:%S")) %>%
+  #'   relocate(NewLocationID, .after = LocationID) %>%
+  #'   relocate(Date, .before = posix_date_time) %>%
+  #'   relocate(Time, .before = posix_date_time)
+  #' save(eoe20s_allT, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allT_NewLocationID.RData")
+  #' save(eoe20w_allT, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20w_allT_NewLocationID.RData")
+  #' save(eoe21s_allT, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allT_NewLocationID.RData")
+  #' save(eoe22s_allT, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe22s_allT_NewLocationID.RData")
   #' 
   #' 
   #' #'  Wolf cameras
