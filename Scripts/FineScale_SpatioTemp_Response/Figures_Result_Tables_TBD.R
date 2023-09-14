@@ -418,7 +418,7 @@
     theme(legend.position = c(1, 0), legend.justification = c(1, 0)) +
     xlab("Previously detected species") +
     ylab("Mean number of hours between detections") +
-    ggtitle("Effect of recent competitor detection on latency of site use")
+    ggtitle("Effect of recent competitor detection on wait time until site use")
   competitorID_plot
   
   wolf_coy_signif <- data.frame(Species = "Coyote", Previous_Species = "Wolf", Estimate = 2400, lab = "*")
@@ -437,7 +437,7 @@
     theme(legend.position = c(1, 0), legend.justification = c(1, 0)) +
     xlab("Previously detected species") +
     ylab("Mean number of hours between detections") +
-    ggtitle("Effect of recent competitor or average prey detection on latency of site use") +
+    ggtitle("Effect of recent competitor or average prey detection on wait time until site use") +
     geom_text(data = tbd_signif, label = "*", size = 12)
   competitorID_and_meanprey_plot
   
@@ -452,7 +452,7 @@
     theme(legend.position = c(1, 0), legend.justification = c(1, 0)) +
     xlab("Previously detected species") +
     ylab("Mean number of hours between detections") +
-    ggtitle("Effect of recent prey or competitor detection on latency of site use")
+    ggtitle("Effect of recent prey or competitor detection on wait time until site use")
   competitorID_and_preyID_plot
   
   preyID_plot <- ggplot(tbd_by_preyID, aes(x = Previous_Species, y = (Estimate/60), group = Species)) +
@@ -465,7 +465,7 @@
     theme(legend.position = c(1, 0), legend.justification = c(1, 0)) +
     xlab("Previously detected species") +
     ylab("Mean number of hours between detections") +
-    ggtitle("Effect of recent prey detection on latency of site use")
+    ggtitle("Effect of recent prey detection on wait time until site use")
   preyID_plot
   
   #' #'  Response of all species to the recent detection of a specific competitor
@@ -542,7 +542,7 @@
     theme_bw() +
     xlab("Relative abundance of elk (scaled)") +
     ylab("Mean number of hours between detections") +
-    ggtitle("Effect of recent competitor detection and elk abundance on latency of site use") +
+    ggtitle("Effect of recent competitor detection and elk abundance on wait time until site use") +
     guides(color = guide_legend(title = "Previously detected\ncompetitor"),
            fill = guide_legend(title = "Previously detected\ncompetitor")) +
     facet_wrap(~Species, scale = "free_x")
