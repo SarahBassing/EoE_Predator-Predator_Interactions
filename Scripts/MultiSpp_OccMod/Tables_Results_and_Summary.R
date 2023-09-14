@@ -112,6 +112,17 @@
            Max = round(Max, 2))
   
   #'  Sampling effort
+  #'  Avg number of days each site was operational (generally until camera failure)
+  nobs <- nrow(count_eoe20s21s_effort)
+  (avg_op_days <- as.data.frame(count_eoe20s21s_effort) %>% 
+    `rownames<-`( NULL ) %>%
+    replace(is.na(.), 0) %>%
+    mutate(sum = rowSums(.)) %>%
+    summarise(avg_days = mean(sum),
+              sd_days = sd(sum),
+              se_days = sd(sum)/sqrt(nobs),
+              max_days = max(sum)))
+  #'  Avg number of days per sampling occasion camera was operational
   (mean_effort <- mean(as.matrix(count_eoe20s21s_effort), na.rm = TRUE))
   nobs_effort <- dim(count_eoe20s21s_effort)[1] * dim(count_eoe20s21s_effort)[2]
   (se_effort <- sd(as.matrix(count_eoe20s21s_effort), na.rm = TRUE) / sqrt(nobs_effort))
