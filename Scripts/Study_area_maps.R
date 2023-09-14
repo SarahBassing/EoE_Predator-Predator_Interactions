@@ -56,9 +56,9 @@
   dem_low_crop <- crop(dem_low_wgs84, v, mask = TRUE)
   
   #'  Define projections and units
-  gmu_proj <- crs(eoe_gmu) #crs("+init=EPSG:2243") #NAD83 / Idaho West (ftUS)
-  id_proj <- crs(id)
-  wgs84 <- crs(eoe_gmu_wgs84) 
+  gmu_proj <- st_crs(eoe_gmu) #crs("+init=EPSG:2243") #NAD83 / Idaho West (ftUS)
+  id_proj <- st_crs(id)
+  wgs84 <- st_crs(eoe_gmu_wgs84) 
   
   #'  Identify bounding box of EoE study areas
   st_bbox(eoe_gmu_wgs84)
@@ -72,6 +72,9 @@
     return(sf_locs)
   }
   cams_wgs84 <- lapply(cams_list, spatial_locs, proj = wgs84)
+  
+  #'  Order the GMUs
+  eoe_gmu_wgs84 <- mutate(eoe_gmu_wgs84, NAME = factor(NAME, levels = c("1", "6", "10A")))
   
   #'  Plot state of Idaho for inset
   ID_state <- ggplot() + 
@@ -92,9 +95,12 @@
           panel.background = element_rect(fill = "slategray2"),
           axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank(),
           axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank(),
+          legend.title = element_text(size = 16),
+          legend.text = element_text(size = 14),
           #'  No margins around figure
           plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")) +
-    theme(legend.position = c(1.1, 0.3)) +
+    theme(legend.position = c(0.925, 0.85), 
+          legend.background = element_rect(colour = 'black', fill = 'white', linetype='solid')) + #c(1.1, 0.3)
     #left line
     geom_segment(aes(x = -127.2, xend = -117.5, y = 49.52, yend = 49.5),
                  linetype = "dashed", color = "black", size = 0.5) +
@@ -111,8 +117,8 @@
     geom_spatraster(data = dem_low_crop) +
     scale_fill_continuous(low = "gray90", high = "gray15", na.value = "transparent") +
     geom_sf(data = id_wgs84, fill = "transparent", color="gray50") +
-    geom_sf(data = eoe_gmu_wgs84, fill = c("#364B9A", "#FDB366", "#A50026"), 
-            size = 0.80, alpha = 0.30) +
+    geom_sf(data = eoe_gmu_wgs84, fill = c("#364B9A", "#FDB366", "#A50026"), # note the flip in color order
+            size = 0.80, alpha = 0.15) +
     # geom_sf(data = eoe_gmu_wgs84, aes(fill = NAME), size = 0.80, alpha = 0.5) +
     # scale_fill_manual(values = c("#364B9A", "#FDB366", "#A50026")) +
     geom_sf(data = cams2021_wgs84, color = "black", shape = 20, size = 2) +
