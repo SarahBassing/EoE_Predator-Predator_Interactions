@@ -30,7 +30,7 @@
     dplyr::select(-X)
   
   #' #'  ---------------------------------------------
-  #' ####  INITIAL FORMATTING - SKIP AFTER DONE ONCE  ####   
+  #' ####  INITIAL FORMATTING - SKIP AFTER DONE ONCE  ####
   #' #'  ---------------------------------------------
   #' #'  Full detection data sets - MASSIVE so only load 1-2 at a time
   #' #'  Motion triggered images
@@ -151,7 +151,7 @@
   #'          Date = as.character(Date),
   #'          LocationID = toupper(LocationID),
   #'          NewLocationID = LocationID) %>%
-  #'   relocate(NewLocationID, .after = LocationID) 
+  #'   relocate(NewLocationID, .after = LocationID)
   #' eoe22s_allM <- eoe_deploy_info(dets = eoe22s_allM, season = "Smr22", pred = "predator") %>%
   #'   dplyr::select(-c(NewLocationID)) %>%
   #'   mutate(LocationID = toupper(LocationID),
@@ -208,7 +208,7 @@
   #'          LocationID = toupper(LocationID),
   #'          NewLocationID = LocationID) %>%
   #'   relocate(NewLocationID, .after = LocationID)
-  #' eoe22s_allT <- eoe_deploy_info(season = "Smr22", dets = eoe21s_allT, pred = "predator") %>%
+  #' eoe22s_allT <- eoe_deploy_info(season = "Smr22", dets = eoe22s_allT, pred = "predator") %>%
   #'   dplyr::select(-c(NewLocationID)) %>%
   #'   mutate(LocationID = toupper(LocationID),
   #'          NewLocationID = LocationID,
@@ -346,8 +346,8 @@
   }
   #'  Set time zone on full data sets
   #'  EoE Summer 2020
-  load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
-  load("./Data/IDFG camera data/Split datasets/eoe20s_allT_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allM_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allT_NewLocationID.RData")
   eoe20s_allM <- set_tzone(eoe20s_allM) %>%
     #'  Remove images taken prior to official camera deployment date
     filter(NewLocationID != "GMU6_P_27" | Date != "25-Apr-2020") %>%
@@ -358,24 +358,36 @@
     filter(NewLocationID != "GMU6_P_84" | Date != "17-May-2025")
   
   #'  EOE Winter 2020-2021
-  load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
-  load("./Data/IDFG camera data/Split datasets/eoe20w_allT_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20w_allM_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20w_allT_NewLocationID.RData")
   eoe20w_allM <- set_tzone(eoe20w_allM)  
   eoe20w_allT <- set_tzone(eoe20w_allT) 
  
   #'  EOE Summer 2021
-  load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
-  load("./Data/IDFG camera data/Split datasets/eoe21s_allT_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allM_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allT_NewLocationID.RData")
   eoe21s_allM <- set_tzone(eoe21s_allM) %>%
     #'  remove 2 random images from GMU10A_U_73 - bad programming at deployment?
-    filter(Date != "29-Sep-2020") %>%
-    #'  Add dummy Setup column because missing for some reason
-    mutate(Setup = "U or P") %>%
-    relocate(Setup, .after = "NewLocationID") 
-  eoe21s_allT <- set_tzone(eoe21s_allT) %>%
-    #'  Add dummy Setup column because missing for some reason
-    mutate(Setup = "U or P") %>%
-    relocate(Setup, .after = "NewLocationID") 
+    filter(Date != "29-Sep-2020") #%>%
+    #' #'  Add dummy Setup column because missing for some reason
+    #' mutate(Setup = "U or P") %>%
+    #' relocate(Setup, .after = "NewLocationID") 
+  eoe21s_allT <- set_tzone(eoe21s_allT) #%>%
+    #' #'  Add dummy Setup column because missing for some reason
+    #' mutate(Setup = "U or P") %>%
+    #' relocate(Setup, .after = "NewLocationID") 
+  
+  #'  EOE Summer 2022
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe22s_allM_NewLocationID.RData")
+  eoe22s_allM <- set_tzone(eoe22s_allM)
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe22s_allT_NewLocationID.RData")
+  eoe22s_allT <- set_tzone(eoe22s_allT)
+  
+  #'  Keeper data
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe_motion_skinny_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe_time_skinny_NewLocationID.RData")
+  eoe_noon_list <- eoe_time_list
+
   
   #'  Wolf Summer 2019
   load("./Data/IDFG camera data/Split datasets/wolf19s_allM_NewLocationID.RData")
@@ -445,6 +457,27 @@
     ggtitle("Number of active EoE cameras, Summer 2021")
   EoE_noon_cams_Smr21
   ggsave("./Outputs/Figures/EoE_noon_cams_Smr21.png", EoE_noon_cams_Smr21, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
+  
+  EoE_noon_cams_Smr22 <- eoe_noon_list[[4]] %>%  #  Summer 2022
+    filter(posix_date_time > ymd(20220501) & posix_date_time < ymd(20221101)) %>% 
+    #'  Add stand alone date and time columns to match previous datasets
+    mutate(Date = as.Date(posix_date_time, format = "%Y-%m-%d"),
+           Date = as.character(Date),
+           Time = strftime(posix_date_time, format = "%H:%M:%S")) %>%
+    relocate(Date, .before = posix_date_time) %>%
+    relocate(Time, .before = posix_date_time) %>%
+    filter(Time == "12:00:00") %>%
+    ggplot(aes(posix_date_time)) + 
+    geom_freqpoly(binwidth = 86400) +
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2022-07-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2022-09-01")), linetype = 4, color = "blue") +
+    ggtitle("Number of active EoE cameras, Summer 2022")
+  EoE_noon_cams_Smr22
+  ggsave("./Outputs/Figures/EoE_noon_cams_Smr22.png", EoE_noon_cams_Smr22, units = "in", 
          width = 6, height = 6, dpi = 600, device = "png")
   
   Wolf_noon_cams_Smr19 <- wolf_noon_list[[1]] %>%  # Summer 2019
@@ -544,6 +577,30 @@
   ggsave("./Outputs/Figures/EoE_noon_cams_Smr21GMU.png", EoE_noon_cams_Smr21GMU, units = "in", 
          width = 12, height = 6, dpi = 600, device = "png")
   
+  EoE_noon_cams_Smr22GMU <- eoe_noon_list[[4]] %>%  #  Summer 2022
+    filter(posix_date_time > ymd(20220501) & posix_date_time < ymd(20221101)) %>% 
+    #'  Add stand alone date and time columns to match previous datasets
+    mutate(Date = as.Date(posix_date_time, format = "%Y-%m-%d"),
+           Date = as.character(Date),
+           Time = strftime(posix_date_time, format = "%H:%M:%S")) %>%
+    relocate(Date, .before = posix_date_time) %>%
+    relocate(Time, .before = posix_date_time) %>%
+    filter(Time == "12:00:00") %>%
+    filter(!is.na(Gmu)) %>%
+    ggplot(aes(posix_date_time, group = Gmu)) + 
+    geom_freqpoly(binwidth = 86400) +
+    scale_x_datetime(
+      name = "Dates",
+      breaks = scales::date_breaks("month")) +
+    geom_vline(xintercept = as.POSIXct(as.Date("2022-07-01")), linetype = 4, color = "blue") +
+    geom_vline(xintercept = as.POSIXct(as.Date("2022-09-01")), linetype = 4, color = "blue") +
+    facet_wrap(~Gmu, scales = "free_y") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+    ggtitle("Number of active EoE cameras, Summer 2022")
+  EoE_noon_cams_Smr22GMU
+  ggsave("./Outputs/Figures/EoE_noon_cams_Smr22GMU.png", EoE_noon_cams_Smr22GMU, units = "in", 
+         width = 12, height = 6, dpi = 600, device = "png")
+  
   #'  Not plotting by GMU for wolf data b/c basically state-wide... TOO MANY to plot
   
   
@@ -553,6 +610,7 @@
   length(unique(cams_eoe_long$NewLocationID[cams_eoe_long$Season == "Smr20"]))
   length(unique(cams_eoe_long$NewLocationID[cams_eoe_long$Season == "Wtr20"]))
   length(unique(cams_eoe_long$NewLocationID[cams_eoe_long$Season == "Smr21"]))
+  length(unique(cams_eoe_long$NewLocationID[cams_eoe_long$Season == "Smr22"]))
   
   length(unique(cams_wolf_long$NewLocationID[cams_wolf_long$Season == "Smr19"]))
   length(unique(cams_wolf_long$NewLocationID[cams_wolf_long$Season == "Smr20"]))
@@ -562,6 +620,7 @@
   length(unique(eoe_motion_list[[1]]$NewLocationID))
   length(unique(eoe_motion_list[[2]]$NewLocationID))
   length(unique(eoe_motion_list[[3]]$NewLocationID))
+  length(unique(eoe_motion_list[[4]]$NewLocationID))
   
   length(unique(wolf_motion_list[[1]]$NewLocationID))
   length(unique(wolf_motion_list[[2]]$NewLocationID))
@@ -571,6 +630,7 @@
   length(unique(eoe_noon_list[[1]]$NewLocationID))
   length(unique(eoe_noon_list[[2]]$NewLocationID))
   length(unique(eoe_noon_list[[3]]$NewLocationID))
+  length(unique(eoe_noon_list[[4]]$NewLocationID))
   
   length(unique(wolf_noon_list[[1]]$NewLocationID))
   length(unique(wolf_noon_list[[2]]$NewLocationID))
@@ -593,17 +653,28 @@
   #'  explains big differences in # of cams taking motion vs time triggered images
   
   #' #'  Same thing but with FULL data sets, not keepers only
-  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe_motion_smr20, noon_cams = eoe_time_smr20)
-  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe_motion_wtr20, noon_cams = eoe_time_wtr20)
-  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe_motion_smr21, noon_cams = eoe_time_smr21)
+  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe20s_allM, noon_cams = eoe_time_list[[1]])
+  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe20w_allM, noon_cams = eoe_time_list[[2]])
+  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe21s_allM, noon_cams = eoe_time_list[[3]])
+  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe22s_allM, noon_cams = eoe_time_list[[4]])
   #' 
   #' wolf_mismatch <- mt_mismatch(motion_cams = wolf19s_allM, noon_cams = wolf19s_allT)
   #' wolf_mismatch <- mt_mismatch(motion_cams = wolf20s_allM, noon_cams = wolf20s_allT)
   #' wolf_mismatch <- mt_mismatch(motion_cams = wolf21s_allM, noon_cams = wolf21s_allT)
   
-  #'  Review motion triggered images
+  #'  Review motion triggered images from cameras in M data set but not in T data set
+  possible_probs <- function(motion_imgs, mismatches) {
+    missing_t_cams <- filter(motion_imgs, NewLocationID %in% mismatches)
+    return(missing_t_cams)
+  }
+  prob_eoe_m_smr20 <- possible_probs(eoe20s_allM, eoe_mismatch[[1]])
+  prob_eoe_m_wtr20 <- possible_probs(eoe20w_allM, eoe_mismatch[[2]])
+  prob_eoe_m_smr21 <- possible_probs(eoe21s_allM, eoe_mismatch[[3]])
+  prob_eoe_m_smr22 <- possible_probs(eoe22s_allM, eoe_mismatch[[4]])
+  
+  #'  Save images from problem cameras only
   eoe_m_smr20 <- eoe_motion_list[[1]]
-  # eoe_m_smr20 <- eoe_motion_smr20 # full data set
+  # eoe_m_smr20 <- eoe20s_allM # full data set
   prob_eoe_m_smr20 <- eoe_m_smr20[eoe_m_smr20$NewLocationID == "GMU6_U_11" | 
                                     eoe_m_smr20$NewLocationID == "GMU6_U_81" | 
                                     eoe_m_smr20$NewLocationID == "GMU6_P_11" | 
@@ -612,7 +683,7 @@
                                     eoe_m_smr20$NewLocationID == "GMU10A_U_160" | 
                                     eoe_m_smr20$NewLocationID == "GMU10A_U_8",]
   eoe_m_wtr20 <- eoe_motion_list[[2]]
-  # eoe_m_wtr20 <- eoe_motion_wtr20 # full data set
+  # eoe_m_wtr20 <- eoe20w_allM # full data set
   prob_eoe_m_wtr20 <- eoe_m_wtr20[eoe_m_wtr20$NewLocationID == "GMU6_U_164" |
                                     eoe_m_wtr20$NewLocationID == "GMU6_P_99" |
                                     eoe_m_wtr20$NewLocationID == "GMU6_U_99" |
@@ -623,12 +694,27 @@
                                     eoe_m_wtr20$NewLocationID == "GMU6_U_105" |
                                     eoe_m_wtr20$NewLocationID == "GMU10A_U_11",]
   eoe_m_smr21 <- eoe_motion_list[[3]]
-  # eoe_m_smr21 <- eoe_motion_smr21 # full data set
+  # eoe_m_smr21 <- eoe21s_allM # full data set
   prob_eoe_m_smr21 <- eoe_m_smr21[eoe_m_smr21$NewLocationID == "GMU6_P_19" |
                                     eoe_m_smr21$NewLocationID == "GMU10A_U_75" |
                                     eoe_m_smr21$NewLocationID == "GMU10A_U_159" |
                                     eoe_m_smr21$NewLocationID == "GMU6_P_29" |
                                     eoe_m_smr21$NewLocationID == "GMU6_P_92",]
+  # eoe_m_smr22 <- eoe_motion_list[[4]]
+  eoe_m_smr22 <- eoe22s_allM # full data set
+  prob_eoe_m_smr22 <- eoe_m_smr22[eoe_m_smr22$NewLocationID == "GMU1_U_106" |
+                                    eoe_m_smr22$NewLocationID == "GMU1_U_117" |
+                                    eoe_m_smr22$NewLocationID == "GMU6_U_32" |
+                                    eoe_m_smr22$NewLocationID == "GMU10A_P_51" |
+                                    eoe_m_smr22$NewLocationID == "GMU6_U_18" |
+                                    eoe_m_smr22$NewLocationID == "GMU6_P_18" |
+                                    eoe_m_smr22$NewLocationID == "GMU10A_U_125" |
+                                    eoe_m_smr22$NewLocationID == "GMU10A_U_29" |
+                                    # eoe_m_smr22$NewLocationID == "GMU10A_U_48" | #motion trigger images all summer but no animal detections
+                                    eoe_m_smr22$NewLocationID == "GMU10A_U_159" |
+                                    eoe_m_smr22$NewLocationID == "GMU10A_U_59" |
+                                    eoe_m_smr22$NewLocationID == "GMU10A_U_98",]
+  
   
   wolf_m_smr19 <- wolf_motion_list[[1]]
   # wolf_m_smr19 <- wolf19s_allM # full data set
@@ -739,6 +825,7 @@
   eoe_nopix_20s <- no_pix(eoe20s_allT, ntime = 72)
   eoe_nopix_20w <- no_pix(eoe20w_allT, ntime = 72)
   eoe_nopix_21s <- no_pix(eoe21s_allT, ntime = 72)
+  eoe_nopix_22s <- no_pix(eoe22s_allT, ntime = 72)
   
   wolf_nopix_19s <- no_pix(wolf19s_allT, ntime = 72)
   wolf_nopix_20s <- no_pix(wolf20s_allT, ntime = 72)
@@ -753,7 +840,7 @@
       arrange(NewLocationID, posix_date_time) %>%
       dplyr::select(c(NewLocationID, Date, OpState)) %>%
       distinct() %>%
-      mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
+      mutate(Date = as.Date(Date, format = "%Y-%m-%d")) %>% #format = "%d-%b-%Y"
       group_by(NewLocationID) %>%
       mutate(Burst = cumsum(c(1, diff(Date) > 1))) %>%
       ungroup() 
@@ -794,6 +881,7 @@
   eoe_gap_dates_20s <- missing_days(eoe_nopix_20s) 
   eoe_gap_dates_20w <- missing_days(eoe_nopix_20w) 
   eoe_gap_dates_21s <- missing_days(eoe_nopix_21s)
+  eoe_gap_dates_22s <- missing_days(eoe_nopix_22s)
   
   wolf_gap_dates_19s <- missing_days(wolf_nopix_19s)
   wolf_gap_dates_20s <- missing_days(wolf_nopix_20s)
@@ -832,6 +920,8 @@
   eoe20w_probs <- lapply(eoe20w_all, problem_children)
   eoe21s_all <- list(eoe21s_allM, eoe21s_allT)
   eoe21s_probs <- lapply(eoe21s_all, problem_children)
+  eoe22s_all <- list(eoe22s_allM, eoe22s_allT)
+  eoe22s_probs <- lapply(eoe22s_all, problem_children)
   
   wolf19s_all <- list(wolf19s_allM, wolf19s_allT)
   wolf19s_probs <- lapply(wolf19s_all, problem_children)
@@ -871,6 +961,9 @@
   eoe_seqprob_21s <- lapply(eoe21s_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
     arrange(NewLocationID, posix_date_time)
+  eoe_seqprob_22s <- lapply(eoe22s_probs, sequential_probs, ntime = 72) %>%
+    do.call(rbind.data.frame, .) %>%
+    arrange(NewLocationID, posix_date_time)
   
   wolf_seqprob_19s <- lapply(wolf19s_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
@@ -887,6 +980,7 @@
   save(eoe_seqprob_20s, file = "./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
   save(eoe_seqprob_20w, file = "./Data/IDFG camera data/Problem images/eoe20w_sequential_probimgs.RData")
   save(eoe_seqprob_21s, file = "./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
+  save(eoe_seqprob_22s, file = "./Data/IDFG camera data/Problem images/eoe22s_sequential_probimgs.RData")
   
   save(wolf_seqprob_19s, file = "./Data/IDFG camera data/Problem images/wolf19s_sequential_probimgs.RData")
   save(wolf_seqprob_20s, file = "./Data/IDFG camera data/Problem images/wolf20s_sequential_probimgs.RData")
@@ -921,6 +1015,16 @@
     ggtitle("Number of images w/ OpState problems over 24 cycle \n(1hr Rule)")
   eoe_probtimes_21s
   ggsave("./Outputs/Figures/eoe_probtimes_21s_1hr.png", eoe_probtimes_21s, units = "in", 
+         width = 6, height = 6, dpi = 600, device = "png")
+  
+  eoe_probtimes_22s <- eoe_seqprob_22s %>%  #  Summer 2022
+    mutate(Time = hms::as_hms(Time),
+           Hours = hour(Time)) %>%
+    ggplot(aes(Time)) + #Hours
+    geom_freqpoly(binwidth = 1) +
+    ggtitle("Number of images w/ OpState problems over 24 cycle \n(1hr Rule)")
+  eoe_probtimes_21s
+  ggsave("./Outputs/Figures/eoe_probtimes_22s_1hr.png", eoe_probtimes_21s, units = "in", 
          width = 6, height = 6, dpi = 600, device = "png")
   
 
@@ -1001,6 +1105,8 @@
     filter(NewLocationID != "GMU6_U_11" | Date >= "2020-11-01") %>% # Needed for ntime = 72
     filter(NewLocationID != "GMU6_U_56" | Date >= "2020-11-01") # Needed for ntime = 72
   eoe_prob_dates_21s <- prob_days(eoe_seqprob_21s) %>%
+    arrange(NewLocationID, Date, StartEnd)
+  eoe_prob_dates_22s <- prob_days(eoe_seqprob_22s) %>%
     arrange(NewLocationID, Date, StartEnd)
   
   wolf_prob_dates_19s <- prob_days(wolf_seqprob_19s) %>%
@@ -1119,6 +1225,11 @@
   eoe_problems_21s <- rbind(eoe_gap_dates_21s, eoe_prob_dates_21s) %>%
     arrange(NewLocationID, Date)
   
+  #'  EoE Summer 2022 problems
+  #'  ------------------------
+  eoe_problems_22s <- rbind(eoe_gap_dates_22s, eoe_prob_dates_22s) %>%
+    arrange(NewLocationID, Date)
+  
   #'  Wolf Summer 2019 problems
   #'  -------------------------
   wolf_problems_19s <- rbind(wolf_gap_dates_19s, wolf_prob_dates_19s) %>%
@@ -1174,6 +1285,7 @@
   write.csv(eoe_problems_20s, "./Data/IDFG camera data/Problem cams/eoe20s_OpState_probs.csv")
   write.csv(eoe_problems_20w, "./Data/IDFG camera data/Problem cams/eoe20w_OpState_probs.csv")
   write.csv(eoe_problems_21s, "./Data/IDFG camera data/Problem cams/eoe21s_OpState_probs.csv")
+  write.csv(eoe_problems_22s, "./Data/IDFG camera data/Problem cams/eoe22s_OpState_probs.csv")
   
   write.csv(wolf_problems_19s, "./Data/IDFG camera data/Problem cams/wolf19s_OpState_probs.csv")
   write.csv(wolf_problems_20s, "./Data/IDFG camera data/Problem cams/wolf20s_OpState_probs.csv")
@@ -1193,6 +1305,7 @@
   }
   eoe_wide_probs_20s <- problem_df_wide(eoe_problems_20s)   
   eoe_wide_probs_21s <- problem_df_wide(eoe_problems_21s) 
+  #eoe_wide_probs_22s <- problem_df_wide(eoe_problems_22s) 
   wolf_wide_probs_21s <- problem_df_wide(wolf_problems_21s) 
   
   #'  Same function as above but also rearranges columns when >9 problems at a 
@@ -1258,6 +1371,9 @@
   eoe_probcams_21s <- start_stop_dates(eoe21s_allT) %>%
     arrange(NewLocationID) %>% 
     full_join(eoe_wide_probs_21s, by = "NewLocationID")
+  eoe_probcams_22s <- start_stop_dates(eoe22s_allT) %>%
+    arrange(NewLocationID) %>% 
+    full_join(eoe_wide_probs_22s, by = "NewLocationID")
 
 
   #'  Wolf Cameras
@@ -1312,6 +1428,8 @@
   write.csv(eoe_probcams_20w, "./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.csv")
   save(eoe_probcams_21s, file = "./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
   write.csv(eoe_probcams_21s, "./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.csv")
+  save(eoe_probcams_22s, file = "./Data/IDFG camera data/Problem cams/eoe22s_problem_cams.RData")
+  write.csv(eoe_probcams_22s, "./Data/IDFG camera data/Problem cams/eoe22s_problem_cams.csv")
   
   save(wolf_probcams_19s, file = "./Data/IDFG camera data/Problem cams/wolf19s_problem_cams.RData")
   write.csv(wolf_probcams_19s, "./Data/IDFG camera data/Problem cams/wolf19s_problem_cams.csv")
@@ -1359,6 +1477,7 @@
   mean_problem_days(eoe_prob_dates_20s)
   mean_problem_days(eoe_prob_dates_20w)
   mean_problem_days(eoe_prob_dates_21s)
+  mean_problem_days(eoe_prob_dates_22s)
   
   mean_problem_days(wolf_prob_dates_19s)
   mean_problem_days(wolf_prob_dates_20s)
@@ -1387,6 +1506,7 @@
   eoe20s_prop_probcams <- proportion_of_probcams(eoe_probcams_20s)
   eoe20w_prop_probcams <- proportion_of_probcams(eoe_probcams_20w)
   eoe21s_prop_probcams <- proportion_of_probcams(eoe_probcams_21s)
+  eoe22s_prop_probcams <- proportion_of_probcams(eoe_probcams_22s)
   
   wolf19s_prop_probcams <- proportion_of_probcams(wolf_probcams_19s)
   wolf20s_prop_probcams <- proportion_of_probcams(wolf_probcams_20s)
@@ -1417,6 +1537,7 @@
   eoe20s_probcam_locs <- format_probcam_locations(eoe_probcams_20s)
   eoe20w_probcam_locs <- format_probcam_locations(eoe_probcams_20w)
   eoe21s_probcam_locs <- format_probcam_locations(eoe_probcams_21s)
+  eoe22s_probcam_locs <- format_probcam_locations(eoe_probcams_22s)
   
   wolf19s_probcam_locs <- format_probcam_locations(wolf_probcams_19s)
   wolf20s_probcam_locs <- format_probcam_locations(wolf_probcams_20s)
@@ -1468,6 +1589,21 @@
   ggsave("./Outputs/Figures/Maps/EoE21s_problem_cams_1hr.png", EoE21s_problem_cam_map, units = "in",
          width = 6, height = 6, dpi = 600, device = "png")
   
+  #'  Plot Smr22 problem cameras
+  EoE22s_problem_cam_map <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
+    scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
+    geom_sf(data = eoe22s_probcam_locs, aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "#darkred")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ Operational Problems (1h Rule)") +
+    coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
+    theme_bw()
+  EoE22s_problem_cam_map
+  ggsave("./Outputs/Figures/Maps/EoE22s_problem_cams_1hr.png", EoE22s_problem_cam_map, units = "in",
+         width = 6, height = 6, dpi = 600, device = "png")
+  
   
   #'  Map problem cameras where problem lasts longer than 1 week and 1 month
   wk_month_long_probs <- function(obs, cams) {
@@ -1516,6 +1652,7 @@
   eoe_prob_wkmo_20s <- wk_month_long_probs(obs = eoe20s_allT, cams = eoe_prob_dates_20s)
   eoe_prob_wkmo_20w <- wk_month_long_probs(obs = eoe20w_allT, cams = eoe_prob_dates_20w)
   eoe_prob_wkmo_21s <- wk_month_long_probs(obs = eoe21s_allT, cams = eoe_prob_dates_21s)
+  eoe_prob_wkmo_22s <- wk_month_long_probs(obs = eoe22s_allT, cams = eoe_prob_dates_22s)
   
  
   #'  Plot cameras with >1week long problems and >1month long problems
@@ -1604,6 +1741,35 @@
     theme_bw()
   EoE21s_problem_cam_map_1mo
   # ggsave("./Outputs/Figures/Maps/EoE21s_problem_cams_1hr_1mo.png", EoE21s_problem_cam_map_1mo, units = "in",
+  #        width = 6, height = 6, dpi = 600, device = "png")
+  
+  #'  Plot Smr22 problem cameras
+  EoE22s_problem_cam_map_1wk <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe_prob_wkmo_22s[[1]], aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "darkred")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ >1 Week Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
+    theme_bw()
+  EoE22s_problem_cam_map_1wk
+  # ggsave("./Outputs/Figures/Maps/EoE22s_problem_cams_1hr_1wk.png", EoE22s_problem_cam_map_1wk, units = "in",
+  #        width = 6, height = 6, dpi = 600, device = "png")
+  
+  EoE22s_problem_cam_map_1mo <- ggplot() +
+    geom_sf(data = gmu) +
+    geom_sf(data = eoe_gmus, aes(fill = NAME)) +
+    scale_fill_manual(values=c("#9999CC", "#66CC99")) +
+    geom_sf(data = eoe_prob_wkmo_22s[[2]], aes(color = ProblemCams), shape = 16, size = 2) +
+    scale_color_manual(values=c("black", "darkred")) +
+    guides(fill=guide_legend(title="GMU")) +
+    ggtitle("EoE Cameras w/ >1 Month Long Operational Problems \n(1hr Rule)") + # UPDATE THE TIME HERE
+    coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
+    theme_bw()
+  EoE22s_problem_cam_map_1mo
+  # ggsave("./Outputs/Figures/Maps/EoE22s_problem_cams_1hr_1mo.png", EoE22s_problem_cam_map_1mo, units = "in",
   #        width = 6, height = 6, dpi = 600, device = "png")
   
   
