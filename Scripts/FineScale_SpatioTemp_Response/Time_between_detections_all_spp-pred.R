@@ -74,19 +74,6 @@
   eoe20s_allM <- eoe20s_allM_new
   eoe21s_allM <- eoe21s_allM_new
   
-  #' #'  Trimmed down version for publication
-  #' dets_smr20 <- eoe20s_allM_new %>%
-  #'   dplyr::select(c("NewLocationID", "File", "Date", "Time", "posix_date_time", 
-  #'                   "Human", "Wildlife", "Livestock", "Pet_pack_horse", "Vehicle", "Empty", 
-  #'                   "Species", "Count", "Gmu"))
-  #' dets_smr21 <- eoe21s_allM_new  %>%
-  #'   dplyr::select(c("NewLocationID", "File", "Date", "Time", "posix_date_time", 
-  #'                   "Human", "Wildlife", "Livestock", "Pet_pack_horse", "Vehicle", "Empty", 
-  #'                   "Species", "Count", "Gmu"))
-  #' 
-  #' save(dets_smr20, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/dets_smr20.RData")
-  #' save(dets_smr21, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/dets_smr21.RData")
-  
   #'  ------------------------
   ####  Filter detection data  ####
   #'  ------------------------
@@ -128,6 +115,19 @@
   eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15")
   eoe20w_dets <- detections(eoe20w_allM_skinny, start_date = "2020-12-01", end_date = "2021-02-01")
   eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15")
+  
+  #' #'  Trimmed down version for publication
+  #' dets_smr20 <- eoe20s_dets %>%
+  #'   dplyr::select(c("NewLocationID", "File", "Date", "Time", "posix_date_time", "OpState", 
+  #'                   "Human", "Wildlife", "Livestock", "Pet_pack_horse", "Vehicle", "Empty", 
+  #'                   "Species", "Count", "Gmu"))
+  #' dets_smr21 <- eoe21s_dets  %>%
+  #'   dplyr::select(c("NewLocationID", "File", "Date", "Time", "posix_date_time", "OpState", 
+  #'                   "Human", "Wildlife", "Livestock", "Pet_pack_horse", "Vehicle", "Empty", 
+  #'                   "Species", "Count", "Gmu"))
+  #' 
+  #' save(dets_smr20, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/dets_smr20.RData")
+  #' save(dets_smr21, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/dets_smr21.RData")
   
   
   #'  -----------------------------------------
