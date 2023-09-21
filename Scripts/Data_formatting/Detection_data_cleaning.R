@@ -1246,7 +1246,9 @@
   #'  EoE Summer 2022 problems
   #'  ------------------------
   eoe_problems_22s <- rbind(eoe_gap_dates_22s, eoe_prob_dates_22s) %>%
-    arrange(NewLocationID, Date)
+    arrange(NewLocationID, Date) %>%
+    mutate(Burst = ifelse(NewLocationID == "GMU1_U_159" & Issue == "Gap", 2, Burst)) %>%
+    filter(NewLocationID != "GMU10A_U_74" | Date != "2022-11-30")
   
   #'  Wolf Summer 2019 problems
   #'  -------------------------
@@ -1323,9 +1325,7 @@
   }
   eoe_wide_probs_20s <- problem_df_wide(eoe_problems_20s)   
   eoe_wide_probs_21s <- problem_df_wide(eoe_problems_21s) 
-  eoe_wide_probs_22sa <- problem_df_wide(eoe_problems_22s) #%>%
-    #' #'  Narrow down to date range that falls within study time period
-    #' filter((Problem1_from >= "2022-07-01" & Problem1_to <= "2022-09-15")) 
+  eoe_wide_probs_22s <- problem_df_wide(eoe_problems_22s) 
   wolf_wide_probs_21s <- problem_df_wide(wolf_problems_21s) 
   
   #'  Same function as above but also rearranges columns when >9 problems at a 
@@ -1368,12 +1368,27 @@
       #'  camera with this problem - need to find out where these data came from!
       filter(!is.na(NewLocationID)) %>%
       #'  Add a column representing whether the date is the start or end of photos
-      mutate(Date = as.Date(Date, format = "%d-%b-%Y"),
+      mutate(Date = as.Date(Date, format = "%Y-%m-%d"), #format = "%d-%b-%Y"
              StartEnd = ifelse((NewLocationID == lag(NewLocationID)), "Retrieval_date", "Setup_date"), 
              StartEnd = ifelse(is.na(StartEnd), "Setup_date", StartEnd)) %>%
+      # dplyr::select(-c(Lat, Long)) %>%
       spread(StartEnd, Date) %>%
-      relocate(Retrieval_date, .after = Setup_date)
-    return(startend)
+      relocate(Retrieval_date, .after = Setup_date) 
+    
+    #'  Fill Retrieval_date NAs with Retrieval_date from same site but different row
+    #'  Necessary for sites where camera moved slightly between setup and retrieval
+    #'  creating double rows for the site but w/ NAs for setup/retrieval 
+    fillend <- arrange(startend, NewLocationID)
+    for (i in 2:nrow(fillend)){
+      if (fillend$NewLocationID[i-1] == fillend$NewLocationID[i] & is.na(fillend$Retrieval_date[i])) fillend$Retrieval_date[i] = fillend$Retrieval_date[i-1]
+      else (if (fillend$NewLocationID[i] == fillend$NewLocationID[i+1] & is.na(fillend$Retrieval_date[i])) fillend$Retrieval_date[i] = fillend$Retrieval_date[i+1]
+            else (fillend$Retrieval_date[i] = fillend$Retrieval_date[i]))
+    }
+    
+    #'  Remove extra row for sites where camera moved slightly between setup and retrieval
+    startend_clean <- filter(fillend, !is.na(Setup_date))
+    
+    return(startend_clean)
   }
   #'  EoE Cameras
   #'  -----------
@@ -1600,7 +1615,7 @@
     geom_sf(data = eoe_gmus, aes(fill = NAME)) +
     scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
     geom_sf(data = eoe21s_probcam_locs, aes(color = ProblemCams), shape = 16, size = 2) +
-    scale_color_manual(values=c("black", "#darkred")) +
+    scale_color_manual(values=c("black", "darkred")) +
     guides(fill=guide_legend(title="GMU")) +
     ggtitle("EoE Cameras w/ Operational Problems (1h Rule)") +
     coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
@@ -1615,7 +1630,7 @@
     geom_sf(data = eoe_gmus, aes(fill = NAME)) +
     scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
     geom_sf(data = eoe22s_probcam_locs, aes(color = ProblemCams), shape = 16, size = 2) +
-    scale_color_manual(values=c("black", "#darkred")) +
+    scale_color_manual(values=c("black", "darkred")) +
     guides(fill=guide_legend(title="GMU")) +
     ggtitle("EoE Cameras w/ Operational Problems (1h Rule)") +
     coord_sf(xlim = c(-13020000, -12700000), ylim = c(5800000, 6274865), expand = TRUE) +
