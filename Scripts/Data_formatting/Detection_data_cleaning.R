@@ -745,7 +745,7 @@
   
   #'  Review noontime triggered images
   eoe_t_smr20 <- eoe_noon_list[[1]] 
-  # eoe_t_smr20 <- eoe_motion_wtr20 # full data set
+  # eoe_t_smr20 <- eoe20s_allT # full data set
   prob_eoe_t_smr20 <- eoe_t_smr20[eoe_t_smr20$NewLocationID == "GMU6_U_11" | 
                                     eoe_t_smr20$NewLocationID == "GMU6_U_81" | 
                                     eoe_t_smr20$NewLocationID == "GMU6_P_11" | 
@@ -754,7 +754,7 @@
                                     eoe_t_smr20$NewLocationID == "GMU10A_U_160" | 
                                     eoe_t_smr20$NewLocationID == "GMU10A_U_8",]
   eoe_t_wtr20 <- eoe_noon_list[[2]]
-  # eoe_t_wtr20 <- eoe_time_wtr20 # full data set
+  # eoe_t_wtr20 <- eoe20w_allT # full data set
   prob_eoe_t_wtr20 <- eoe_t_wtr20[eoe_t_wtr20$NewLocationID == "GMU6_U_164" |
                                     eoe_t_wtr20$NewLocationID == "GMU6_P_99" |
                                     eoe_t_wtr20$NewLocationID == "GMU6_U_99" |
@@ -765,12 +765,27 @@
                                     eoe_t_wtr20$NewLocationID == "GMU6_U_105" |
                                     eoe_t_wtr20$NewLocationID == "GMU10A_U_11",]
   eoe_t_smr21 <- eoe_noon_list[[3]]
-  # eoe_t_smr21 <- eoe_time_smr21 # full data set
+  # eoe_t_smr21 <- eoe21s_allT # full data set
   prob_eoe_t_smr21 <- eoe_t_smr21[eoe_t_smr21$NewLocationID == "GMU6_P_19" |
                                     eoe_t_smr21$NewLocationID == "GMU10A_U_75" |
                                     eoe_t_smr21$NewLocationID == "GMU10A_U_159" |
                                     eoe_t_smr21$NewLocationID == "GMU6_P_29" |
                                     eoe_t_smr21$NewLocationID == "GMU6_P_92",]
+  
+  # eoe_t_smr22 <- eoe_noon_list[[4]]
+  eoe_t_smr22 <- eoe22s_allT # full data set
+  prob_eoe_t_smr22 <- eoe_t_smr22[eoe_t_smr22$NewLocationID == "GMU1_U_106" |
+                                    eoe_t_smr22$NewLocationID == "GMU1_U_117" |
+                                    eoe_t_smr22$NewLocationID == "GMU6_U_32" |
+                                    eoe_t_smr22$NewLocationID == "GMU10A_P_51" |
+                                    eoe_t_smr22$NewLocationID == "GMU6_U_18" |
+                                    eoe_t_smr22$NewLocationID == "GMU6_P_18" |
+                                    eoe_t_smr22$NewLocationID == "GMU10A_U_125" |
+                                    eoe_t_smr22$NewLocationID == "GMU10A_U_29" |
+                                    # eoe_t_smr22$NewLocationID == "GMU10A_U_48" | #motion trigger images all summer but no animal detections
+                                    eoe_t_smr22$NewLocationID == "GMU10A_U_159" |
+                                    eoe_t_smr22$NewLocationID == "GMU10A_U_59" |
+                                    eoe_t_smr22$NewLocationID == "GMU10A_U_98",]
   
   wolf_t_smr19 <- wolf_noon_list[[1]]
   # wolf_t_smr19 <- wolf19s_allT # full data set
@@ -881,7 +896,10 @@
   eoe_gap_dates_20s <- missing_days(eoe_nopix_20s) 
   eoe_gap_dates_20w <- missing_days(eoe_nopix_20w) 
   eoe_gap_dates_21s <- missing_days(eoe_nopix_21s)
-  eoe_gap_dates_22s <- missing_days(eoe_nopix_22s)
+  eoe_gap_dates_22s <- missing_days(eoe_nopix_22s) #%>%
+    #' #'  Narrow down to date range that falls within study time period
+    #' filter((StartEnd == "First" & Date >= "2022-07-01" & Date <= "2022-09-15") | 
+    #'          (StartEnd == "Last" & Date >= "2022-07-01" & Date <= "2022-09-15"))
   
   wolf_gap_dates_19s <- missing_days(wolf_nopix_19s)
   wolf_gap_dates_20s <- missing_days(wolf_nopix_20s)
@@ -1023,8 +1041,8 @@
     ggplot(aes(Time)) + #Hours
     geom_freqpoly(binwidth = 1) +
     ggtitle("Number of images w/ OpState problems over 24 cycle \n(1hr Rule)")
-  eoe_probtimes_21s
-  ggsave("./Outputs/Figures/eoe_probtimes_22s_1hr.png", eoe_probtimes_21s, units = "in", 
+  eoe_probtimes_22s
+  ggsave("./Outputs/Figures/eoe_probtimes_22s_1hr.png", eoe_probtimes_22s, units = "in", 
          width = 6, height = 6, dpi = 600, device = "png")
   
 
@@ -1035,7 +1053,7 @@
       arrange(NewLocationID, posix_date_time) %>%
       dplyr::select(c(NewLocationID, Date, OpState)) %>%
       distinct() %>%
-      mutate(Date = as.Date(Date, format = "%d-%b-%Y")) %>%
+      mutate(Date = as.Date(Date, format = "%Y-%m-%d")) %>% # format = "%d-%b-%Y"
       #'  Label sequential dates from same camera as a single burst
       group_by(NewLocationID) %>%
         mutate(Burst = cumsum(c(1, diff(Date) > 1))) %>%
@@ -1305,7 +1323,9 @@
   }
   eoe_wide_probs_20s <- problem_df_wide(eoe_problems_20s)   
   eoe_wide_probs_21s <- problem_df_wide(eoe_problems_21s) 
-  #eoe_wide_probs_22s <- problem_df_wide(eoe_problems_22s) 
+  eoe_wide_probs_22sa <- problem_df_wide(eoe_problems_22s) #%>%
+    #' #'  Narrow down to date range that falls within study time period
+    #' filter((Problem1_from >= "2022-07-01" & Problem1_to <= "2022-09-15")) 
   wolf_wide_probs_21s <- problem_df_wide(wolf_problems_21s) 
   
   #'  Same function as above but also rearranges columns when >9 problems at a 
