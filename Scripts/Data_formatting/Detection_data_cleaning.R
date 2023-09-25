@@ -896,10 +896,7 @@
   eoe_gap_dates_20s <- missing_days(eoe_nopix_20s) 
   eoe_gap_dates_20w <- missing_days(eoe_nopix_20w) 
   eoe_gap_dates_21s <- missing_days(eoe_nopix_21s)
-  eoe_gap_dates_22s <- missing_days(eoe_nopix_22s) #%>%
-    #' #'  Narrow down to date range that falls within study time period
-    #' filter((StartEnd == "First" & Date >= "2022-07-01" & Date <= "2022-09-15") | 
-    #'          (StartEnd == "Last" & Date >= "2022-07-01" & Date <= "2022-09-15"))
+  eoe_gap_dates_22s <- missing_days(eoe_nopix_22s) 
   
   wolf_gap_dates_19s <- missing_days(wolf_nopix_19s)
   wolf_gap_dates_20s <- missing_days(wolf_nopix_20s)
@@ -948,7 +945,6 @@
   wolf21s_all <- list(wolf21s_allM, wolf21s_allT)
   wolf21s_probs <- lapply(wolf21s_all, problem_children)
   
-
   #'  Filter images to series where camera was obscured or misdirected for a defined amount of time
   #'  Using this to represent days when camera wasn't full operational
   sequential_probs <- function(dat, ntime) {
@@ -1125,7 +1121,9 @@
   eoe_prob_dates_21s <- prob_days(eoe_seqprob_21s) %>%
     arrange(NewLocationID, Date, StartEnd)
   eoe_prob_dates_22s <- prob_days(eoe_seqprob_22s) %>%
-    arrange(NewLocationID, Date, StartEnd)
+    arrange(NewLocationID, Date, StartEnd) %>%
+    filter(NewLocationID!= "GMU10A_P_14" | Date != "2022-04-08") %>%
+    mutate(Burst = ifelse(NewLocationID == "GMU10A_P_14", 1, Burst))
   
   wolf_prob_dates_19s <- prob_days(wolf_seqprob_19s) %>%
     arrange(NewLocationID, Date, StartEnd) %>%
@@ -1248,7 +1246,9 @@
   eoe_problems_22s <- rbind(eoe_gap_dates_22s, eoe_prob_dates_22s) %>%
     arrange(NewLocationID, Date) %>%
     mutate(Burst = ifelse(NewLocationID == "GMU1_U_159" & Issue == "Gap", 2, Burst)) %>%
-    filter(NewLocationID != "GMU10A_U_74" | Date != "2022-11-30")
+    filter(NewLocationID != "GMU10A_U_74" | Date != "2022-11-30") #%>%
+    # filter(NewLocationID!= "GMU10A_P_14" | Date != "2022-04-08") %>%
+    # mutate(Burst = ifelse(NewLocationID == "GMU10A_P_14", 1, Burst))
   
   #'  Wolf Summer 2019 problems
   #'  -------------------------
@@ -1454,7 +1454,6 @@
     full_join(wolf_wide_probs_21s, by = "NewLocationID") %>%
     #'  Remove unnamed camera with no coordinate information
     filter(NewLocationID != "GMUNA_NA")
-
     
   #'  Save dates of first/last image and problem dates for all cameras
   save(eoe_probcams_20s, file = "./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
