@@ -1246,9 +1246,7 @@
   eoe_problems_22s <- rbind(eoe_gap_dates_22s, eoe_prob_dates_22s) %>%
     arrange(NewLocationID, Date) %>%
     mutate(Burst = ifelse(NewLocationID == "GMU1_U_159" & Issue == "Gap", 2, Burst)) %>%
-    filter(NewLocationID != "GMU10A_U_74" | Date != "2022-11-30") #%>%
-    # filter(NewLocationID!= "GMU10A_P_14" | Date != "2022-04-08") %>%
-    # mutate(Burst = ifelse(NewLocationID == "GMU10A_P_14", 1, Burst))
+    filter(NewLocationID != "GMU10A_U_74" | Date != "2022-11-30") 
   
   #'  Wolf Summer 2019 problems
   #'  -------------------------
