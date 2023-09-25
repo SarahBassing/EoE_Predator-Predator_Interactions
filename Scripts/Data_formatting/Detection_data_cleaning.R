@@ -379,9 +379,13 @@
   
   #'  EOE Summer 2022
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe22s_allM_NewLocationID.RData")
-  eoe22s_allM <- set_tzone(eoe22s_allM)
+  eoe22s_allM <- set_tzone(eoe22s_allM) %>%
+    #'  Remove any 2021 images
+    filter(Date > "2021-12-31")
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe22s_allT_NewLocationID.RData")
-  eoe22s_allT <- set_tzone(eoe22s_allT)
+  eoe22s_allT <- set_tzone(eoe22s_allT) %>%
+    #'  Remove any 2021 images
+    filter(Date > "2021-12-31")
   
   #'  Keeper data
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe_motion_skinny_NewLocationID.RData")
@@ -704,16 +708,18 @@
   eoe_m_smr22 <- eoe22s_allM # full data set
   prob_eoe_m_smr22 <- eoe_m_smr22[eoe_m_smr22$NewLocationID == "GMU1_U_106" |
                                     eoe_m_smr22$NewLocationID == "GMU1_U_117" |
-                                    eoe_m_smr22$NewLocationID == "GMU6_U_32" |
-                                    eoe_m_smr22$NewLocationID == "GMU10A_P_51" |
-                                    eoe_m_smr22$NewLocationID == "GMU6_U_18" |
-                                    eoe_m_smr22$NewLocationID == "GMU6_P_18" |
-                                    eoe_m_smr22$NewLocationID == "GMU10A_U_125" |
-                                    eoe_m_smr22$NewLocationID == "GMU10A_U_29" |
+                                    eoe_m_smr22$NewLocationID == "GMU1_U_30" |
+                                    eoe_m_smr22$NewLocationID == "GMU1_P_46",]
+                                    # eoe_m_smr22$NewLocationID == "GMU6_U_32" |
+                                    # eoe_m_smr22$NewLocationID == "GMU10A_P_51" |
+                                    # eoe_m_smr22$NewLocationID == "GMU6_U_18" |
+                                    # eoe_m_smr22$NewLocationID == "GMU6_P_18" |
+                                    # eoe_m_smr22$NewLocationID == "GMU10A_U_125" |
+                                    # eoe_m_smr22$NewLocationID == "GMU10A_U_29" |
+                                    # eoe_m_smr22$NewLocationID == "GMU10A_U_159" |
+                                    # eoe_m_smr22$NewLocationID == "GMU10A_U_59" |
+                                    # eoe_m_smr22$NewLocationID == "GMU10A_U_98",]
                                     # eoe_m_smr22$NewLocationID == "GMU10A_U_48" | #motion trigger images all summer but no animal detections
-                                    eoe_m_smr22$NewLocationID == "GMU10A_U_159" |
-                                    eoe_m_smr22$NewLocationID == "GMU10A_U_59" |
-                                    eoe_m_smr22$NewLocationID == "GMU10A_U_98",]
   
   
   wolf_m_smr19 <- wolf_motion_list[[1]]
@@ -776,16 +782,18 @@
   eoe_t_smr22 <- eoe22s_allT # full data set
   prob_eoe_t_smr22 <- eoe_t_smr22[eoe_t_smr22$NewLocationID == "GMU1_U_106" |
                                     eoe_t_smr22$NewLocationID == "GMU1_U_117" |
-                                    eoe_t_smr22$NewLocationID == "GMU6_U_32" |
-                                    eoe_t_smr22$NewLocationID == "GMU10A_P_51" |
-                                    eoe_t_smr22$NewLocationID == "GMU6_U_18" |
-                                    eoe_t_smr22$NewLocationID == "GMU6_P_18" |
-                                    eoe_t_smr22$NewLocationID == "GMU10A_U_125" |
-                                    eoe_t_smr22$NewLocationID == "GMU10A_U_29" |
+                                    eoe_t_smr22$NewLocationID == "GMU1_U_30" |
+                                    eoe_t_smr22$NewLocationID == "GMU1_P_46",]
+                                    # eoe_t_smr22$NewLocationID == "GMU6_U_32" |
+                                    # eoe_t_smr22$NewLocationID == "GMU10A_P_51" |
+                                    # eoe_t_smr22$NewLocationID == "GMU6_U_18" |
+                                    # eoe_t_smr22$NewLocationID == "GMU6_P_18" |
+                                    # eoe_t_smr22$NewLocationID == "GMU10A_U_125" |
+                                    # eoe_t_smr22$NewLocationID == "GMU10A_U_29" |
+                                    # eoe_t_smr22$NewLocationID == "GMU10A_U_159" |
+                                    # eoe_t_smr22$NewLocationID == "GMU10A_U_59" |
+                                    # eoe_t_smr22$NewLocationID == "GMU10A_U_98",]
                                     # eoe_t_smr22$NewLocationID == "GMU10A_U_48" | #motion trigger images all summer but no animal detections
-                                    eoe_t_smr22$NewLocationID == "GMU10A_U_159" |
-                                    eoe_t_smr22$NewLocationID == "GMU10A_U_59" |
-                                    eoe_t_smr22$NewLocationID == "GMU10A_U_98",]
   
   wolf_t_smr19 <- wolf_noon_list[[1]]
   # wolf_t_smr19 <- wolf19s_allT # full data set
@@ -820,6 +828,7 @@
   ####  Flag gaps in camera data  ####
   #'  ----------------------------
   #'  Calculate length of gaps in data due to NO pictures being taken
+  #'  Based on time trigger images - if missing indicates camera wasn't operating correctly
   no_pix <- function(dat, ntime) {
     gaps <- dat %>%
       dplyr::select(NewLocationID, Lat, Long, Date, Time, posix_date_time, OpState) %>%
@@ -1407,7 +1416,6 @@
   eoe_probcams_22s <- start_stop_dates(eoe22s_allT) %>%
     arrange(NewLocationID) %>% 
     full_join(eoe_wide_probs_22s, by = "NewLocationID")
-
 
   #'  Wolf Cameras
   #'  ------------
