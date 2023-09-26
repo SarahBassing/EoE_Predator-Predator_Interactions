@@ -651,20 +651,16 @@
     mismatch_cams <- cbind(m_not_in_t, t_not_in_m)
     return(mismatch_cams)
   }
-  eoe_mismatch <- mapply(mt_mismatch, motion_cams = eoe_motion_list, noon_cams = eoe_noon_list)
-  wolf_mismatch <- mapply(mt_mismatch, motion_cams = wolf_motion_list, noon_cams = wolf_noon_list)
+  eoe_mismatch <- mt_mismatch(motion_cams = eoe20s_allM, noon_cams = eoe_time_list[[1]])
+  eoe_mismatch <- mt_mismatch(motion_cams = eoe20w_allM, noon_cams = eoe_time_list[[2]])
+  eoe_mismatch <- mt_mismatch(motion_cams = eoe21s_allM, noon_cams = eoe_time_list[[3]])
+  eoe_mismatch <- mt_mismatch(motion_cams = eoe22s_allM, noon_cams = eoe_time_list[[4]])
+
   #'  Looks like wolf occupancy cameras did not take time-triggered images which
   #'  explains big differences in # of cams taking motion vs time triggered images
-  
-  #' #'  Same thing but with FULL data sets, not keepers only
-  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe20s_allM, noon_cams = eoe_time_list[[1]])
-  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe20w_allM, noon_cams = eoe_time_list[[2]])
-  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe21s_allM, noon_cams = eoe_time_list[[3]])
-  #' eoe_mismatch <- mt_mismatch(motion_cams = eoe22s_allM, noon_cams = eoe_time_list[[4]])
-  #' 
-  #' wolf_mismatch <- mt_mismatch(motion_cams = wolf19s_allM, noon_cams = wolf19s_allT)
-  #' wolf_mismatch <- mt_mismatch(motion_cams = wolf20s_allM, noon_cams = wolf20s_allT)
-  #' wolf_mismatch <- mt_mismatch(motion_cams = wolf21s_allM, noon_cams = wolf21s_allT)
+  wolf_mismatch <- mt_mismatch(motion_cams = wolf19s_allM, noon_cams = wolf19s_allT)
+  wolf_mismatch <- mt_mismatch(motion_cams = wolf20s_allM, noon_cams = wolf20s_allT)
+  wolf_mismatch <- mt_mismatch(motion_cams = wolf21s_allM, noon_cams = wolf21s_allT)
   
   #'  Review motion triggered images from cameras in M data set but not in T data set
   possible_probs <- function(motion_imgs, mismatches) {
@@ -986,7 +982,9 @@
     arrange(NewLocationID, posix_date_time)
   eoe_seqprob_22s <- lapply(eoe22s_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
-    arrange(NewLocationID, posix_date_time)
+    arrange(NewLocationID, posix_date_time) #%>%
+    #' #'  Add images from problem cams where motion but not time triggers were taken
+    #' bind_rows(prob_eoe_m_smr22)
   
   wolf_seqprob_19s <- lapply(wolf19s_probs, sequential_probs, ntime = 72) %>%
     do.call(rbind.data.frame, .) %>%
@@ -1416,6 +1414,10 @@
   eoe_probcams_22s <- start_stop_dates(eoe22s_allT) %>%
     arrange(NewLocationID) %>% 
     full_join(eoe_wide_probs_22s, by = "NewLocationID")
+  #'  Need to add locations and start/end dates for cameras w/ motion but no time triggers (these cameras did not malfunction)
+  m_no_t_22s <- start_stop_dates(prob_eoe_m_smr22)
+  eoe_probcams_22s <- full_join(eoe_probcams_22s, m_no_t_22s) %>%
+    arrange(NewLocationID)
 
   #'  Wolf Cameras
   #'  ------------
