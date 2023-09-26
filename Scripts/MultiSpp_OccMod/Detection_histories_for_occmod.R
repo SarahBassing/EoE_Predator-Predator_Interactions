@@ -27,16 +27,19 @@
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
+  load("./Data/IDFG camera data/Problem cams/eoe22s_problem_cams.RData")
   
   #'  Detection data (motion trigger observations only)
   load("./Data/IDFG camera data/Split datasets/eoe20s_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe20w_allM_NewLocationID.RData")
   load("./Data/IDFG camera data/Split datasets/eoe21s_allM_NewLocationID.RData")
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe22s_allM_NewLocationID.RData") 
   
   #'  Sequential problem images
   load("./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe20w_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
+  load("./Data/IDFG camera data/Problem images/eoe22s_sequential_probimgs.RData")
   
     
   #'  ------------------------
@@ -50,6 +53,7 @@
   eoe20s_allM_skinny <- thin_detections(eoe20s_allM, eoe_seqprob_20s)
   eoe20w_allM_skinny <- thin_detections(eoe20w_allM, eoe_seqprob_20w)
   eoe21s_allM_skinny <- thin_detections(eoe21s_allM, eoe_seqprob_21s)
+  eoe22s_allM_skinny <- thin_detections(eoe22s_allM, eoe_seqprob_22s)
   
   #'  2) Filter detection data to time period of interest
   #'  Time periods of interest determined by IDFG and plotting histograms of when 
@@ -59,7 +63,7 @@
       dplyr::select("NewLocationID", "CamID", "Date", "Time", "posix_date_time", "TriggerMode",
                     "OpState", "Species", "Count") %>%
       mutate(
-        Date = as.Date(Date, format = "%d-%b-%Y"),
+        Date = as.Date(Date, format = "%Y-%m-%d"), #format = "%d-%b-%Y"
         Time = chron(times = Time)
       ) %>%
       #'  Filter to images to desired date range
@@ -72,6 +76,7 @@
   eoe20s_dets <- detections(eoe20s_allM_skinny, start_date = "2020-07-01", end_date = "2020-09-15")
   eoe20w_dets <- detections(eoe20w_allM_skinny, start_date = "2020-12-01", end_date = "2021-02-01")
   eoe21s_dets <- detections(eoe21s_allM_skinny, start_date = "2021-07-01", end_date = "2021-09-15")
+  eoe22s_dets <- detections(eoe22s_allM_skinny, start_date = "2022-07-01", end_date = "2022-09-15")
 
   
   #'  -----------------------------------------
@@ -101,12 +106,14 @@
   eoe20s_det_events <- unique_detections(eoe20s_dets, elapsed_time = 300)
   eoe20w_det_events <- unique_detections(eoe20w_dets, elapsed_time = 300)
   eoe21s_det_events <- unique_detections(eoe21s_dets, elapsed_time = 300)
+  eoe22s_det_events <- unique_detections(eoe22s_dets, elapsed_time = 300)
     
   #'  Save for making summary tables
   save(eoe20s_det_events, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe20s_det_events.RData")
   save(eoe20w_det_events, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe20w_det_events.RData")
   save(eoe21s_det_events, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe21s_det_events.RData")
-  
+  save(eoe22s_det_events, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/eoe22s_det_events.RData")
+    
   
   #'  --------------------------
   ####  Camera Operation Table  ####
@@ -139,6 +146,7 @@
   eoe20s_probs <- camera_operation_tbl(eoe_probcams_20s) 
   eoe20w_probs <- camera_operation_tbl(eoe_probcams_20w) 
   eoe21s_probs <- camera_operation_tbl(eoe_probcams_21s)
+  eoe22s_probs <- camera_operation_tbl(eoe_probcams_22s)
   
   #'  Make sure two data streams match up
   #'  OK to have cameras in camera setup data that aren't in detection data but 
@@ -157,6 +165,7 @@
   eoe20s_match_cams <- match_datsets(det_events = eoe20s_det_events, stations = eoe20s_probs)
   eoe20w_match_cams <- match_datsets(det_events = eoe20w_det_events, stations = eoe20w_probs)
   eoe21s_match_cams <- match_datsets(det_events = eoe21s_det_events, stations = eoe21s_probs)
+  eoe22s_match_cams <- match_datsets(det_events = eoe22s_det_events, stations = eoe22s_probs)
 
   
   #'  -----------------------
@@ -231,6 +240,10 @@
   rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 147, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
   DH_eoe21s_predators <- lapply(spp_smr, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_eoe21s, oc = 11)
     
+  rm_rows_eoe22s <- c(13, 29, 85, 108, 113, 154, 173, 175, 199, 208, 215, 216, 238, 242, 256, 257, 269, 286, 292, 349, 352, 357, 398, 427, 429, 450, 452, 455, 489, 501, 512, 516, 584, 632, 637, 656, 659, 661, 687, 689)
+  DH_eoe22s_predators <- lapply(spp_smr, DH, dets = eoe22s_det_events, cam_probs = eoe22s_probs, start_date = "2022-07-01", y = "binary", rm_rows = rm_rows_eoe22s, oc = 11)
+  # rownmbr <- seq(1:nrow(short_dh))
+  # tst <- cbind(short_dh, rownmbr)
    
   #'  -----------------------
   ####  Max Count of Wolves  ####
@@ -239,6 +252,7 @@
   count_eoe20s_wolf <- DH(spp = "wolf", dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-07-01", y = "count", rm_rows = rm_rows_eoe20s,oc = 11)  
   count_eoe20w_wolf <- DH(spp = "wolf", dets = eoe20w_det_events, cam_probs = eoe20w_probs, start_date = "2020-12-01", y = "count", rm_rows = rm_rows_eoe20w,oc = 9)  
   count_eoe21s_wolf <- DH(spp = "wolf", dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-07-01", y = "count", rm_rows = rm_rows_eoe21s, oc = 11)
+  count_eoe22s_wolf <- DH(spp = "wolf", dets = eoe22s_det_events, cam_probs = eoe22s_probs, start_date = "2022-07-01", y = "count", rm_rows = rm_rows_eoe22s, oc = 11)
   
   #'  Count maximum number of wolves detected in a single image per detection event
   #'  at each camera, then find the average to represent the average minimum group
@@ -275,6 +289,7 @@
   min_group_size_eoe20s <- avg_min_group_size(eoe20s_dets, stations = eoe_probcams_20s, elapsed_time = 300)
   min_group_size_eoe20w <- avg_min_group_size(eoe20w_dets, stations = eoe_probcams_20w, elapsed_time = 300)
   min_group_size_eoe21s <- avg_min_group_size(eoe21s_dets, stations = eoe_probcams_21s, elapsed_time = 300)
+  min_group_size_eoe22s <- avg_min_group_size(eoe22s_dets, stations = eoe_probcams_22s, elapsed_time = 300)
   
   
   #'  -------------------
@@ -294,6 +309,7 @@
   }
   effort_20s <- sampling_effort(DH_eoe20s_predators)
   effort_21s <- sampling_effort(DH_eoe21s_predators)
+  effort_22s <- sampling_effort(DH_eoe22s_predators)
   
   camdays_20w <- DH_eoe20w_predators[[1]][[2]]
   effort_20w <- as.data.frame(camdays_20w) %>%
@@ -310,26 +326,34 @@
   #' save(DH_eoe20s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
   #' save(DH_eoe20w_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20w_predators.RData")
   #' save(DH_eoe21s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
+  #' save(DH_eoe22s_predators, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe22s_predators.RData")
   #' #'  Seasonal wolf detection data
   #' save(count_eoe20s_wolf, file = "./Data/Wolf count data/count_eoe20s_wolf.RData")
   #' save(count_eoe20w_wolf, file = "./Data/Wolf count data/count_eoe20w_wolf.RData")
   #' save(count_eoe21s_wolf, file = "./Data/Wolf count data/count_eoe21s_wolf.RData")
+  #' save(count_eoe22s_wolf, file = "./Data/Wolf count data/count_eoe22s_wolf.RData")
   #' #'  Minimum group size counts
   #' save(min_group_size_eoe20s, file = "./Data/Wolf count data/min_group_size_eoe20s.RData")
   #' save(min_group_size_eoe20w, file = "./Data/Wolf count data/min_group_size_eoe20w.RData")
   #' save(min_group_size_eoe21s, file = "./Data/Wolf count data/min_group_size_eoe21s.RData")
+  #' save(min_group_size_eoe22s, file = "./Data/Wolf count data/min_group_size_eoe22s.RData")
   #' #' Sampling effort
   #' save(effort_20s, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
   #' save(effort_20w, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20w.RData")
   #' save(effort_21s, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData")
+  #' save(effort_22s, file = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe22s.RData")
   
   #'  Save for publication
   DetectionHist_Smr20 <- list(DH_eoe20s_predators[[1]][[1]], DH_eoe20s_predators[[2]][[1]], DH_eoe20s_predators[[3]][[1]], DH_eoe20s_predators[[4]][[1]], DH_eoe20s_predators[[5]][[1]])
   DetectionHist_Smr21 <- list(DH_eoe21s_predators[[1]][[1]], DH_eoe21s_predators[[2]][[1]], DH_eoe21s_predators[[3]][[1]], DH_eoe21s_predators[[4]][[1]], DH_eoe21s_predators[[5]][[1]])
+  DetectionHist_Smr22 <- list(DH_eoe22s_predators[[1]][[1]], DH_eoe22s_predators[[2]][[1]], DH_eoe22s_predators[[3]][[1]], DH_eoe22s_predators[[4]][[1]], DH_eoe22s_predators[[5]][[1]])
   SamplingEffort_Smr20 <- effort_20s
   SamplingEffort_Smr21 <- effort_21s
+  SamplingEffort_Smr22 <- effort_22s
   save(DetectionHist_Smr20, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/DetectionHist_smr20.RData")
   save(DetectionHist_Smr21, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/DetectionHist_smr21.RData")
+  save(DetectionHist_Smr22, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/DetectionHist_smr22.RData")
   save(SamplingEffort_Smr20, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/SamplingEffort_smr20.RData")
   save(SamplingEffort_Smr21, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/SamplingEffort_smr21.RData")
+  save(SamplingEffort_Smr22, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/SamplingEffort_smr22.RData")
   
