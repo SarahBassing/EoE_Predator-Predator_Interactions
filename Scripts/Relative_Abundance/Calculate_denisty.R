@@ -117,7 +117,7 @@
   df_density_22s <- calc_density(df_dens_ing_22s); df_density_22s$season <- "Smr22"
   
   #'  Bind into a single data frame
-  df_density <- rbind(df_density_20s, df_density_21s, df_density_21s) %>%
+  df_density <- rbind(df_density_20s, df_density_21s, df_density_22s) %>%
     #'  Add GMU to dataset
     mutate(gmu = sub("_.*", "", location)) %>%
     relocate(gmu, .after = "season")
