@@ -7,6 +7,8 @@
   #'  Calculate time-in-front-of-camera for each species following methods 
   #'  described by Huggard et al. 2018, Warbington & Boyce 2020, and Becker et al. 2022.
   #'  Code modified from Becker et al. 2018 repository: https://github.com/mabecker89/tifc-method/tree/main
+  #'  Last, organize field-of-view measurements at each cameras site based on 
+  #'  IDFG's various methods of measuring the detection zone.
   #'  
   #'  Sequential probimgs generated in Detection_data_cleaning.R (Data_Formatting folder)
   #'  Sampling effort data generated in Detection_histories_for_occmod.R (MultiSpp_OccMod folder)
@@ -23,12 +25,14 @@
   ####  Load and format input data  ####
   #'  -------------------------------
   #'  Load detection data
-  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allM_2023-08-09.RData") 
-  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allM_2023-08-09.RData") 
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allM_NewLocationID_2023-09-26.RData") 
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allM_NewLocationID_2023-09-26.RData") 
+  load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe22s_allM_NewLocationID_2023-09-26.RData") 
   
   #'  Sequential problem images
   load("./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
+  load("./Data/IDFG camera data/Problem images/eoe22s_sequential_probimgs.RData")
   
   #'  Filter detection data to time period of interest and remove problem images
   thin_detections <- function(dets, seqprobs, start_date, end_date) {
@@ -41,7 +45,7 @@
       #'  Add count = 1 for species missing count data (mainly humans, rabbit_hare, cattle_cow)
       mutate(Count = ifelse(Count == 0, 1, Count),
              Count = ifelse(is.na(Count), 1, Count),
-             Date = as.Date(Date, format = "%d-%b-%Y")) %>%
+             Date = as.Date(Date, format = "%Y-%m-%d")) %>% #format = "%d-%b-%Y"
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
       #'  Remove observations that can't be linked to a camera with coordinates
@@ -55,12 +59,15 @@
   }
   df_all_20s <- thin_detections(eoe20s_allM, seqprobs = eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15") 
   df_all_21s <- thin_detections(eoe21s_allM, seqprobs = eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
+  df_all_22s <- thin_detections(eoe22s_allM, seqprobs = eoe_seqprob_22s, start_date = "2022-07-01", end_date = "2022-09-15")
   
   #'  Update species names for "gap groups" based on Becker et al. (2018) classifications
-  spp_groups_20s <- as.data.frame(unique(df_all_20s$common_name))
-  spp_groups_21s <- as.data.frame(unique(df_all_21s$common_name))
-  names(spp_groups_20s) <- "common_name"; names(spp_groups_21s) <- "common_name"
-  spp_groups_20s <- arrange(spp_groups_20s, common_name); spp_groups_21s <- arrange(spp_groups_21s, common_name)
+  spp_groups_20s <- as.data.frame(unique(df_all_20s$common_name)); names(spp_groups_20s) <- "common_name"
+  spp_groups_21s <- as.data.frame(unique(df_all_21s$common_name)); names(spp_groups_21s) <- "common_name"
+  spp_groups_22s <- as.data.frame(unique(df_all_22s$common_name)); names(spp_groups_22s) <- "common_name"
+  spp_groups_20s <- arrange(spp_groups_20s, common_name)
+  spp_groups_21s <- arrange(spp_groups_21s, common_name)
+  spp_groups_22s <- arrange(spp_groups_22s, common_name)
   spp_groups_20s$gap_group <- c("Small carnivores", "Bears", "Other", "Small carnivores", 
                                 "Small carnivores", "Livestock", "Canids cougar", "Most ungulates", "Canids cougar", 
                                 "Most ungulates", "Small carnivores", "Canids cougar", "Most ungulates", "Livestock", 
@@ -75,7 +82,14 @@
                                 "Moose", "Canids cougar", "Most ungulates", "Small mammals", "Small mammals", 
                                 "Small carnivores", "Small mammals", "Small mammals", "Small mammals", "Other", "Other", 
                                 "Small carnivores", "Most ungulates", "Canids cougar")
-  df_gap_groups_20s <- spp_groups_20s; df_gap_groups_21s <- spp_groups_21s
+  spp_groups_22s$gap_group <- c("Small carnivores", "Small mammals", "Bears", "Bears", "Other", "Small carnivores", 
+                                "Small carnivores", "Livestock", "Other", "Canids cougar", "Most ungulates", "Canids cougar", 
+                                "Most ungulates", "Small carnivores", "Canids cougar", "Livestock", "Most ungulates", 
+                                "Small mammals", "Livestock", "Human", "Small carnivores", "Small mammals", "Moose", 
+                                "Canids cougar", "Most ungulates", "Small mammals", "Small mammals", "Small carnivores",
+                                "Small mammals", "Small mammals", "Small mammals", "Other", "Other", 
+                                "Canids cougar", "Small carnivores", "Most ungulates", "Canids cougar")
+  df_gap_groups_20s <- spp_groups_20s; df_gap_groups_21s <- spp_groups_21s; df_gap_groups_22s <- spp_groups_22s
   
   #'  Probabilistic gaps
   df_leave_prob_pred <- read_csv("./Data/Becker et al. data/gap-leave-prob_predictions.csv")
@@ -83,11 +97,14 @@
   #'  Sampling effort data (number of days cameras were operational)
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
+  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe22s.RData") 
   
   df_tbd_20s <- effort_20s %>% dplyr::select(c("NewLocationID", "ndays")) 
   names(df_tbd_20s) <- c("location", "total_days")
   df_tbd_21s <- effort_21s %>% dplyr::select(c("NewLocationID", "ndays")) 
   names(df_tbd_21s) <- c("location", "total_days")
+  df_tbd_22s <- effort_22s %>% dplyr::select(c("NewLocationID", "ndays")) 
+  names(df_tbd_22s) <- c("location", "total_days")
   #'  Missing a camera in 2021 sampling effort data for some reason
   add_missing_cam <- c("GMU1_U_153", "18")
   df_tbd_21s <- rbind(df_tbd_21s, add_missing_cam) %>%
@@ -105,10 +122,14 @@
   summer21.start.j <- format(july1.21, "%j") 
   summer21.end.j <- format(sept15.21, "%j") 
   
+  july1.22 <- as.Date("2022-07-01", format = "%Y-%m-%d")
+  sept15.22 <- as.Date("2022-09-15", format = "%Y-%m-%d")
+  summer22.start.j <- format(july1.22, "%j") 
+  summer22.end.j <- format(sept15.22, "%j") 
+  
   #'  ------------------
   ####  Calculate TIFC  ####
   #'  ------------------
-  
   ##### Step 1. Identify Detection Series  #####
   #'  ------------------------------------------
   img_series <- function(df_all, df_gap_groups) {
@@ -167,7 +188,7 @@
   }
   df_series_20s <- img_series(df_all_20s, df_gap_groups = df_gap_groups_20s)
   df_series_21s <- img_series(df_all_21s, df_gap_groups = df_gap_groups_21s)
-  
+  df_series_22s <- img_series(df_all_22s, df_gap_groups = df_gap_groups_22s)
   
   
   ##### Step 2. Calculate time between photos (tbp), by species #####
@@ -185,6 +206,7 @@
   }
   df_tbp_20s <- tbp(df_series_20s)
   df_tbp_21s <- tbp(df_series_21s)
+  df_tbp_22s <- tbp(df_series_22s)
   
   
   #####  Step 3. Calculate total time in front of the camera, by series (tts = Total Time by Series)  #####
@@ -211,6 +233,7 @@
   }
   df_tts_20s <- tts(df_series_20s, df_tbp_20s)
   df_tts_21s <- tts(df_series_21s, df_tbp_21s)
+  df_tts_22s <- tts(df_series_22s, df_tbp_22s)
   
   
   #####  Step 4. Calculate total time in front of camera, by deployment and species (tt = total time)  #####
@@ -235,6 +258,7 @@
   }
   df_tt_20s <- tt(df_series_20s, df_tts_20s, df_tbd_20s, summer20.start.j, summer20.end.j)
   df_tt_21s <- tt(df_series_21s, df_tts_21s, df_tbd_21s, summer21.start.j, summer21.end.j)
+  df_tt_22s <- tt(df_series_22s, df_tts_22s, df_tbd_22s, summer22.start.j, summer22.end.j)
   
   #'  For deployments with no images of native animals (nn = no natives):
   #'  Add 0 time for each species at these sites
@@ -268,17 +292,88 @@
     
     return(df_tt_full)
   }
-  df_all_yrs <- rbind(df_all_20s, df_all_21s)
-  df_tt_yrs <- rbind(df_tt_20s, df_tt_21s)
+  #'  Bind all possible sites & species across years
+  df_all_yrs <- rbind(df_all_20s, df_all_21s, df_all_22s)
+  df_tt_yrs <- rbind(df_tt_20s, df_tt_21s, df_tt_22s)
+  
   df_tt_full_20s <- full_tt(df_all_yrs, df_tt_yrs = df_tt_yrs, df_tt = df_tt_20s, df_tbd = df_tbd_20s) %>%
     #'  Replace NAs for random species with no detections (needed for a couple wolverine & rodent detections)
-    mutate(total_duration = ifelse(is.na(total_duration), 0, total_duration))
-  df_tt_full_21s <- full_tt(df_all_yrs, df_tt_yrs = df_tt_yrs, df_tt = df_tt_21s, df_tbd = df_tbd_21s) 
+    mutate(total_duration = ifelse(is.na(total_duration), 0, total_duration)) %>%
+    #'  Retain data from cameras where camera was operable for 30 days or more 
+    filter(total_season_days >= 30)
+  df_tt_full_21s <- full_tt(df_all_yrs, df_tt_yrs = df_tt_yrs, df_tt = df_tt_21s, df_tbd = df_tbd_21s)  %>%
+    #'  Retain data from cameras where camera was operable for 30 days or more
+    filter(total_season_days >= 30)
+  df_tt_full_22s <- full_tt(df_all_yrs, df_tt_yrs = df_tt_yrs, df_tt = df_tt_22s, df_tbd = df_tbd_22s) %>%
+    #'  Replace NAs for random species with no detections (needed for a bat detection)
+    mutate(total_duration = ifelse(is.na(total_duration), 0, total_duration)) %>%
+    #'  Retain data from cameras where camera was operable for 30 days or more
+    filter(total_season_days >= 30)
   
+  tt_list <- list(df_tt_full_20s, df_tt_full_21s, df_tt_full_22s)
+  names(tt_list) <- c("df_tt_full_20s", "df_tt_full_21s", "df_tt_full_22s")
   
   #'  SAVE!
   write_csv(df_tt_full_20s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_20s_fov-time.csv")
   write_csv(df_tt_full_21s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_21s_fov-time.csv")
+  write_csv(df_tt_full_22s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_22s_fov-time.csv")
+  
+  save(tt_list, file = "./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time.RData")
+  
+  #'  -------------------------
+  ####  Area of Field-of-View  ####
+  #'  -------------------------
+  #'  Organize area of field-of-view for each site. Area (m2) measured by IDFG 
+  #'  biologists using walk test, flagging, or other methods to estimate detection 
+  #'  zone of each camera.   
+  #'  -------------------------
+  fov <- function(dets1, dets2, dets3) {
+    #'  Filter detection data to just location and detection zone areas
+    det_zone_20s <- dets1 %>% dplyr::select(c("NewLocationID", "Gmu", "Area_M2")) %>% unique() %>% mutate(Area_M2 = round(Area_M2, 2))
+    det_zone_21s <- dets2 %>% dplyr::select(c("NewLocationID", "Gmu", "Area_M2")) %>% unique() %>% mutate(Area_M2 = round(Area_M2, 2))
+    det_zone_22s <- dets3 %>% dplyr::select(c("NewLocationID", "Gmu", "Area_M2")) %>% unique() %>% mutate(Area_M2 = round(Area_M2, 2))
+    
+    #'  Bind across years and fill in gaps based on another year's measurement at same site when possible
+    det_zone <- full_join(det_zone_20s, det_zone_21s, by = c("NewLocationID", "Gmu")) %>%
+      full_join(det_zone_22s, by = c("NewLocationID", "Gmu")) %>%
+      rename("Area_M2_20s" = "Area_M2.x") %>% 
+      rename("Area_M2_21s" = "Area_M2.y") %>%
+      rename("Area_M2_22s" = "Area_M2") %>%
+      arrange(NewLocationID) %>% 
+      #'  Fill in missing area measurements with another year's measurements from same site (excluding GMU 1 b/c not sampled in 2020)
+      mutate(Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1" , Area_M2_21s, Area_M2_20s),
+             Area_M2_21s = ifelse(is.na(Area_M2_21s), Area_M2_20s, Area_M2_21s),
+             Area_M2_22s = ifelse(is.na(Area_M2_22s), Area_M2_21s, Area_M2_22s),
+             #'  Fill in missing area measurements with nearby site if no measurement taken at site either year
+             Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1", lead(Area_M2_20s), Area_M2_20s),
+             Area_M2_21s = ifelse(is.na(Area_M2_21s), lead(Area_M2_21s), Area_M2_21s),
+             Area_M2_22s = ifelse(is.na(Area_M2_22s), lead(Area_M2_22s), Area_M2_22s)) %>% #,
+             #' #'  Repeat this process for the few straggler NAs
+             #' Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1", lag(Area_M2_20s), Area_M2_20s),
+             #' Area_M2_21s = ifelse(is.na(Area_M2_21s), lag(Area_M2_21s), Area_M2_21s),
+             #' Area_M2_22s = ifelse(is.na(Area_M2_22s), lag(Area_M2_22s), Area_M2_22s),
+             #' Area_M2_20s = ifelse(is.na(Area_M2_20s) & Gmu != "1", lag(Area_M2_20s), Area_M2_20s),
+             #' Area_M2_21s = ifelse(is.na(Area_M2_21s), lag(Area_M2_21s), Area_M2_21s),
+             #' Area_M2_22s = ifelse(is.na(Area_M2_22s), lag(Area_M2_22s), Area_M2_22s)) %>%
+      #'  Remove duplicate camera where area is clearly wrong
+      filter(NewLocationID != "GMU1_U_8" | Area_M2_22s != 347.20) %>%
+      #'  Correct typos in area measurements
+      mutate(Area_M2_22s = ifelse(NewLocationID == "GMU10A_P_14", 66.14, Area_M2_22s)) %>%
+      filter(!is.na(NewLocationID))
+    
+    return(det_zone)
+  }
+  fov_area <- fov(eoe20s_allM, eoe21s_allM, eoe22s_allM)
+  #'  Split field-of-view data by year and list together
+  fov_area_20s <- fov_area %>% dplyr::select(-c(Area_M2_21s, Area_M2_22s)) %>% filter(!is.na(Area_M2_20s)) %>%
+    rename("Area_M2" = "Area_M2_20s")
+  fov_area_21s <- fov_area %>% dplyr::select(-c(Area_M2_20s, Area_M2_22s)) %>% rename("Area_M2" = "Area_M2_21s")
+  fov_area_22s <- fov_area %>% dplyr::select(-c(Area_M2_20s, Area_M2_21s)) %>% rename("Area_M2" = "Area_M2_22s")
+  
+  area_m2 <- list(fov_area_20s, fov_area_21s, fov_area_22s)
+  names(area_m2) <- c("area_m2_20s", "area_m2_21s", "area_m2_22s")
+  
+  save(area_m2, file = "./Data/Relative abundance data/RAI Phase 2/area_m2.RData")
   
   #'  Use these data as input for calculating density in Calculate_density.R
   
