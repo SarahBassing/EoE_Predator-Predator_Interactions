@@ -279,8 +279,8 @@
   
   #'  Test for correlation between different RAI metrics
   compare_counts <- function(dets, tifc) {
-    tifc <- dplyr::select(tifc, c("location", "common_name", "cpue_100km2")) 
-    names(tifc) <- c("NewLocationID", "Species", "cpue_100km2")
+    tifc <- dplyr::select(tifc, c("location", "common_name", "cpue", "cpue_100km2")) 
+    names(tifc) <- c("NewLocationID", "Species", "cpue", "cpue_100km2")
     
     all_RAIs <- dets %>%
       #'  Bind tifc density measure to larger RAI data set
@@ -305,16 +305,16 @@
       summarize(img_dets = round(cor(RAI_nimgs, RAI_ndets), 3), 
                 img_hrs = round(cor(RAI_nimgs, RAI_nhrs), 3),
                 dets_hrs = round(cor(RAI_nhrs, RAI_ndets), 3),
-                img_tifc = round(cor(RAI_nimgs, cpue_100km2), 3),
+                img_tifc = round(cor(RAI_nimgs, cpue_100km2), 3), #cpue_100km2
                 dets_tifc = round(cor(RAI_ndets, cpue_100km2), 3),
                 hrs_tifc = round(cor(RAI_nhrs, cpue_100km2), 3)) %>%
       ungroup()
     print(pearsons_cor)
     return(pearsons_cor)
   }
-  eoe20s_corr <- compare_counts(eoe20s_RAI, tifc_density[tifc_density$season == "Smr20",]) 
-  eoe21s_corr <- compare_counts(eoe21s_RAI, tifc_density[tifc_density$season == "Smr21",]) 
-  eoe22s_corr <- compare_counts(eoe22s_RAI, tifc_density[tifc_density$season == "Smr22",]) 
+  eoe20s_corr <- compare_counts(eoe_RAI[[1]], tifc_density[tifc_density$season == "Smr20",]) 
+  eoe21s_corr <- compare_counts(eoe_RAI[[2]], tifc_density[tifc_density$season == "Smr21",]) 
+  eoe22s_corr <- compare_counts(eoe_RAI[[3]], tifc_density[tifc_density$season == "Smr22",]) 
   
   
   
