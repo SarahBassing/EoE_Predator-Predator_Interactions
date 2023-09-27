@@ -279,8 +279,8 @@
   
   #'  Test for correlation between different RAI metrics
   compare_counts <- function(dets, tifc) {
-    tifc <- dplyr::select(tifc, c("location", "common_name", "cpue", "cpue_100km2")) 
-    names(tifc) <- c("NewLocationID", "Species", "cpue", "cpue_100km2")
+    tifc <- dplyr::select(tifc, c("location", "common_name", "cpue", "cpue_km2", "cpue_100km2")) 
+    names(tifc) <- c("NewLocationID", "Species", "cpue", "cpue_km2", "cpue_100km2")
     
     all_RAIs <- dets %>%
       #'  Bind tifc density measure to larger RAI data set
@@ -310,13 +310,19 @@
                 hrs_tifc = round(cor(RAI_nhrs, cpue_100km2), 3)) %>%
       ungroup()
     print(pearsons_cor)
-    return(pearsons_cor)
+    
+    #'  List full RAI & TIFC density estimates, along with correlation test
+    RAI_TIFC <- list(all_RAIs, pearsons_cor)
+    
+    return(RAI_TIFC)
   }
-  eoe20s_corr <- compare_counts(eoe_RAI[[1]], tifc_density[tifc_density$season == "Smr20",]) 
-  eoe21s_corr <- compare_counts(eoe_RAI[[2]], tifc_density[tifc_density$season == "Smr21",]) 
-  eoe22s_corr <- compare_counts(eoe_RAI[[3]], tifc_density[tifc_density$season == "Smr22",]) 
+  eoe20s_abund <- compare_counts(eoe_RAI[[1]], tifc_density[tifc_density$season == "Smr20",]) 
+  eoe21s_abund <- compare_counts(eoe_RAI[[2]], tifc_density[tifc_density$season == "Smr21",]) 
+  eoe22s_abund <- compare_counts(eoe_RAI[[3]], tifc_density[tifc_density$season == "Smr22",]) 
   
+  #'  List all relative abundance indicies per year
+  all_RAI_metrics <- list(eoe20s_abund[[1]], eoe21s_abund[[1]], eoe22s_abund[[1]])
   
-  
-  
+  #'  Save
+  save(all_RAI_metrics, file = "./Data/Relative abundance data/RAI Phase 2/all_RAI_metrics.RData")
   
