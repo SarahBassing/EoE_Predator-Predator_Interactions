@@ -57,6 +57,15 @@
   }
   tifc_skinny <- lapply(tt_list, format_tifc)
   
+  #'  Hang onto non-predator species data
+  prey_tifc <- function(tifc) {
+    tifc_no_pred <- tifc %>%
+      filter(common_name == "elk" | common_name == "moose" | common_name == "muledeer" | 
+               common_name == "rabbit_hare" | common_name == "whitetaileddeer")
+    return(tifc_no_pred)
+  }
+  tifc_prey <- lapply(tt_list, prey_tifc)
+  
   #'  ---------------------------------
   ####  Format and summarize distance  ####
   #'  ---------------------------------
@@ -115,15 +124,15 @@
                 max_dist = max(det_dist, na.rm = TRUE),
                 n_obs = n()) %>%
       ungroup() %>%
-      mutate(avg_dist = round(avg_dist, 2))
-    print(avg_dist_per_spp)
+      mutate(avg_dist = round(avg_dist, 2),
+             se_dist = round(se_dist, 3))
+    print(as.data.frame(avg_dist_per_spp))
     
     avg_dist <- list(avg_dist_per_spp_cam, avg_dist_per_spp)
     return(avg_dist)
   }
   pred_dist_avg <- avg_dist(pred_dist)
   ung_dist_avg <- avg_dist(ung_dist)
-  
   
   #'  Generate single data frame containing TIFC and detection distance data
   tifc_edd <- function(tifc, dist, setup) {
@@ -132,13 +141,15 @@
     #'  b/c distance measurements include observations from outside July 1 - Sept 15 time frame
     merge_dat <- left_join(tifc[tifc$Setup == setup,], dist[[1]], by = c("NewLocationID", "Species"))
     
-    #'  Identify which TIFC observations are missing detection data and fill in with
-    #'  species averages
+    #'  Identify which TIFC observations are missing detection data and fill in 
+    #'  with species averages. Replacing observations where mean detection distance = 0
+    #'  (owing to bears investigating camera) b/c messes up density calculations
     tifc_with_dist <- merge_dat %>%
-      filter(!is.na(avg_dist))
+      filter(!is.na(avg_dist)) %>%
+      filter(avg_dist != 0)
     
     tifc_missing_dist <- merge_dat %>%
-      filter(is.na(avg_dist)) %>%
+      filter(is.na(avg_dist) | avg_dist == 0) %>%
       dplyr::select(-c(avg_dist, min_dist, max_dist, n_obs)) %>%
       left_join(dist[[2]], by = "Species") %>%
       dplyr::select(-se_dist)
