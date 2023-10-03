@@ -66,9 +66,9 @@
   }
   tifc_prey <- lapply(tt_list, prey_tifc)
   
-  #'  ---------------------------------
-  ####  Format and summarize distance  ####
-  #'  ---------------------------------
+  #'  ------------------------------------
+  ####  Format and explore distance data  ####
+  #'  ------------------------------------
   #'  Format so each detected individual per image has a unique row where its
   #'  unique detection distance is recorded
   detection_dis_per_individual <- function(cam_dat, dist_dat) {
@@ -98,9 +98,51 @@
   pred_dist <- detection_dis_per_individual(cam_dat = cams[cams$Setup == "predator",], dist_dat = pred_mt)
   ung_dist <- detection_dis_per_individual(cam_dat = cams[cams$Setup == "ungulate",], dist_dat = ung_mt)
   
+  #'  Visualize distribution of distances
+  hist(pred_dist$det_dist, main = "Frequency of detection distances at predator cameras")
+  hist(ung_dist$det_dist, main = "Frequency of detection distances at ungulate cameras")
+  
+  #'  Break it up by species
+  ggplot(pred_dist, aes(x = det_dist)) +
+    geom_histogram(aes(color = Species, fill = Species), 
+                   position = "identity", bins = 30, alpha = 0.4) +
+    facet_wrap(~Species) +
+    labs(x = "detection distance")
+  
+  ggplot(ung_dist, aes(x = det_dist)) +
+    geom_histogram(aes(color = Species, fill = Species), 
+                   position = "identity", bins = 30, alpha = 0.4) +
+    facet_wrap(~Species) +
+    labs(x = "detection distance")
+ 
+  
+  #'  Regress effects of species, camera setup, and height on detection distances
+  all_dist <- bind_rows(pred_dist, ung_dist) %>%
+    dplyr::select(c("Species", "Setup", "CameraHeight_M", "det_dist"))
+  #'  Are there differences by species?
+  spp_effect <- lm(det_dist ~ Species, data = all_dist)
+  summary(spp_effect)
+  #'  Are there differences by camera setup?
+  setup_effect <- lm(det_dist ~ Setup, data = all_dist)
+  summary(setup_effect)
+  #'  Are there differences by camera height?
+  height_effect <- lm(det_dist ~ CameraHeight_M, data = all_dist)
+  summary(height_effect)
+  #'  Are there differences by height after accounting for camera setup?
+  setup_height_effect <- lm(det_dist ~ Setup + CameraHeight_M, data = all_dist)
+  summary(setup_height_effect)
+  #'  Are there differences by species and different camera setups?
+  setup_spp_effect <- lm(det_dist ~ Setup * Species, data = all_dist)
+  summary(setup_spp_effect)
+  
+  #'  Camera setup and species definitely matter!
+  
+  #'  ------------------------------------------------
+  ####  Summarize and append distance data with TIFC  ####
+  #'  ------------------------------------------------
   #'  Summarize detection distances
   #'  Note- warnings due to infinite values being created when finding min/max of NAs
-  avg_dist <- function(dist) {
+  summarize_dist <- function(dist) {
     #'  Summarize detection distances per species per camera site
     avg_dist_per_spp_cam <- dist %>%
       group_by(NewLocationID, Species) %>%
@@ -131,11 +173,11 @@
     avg_dist <- list(avg_dist_per_spp_cam, avg_dist_per_spp)
     return(avg_dist)
   }
-  pred_dist_avg <- avg_dist(pred_dist)
-  ung_dist_avg <- avg_dist(ung_dist)
+  pred_dist_avg <- summarize_dist(pred_dist)
+  ung_dist_avg <- summarize_dist(ung_dist)
   
   #'  Generate single data frame containing TIFC and detection distance data
-  tifc_edd <- function(tifc, dist, setup) {
+  merge_tifc_edd <- function(tifc, dist, setup) {
     #'  Bind detection distance data to TIFC data
     #'  Note- can have distances for species at sites where total_duration = 0 in TIFC df
     #'  b/c distance measurements include observations from outside July 1 - Sept 15 time frame
@@ -165,8 +207,8 @@
     
     return(tifc_edd_full)
   }
-  pred_tifc_edd <- lapply(tifc_skinny, tifc_edd, dist = pred_dist_avg, setup = "predator")
-  ung_tifc_edd <- lapply(tifc_skinny, tifc_edd, dist = ung_dist_avg, setup = "ungulate")
+  pred_tifc_edd <- lapply(tifc_skinny, merge_tifc_edd, dist = pred_dist_avg, setup = "predator")
+  ung_tifc_edd <- lapply(tifc_skinny, merge_tifc_edd, dist = ung_dist_avg, setup = "ungulate")
   
   #'  Merge predator and ungulate camera setups back together for final dataset
   all_together_now <- function(pred, ung) {
