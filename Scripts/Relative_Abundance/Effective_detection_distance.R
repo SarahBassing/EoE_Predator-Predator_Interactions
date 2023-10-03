@@ -140,7 +140,7 @@
   #'  ------------------------------------------------
   ####  Summarize and append distance data with TIFC  ####
   #'  ------------------------------------------------
-  #'  Summarize detection distances
+  #'  Summarize detection distances for each camera setup type
   #'  Note- warnings due to infinite values being created when finding min/max of NAs
   summarize_dist <- function(dist) {
     #'  Summarize detection distances per species per camera site
