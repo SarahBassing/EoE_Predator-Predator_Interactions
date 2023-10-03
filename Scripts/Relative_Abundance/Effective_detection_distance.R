@@ -4,9 +4,11 @@
   #'  Sarah Bassing
   #'  October 2023
   #'  -------------------------------
-  #'  Estimate average effective detection distance for each predator and camera
-  #'  setup type (predator vs ungulate) based on measuring distance to animal (m) 
-  #'  in motion triggered camera trap images.
+  #'  Summarize effective detection distance (EDD) for each predator and camera setup 
+  #'  (predator vs ungulate) based on measuring distance to animal (m) in motion 
+  #'  triggered camera trap images. Append EDD to time-in-front-of-camera (TIFC) 
+  #'  measurements for each camera, species, and year, filling in missing observations 
+  #'  with species and camera setup-specific average EDDs.
   #'  -------------------------------
   
   #'  Load libraries
@@ -39,14 +41,21 @@
     slice(n()) %>%
     ungroup() 
   
-  #'  Calculated time-in-front-of-camera for each species and camera (Smr22)
-  tifc <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_22s_fov-time.csv") %>%
-    filter(common_name == "bear_black" | common_name == "bobcat" | common_name == "coyote" | 
+  #'  Calculated time-in-front-of-camera for each species and camera 
+  load("./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time.RData")
+  
+  format_tifc <- function(tifc) {
+    skinny_tifc <- tifc %>%
+      filter(common_name == "bear_black" | common_name == "bobcat" | common_name == "coyote" | 
              common_name == "mountain_lion" | common_name == "wolf") %>%
-    mutate(Setup = ifelse(grepl("P", location), "predator", "ungulate"),
-           ) %>%
-    rename("NewLocationID" = "location") %>%
-    rename("Species" = "common_name")
+      mutate(Setup = ifelse(grepl("P", location), "predator", "ungulate"),
+      ) %>%
+      #'  Change column names to match distance and camera location data
+      rename("NewLocationID" = "location") %>%
+      rename("Species" = "common_name")
+    return(skinny_tifc)
+  }
+  tifc_skinny <- lapply(tt_list, format_tifc)
   
   #'  ---------------------------------
   ####  Format and summarize distance  ####
@@ -101,6 +110,7 @@
       filter(!is.na(Species)) %>%
       group_by(Species) %>%
       summarise(avg_dist = mean(det_dist, na.rm = TRUE),
+                se_dist = sd(det_dist, na.rm = TRUE)/sqrt(nrow(.)),
                 min_dist = min(det_dist, na.rm = TRUE),
                 max_dist = max(det_dist, na.rm = TRUE),
                 n_obs = n()) %>%
@@ -115,43 +125,48 @@
   ung_dist_avg <- avg_dist(ung_dist)
   
   
-  #'  Generate single df containing TIFC and detection distance data
-  tifc_edd <- function(tifc, dist) {
-    #'  Bind TIFC and detection distance data together
-    #'  Note- can have distances for species at sites where total_duration = 0 in tifc df
+  #'  Generate single data frame containing TIFC and detection distance data
+  tifc_edd <- function(tifc, dist, setup) {
+    #'  Bind detection distance data to TIFC data
+    #'  Note- can have distances for species at sites where total_duration = 0 in TIFC df
     #'  b/c distance measurements include observations from outside July 1 - Sept 15 time frame
-    merge_dat <- left_join(tifc, dist[[1]], by = c("NewLocationID", "Species"))
+    merge_dat <- left_join(tifc[tifc$Setup == setup,], dist[[1]], by = c("NewLocationID", "Species"))
     
     #'  Identify which TIFC observations are missing detection data and fill in with
     #'  species averages
     tifc_with_dist <- merge_dat %>%
       filter(!is.na(avg_dist))
     
-    missing_dist <- merge_dat %>%
+    tifc_missing_dist <- merge_dat %>%
       filter(is.na(avg_dist)) %>%
       dplyr::select(-c(avg_dist, min_dist, max_dist, n_obs)) %>%
-      left_join(pred_dist_avg[[2]], by = "Species")
+      left_join(dist[[2]], by = "Species") %>%
+      dplyr::select(-se_dist)
     
-    #'  Bind so each species & site specific TIFC observation has detection distance data
-    tifc_edd_full <- rbind(tifc_with_dist, missing_dist) %>%
+    #'  Bind so each species- & site-specific TIFC observation has detection distance data
+    tifc_edd_full <- rbind(tifc_with_dist, tifc_missing_dist) %>%
       #'  Re-organize to data are ready for Calculate_density.R script
       arrange(NewLocationID, Species) %>%
       dplyr::select(-Setup) %>%
+      #'  Change column names back to original TIFC names
       rename("location" = "NewLocationID") %>%
       rename("common_name" = "Species")
     
     return(tifc_edd_full)
   }
-  pred_tifc_edd <- tifc_edd(tifc[tifc$Setup == "predator",], dist = pred_dist_avg)
-  ung_tifc_edd <- tifc_edd(tifc[tifc$Setup == "ungulate",], dist = ung_dist_avg)
+  pred_tifc_edd <- lapply(tifc_skinny, tifc_edd, dist = pred_dist_avg, setup = "predator")
+  ung_tifc_edd <- lapply(tifc_skinny, tifc_edd, dist = ung_dist_avg, setup = "ungulate")
+  
+  #'  Merge predator and ungulate camera setups back together for final dataset
+  all_together_now <- function(pred, ung) {
+    full_dat <- bind_rows(pred, ung) %>%
+      arrange(location, common_name)
+    return(full_dat)
+  }
+  tifc_edd_final <- mapply(all_together_now, pred = pred_tifc_edd, ung = ung_tifc_edd, SIMPLIFY = FALSE, USE.NAMES = TRUE)
+  
+  #'  Rename and save for use in Calculate_density.R script
+  tt_list <- tifc_edd_final
+  save(tt_list, file = "./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time_edd.RData")
   
   
-  #'  Does detection distance differ by camera setup or habitat type (account for this when applying avg. dist for species with missing dist data)
-  
-  
-  
-  
-  
-  
-
-    
