@@ -9,7 +9,7 @@
   #'  
   #'  Camera operations table generated in Detection_data_cleaning.R (Data_Formatting folder)
   #'  Sampling effort data generated in Detection_histories_for_occmod.R (MultiSpp_OccMod folder)
-  #'  TIFC density estimates generated in Time_In_Front_of_Camera.R (Relative_Abundance folder)
+  #'  TIFC density estimates generated in Calculate_density.R (Relative_Abundance folder)
   #'  -------------------------------
   
   #'  Load libraries
@@ -275,7 +275,8 @@
   ####  Correlation test  ####
   #'  --------------------
   #'  Read in TIFC density estimates for comparison
-  tifc_density <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density.csv")
+  # tifc_density <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density.csv")
+  tifc_density <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density_edd_predonly.csv")
   
   #'  Test for correlation between different RAI metrics
   compare_counts <- function(dets, tifc) {
@@ -289,10 +290,12 @@
       filter(!is.na(cpue_100km2)) %>%
       #'  Reduce to species of interest and remove sites with all NAs
       filter(!is.na(RAI_nimgs)) %>%
+      # filter(Species == "bear_black" | Species == "bobcat" | Species == "coyote" |
+      #          Species == "elk" | Species == "human" | Species == "moose" |
+      #          Species == "mountain_lion" | Species == "muledeer" | Species == "rabbit_hare" |
+      #          Species == "whitetaileddeer" | Species == "wolf" | Species == "cattle_cow")
       filter(Species == "bear_black" | Species == "bobcat" | Species == "coyote" |
-               Species == "elk" | Species == "human" | Species == "moose" |
-               Species == "mountain_lion" | Species == "muledeer" | Species == "rabbit_hare" |
-               Species == "whitetaileddeer" | Species == "wolf" | Species == "cattle_cow") 
+               Species == "mountain_lion" | Species == "wolf")
     
     #'  Make sure there are no sites with missing TIFC data 
     print(unique(all_RAIs$NewLocationID[is.na(all_RAIs$cpue_100km2)]))
@@ -305,9 +308,9 @@
       summarize(img_dets = round(cor(RAI_nimgs, RAI_ndets), 3), 
                 img_hrs = round(cor(RAI_nimgs, RAI_nhrs), 3),
                 dets_hrs = round(cor(RAI_nhrs, RAI_ndets), 3),
-                img_tifc = round(cor(RAI_nimgs, cpue_100km2), 3), #cpue_100km2
-                dets_tifc = round(cor(RAI_ndets, cpue_100km2), 3),
-                hrs_tifc = round(cor(RAI_nhrs, cpue_100km2), 3)) %>%
+                img_tifc = round(cor(RAI_nimgs, cpue_km2), 3), #cpue_100km2
+                dets_tifc = round(cor(RAI_ndets, cpue_km2), 3),
+                hrs_tifc = round(cor(RAI_nhrs, cpue_km2), 3)) %>%
       ungroup()
     print(pearsons_cor)
     
@@ -320,9 +323,9 @@
   eoe21s_abund <- compare_counts(eoe_RAI[[2]], tifc_density[tifc_density$season == "Smr21",]) 
   eoe22s_abund <- compare_counts(eoe_RAI[[3]], tifc_density[tifc_density$season == "Smr22",]) 
   
-  #'  List all relative abundance indicies per year
+  #'  List all relative abundance indices per year
   all_RAI_metrics <- list(eoe20s_abund[[1]], eoe21s_abund[[1]], eoe22s_abund[[1]])
   
   #'  Save
-  save(all_RAI_metrics, file = "./Data/Relative abundance data/RAI Phase 2/all_RAI_metrics.RData")
+  save(all_RAI_metrics, file = "./Data/Relative abundance data/RAI Phase 2/all_RAI_metrics_edd_predonly.RData")
   
