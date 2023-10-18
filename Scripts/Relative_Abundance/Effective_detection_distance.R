@@ -181,31 +181,44 @@
     #'  Bind detection distance data to TIFC data
     #'  Note- can have distances for species at sites where total_duration = 0 in TIFC df
     #'  b/c distance measurements include observations from outside July 1 - Sept 15 time frame
-    merge_dat <- left_join(tifc[tifc$Setup == setup,], dist[[1]], by = c("NewLocationID", "Species"))
-    
-    #'  Identify which TIFC observations are missing detection data and fill in 
-    #'  with species averages. Replacing observations where mean detection distance = 0
-    #'  (owing to bears investigating camera) b/c messes up density calculations
-    tifc_with_dist <- merge_dat %>%
-      filter(!is.na(avg_dist)) %>%
-      filter(avg_dist != 0)
-    
-    tifc_missing_dist <- merge_dat %>%
-      filter(is.na(avg_dist) | avg_dist == 0) %>%
-      dplyr::select(-c(avg_dist, min_dist, max_dist, n_obs)) %>%
-      left_join(dist[[2]], by = "Species") %>%
-      dplyr::select(-se_dist)
-    
-    #'  Bind so each species- & site-specific TIFC observation has detection distance data
-    tifc_edd_full <- rbind(tifc_with_dist, tifc_missing_dist) %>%
+    merge_dat <- left_join(tifc[tifc$Setup == setup,], dist[[2]], by = "Species") %>%
       #'  Re-organize to data are ready for Calculate_density.R script
       arrange(NewLocationID, Species) %>%
       dplyr::select(-Setup) %>%
       #'  Change column names back to original TIFC names
       rename("location" = "NewLocationID") %>%
       rename("common_name" = "Species")
+    return(merge_dat)
     
-    return(tifc_edd_full)
+    #' #'  Using species average (not site-specific distances) b/c some but not all
+    #' #'  species were detected at a single camera and don't want to mix some site-specific
+    #' #'  measurements with species averages at the same site.
+    #' #'  Use commented out code below and dist[[1]] if want to mix species- and site-specific averages.
+    #' merge_dat <- left_join(tifc[tifc$Setup == setup,], dist[[1]], by = c("NewLocationID", "Species"))
+    #' 
+    #' #'  Identify which TIFC observations are missing detection data and fill in
+    #' #'  with species averages. Replacing observations where mean detection distance = 0
+    #' #'  (owing to bears investigating camera) b/c messes up density calculations
+    #' tifc_with_dist <- merge_dat %>%
+    #'   filter(!is.na(avg_dist)) %>%
+    #'   filter(avg_dist != 0)
+    #' 
+    #' tifc_missing_dist <- merge_dat %>%
+    #'   filter(is.na(avg_dist) | avg_dist == 0) %>%
+    #'   dplyr::select(-c(avg_dist, min_dist, max_dist, n_obs)) %>%
+    #'   left_join(dist[[2]], by = "Species") %>%
+    #'   dplyr::select(-se_dist)
+    #' 
+    #' #'  Bind so each species- & site-specific TIFC observation has detection distance data
+    #' tifc_edd_full <- rbind(tifc_with_dist, tifc_missing_dist) %>%
+    #'   #'  Re-organize to data are ready for Calculate_density.R script
+    #'   arrange(NewLocationID, Species) %>%
+    #'   dplyr::select(-Setup) %>%
+    #'   #'  Change column names back to original TIFC names
+    #'   rename("location" = "NewLocationID") %>%
+    #'   rename("common_name" = "Species")
+    #' 
+    #' return(tifc_edd_full)
   }
   pred_tifc_edd <- lapply(tifc_skinny, merge_tifc_edd, dist = pred_dist_avg, setup = "predator")
   ung_tifc_edd <- lapply(tifc_skinny, merge_tifc_edd, dist = ung_dist_avg, setup = "ungulate")
@@ -220,6 +233,6 @@
   
   #'  Rename and save for use in Calculate_density.R script
   tt_list <- tifc_edd_final
-  save(tt_list, file = "./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time_edd.RData")
+  save(tt_list, file = "./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time_avg_edd.RData")
   
   
