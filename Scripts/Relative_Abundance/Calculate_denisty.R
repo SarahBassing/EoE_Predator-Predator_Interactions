@@ -6,7 +6,7 @@
   #'  ----------------------------------------
   #'  Calculate density using time-in-front-of-camera methods following analyses
   #'  described by Huggard et al. 2018, Warbington & Boyce 2020, and Becker et al. 2022.
-  #'  Code modified from Becker et al. 2018 repository: https://github.com/mabecker89/tifc-method/tree/main
+  #'  Code modified from Becker et al. 2022 repository: https://github.com/mabecker89/tifc-method/tree/main
   #'  
   #'  Time-in-front-of-camera (TIFC) generated in Calculate_time-in-front-of-camera.R
   #'  Effective detection distance (EDD) appended to TIFC in Effective_detection_distance.R
@@ -26,7 +26,7 @@
   ####  Load and format input data  ####
   #'  -------------------------------  
   #'  TIFC data
-  load("./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time_edd.RData")
+  load("./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time_avg_edd.RData") #eoe_all_fov-time_edd.RData
   # load("./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time.RData")
   # df_tt_full_20s <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_20s_fov-time.csv") 
   # df_tt_full_21s <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_21s_fov-time.csv")
@@ -57,7 +57,7 @@
   #' area_m2_21s <- area_m2[[2]] %>% rename("location" = "NewLocationID") %>% rename("edd_area_m2" = "Area_M2")
   #' area_m2_22s <- area_m2[[3]] %>% rename("location" = "NewLocationID") %>% rename("edd_area_m2" = "Area_M2")
   
-  #'  Update species names for "distance groups" based on Becker et al. (2018) classifications
+  #'  Update species names for "distance groups" based on Becker et al. (2022) classifications
   spp_20s <- as.data.frame(unique(df_tt_full_20s$common_name)); names(spp_20s) <- "common_name"
   spp_21s <- as.data.frame(unique(df_tt_full_21s$common_name)); names(spp_21s) <- "common_name"
   spp_22s <- as.data.frame(unique(df_tt_full_22s$common_name)); names(spp_22s) <- "common_name"
@@ -131,10 +131,12 @@
     relocate(gmu, .after = "season") %>%
     relocate(setup, .after = "gmu")
   
-  
   #'  SAVE! 
-  write_csv(df_density, "./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density_edd_predonly.csv")
+  write_csv(df_density, "./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density_avg_edd_predonly.csv")
   
+  
+  #####  Summarize density data across years, gmus, and setup  ####
+  #'  ---------------------------------------------------------
   #'  Summary stats for density estimates
   density_stats <- df_density %>%
     group_by(gmu, common_name) %>%
@@ -145,14 +147,53 @@
     ungroup() %>%
     arrange(gmu, mean_density_km2)
   print(density_stats)
+  write_csv(density_stats, "./Data/Relative abundance data/RAI Phase 2/tifc_density_stats_avg_edd_predonly.csv")
   
-  write_csv(density_stats, "./Data/Relative abundance data/RAI Phase 2/tifc_density_stats_edd_predonly.csv")
-
+  
+  #'  Summary stats by gmu, year, and camera set up
+  more_density_stats <- df_density %>%
+    group_by(gmu, common_name, setup, season) %>%
+    summarise(mean_density_100km2 = round(mean(cpue_100km2, na.rm = TRUE), 2),
+              se = round((sd(cpue_100km2, na.rm = TRUE)/sqrt(nrow(.))), 2)) %>%
+    ungroup()
+  predcam_density <- filter(more_density_stats, setup == "predator") %>% 
+    dplyr::select(-setup) %>%
+    rename("predator_cam_density_100km2" = "mean_density_100km2") %>%
+    rename("predator_cam_se" = "se")
+  ungcam_density <- filter(more_density_stats, setup == "ungulate") %>%
+    dplyr::select(-setup) %>%
+    rename("ungulate_cam_density_100km2" = "mean_density_100km2") %>%
+    rename("ungulate_cam_se" = "se")
+  density_by_setup <- full_join(predcam_density, ungcam_density, by = c("gmu", "common_name", "season"))
+  
+  gmu1_density_stats <- filter(density_by_setup, gmu == "GMU1") %>%
+    arrange(season, predator_cam_density_100km2) %>%
+    mutate(road_density_100km2 = paste0(predator_cam_density_100km2, " (", predator_cam_se, ")"),
+           random_density_100km2 = paste0(ungulate_cam_density_100km2, " (", ungulate_cam_se, ")")) %>%
+    dplyr::select(common_name, season, road_density_100km2, random_density_100km2)
+  print(gmu1_density_stats)
+  gmu6_density_stats <- filter(density_by_setup, gmu == "GMU6") %>%
+    arrange(season, predator_cam_density_100km2) %>%
+    mutate(road_density_100km2 = paste0(predator_cam_density_100km2, " (", predator_cam_se, ")"),
+           random_density_100km2 = paste0(ungulate_cam_density_100km2, " (", ungulate_cam_se, ")")) %>%
+    dplyr::select(common_name, season, road_density_100km2, random_density_100km2)
+  print(gmu6_density_stats)
+  gmu10A_density_stats <- filter(density_by_setup, gmu == "GMU10A") %>%
+    arrange(season, predator_cam_density_100km2) %>%
+    mutate(road_density_100km2 = paste0(predator_cam_density_100km2, " (", predator_cam_se, ")"),
+           random_density_100km2 = paste0(ungulate_cam_density_100km2, " (", ungulate_cam_se, ")")) %>%
+    dplyr::select(common_name, season, road_density_100km2, random_density_100km2)
+  print(gmu10A_density_stats)
+  
+  gmu_density_stats <- rbind(gmu1_density_stats, gmu6_density_stats, gmu10A_density_stats)
+  write_csv(gmu_density_stats, "./Data/Relative abundance data/RAI Phase 2/tifc_density_stats_by_gmu_predonly.csv")
+  
+  
   #'  Next challenges...
   #'  1. Bootstrap estimates so we have standard errors for camera-level density
   #'  2. Do we trust EDD based on camera setups?
   #'  3. If yes, probably need EDD for prey too so effort is consistent across species
-  #'  4. Which density metric to use (cpue, cpue km2, cpue 100km2)?
+  #'  4. Which density metric to use (cpue, cpue km2, cpue 100km2)? -- going with cpue 100km2
   #'  5. How to remove investigation images for bears across entire dataset?
   #'  6. Detection rate vs TIFC as response variable (both are going to be indices of abund/density)?
   #'  ALSO- should I be using mean EDD or max EDD when calculating effort????
