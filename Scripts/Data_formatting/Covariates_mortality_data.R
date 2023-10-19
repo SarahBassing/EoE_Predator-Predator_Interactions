@@ -35,7 +35,7 @@
               LICYEAR = NA) %>% 
     mutate(Method = str_to_title(Method)) %>%
     filter(Game.Management.Unit == "1" | Game.Management.Unit == "6" | Game.Management.Unit == "10A") %>%
-    filter(Season >= "2017" & Season < "2022")
+    filter(Season >= "2017" & Season < "2023")
   
   mort_bob <- read.csv("./Data/IDFG BGMR data/Bobcats All Harvest.csv") %>% #bobcat_GMU1_6_10A
     transmute(Species = "Bobcat",
@@ -45,7 +45,7 @@
               Season = SEASON,
               LICYEAR = TLIC_Year) %>%
     filter(Game.Management.Unit == "1" | Game.Management.Unit == "6" | Game.Management.Unit == "10A") %>%
-    filter(Season >= "2017" & Season < "2022") %>%
+    filter(Season >= "2017" & Season < "2023") %>%
     mutate(Kill.Date = gsub(" ", "", Kill.Date),
            Kill.Date = as_date(Kill.Date, format = "%m/%d/%Y"),
            Method = str_to_title(Method))
@@ -58,7 +58,7 @@
               Season = Harvest.Year,
               LICYEAR = NA) %>%
     filter(Game.Management.Unit == "1" | Game.Management.Unit == "6" | Game.Management.Unit == "10A") %>%
-    filter(Season >= "2017" & Season < "2022") %>%
+    filter(Season >= "2017" & Season < "2023") %>%
     mutate(Kill.Date = gsub(" ", "", Kill.Date),
            Kill.Date = as_date(Kill.Date, format = "%m/%d/%Y"),
            Method = str_to_title(Method))
@@ -71,7 +71,7 @@
               Season = NA,
               LICYEAR = LICYEAR,
               County = COUNYTRA) %>%
-    filter(LICYEAR >= "2017" & LICYEAR < "2022")
+    filter(LICYEAR >= "2017" & LICYEAR < "2023")
   
   mort_wolf <- read.csv("./Data/IDFG BGMR data/wolf_GMU1_6_10A.csv") %>%
     transmute(Species = Species,
@@ -85,7 +85,7 @@
            Kill.Date = as_date(Kill.Date, format = "%m/%d/%Y"),
            Season = year(Kill.Date),
            Method = str_to_title(Method)) %>%
-    filter(Season >= "2017" & Season < "2022")
+    filter(Season >= "2017" & Season < "2023")
   
   #'  List all mortality data together
   mort_predators <- list(mort_bear, mort_bob, mort_lion, mort_wolf) #mort_coy, 
