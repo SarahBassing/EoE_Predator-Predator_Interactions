@@ -48,14 +48,14 @@
   df_tt_full_21s <- focal_spp(tt_list[[2]])
   df_tt_full_22s <- focal_spp(tt_list[[3]])
   
-  #' #'  Load effective detection distance (EDD) 
-  #' #'  Currently using detection zone measured at camera by IDFG. Area (m2) measured 
-  #' #'  using walk test, flagging, or other methods to estimate detection zone
-  #' #'  These values are not corrected for habitat type or species
-  #' load("./Data/Relative abundance data/RAI Phase 2/area_m2.RData")
-  #' area_m2_20s <- area_m2[[1]] %>% rename("location" = "NewLocationID") %>% rename("edd_area_m2" = "Area_M2")
-  #' area_m2_21s <- area_m2[[2]] %>% rename("location" = "NewLocationID") %>% rename("edd_area_m2" = "Area_M2")
-  #' area_m2_22s <- area_m2[[3]] %>% rename("location" = "NewLocationID") %>% rename("edd_area_m2" = "Area_M2")
+  #'  Load effective detection distance (EDD)
+  #'  Currently using detection zone measured at camera by IDFG. Area (m2) measured
+  #'  using walk test, flagging, or other methods to estimate detection zone
+  #'  These values are not corrected for habitat type or species
+  load("./Data/Relative abundance data/RAI Phase 2/area_m2.RData")
+  area_m2_20s <- area_m2[[1]] %>% rename("location" = "NewLocationID") %>% rename("edd_area_m2" = "Area_M2")
+  area_m2_21s <- area_m2[[2]] %>% rename("location" = "NewLocationID") %>% rename("edd_area_m2" = "Area_M2")
+  area_m2_22s <- area_m2[[3]] %>% rename("location" = "NewLocationID") %>% rename("edd_area_m2" = "Area_M2")
   
   #'  Update species names for "distance groups" based on Becker et al. (2022) classifications
   spp_20s <- as.data.frame(unique(df_tt_full_20s$common_name)); names(spp_20s) <- "common_name"
@@ -74,9 +74,9 @@
   #'  Camera field of view angle (per Reconyx Hyperfire documentation)
   cam_fov_angle <- 42
   
-  #'  ---------------------
-  ####  Calculate density  ####
-  #'  ---------------------
+  #'  --------------------------------------
+  ####  Density: animal-time per area-time  ####
+  #'  --------------------------------------
   
   #####  Step 1. Append EDD information  ####
   #'  -----------------------------------
@@ -94,11 +94,10 @@
   #'  Join all ingredients ('ing') required to calculate density
   all_ing <- function(df_tt_full, df_dist_groups, area_m2) {
     df_dens_ing <- df_tt_full %>%
-      left_join(df_dist_groups, by = "common_name") #%>%
-      # left_join(area_m2, by = "location") #%>%
-    # left_join(df_detdist, by = c("location", "dist_group")) %>%
-    # # Remove random species (mostly birds) 
-    # filter(!is.na(detdist))
+      left_join(df_dist_groups, by = "common_name") %>%
+      left_join(area_m2, by = "location") #%>%
+    # left_join(df_detdist, by = c("location", "dist_group")) 
+    
     return(df_dens_ing)
   }
   df_dens_ing_20s <- all_ing(df_tt_full_20s, df_dist_groups = df_dist_groups_20s, area_m2 = area_m2_20s)
@@ -106,17 +105,28 @@
   df_dens_ing_22s <- all_ing(df_tt_full_22s, df_dist_groups = df_dist_groups_22s, area_m2 = area_m2_22s)
   
   
-  #####  Step 2. Calculate density  #####         # should I be using mean EDD or max EDD when calculating effort????
+  #####  Step 2. Calculate density  #####         
   #'  -----------------------------------
+  #'  Density = animal-time / area-time = animals/area
+  #'  D = sum(N * Tf) / Af * To, where 
+  #'  N = number of individuals, Tf = time in front of camera's field of view, so
+  #'  N * Tf = total_duration (animal-time)
+  #'  Af = area of camera's field-of-view (m), To = total camera operating time
+  #'  Af = Area(m2) = (EDD^2 * pi * a) / 360, where a = camera angle of view, so
+  #'  Af * To = sampling effort (area-time)
   calc_density <- function(df_dens_ing) {
     df_density <- df_dens_ing %>%
       mutate(effort = total_season_days * (detdist ^ 2 * pi * (cam_fov_angle / 360)) / 100,
-      # mutate(effort = total_season_days * (edd_area_m2 * pi * (cam_fov_angle / 360)) / 100,
+             effort_walktest = total_season_days * (edd_area_m2 * pi * (cam_fov_angle / 360)) / 100,
              #'  Catch per unit effort
              cpue = total_duration / effort,
-             #'  Catch per unit effort in km2
+             cpue_walktest = total_duration / effort_walktest,
+             #'  Catch per unit effort in km2 
              cpue_km2 = cpue / 60 / 60 / 24 * 10000,
-             cpue_100km2 = cpue_km2 * 100) %>%
+             cpue_km2_walktest = cpue_walktest / 60 / 60 / 24 * 10000,
+             #'  Catch per unit effort in 100km2
+             cpue_100km2 = cpue_km2 * 100,
+             cpue_100km2_walktest = cpue_km2_walktest * 100) %>%
       return(df_density)
   }
   df_density_20s <- calc_density(df_dens_ing_20s); df_density_20s$season <- "Smr20"
