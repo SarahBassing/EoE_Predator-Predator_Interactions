@@ -274,7 +274,7 @@
   #'  --------------------
   ####  Correlation test  ####
   #'  --------------------
-  #'  Read in TIFC density estimates for comparison
+  #'  Read in TIFC density estimates for comparison (Becker et al. 2022)
   # tifc_density <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density.csv")
   tifc_density <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density_edd_predonly.csv")
   
