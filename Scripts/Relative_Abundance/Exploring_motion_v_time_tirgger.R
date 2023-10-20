@@ -272,6 +272,13 @@
   tifc_wolf_lion <- lm(tifc$cpue_km2_sec[tifc$common_name == "mountain_lion"] ~ tifc$cpue_km2_sec[tifc$common_name == "wolf"])
   summary(tifc_wolf_lion) # (+) NS effect
   
+  mt_wolf_lion_setup <- lm(mt_nimgs$n_imgs[mt_nimgs$Species == "mountain_lion"] ~ mt_nimgs$n_imgs[mt_nimgs$Species == "wolf"] + mt_nimgs$Setup[mt_nimgs$Species == "wolf"])
+  summary(mt_wolf_lion_setup) # wolf (1) NS effect, U cam (-) SIGNIFICANT effect
+  tt_wolf_lion_setup <- lm(tt_nimgs$n_imgs[tt_nimgs$Species == "mountain_lion"] ~ tt_nimgs$n_imgs[tt_nimgs$Species == "wolf"] + tt_nimgs$Setup[tt_nimgs$Species == "wolf"])
+  summary(tt_wolf_lion_setup) # wolf (`+`) NS effect, U cam (-) significant effect
+  tifc_wolf_lion_setup <- lm(tifc$cpue_km2_sec[tifc$common_name == "mountain_lion"] ~ tifc$cpue_km2_sec[tifc$common_name == "wolf"] + tifc$setup[tifc$common_name == "wolf"])
+  summary(tifc_wolf_lion_setup) # wolf (1) NS effect, U cam (-) SIGNIFICANT effect
+  
   mt_wolf_coy <- lm(mt_nimgs$n_imgs[mt_nimgs$Species == "coyote"] ~ mt_nimgs$n_imgs[mt_nimgs$Species == "wolf"])
   summary(mt_wolf_coy) # (+) Signif effect
   tt_wolf_coy <- lm(tt_nimgs$n_imgs[tt_nimgs$Species == "coyote"] ~ tt_nimgs$n_imgs[tt_nimgs$Species == "wolf"])
@@ -285,6 +292,13 @@
   summary(tt_wolf_coy_setup) # wolf (+) NS effect, U cam (-) SIGNIFICANT effect
   tifc_wolf_coy_setup <- lm(tifc$cpue_km2_sec[tifc$common_name == "coyote"] ~ tifc$cpue_km2_sec[tifc$common_name == "wolf"] + tifc$setup[tifc$common_name == "wolf"])
   summary(tifc_wolf_coy_setup) # wolf (+) NS effect, U cam (-) SIGNIFICANT effect
+  
+  mt_wolf_coy_setup_season <- lm(mt_nimgs$n_imgs[mt_nimgs$Species == "coyote"] ~ mt_nimgs$n_imgs[mt_nimgs$Species == "wolf"] + mt_nimgs$Setup[mt_nimgs$Species == "wolf"] + mt_nimgs$Season[mt_nimgs$Species == "wolf"])
+  summary(mt_wolf_coy_setup_season) # wolf (+) NS effect, U cam (-) SIGNIFICANT effect
+  tt_wolf_coy_setup_season <- lm(tt_nimgs$n_imgs[tt_nimgs$Species == "coyote"] ~ tt_nimgs$n_imgs[tt_nimgs$Species == "wolf"] + tt_nimgs$Setup[tt_nimgs$Species == "wolf"] + tt_nimgs$Season[tt_nimgs$Species == "wolf"])
+  summary(tt_wolf_coy_setup_season) # wolf (+) NS effect, U cam (-) SIGNIFICANT effect
+  tifc_wolf_coy_setup_season <- lm(tifc$cpue_km2_sec[tifc$common_name == "coyote"] ~ tifc$cpue_km2_sec[tifc$common_name == "wolf"] + tifc$setup[tifc$common_name == "wolf"] + tifc$season[tifc$common_name == "wolf"])
+  summary(tifc_wolf_coy_setup_season) # wolf (+) NS effect, U cam (-) SIGNIFICANT effect
   
   mt_coy_bob <- lm(mt_nimgs$n_imgs[mt_nimgs$Species == "bobcat"] ~ mt_nimgs$n_imgs[mt_nimgs$Species == "coyote"])
   summary(mt_coy_bob) # (+) Signif effect
