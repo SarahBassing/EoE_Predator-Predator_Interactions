@@ -61,7 +61,7 @@
   df_all_21s <- thin_detections(eoe21s_allM, seqprobs = eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
   df_all_22s <- thin_detections(eoe22s_allM, seqprobs = eoe_seqprob_22s, start_date = "2022-07-01", end_date = "2022-09-15")
   
-  #'  Update species names for "gap groups" based on Becker et al. (2018) classifications
+  #'  Update species names for "gap groups" based on Becker et al. (2022) classifications
   spp_groups_20s <- as.data.frame(unique(df_all_20s$common_name)); names(spp_groups_20s) <- "common_name"
   spp_groups_21s <- as.data.frame(unique(df_all_21s$common_name)); names(spp_groups_21s) <- "common_name"
   spp_groups_22s <- as.data.frame(unique(df_all_22s$common_name)); names(spp_groups_22s) <- "common_name"
@@ -319,6 +319,7 @@
   write_csv(df_tt_full_22s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_22s_fov-time.csv")
   
   save(tt_list, file = "./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time.RData")
+  #'  This is input for Effective_detection_distance.R script
   
   #'  -------------------------
   ####  Area of Field-of-View  ####
