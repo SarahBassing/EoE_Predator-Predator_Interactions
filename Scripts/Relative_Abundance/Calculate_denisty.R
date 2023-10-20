@@ -108,11 +108,11 @@
   #####  Step 2. Calculate density  #####         
   #'  -----------------------------------
   #'  Density = animal-time / area-time = animals/area
-  #'  D = sum(N * Tf) / Af * To, where 
+  #'  D = sum(N x Tf) / (Af x To), where 
   #'  N = number of individuals, Tf = time in front of camera's field of view, so
   #'  N * Tf = total_duration (animal-time)
   #'  Af = area of camera's field-of-view (m), To = total camera operating time
-  #'  Af = Area(m2) = (EDD^2 * pi * a) / 360, where a = camera angle of view, so
+  #'  Af = Area(m2) = (EDD^2 x pi x a) / 360, where a = camera angle of view, so
   #'  Af * To = sampling effort (area-time)
   calc_density <- function(df_dens_ing) {
     df_density <- df_dens_ing %>%
@@ -125,8 +125,19 @@
              cpue_km2 = cpue / 60 / 60 / 24 * 10000,
              cpue_km2_walktest = cpue_walktest / 60 / 60 / 24 * 10000,
              #'  Catch per unit effort in 100km2
-             cpue_100km2 = cpue_km2 * 100,
-             cpue_100km2_walktest = cpue_km2_walktest * 100) %>%
+             cpue_100km2_og = cpue_km2 * 100,
+             cpue_100km2_walktest = cpue_km2_walktest * 100,
+             
+             #'  Units that work for me:
+             #'  Sampling effort = sampled area (m2) * total operation time (seconds) 
+             effort_m2_sec = (total_season_days*60*60*24) * (detdist ^ 2 * pi * (cam_fov_angle / 360)),
+             #'  Catch per unit effort: animal seconds per 1 m2 seconds (will differ from cpue above)
+             cpue_m2_sec = total_duration / effort_m2_sec,
+             #'  Catch per unit effort in km2 = animals per 1 km2 (should match cpue_km2 above)
+             cpue_km2_sec = (total_duration / effort_m2_sec) * 1000000,
+             #'  Catch per unit effort in 100km2 = animals per 100 km2
+             cpue_100km2 = cpue_km2_sec * 100) 
+    
       return(df_density)
   }
   df_density_20s <- calc_density(df_dens_ing_20s); df_density_20s$season <- "Smr20"
