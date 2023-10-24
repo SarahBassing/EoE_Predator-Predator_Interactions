@@ -94,6 +94,9 @@
   #'  Probabilistic gaps
   df_leave_prob_pred <- read_csv("./Data/Becker et al. data/gap-leave-prob_predictions.csv")
   
+  #'  Bear investigation behavior 
+  bad_bear <- read_csv("./Data/IDFG camera data/bear_cam_interactions.csv")
+  
   #'  Sampling effort data (number of days cameras were operational)
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
