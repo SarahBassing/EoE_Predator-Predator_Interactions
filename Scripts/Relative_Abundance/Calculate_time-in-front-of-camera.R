@@ -12,7 +12,7 @@
   #'  
   #'  Sequential probimgs generated in Detection_data_cleaning.R (Data_Formatting folder)
   #'  Sampling effort data generated in Detection_histories_for_occmod.R (MultiSpp_OccMod folder)
-  #'  Leave probabilities taken directly from Becker et al. (2018)
+  #'  Leave probabilities taken directly from Becker et al. (2022)
   #'  ----------------------------------------
   
   #'  Load libraries
@@ -30,51 +30,15 @@
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe21s_allM_NewLocationID_2023-09-26.RData") 
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe22s_allM_NewLocationID_2023-09-26.RData") 
   
-  attr(eoe20s_allM$posix_date_time,"tzone")
-  
   #'  Sequential problem images
   load("./Data/IDFG camera data/Problem images/eoe20s_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe21s_sequential_probimgs.RData")
   load("./Data/IDFG camera data/Problem images/eoe22s_sequential_probimgs.RData")
   
-  #'  Load images labeled with bear investigation behavior 
-  bears <- read_csv("./Data/IDFG camera data/bears.csv") 
-  bad_bear <- bears %>%
-    mutate(Date = as.Date(DateTime, format = "%Y-%m-%d"),
-           Date = as.character(Date),
-           Year = year(Date),
-           Species = "bear_black") %>%
-    relocate(Date, .before = DateTime) %>%
-    relocate(Species, .after = DateTime) %>%
-    rename("posix_date_time" = "DateTime") %>%
-    dplyr::select(-c(RootFolder, RelativePath))
-  bad_bear_smr20 <- filter(bad_bear, Year == "2020") %>% dplyr::select(-Year)
-  bad_bear_smr21 <- filter(bad_bear, Year == "2021") %>% dplyr::select(-Year)
-  bad_bear_smr22 <- filter(bad_bear, Year == "2022") %>% dplyr::select(-Year)
-  
-  #'  Connect bad bear behavior images to larger data set so looks like other data
-  bad_bear_20s <- left_join(bad_bear_smr20, eoe20s_allM, by = c("File", "Date", "Species", "posix_date_time")) %>%
-    filter(!is.na(NewLocationID))
-  bad_bear_21s <- left_join(bad_bear_smr21, eoe21s_allM, by = c("File", "Date", "Species", "posix_date_time")) %>%
-    filter(!is.na(NewLocationID))
-  bad_bear_22s <- left_join(bad_bear_smr22, eoe22s_allM, by = c("File", "Date", "Species", "posix_date_time")) %>%
-    filter(!is.na(NewLocationID)) 
-  
-  #'  Grab mislabeled bear images (mostly smooshy face pictures of other species)
-  not_a_bear <- function(bear_pix) {
-    no_bear <- filter(bear_pix, NoBear == "TRUE")
-    return(no_bear)
-  }
-  notabear_20s <- not_a_bear(bad_bear_smr20)
-  notabear_21s <- not_a_bear(bad_bear_smr21)
-  notabear_22s <- not_a_bear(bad_bear_smr22)
-  
   #'  Filter detection data to time period of interest and remove problem images
-  thin_detections <- function(dets, seqprobs, notabear, start_date, end_date) {
+  thin_detections <- function(dets, seqprobs, start_date, end_date) {
     #'  Remove images with known problems (e.g., viewshed obscured)
-    noprob_dets <- dets[!(dets$File %in% seqprobs$File),]
-    #'  Remove images labeled bear that are not actually a bear
-    skinny_dets <- noprob_dets[!(noprob_dets$File %in% notabear$File),]
+    skinny_dets <- dets[!(dets$File %in% seqprobs$File),]
     
     #'  Filter images
     clean_dets <- skinny_dets %>%
@@ -96,35 +60,9 @@
     
     return(clean_dets)
   }
-  df_all_20s <- thin_detections(eoe20s_allM, seqprobs = eoe_seqprob_20s, notabear = notabear_20s, start_date = "2020-07-01", end_date = "2020-09-15") 
-  df_all_21s <- thin_detections(eoe21s_allM, seqprobs = eoe_seqprob_21s, notabear = notabear_21s, start_date = "2021-07-01", end_date = "2021-09-15")
-  df_all_22s <- thin_detections(eoe22s_allM, seqprobs = eoe_seqprob_22s, notabear = notabear_22s, start_date = "2022-07-01", end_date = "2022-09-15")
-  
-  #'  Remove problem images from bad bear data and simplify df
-  thin_bad_bears <- function(dets, seqprobs, notabear) {
-    noprob_dets <- dets[!(dets$File %in% seqprobs$File),]
-    skinny_bears <- noprob_dets[!(noprob_dets$File %in% notabear$File),]
-    
-    clean_bears <- skinny_bears %>%
-      #'  Make sure Count column has a value
-      mutate(Count = ifelse(Count == 0, 1, Count),
-             Count = ifelse(is.na(Count), 1, Count),
-             #'  Create column for all types of investigation behaviors
-             bad_bear = ifelse(Cam_behavior == "TRUE", "TRUE", Flag_behavior),
-             #'  Add gap class column
-             gap_class = NA) %>% 
-      #'  Remove observations that can't be linked to a camera with coordinates
-      filter(!is.na(NewLocationID)) %>%
-      arrange(NewLocationID, posix_date_time) %>%
-      dplyr::select(c("NewLocationID", "posix_date_time", "Species", "Count", "gap_class", "Cam_behavior", "Flag_behavior", "bad_bear")) %>%
-      mutate(gap_class = NA)
-    names(clean_bears) <- c("location", "date_detected", "common_name", "number_individuals", "gap_class", "cam_behavior", "flag_behavior", "bad_bear_behavior")
-
-    return(clean_bears)
-  }
-  df_bad_bears_20s <- thin_bad_bears(bad_bear_20s, seqprobs = eoe_seqprob_20s, notabear = notabear_20s) 
-  df_bad_bears_21s <- thin_bad_bears(bad_bear_21s, seqprobs = eoe_seqprob_21s, notabear = notabear_21s)
-  df_bad_bears_22s <- thin_bad_bears(bad_bear_22s, seqprobs = eoe_seqprob_22s, notabear = notabear_22s)
+  df_all_20s <- thin_detections(eoe20s_allM, seqprobs = eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15") 
+  df_all_21s <- thin_detections(eoe21s_allM, seqprobs = eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
+  df_all_22s <- thin_detections(eoe22s_allM, seqprobs = eoe_seqprob_22s, start_date = "2022-07-01", end_date = "2022-09-15")
   
   #'  Update species names for "gap groups" based on Becker et al. (2022) classifications
   spp_groups_20s <- as.data.frame(unique(df_all_20s$common_name)); names(spp_groups_20s) <- "common_name"
@@ -191,6 +129,7 @@
   sept15.22 <- as.Date("2022-09-15", format = "%Y-%m-%d")
   summer22.start.j <- format(july1.22, "%j") 
   summer22.end.j <- format(sept15.22, "%j") 
+  
   
   #'  ------------------
   ####  Calculate TIFC  ####
@@ -378,39 +317,37 @@
   tt_list <- list(df_tt_full_20s, df_tt_full_21s, df_tt_full_22s)
   names(tt_list) <- c("df_tt_full_20s", "df_tt_full_21s", "df_tt_full_22s")
   
-  #'  SAVE!
-  write_csv(df_tt_full_20s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_20s_fov-time.csv")
-  write_csv(df_tt_full_21s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_21s_fov-time.csv")
-  write_csv(df_tt_full_22s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_22s_fov-time.csv")
-  
-  save(tt_list, file = "./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time.RData")
-  #'  This is input for Effective_detection_distance.R script
+  #' #'  SAVE!
+  #' write_csv(df_tt_full_20s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_20s_fov-time.csv")
+  #' write_csv(df_tt_full_21s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_21s_fov-time.csv")
+  #' write_csv(df_tt_full_22s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_22s_fov-time.csv")
+  #' 
+  #' save(tt_list, file = "./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time.RData")
+  #' #'  This is input for Effective_detection_distance.R script
   
   
   #'  ------------------------------------
   ####  TIFC for bear investigation data  ####
   #'  ------------------------------------
-  #'  Run bear investigation behavior data (bad_bear) through functions to calculate 
-  #'  time spent investigating cameras and flags so this can be removed from TIFC data
+  #'  Source similar script that runs bear investigation behavior data (bad_bear) 
+  #'  through similar functions to calculate time spent investigating cameras and 
+  #'  flags so this amount of time can be removed from bear TIFC data
+  source("./Scripts/Relative_Abundance/Calculate_bad_bear_TIFC.R")
   
+  #'  Reduce data set to just sites where bears interacted with camera
+  bad_bear_times <- function(df_tt) {
+    skinny_bad_bear <- filter(df_tt, bad_bear_behavior == TRUE) %>%
+      dplyr::select(-c(season, bad_bear_behavior))
+    return(skinny_bad_bear)
+  }
+  bear_behavior_tt <- lapply(bear_tt_list, bad_bear_times)
   
+  #'  Subtract amount of time bears spent investigating cameras from larger TIFC data
+  tst <- df_tt_full_20s %>%
+    left_join(bear_behavior_tt[[1]], by = c("location", "common_name", "total_season_days")) %>%
+    mutate(total_duration = ifelse(is.na(total_duration.y), total_duration.x, 
+                                   total_duration.x - total_duration.y))
   
-  #'  NEED TO REDO SERIES BASED ON GAP TIME AND INVESTIGATION BEHAVIOR
-  
-  
-  
-  #'  Create detection series based on bear gap probability
-  bad_bear_series_20s <- img_series(df_bad_bears_20s, df_gap_groups = df_gap_groups_20s)
-  bad_bear_series_21s <- img_series(df_bad_bears_21s, df_gap_groups = df_gap_groups_21s)
-  bad_bear_series_22s <- img_series(df_bad_bears_22s, df_gap_groups = df_gap_groups_22s)
-  bad_bear_series <- list(bad_bear_series_20s, bad_bear_series_21s, bad_bear_series_22s)
-  
-  #'  Calculate average time between images
-  bad_bear_tbp <- lapply(bad_bear_series, tbp)
- 
-  bad_bear_tts_20s <- tts(bad_bear_series_20s, bad_bear_tbp[[1]])
-  bad_bear_tts_21s <- tts(bad_bear_series_21s, bad_bear_tbp[[2]])
-  bad_bear_tts_22s <- tts(bad_bear_series_22s, bad_bear_tbp[[3]])
   
   
   #'  -------------------------
