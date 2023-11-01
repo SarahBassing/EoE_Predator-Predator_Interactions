@@ -51,6 +51,8 @@
              Date = as.Date(Date, format = "%Y-%m-%d")) %>% #format = "%d-%b-%Y"
       #'  Filter to images to desired date range
       filter(Date >= start_date & Date <= end_date) %>%
+      #'  Remove single mislabeled image from 2022 data (will not affect TIFC calculations)
+      filter(NewLocationID != "GMU10A_U_50" | Date != "2022-08-27" | Species != "human") %>%
       #'  Remove observations that can't be linked to a camera with coordinates
       filter(!is.na(NewLocationID)) %>%
       arrange(NewLocationID, posix_date_time) %>%
@@ -62,7 +64,7 @@
   }
   df_all_20s <- thin_detections(eoe20s_allM, seqprobs = eoe_seqprob_20s, start_date = "2020-07-01", end_date = "2020-09-15") 
   df_all_21s <- thin_detections(eoe21s_allM, seqprobs = eoe_seqprob_21s, start_date = "2021-07-01", end_date = "2021-09-15")
-  df_all_22s <- thin_detections(eoe22s_allM, seqprobs = eoe_seqprob_22s, start_date = "2022-07-01", end_date = "2022-09-15")
+  df_all_22s <- thin_detections(eoe22s_allM, seqprobs = eoe_seqprob_22s, start_date = "2022-07-01", end_date = "2022-09-15") 
   
   #'  Update species names for "gap groups" based on Becker et al. (2022) classifications
   spp_groups_20s <- as.data.frame(unique(df_all_20s$common_name)); names(spp_groups_20s) <- "common_name"
@@ -343,8 +345,8 @@
   bear_behavior_tt <- lapply(bear_tt_list, bad_bear_times)
   
   #'  Subtract amount of time bears spent investigating cameras from larger TIFC data
-  tst <- df_tt_full_20s %>%
-    left_join(bear_behavior_tt[[1]], by = c("location", "common_name", "total_season_days")) %>%
+  tst <- df_tt_full_22s %>%
+    left_join(bear_behavior_tt[[3]], by = c("location", "common_name", "total_season_days")) %>%
     mutate(total_duration = ifelse(is.na(total_duration.y), total_duration.x, 
                                    total_duration.x - total_duration.y))
   
