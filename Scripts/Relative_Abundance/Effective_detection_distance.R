@@ -30,6 +30,17 @@
     filter(Species != "whitetailed_deer") %>%
     mutate(Species = ifelse(Species == "black_bear", "bear_black", Species))
   
+  
+  
+  
+  
+  #######  FIX THE INVESTIGATION IMAGES  ########
+  
+  
+  
+  
+  
+  
   #'  Camera location data
   cams <- read_csv("./Data/IDFG camera data/cams_eoe_long_Smr2020-2022.csv") %>%
     dplyr::select(c("NewLocationID", "CamID", "Setup", "Season", "Lat", "Long", "CameraHeight_M", "CameraFacing")) %>%
