@@ -319,15 +319,6 @@
   tt_list <- list(df_tt_full_20s, df_tt_full_21s, df_tt_full_22s)
   names(tt_list) <- c("df_tt_full_20s", "df_tt_full_21s", "df_tt_full_22s")
   
-  #' #'  SAVE!
-  #' write_csv(df_tt_full_20s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_20s_fov-time.csv")
-  #' write_csv(df_tt_full_21s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_21s_fov-time.csv")
-  #' write_csv(df_tt_full_22s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_22s_fov-time.csv")
-  #' 
-  #' save(tt_list, file = "./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time.RData")
-  #' #'  This is input for Effective_detection_distance.R script
-  
-  
   #'  ------------------------------------
   ####  TIFC for bear investigation data  ####
   #'  ------------------------------------
@@ -345,12 +336,30 @@
   bear_behavior_tt <- lapply(bear_tt_list, bad_bear_times)
   
   #'  Subtract amount of time bears spent investigating cameras from larger TIFC data
-  tst <- df_tt_full_22s %>%
-    left_join(bear_behavior_tt[[3]], by = c("location", "common_name", "total_season_days")) %>%
-    mutate(total_duration = ifelse(is.na(total_duration.y), total_duration.x, 
-                                   total_duration.x - total_duration.y))
+  cut_bad_bear_time <- function(tt_full, bad_bear) {
+    #'  Merge data sets, subtract, and clean
+    tt_full_adj <- tt_full %>%
+      left_join(bad_bear, by = c("location", "common_name", "total_season_days")) %>%
+      mutate(total_duration = ifelse(is.na(total_duration.y), total_duration.x, 
+                                     total_duration.x - total_duration.y)) %>%
+      dplyr::select(-c(total_duration.x, total_duration.y))
+    
+    #'  Double check there are no negative total_duration times (happens if bad 
+    #'  bear time exceeds tifc due to miscalculations)
+    print(range(tt_full_adj$total_duration, na.rm = TRUE))
+    
+    return(tt_full_adj)
+  }
   
+  df_tt_full_adj <- mapply(cut_bad_bear_time, tt_full = tt_list, bad_bear = bear_behavior_tt, SIMPLIFY = FALSE)
   
+  #' #'  SAVE!
+  #' write_csv(df_tt_full_20s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_20s_fov-time.csv")
+  #' write_csv(df_tt_full_21s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_21s_fov-time.csv")
+  #' write_csv(df_tt_full_22s, "./Data/Relative abundance data/RAI Phase 2/eoe_all_22s_fov-time.csv")
+  #' 
+  #' save(tt_list, file = "./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time.RData")
+  #' #'  This is input for Effective_detection_distance.R script
   
   #'  -------------------------
   ####  Area of Field-of-View  ####
