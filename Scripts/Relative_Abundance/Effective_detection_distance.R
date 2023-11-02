@@ -23,23 +23,16 @@
     filter(ReferencePics == FALSE) %>%
     filter(Species != "marten") %>%
     mutate(CamID = ifelse(File == "EOE2022S_IDFG2508_20220725_171547_MD_1.JPG", "IDFG2508", CamID),
-           Species = ifelse(Species == "black_bear", "bear_black", Species)) 
+           Species = ifelse(Species == "black_bear", "bear_black", Species)) %>%
+    #'  Remove images where bears are interacting with camera/flagging
+    filter(is.na(Behavior))
   
   ung_mt <- read_csv("./Data/Relative abundance data/RAI Phase 2/Ung_MT_distance.csv") %>%
     filter(ReferencePics == FALSE) %>%
     filter(Species != "whitetailed_deer") %>%
-    mutate(Species = ifelse(Species == "black_bear", "bear_black", Species))
-  
-  
-  
-  
-  
-  #######  FIX THE INVESTIGATION IMAGES  ########
-  
-  
-  
-  
-  
+    mutate(Species = ifelse(Species == "black_bear", "bear_black", Species)) %>%
+    #'  Remove images where bears are interacting with camera/flagging
+    filter(is.na(Behavior))
   
   #'  Camera location data
   cams <- read_csv("./Data/IDFG camera data/cams_eoe_long_Smr2020-2022.csv") %>%
