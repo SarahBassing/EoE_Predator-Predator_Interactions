@@ -74,9 +74,10 @@
   #'  Load camera location data and format
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
+  load("./Data/IDFG camera data/Problem cams/eoe22s_problem_cams.RData")
   
   #'  List camera locations
-  cams_list <- list(eoe_probcams_20s, eoe_probcams_21s)
+  cams_list <- list(eoe_probcams_20s, eoe_probcams_21s, eoe_probcams_22s)
   
   #'  Make camera location data spatial sf objects
   spatial_locs <- function(locs, proj) {
@@ -91,6 +92,14 @@
   cams_aea <- lapply(cams_list, spatial_locs, proj = aea)
   cams_nad83 <- lapply(cams_list, spatial_locs, proj = nad83)
   cams_hab_crs <- lapply(cams_list, spatial_locs, proj = hab_crs)
+  
+  #' #'  Save camera locations as shapefiles
+  #' cams_20s_wgs84 <- cams_wgs84[[1]]; cams_21s_wgs84 <- cams_wgs84[[2]]; cams_22s_wgs84 <- cams_wgs84[[3]]
+  #' 
+  #' wd <- getwd()
+  #' st_write(cams_20s_wgs84, dsn = paste0(wd,"/Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp"), layer = "cams_20s_wgs84.shp")
+  #' st_write(cams_21s_wgs84, dsn = paste0(wd,"/Shapefiles/IDFG spatial data/Camera_locations/cams_21s_wgs84.shp"), layer = "cams_21s_wgs84.shp")
+  #' st_write(cams_22s_wgs84, dsn = paste0(wd,"/Shapefiles/IDFG spatial data/Camera_locations/cams_22s_wgs84.shp"), layer = "cams_22s_wgs84.shp")
   
   #'  Double check these are plotting correctly
   plot(pforest, main = "Camera locations over percent forested habitat, 500m radius")
