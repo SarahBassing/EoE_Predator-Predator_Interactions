@@ -41,7 +41,8 @@
       #          common_name == "whitetaileddeer" | common_name == "wolf")
       filter(common_name == "bear_black" | common_name == "bobcat" | common_name == "coyote" |
               common_name == "mountain_lion" | common_name == "wolf") %>%
-      rename("detdist" = "avg_dist")
+      rename("detdist" = "avg_dist") %>%
+      rename("detdist_v2" = "max_dist")
     return(df_tt_full)
   }
   df_tt_full_20s <- focal_spp(tt_list[[1]])
@@ -131,18 +132,25 @@
              #'  Units that work for me:
              #'  Sampling effort = sampled area (m2) * total operation time (seconds) 
              effort_m2_sec = (total_season_days*60*60*24) * (detdist ^ 2 * pi * (cam_fov_angle / 360)),
+             effort_m2_sec_v2 = (total_season_days*60*60*24) * (detdist_v2 ^ 2 * pi * (cam_fov_angle / 360)),
              #'  Catch per unit effort: animal seconds per 1 m2 seconds (will differ from cpue above)
              cpue_m2_sec = total_duration / effort_m2_sec,
+             cpue_m2_sec_v2 = total_duration / effort_m2_sec_v2,
              #'  Catch per unit effort in km2 = animals per 1 km2 (should match cpue_km2 above)
              cpue_km2_sec = (total_duration / effort_m2_sec) * 1000000,
+             cpue_km2_sec_v2 = (total_duration / effort_m2_sec_v2) * 1000000,
              #'  Catch per unit effort in 100km2 = animals per 100 km2
-             cpue_100km2 = cpue_km2_sec * 100) 
+             cpue_100km2 = cpue_km2_sec * 100,
+             cpue_100km2_v2 = cpue_km2_sec_v2 * 100) 
     
       return(df_density)
   }
   df_density_20s <- calc_density(df_dens_ing_20s); df_density_20s$season <- "Smr20"
   df_density_21s <- calc_density(df_dens_ing_21s); df_density_21s$season <- "Smr21"
   df_density_22s <- calc_density(df_dens_ing_22s); df_density_22s$season <- "Smr22"
+  
+  #'  List annual tifc relative density data
+  tifc_density_list <- list(df_density_20s, df_density_21s, df_density_22s)
   
   #'  Bind into a single data frame
   df_density <- rbind(df_density_20s, df_density_21s, df_density_22s) %>%
@@ -161,8 +169,8 @@
   #'  Summary stats for density estimates
   density_stats <- df_density %>%
     group_by(gmu, common_name) %>%
-    summarise(mean_density_km2 = round(mean(cpue_km2, na.rm = TRUE), 2),
-              se_density_km2 = round((sd(cpue_km2, na.rm = TRUE)/sqrt(nrow(.))), 2),
+    summarise(mean_density_km2 = round(mean(cpue_km2_sec, na.rm = TRUE), 2),
+              se_density_km2 = round((sd(cpue_km2_sec, na.rm = TRUE)/sqrt(nrow(.))), 2),
               mean_density_100km2 = round(mean(cpue_100km2, na.rm = TRUE), 2),
               se_density_100km2 = round((sd(cpue_100km2, na.rm = TRUE)/sqrt(nrow(.))), 2)) %>%
     ungroup() %>%
@@ -210,13 +218,185 @@
   write_csv(gmu_density_stats, "./Data/Relative abundance data/RAI Phase 2/tifc_density_stats_by_gmu_predonly.csv")
   
   
+  #####  Visualize TIFC density data  #####
+  #'  --------------------------------
+  #'  Map relative density data per species, study area and year
+  library(sf)
+  library(ggplot2)
+  library(patchwork)
+  
+  #'  Load spatial data
+  eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
+    st_transform("+proj=longlat +datum=WGS84 +no_defs")
+  cams_20s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp")
+  cams_21s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_21s_wgs84.shp")
+  cams_22s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_22s_wgs84.shp")
+  
+  #'  List camera spatial data
+  cam_list <- list(cams_20s_wgs84, cams_21s_wgs84, cams_22s_wgs84)
+  
+  #'  Append TIFC relative density data to spatial data
+  spatial_tifc <- function(tifc, spp, cams) {
+    #'  Filter tifc data to single species
+    single_spp_tifc <- tifc %>%
+      filter(common_name == spp) %>%
+      #'  Rename camera location column to match spatial data
+      rename("NwLctID" = "location")
+    
+    #'  Join spatial data with tifc data
+    tifc_shp <- full_join(cams, single_spp_tifc, by = "NwLctID") %>%
+      filter(!is.na(common_name)) %>%
+      dplyr::select(c("NwLctID", "common_name", "season", "Gmu", "cpue_m2_sec", 
+                      "cpue_km2_sec", "cpue_100km2", "geometry")) %>%
+      #'  Change camera location column back to something less awkward
+      rename("location" = "NwLctID") %>%
+      #'  Remove duplicate observations (happens in the TIFC stage when multiple 
+      #'  walktest viewsheds are reported for same site)
+      distinct()
+    
+    return(tifc_shp)
+  }
+  spatial_tifc_bear <- mapply(tifc = tifc_density_list, spatial_tifc, spp = "bear_black", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_tifc_bob <- mapply(tifc = tifc_density_list, spatial_tifc, spp = "bobcat", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_tifc_coy <- mapply(tifc = tifc_density_list, spatial_tifc, spp = "coyote", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_tifc_lion <- mapply(tifc = tifc_density_list, spatial_tifc, spp = "mountain_lion", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_tifc_wolf <- mapply(tifc = tifc_density_list, spatial_tifc, spp = "wolf", cams = cam_list, SIMPLIFY = FALSE)
+  
+  #'  Function to map TIFC relative density index
+  map_tifc <- function(sf_tifc, spp) {
+    #'  Filter spatial tifc data by study area
+    sf_tifc_gmu1 <- sf_tifc[sf_tifc$Gmu == "1",]
+    sf_tifc_gmu6 <- sf_tifc[sf_tifc$Gmu == "6",]
+    sf_tifc_gmu10a <- sf_tifc[sf_tifc$Gmu == "10A",]
+    
+    #'  Snag year data correspond to
+    yr <- sf_tifc %>% dplyr::select(season) %>%
+      slice(1L) %>%
+      mutate(year = ifelse(season == "Smr20", "2020", season),
+             year = ifelse(year == "Smr21", "2021", year),
+             year = ifelse(year == "Smr22", "2022", year)) 
+    yr <- as.data.frame(yr)
+    yr <- yr$year
+    
+    #'  GMU 1 plot
+    gmu1_tifc <- ggplot() +
+      geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "1",], fill = NA) +
+      geom_sf(data = sf_tifc_gmu1, aes(size = cpue_km2_sec), shape  = 21, 
+              col = "darkred", fill = "darkred", alpha = 3/10) +
+      scale_size_continuous(range = c(0,12)) +
+      labs(size = "CPUE km2/sec", x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+      ggtitle(yr)
+    
+    #'  GMU 6 plot
+    gmu6_tifc <- ggplot() +
+      geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "6",], fill = NA) +
+      geom_sf(data = sf_tifc_gmu6, aes(size = cpue_km2_sec), shape  = 21, 
+              col = "darkgreen", fill = "darkgreen", alpha = 3/10) +
+      scale_size_continuous(range = c(0,12)) +
+      labs(size = "CPUE km2/sec", x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+      ggtitle(yr)
+    
+    #'  GMU 10A plot
+    gmu10a_tifc <- ggplot() +
+      geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
+      geom_sf(data = sf_tifc_gmu10a, aes(size = cpue_km2_sec), shape = 21, 
+              col = "darkblue", fill = "darkblue", alpha = 3/10) +
+      scale_size_continuous(range = c(0,12)) +
+      labs(size = "CPUE km2/sec", x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+      ggtitle(yr)
+    
+    #'  Plot each map
+    print(gmu1_tifc); print(gmu6_tifc); print(gmu10a_tifc)
+    
+    #'  List GMU TIFC maps together
+    gmu_maps <- list(gmu1_tifc, gmu6_tifc, gmu10a_tifc)
+    
+    return(gmu_maps)
+  }
+  tifc_maps_bear <- lapply(spatial_tifc_bear, map_tifc, spp = "Black bear")
+  tifc_maps_bob <- lapply(spatial_tifc_bob, map_tifc, spp = "Bobcat")
+  tifc_maps_coy <- lapply(spatial_tifc_coy, map_tifc, spp = "Coyote")
+  tifc_maps_lion <- lapply(spatial_tifc_lion, map_tifc, spp = "Mountain lion")
+  tifc_maps_wolf <- lapply(spatial_tifc_wolf, map_tifc, spp = "wolf")
+  
+  #'  Plot same species and study area back to back across years
+  gmu_by_yr_plots <- function(fig, spp) {
+    #'  Note: list order is [[i]][[j]] 
+    #'  where i = 2020, 2021, or 2022 and j = GMU1, GMU6, or GMU10a 
+    #'  GMU 1 plots
+    gmu1_patch <- fig[[1]][[1]] + fig[[2]][[1]] + fig[[3]][[1]] +
+      plot_annotation(paste("GMU 1", spp, "relative density index"))
+    
+    #'  GMU 6 plots
+    gmu6_patch <- fig[[1]][[2]] + fig[[2]][[2]] + fig[[3]][[2]] +
+      plot_annotation(paste("GMU 6", spp, "relative density index"))
+    
+    #'  GMU 10A plots
+    gmu10a_patch <- fig[[1]][[3]] + fig[[2]][[3]] + fig[[3]][[3]] +
+      plot_annotation(paste("GMU 10A", spp, "relative density index"))
+    
+    #'  Print figure panels
+    print(gmu1_patch); print(gmu6_patch); print(gmu10a_patch)
+    
+    #'  List
+    gmu_patchwork_list <- list(gmu1_patch, gmu6_patch, gmu10a_patch)
+    
+    return(gmu_patchwork_list)
+  }
+  tifc_gmu_bear <- gmu_by_yr_plots(tifc_maps_bear, spp = "black bear")
+  tifc_gmu_bob <- gmu_by_yr_plots(tifc_maps_bob, spp = "bobcat")
+  tifc_gmu_coy <- gmu_by_yr_plots(tifc_maps_coy, spp = "coyote")
+  tifc_gmu_lion <- gmu_by_yr_plots(tifc_maps_lion, spp = "mountain lion")
+  tifc_gmu_wolf <- gmu_by_yr_plots(tifc_maps_wolf, spp = "wolf")
+  
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu1_bear.tiff", tifc_gmu_bear[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu6_bear.tiff", tifc_gmu_bear[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu10A_bear.tiff", tifc_gmu_bear[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu1_bob.tiff", tifc_gmu_bob[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu6_bob.tiff", tifc_gmu_bob[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu10A_bob.tiff", tifc_gmu_bob[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu1_coy.tiff", tifc_gmu_coy[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu6_coy.tiff", tifc_gmu_coy[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu10A_coy.tiff", tifc_gmu_coy[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu1_lion.tiff", tifc_gmu_lion[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu6_lion.tiff", tifc_gmu_lion[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu10A_lion.tiff", tifc_gmu_lion[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu1_wolf.tiff", tifc_gmu_wolf[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu6_wolf.tiff", tifc_gmu_wolf[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/TIFC/Figures/tifc_gmu10A_wolf.tiff", tifc_gmu_wolf[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  
+  
+  #'  Function to plot two species together in same year vs across years?
+  
+  
+  
   #'  Next challenges...
   #'  1. Bootstrap estimates so we have standard errors for camera-level density
   #'  2. Do we trust EDD based on camera setups?
   #'  3. If yes, probably need EDD for prey too so effort is consistent across species
   #'  4. Which density metric to use (cpue, cpue km2, cpue 100km2)? -- going with cpue 100km2
-  #'  5. How to remove investigation images for bears across entire dataset?
-  #'  6. Detection rate vs TIFC as response variable (both are going to be indices of abund/density)?
-  #'  ALSO- should I be using mean EDD or max EDD when calculating effort????
+  #'  5. Detection rate vs TIFC as response variable (both are going to be indices of abund/density)?
+  #'  6. should I be using mean EDD or max EDD when calculating effort????
   
   
