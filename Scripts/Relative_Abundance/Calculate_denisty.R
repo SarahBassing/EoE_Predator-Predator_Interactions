@@ -262,6 +262,11 @@
   spatial_tifc_lion <- mapply(tifc = tifc_density_list, spatial_tifc, spp = "mountain_lion", cams = cam_list, SIMPLIFY = FALSE)
   spatial_tifc_wolf <- mapply(tifc = tifc_density_list, spatial_tifc, spp = "wolf", cams = cam_list, SIMPLIFY = FALSE)
   
+  #'  List spatial TIFC data and save
+  spatial_tifc_list <- list(spatial_tifc_bear, spatial_tifc_bob, spatial_tifc_coy, spatial_tifc_lion, spatial_tifc_wolf)
+  save(spatial_tifc_list, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_tifc_list.R")
+  
+  
   #'  Function to map TIFC relative density index
   map_tifc <- function(sf_tifc, spp) {
     #'  Filter spatial tifc data by study area
