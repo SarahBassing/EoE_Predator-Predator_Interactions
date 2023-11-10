@@ -131,7 +131,7 @@
   #####  Detection histories  #####
   #'  ------------------------
   #'  Create species-specific detection histories and sampling effort matrix
-  #'  FYI: July 1 - Sept 15 = 11 1-wk sampling periods and 77 1-day sampling periods
+  #'  FYI: July 1 - Sept 15 = 11 7-day sampling periods and 77 1-day sampling periods
   DH <- function(dets, cam_probs, spp, start_date, y, rm_rows, oc) {
     det_hist <- detectionHistory(recordTable = dets,
                                  camOp = cam_probs,
@@ -140,7 +140,7 @@
                                  recordDateTimeCol = "posix_date_time",
                                  recordDateTimeFormat = "%Y-%m-%d %H:%M:%S",
                                  species = spp,
-                                 occasionLength = 1,
+                                 occasionLength = 7,
                                  day1 = start_date, 
                                  datesAsOccasionNames = TRUE,
                                  # occasionStartTime = 12, # starts at noon
@@ -168,9 +168,9 @@
   }
   #'  Create season-specific detection histories for species listed below
   spp_smr <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf", "elk", "moose", "muledeer", "whitetaileddeer", "rabbit_hare")
-  DH_npp20s_RNmod <- lapply(spp_smr, DH, dets = npp20s_det_events, cam_probs = npp20s_probs, start_date = "2020-07-01", y = "binary", rm_rows = rm_rows_npp20s, oc = 77) 
-  DH_npp21s_RNmod <- lapply(spp_smr, DH, dets = npp21s_det_events, cam_probs = npp21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_npp21s, oc = 77)
-  DH_npp22s_RNmod <- lapply(spp_smr, DH, dets = npp22s_det_events, cam_probs = npp22s_probs, start_date = "2022-07-01", y = "binary", rm_rows = rm_rows_npp22s, oc = 77)
+  DH_npp20s_RNmod <- lapply(spp_smr, DH, dets = npp20s_det_events, cam_probs = npp20s_probs, start_date = "2020-07-01", y = "binary", rm_rows = rm_rows_npp20s, oc = 11) 
+  DH_npp21s_RNmod <- lapply(spp_smr, DH, dets = npp21s_det_events, cam_probs = npp21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_npp21s, oc = 11)
+  DH_npp22s_RNmod <- lapply(spp_smr, DH, dets = npp22s_det_events, cam_probs = npp22s_probs, start_date = "2022-07-01", y = "binary", rm_rows = rm_rows_npp22s, oc = 11)
   
   #'  --------------------
   #####  Sampling effort  #####
@@ -333,33 +333,33 @@
   #'  Even simple models take a LONG time to run
   #'  Survey occasion-specific detection probabilities that vary with camera setup
   # (bear20s.rn <- occuRN(~ obsNum ~ 1, bear_20s_umf))
-  (bear20s.rn <- occuRN(~ obsNum + Setup ~ 1, bear_20s_umf, se = TRUE, engine = "C", threads = 4)) # + GMU
-  (bear21s.rn <- occuRN(~ obsNum + Setup ~ 1, bear_21s_umf)) 
-  (bear22s.rn <- occuRN(~ obsNum + Setup ~ 1, bear_22s_umf))
+  (bear20s.rn <- occuRN(~ obsNum + Setup ~ 1, bear_20s_umf, se = TRUE, K = 200, engine = "C", threads = 4)) # + GMU
+  (bear21s.rn <- occuRN(~ obsNum + Setup ~ 1, bear_21s_umf, se = TRUE, K = 200, engine = "C", threads = 4)) 
+  (bear22s.rn <- occuRN(~ obsNum + Setup ~ 1, bear_22s_umf, se = TRUE, K = 200, engine = "C", threads = 4))
   bear_rn_list <- list(bear20s.rn, bear21s.rn, bear22s.rn)
   
-  (bob20s.rn <- occuRN(~ obsNum + Setup ~ 1, bob_20s_umf))
-  (bob21s.rn <- occuRN(~ obsNum + Setup ~ 1, bob_21s_umf)) 
-  (bob22s.rn <- occuRN(~ obsNum + Setup ~ 1, bob_22s_umf))
+  (bob20s.rn <- occuRN(~ obsNum + Setup ~ 1, bob_20s_umf, se = TRUE, K = 200, engine = "C", threads = 4))
+  (bob21s.rn <- occuRN(~ obsNum + Setup ~ 1, bob_21s_umf, se = TRUE, K = 200, engine = "C", threads = 4)) 
+  (bob22s.rn <- occuRN(~ obsNum + Setup ~ 1, bob_22s_umf, se = TRUE, K = 200, engine = "C", threads = 4))
   bob_rn_list <- list(bob20s.rn, bob21s.rn, bob22s.rn)
   
-  (coy20s.rn <- occuRN(~ obsNum + Setup ~ 1, coy_20s_umf))
-  (coy21s.rn <- occuRN(~ obsNum + Setup ~ 1, coy_21s_umf)) 
-  (coy22s.rn <- occuRN(~ obsNum + Setup ~ 1, coy_22s_umf))
+  (coy20s.rn <- occuRN(~ obsNum + Setup ~ 1, coy_20s_umf, se = TRUE, engine = "C", threads = 4))
+  (coy21s.rn <- occuRN(~ obsNum + Setup ~ 1, coy_21s_umf, se = TRUE, K = 200, engine = "C", threads = 4)) 
+  (coy22s.rn <- occuRN(~ obsNum + Setup ~ 1, coy_22s_umf, se = TRUE, K = 200, engine = "C", threads = 4))
   coy_rn_list <- list(coy20s.rn, coy21s.rn, coy22s.rn)
   
-  (lion20s.rn <- occuRN(~ obsNum + Setup ~ 1, lion_20s_umf))
-  (lion21s.rn <- occuRN(~ obsNum + Setup ~ 1, lion_21s_umf)) 
-  (lion22s.rn <- occuRN(~ obsNum + Setup ~ 1, lion_22s_umf))
+  (lion20s.rn <- occuRN(~ obsNum + Setup ~ 1, lion_20s_umf, se = TRUE, K = 200, engine = "C", threads = 4))
+  (lion21s.rn <- occuRN(~ obsNum + Setup ~ 1, lion_21s_umf, se = TRUE, K = 200, engine = "C", threads = 4)) 
+  (lion22s.rn <- occuRN(~ obsNum + Setup ~ 1, lion_22s_umf, se = TRUE, K = 200, engine = "C", threads = 4))
   lion_rn_list <- list(lion20s.rn, lion21s.rn, lion22s.rn)
   
-  (wolf20s.rn <- occuRN(~ obsNum + Setup ~ 1, wolf_20s_umf))
-  (wolf21s.rn <- occuRN(~ obsNum + Setup ~ 1, wolf_21s_umf)) 
-  (wolf22s.rn <- occuRN(~ obsNum + Setup ~ 1, wolf_22s_umf))
+  (wolf20s.rn <- occuRN(~ obsNum + Setup ~ 1, wolf_20s_umf, se = TRUE, K = 200, engine = "C", threads = 4))
+  (wolf21s.rn <- occuRN(~ obsNum + Setup ~ 1, wolf_21s_umf, se = TRUE, K = 200, engine = "C", threads = 4)) 
+  (wolf22s.rn <- occuRN(~ obsNum + Setup ~ 1, wolf_22s_umf, se = TRUE, K = 200, engine = "C", threads = 4))
   wolf_rn_list <- list(wolf20s.rn, wolf21s.rn, wolf22s.rn)
   
   #'  Empirical Bayes estimates of abundance at each site
-  bear20s_re <- ranef(bear20s.rn)
+  bear20s_re <- ranef(bear20s.rn, K = 200)
   plot(bear20s_re)
   
   
