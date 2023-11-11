@@ -8,9 +8,7 @@
   #'  
   #'  Requires:
   #'  Problem camera data frames from Detection_data_cleaning.R
-  #'  Wolf detection and minimum group count data from Detection_histories_for_occmod.R
-  #'  Reported mortality data from Covariates_NLCD_manipulations.R
-  #'  And spatial layers
+  #'  Spatial data
   #'  --------------------------------------
   
   #'  Load libraries
@@ -111,63 +109,63 @@
   plot(cams_aea[[2]], add = TRUE, col = "black", cex = 0.75)
   
   
-  #'  ------------------------
-  ####  Additional data sets  ####
-  #'  ------------------------
-  #####  Predator mortality data  ####
-  #'  Mortality data provided by IDFG
-  load("./Data/IDFG BGMR data/mort_preSmr19.RData")
-  load("./Data/IDFG BGMR data/mort_preSmr20.RData")
-  load("./Data/IDFG BGMR data/mort_preWtr20.RData")
-  load("./Data/IDFG BGMR data/mort_preSmr21.RData")
-  
-  reformat_mort_dat <- function(mort) {
-    #'  Split predator mortality data by species
-    mort <- dplyr::select(mort, -gmu_area)
-    mort_bear <- filter(mort, Species == "Black Bear") %>%
-      rename(Bear_mort_n = total_mortalities,
-             Bear_mort_km2 = mortality_km2) %>%
-      dplyr::select(-Species)
-    mort_bob <- filter(mort, Species == "Bobcat") %>%
-      rename(Bob_mort_n = total_mortalities,
-             Bob_mort_km2 = mortality_km2) %>%
-      dplyr::select(-c(Species, GMU))
-    mort_lion <- filter(mort, Species == "Mountain Lion") %>%
-      rename(Lion_mort_n = total_mortalities,
-             Lion_mort_km2 = mortality_km2) %>%
-      dplyr::select(-c(Species, GMU))
-    mort_wolf <- filter(mort, Species == "Wolf") %>%
-      rename(Wolf_mort_n = total_mortalities,
-             Wolf_mort_km2 = mortality_km2) %>%
-      dplyr::select(-c(Species, GMU))
-    mort_df <- as.data.frame(cbind(mort_bear, mort_bob, mort_lion, mort_wolf))
-    return(mort_df)
-  }
-  mort_Smr19_df <- reformat_mort_dat(mort_preSmr19) %>%
-    filter(GMU != "GMU1")
-  mort_Smr20_df <- reformat_mort_dat(mort_preSmr20) %>%
-    filter(GMU != "GMU1")
-  mort_Wtr20_df <- reformat_mort_dat(mort_preWtr20) %>%
-    filter(GMU != "GMU1")
-  mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
-  
-  #'  summarize mortality data
-  Season <- c("2018-2019", "2018-2019", "2019-2020", "2019-2020", "2020-2021", "2020-2021", "2020-2021")
-  mort_summary <- rbind(mort_Smr19_df, mort_Smr20_df, mort_Smr21_df)
-  mort_summary <- cbind(Season, mort_summary)
-  names(mort_summary)[names(mort_summary) == "Season"] <- "Harvest season (fall - winter)"
-  
-  mort_summary_noGMU1 <- filter(mort_summary, GMU != "GMU1") %>%
-    dplyr::select(`Harvest season (fall - winter)`, Bear_mort_n, Bob_mort_n, Lion_mort_n, Wolf_mort_n) %>%
-    group_by(`Harvest season (fall - winter)`) %>%
-    summarise(across(everything(), sum),
-              .groups = 'drop') %>%
-    ungroup()
+  #' #'  ------------------------
+  #' ####  Additional data sets  ####
+  #' #'  ------------------------
+  #' #####  Predator mortality data  ####
+  #' #'  Mortality data provided by IDFG
+  #' load("./Data/IDFG BGMR data/mort_preSmr19.RData")
+  #' load("./Data/IDFG BGMR data/mort_preSmr20.RData")
+  #' load("./Data/IDFG BGMR data/mort_preWtr20.RData")
+  #' load("./Data/IDFG BGMR data/mort_preSmr21.RData")
+  #' 
+  #' reformat_mort_dat <- function(mort) {
+  #'   #'  Split predator mortality data by species
+  #'   mort <- dplyr::select(mort, -gmu_area)
+  #'   mort_bear <- filter(mort, Species == "Black Bear") %>%
+  #'     rename(Bear_mort_n = total_mortalities,
+  #'            Bear_mort_km2 = mortality_km2) %>%
+  #'     dplyr::select(-Species)
+  #'   mort_bob <- filter(mort, Species == "Bobcat") %>%
+  #'     rename(Bob_mort_n = total_mortalities,
+  #'            Bob_mort_km2 = mortality_km2) %>%
+  #'     dplyr::select(-c(Species, GMU))
+  #'   mort_lion <- filter(mort, Species == "Mountain Lion") %>%
+  #'     rename(Lion_mort_n = total_mortalities,
+  #'            Lion_mort_km2 = mortality_km2) %>%
+  #'     dplyr::select(-c(Species, GMU))
+  #'   mort_wolf <- filter(mort, Species == "Wolf") %>%
+  #'     rename(Wolf_mort_n = total_mortalities,
+  #'            Wolf_mort_km2 = mortality_km2) %>%
+  #'     dplyr::select(-c(Species, GMU))
+  #'   mort_df <- as.data.frame(cbind(mort_bear, mort_bob, mort_lion, mort_wolf))
+  #'   return(mort_df)
+  #' }
+  #' mort_Smr19_df <- reformat_mort_dat(mort_preSmr19) %>%
+  #'   filter(GMU != "GMU1")
+  #' mort_Smr20_df <- reformat_mort_dat(mort_preSmr20) %>%
+  #'   filter(GMU != "GMU1")
+  #' mort_Wtr20_df <- reformat_mort_dat(mort_preWtr20) %>%
+  #'   filter(GMU != "GMU1")
+  #' mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
+  #' 
+  #' #'  summarize mortality data
+  #' Season <- c("2018-2019", "2018-2019", "2019-2020", "2019-2020", "2020-2021", "2020-2021", "2020-2021")
+  #' mort_summary <- rbind(mort_Smr19_df, mort_Smr20_df, mort_Smr21_df)
+  #' mort_summary <- cbind(Season, mort_summary)
+  #' names(mort_summary)[names(mort_summary) == "Season"] <- "Harvest season (fall - winter)"
+  #' 
+  #' mort_summary_noGMU1 <- filter(mort_summary, GMU != "GMU1") %>%
+  #'   dplyr::select(`Harvest season (fall - winter)`, Bear_mort_n, Bob_mort_n, Lion_mort_n, Wolf_mort_n) %>%
+  #'   group_by(`Harvest season (fall - winter)`) %>%
+  #'   summarise(across(everything(), sum),
+  #'             .groups = 'drop') %>%
+  #'   ungroup()
   
   #'  ----------------------------------
   ####  COVARIATE EXTRACTION & MERGING  ####
   #'  ----------------------------------
-  cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs, min_group_size, mort, relativeN) {
+  cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs) {
     
     #'  Extract covariate data for each camera site from spatial layers
     perc_forest <- terra::extract(pforest, vect(locs_aea)) %>%
@@ -196,22 +194,17 @@
       mutate(GMU = sub("_.*", "", NewLocationID), 
              dist2rd = round(dist2rd, digits = 2)) %>%
       relocate(GMU, .after = NewLocationID) %>%
-      full_join(mort, by = "GMU") %>%
       dplyr::select(-c(geometry, ID)) %>%
       arrange(NewLocationID) %>%
       rename("Landcover_30m2" = "NLCD Land Cover Class")
       
     return(covs)
   }
-  eoe_covs_20s <- cov_extract(locs_aea = cams_aea[[1]], locs_nad83 = cams_nad83[[1]], locs_hab_crs = cams_hab_crs[[1]], 
-                              mort = mort_Smr20_df, relativeN = spp_diversity_Smr20)
-  eoe_covs_21s <- cov_extract(locs_aea = cams_aea[[2]], locs_nad83 = cams_nad83[[2]], locs_hab_crs = cams_hab_crs[[2]], 
-                              mort = mort_Smr21_df, relativeN = spp_diversity_Smr21)
+  covs_20s <- cov_extract(locs_aea = cams_aea[[1]], locs_nad83 = cams_nad83[[1]], locs_hab_crs = cams_hab_crs[[1]])
+  covs_21s <- cov_extract(locs_aea = cams_aea[[2]], locs_nad83 = cams_nad83[[2]], locs_hab_crs = cams_hab_crs[[2]])
+  covs_22s <- cov_extract(locs_aea = cams_aea[[3]], locs_nad83 = cams_nad83[[3]], locs_hab_crs = cams_hab_crs[[3]])
   
+  covariate_list <- list(covs_20s, covs_21s, covs_22s)
 
   # ####  Save  ###
-  # write.csv(eoe_covs_20s, file = "./Data/Relative abundance data/Covariates_EoE_Smr20.csv")
-  # save(eoe_covs_20s, file = "./Data/Relative abundance data/Covariates_EoE_Smr20.RData")
-  # 
-  # write.csv(eoe_covs_21s, file = "./Data/Relative abundance data/Covariates_EoE_Smr21.csv")
-  # save(eoe_covs_21s, file = "./Data/Relative abundance data/Covariates_EoE_Smr21.RData")
+  # save(covariate_list, file = "./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022.RData")
