@@ -24,21 +24,6 @@
   cat(file = './Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt', "
       model{
       
-      #'  Define likelihood
-      #'  -----------------
-      #'  Latent state (abundance)
-      for(i in 1:nsite) {
-        N[i] ~ dpois(lambda[i])
-        log(lambda[i]) <- beta0 + beta1*PercFor[i] + beta2*Elev[i] + beta3*I(Elev[i]^2) + beta4[GMU[i]]
-      
-      #'  Detection state
-        for(j in 1:nsurveys) {
-          y[i,j] ~ dbern(p[i,j])
-          p[i,j] <- 1 - (1 - r[i,j]) ^ N[i]
-          logit(r[i,j]) <- alpha0 + alpha1*nDays[i] + alpha2[Setup[i]]
-        }
-      }
-      
       #'  Define priors
       #'  -------------
       #'  Abundance priors
@@ -63,36 +48,57 @@
         alpha2[cam] ~ dnorm(0,0.001)
       }
       
-      #'  Derived paramters
+      #'  Define likelihood
       #'  -----------------
-      #'  Site-specific abundance
+      #'  Latent state (abundance)
       for(i in 1:nsite) {
-        siteN[i] <- exp(beta0 + beta1*PercFor[i] + beta2*Elev[i] + beta3*I(Elev[i]^2) + beta4[GMU[i]])
+        log.lambda[i] <- beta0 + beta1*PercFor[i] + beta2*Elev[i] + beta3*pow(Elev[i],2) + beta4[GMU[i]]
+        log(lambda[i]) <- log.lambda[i] 
+        # log(lambda[i]) <- beta0 + beta1*PercFor[i] + beta2*Elev[i] + beta3*pow(Elev[i],2) + beta4[GMU[i]]
+        N[i] ~ dpois(lambda[i])
+      
+      #'  Detection state
+        for(j in 1:nsurvey) {
+          logit.r[i,j] <- alpha0 + alpha1*nDays[i] + alpha2[Setup[i]]
+          logit(r[i,j]) <- logit.r[i,j]
+          # logit(r[i,j]) <- alpha0 + alpha1*nDays[i] + alpha2[Setup[i]]
+          p[i,j] <- 1 - (1 - r[i,j]) ^ N[i]
+          # p[i,j] <- 1 - pow((1 - r[i,j]), N[i])
+          y[i,j] ~ dbern(p[i,j])
+        }
       }
       
-      #'  Mean abundance per GMU
-      for(gmu in 1:ngmu) {
-        gmuN[gmu] <- exp(beta0 + beta4[gmu])
-      }
-      
-      #'  Mean per-individual detection probability per camera setup
-      for(cam in 1:2) {
-        rSetup[cam] <- 1/(1 + exp(alpha0 + alpha2[cam]))
-      }
-      
-      #'  Total abundance across camera sites (NOTE this is different than summing across gmuN)
-      totalN <- sum(N[i:nsite])
-      
-      #'  Total sites and total sites occupied (N > 0)
-      nSites <- count(N[i:nsite])
-      occSites <- count(N[i:nsite] > 0)
-      
-      #'  Mean occupancy (psi)
-      meanpsi <- occSites/nSites
-      
-      #'  Mean detection probability and mean per-individual detection probability
-      meanp <- mean(p[])
-      meanr <- mean(r[])
+      #' #'  Derived paramters
+      #' #'  -----------------
+      #' #'  Site-specific abundance
+      #' for(i in 1:nsite) {
+      #'   siteN[i] <- exp(beta0 + beta1*PercFor[i] + beta2*Elev[i] + beta3*pow(Elev[i],2) + beta4[GMU[i]])
+      #' }
+      #' 
+      #' #'  Mean abundance per GMU
+      #' for(gmu in 1:ngmu) {
+      #'   gmuN[gmu] <- exp(beta0 + beta4[gmu])
+      #' }
+      #' 
+      #' #'  Mean per-individual detection probability per camera setup
+      #' for(cam in 1:2) {
+      #'   rSetup[cam] <- 1/(1 + exp(alpha0 + alpha2[cam]))
+      #' }
+      #' 
+      #' #'  Total abundance across camera sites (NOTE this is different than summing across gmuN)
+      #' totalN <- sum(N[i:nsite])
+      #' 
+      #' #'  Total sites and total sites occupied (N > 0)
+      #' nSites <- count(N[i:nsite])
+      #' occSites <- count(N[i:nsite] > 0)
+      #' 
+      #' #'  Mean occupancy (psi)
+      #' meanpsi <- occSites/nSites
+      #' 
+      #' #'  Mean detection probability, per-individual detection probability, and lambda
+      #' meanp <- mean(p[])
+      #' meanr <- mean(r[])
+      #' meanlambda <- mean(lambda[])
       
       }
       ")
