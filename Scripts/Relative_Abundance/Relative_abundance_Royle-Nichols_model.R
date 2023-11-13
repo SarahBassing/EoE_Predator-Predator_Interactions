@@ -18,6 +18,8 @@
   library(chron)
   library(lubridate)
   library(unmarked)
+  library(jagsUI)
+  library(mcmcplots)
   library(tidyverse)
   
   #'  ------------------------------
@@ -308,9 +310,9 @@
   #'  Double check percent forested habitat and elevation aren't too correlated
   cor(stations_npp22s$PercFor, stations_npp22s$Elev)
   
-  #'  ----------------------------------
-  ####  Format survey-level covariates  ####
-  #'  ----------------------------------
+  #'  -----------------------------------
+  #####  Format survey-level covariates  #####
+  #'  -----------------------------------
   #'  Scale survey-level covariates
   scale_srvy_cov <- function(srvy_covs) {
     #'  Reduce to just number of days per sampling occasion camera was operating
@@ -339,6 +341,13 @@
   srvy_covs_21s <- list(effort = zeffort_RNmod[[2]])
   srvy_covs_22s <- list(effort = zeffort_RNmod[[3]])
   
+  
+  #'  -----------------------
+  ####  Royle-Nichols model  ####
+  #'  -----------------------
+  #'  Run Royle-Nichols model using a Bayesian statistical framework in JAGS and
+  #'  a likelihood framework with unmarked
+  
   #'  ------------------------
   #####  Setup data for JAGS  #####
   #'  ------------------------
@@ -356,8 +365,8 @@
   
   #'  Bundle detection histories and covariates for each species and year
   bundle_dat <- function(dh, nsite, nsurvey, cov) {
-    bundled <- list(y = dh, nsite = nsite, nsurvey = nsurvey, ngmu = unique(cov$GMU),
-                    GMU = cov$GMU, Setup = cov$Setup, PercFor = cov$PercFor, 
+    bundled <- list(y = dh[[1]], nsite = nsite, nsurvey = nsurvey, ngmu = as.numeric(unique(cov$GMU)),
+                    GMU = as.numeric(cov$GMU), Setup = as.numeric(cov$Setup), PercFor = cov$PercFor, 
                     Elev = cov$Elev, nDays = cov$nDays)
     str(bundled)
     return(bundled)
@@ -374,7 +383,7 @@
   save(data_JAGS_bundle_22s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_22s.RData")
   
   #'  Initial values
-  #'  Using niave occupancy as a starting point
+  #'  Using naive occupancy as a starting point for local abundance
   initial_n <- function(dh) {
     #'  Sum detections per row
     ninit <- apply(dh[[1]], 1, sum, na.rm = TRUE)
@@ -384,19 +393,46 @@
     ninit <- as.numeric(ninit)
     return(ninit)
   }
+  #'  Apply function per species for each year
   ninit_20s <- lapply(DH_npp20s_RNmod, initial_n)
   ninit_21s <- lapply(DH_npp21s_RNmod, initial_n)
   ninit_22s <- lapply(DH_npp22s_RNmod, initial_n)
   
-  #'  Paramters monitored
-  #'  N, lambda, p, r, betas, alphas, derived params
+  #'  Parameters monitored
+  params <- c("beta0", "beta1", "beta2", "beta3", "beta4", "alpha0", "alpha1", "alpha2", 
+              "totalN", "gmuN", "meanlambda", "meanpsi", "meanp", "meanr", "rSetup", 
+              "N", "siteN")
   
   #'  MCMC settings
+  nc <- 3
+  ni <- 1000
+  nb <- 500
+  nt <- 1
+  na <- 200
   
+  #'  ---------------------------
+  #####  Run RN model with JAGS  #####
+  #'  ---------------------------
+  source("./Scripts/Relative_Abundance/RNmodel_JAGS_code.R")
   
+  ######  Black bear models  ######
+  inits_bear20s <- function(){list(N = ninit_20s[[1]])}
+  inits_bear21s <- function(){list(N = ninit_21s[[1]])}
+  inits_bear22s <- function(){list(N = ninit_22s[[1]])}
   
+  start.time = Sys.time()
+  RN_bear_20s <- jags(data_JAGS_bundle_20s[[1]], inits = inits_bear20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
+                      n.adapt = na)#, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_bear_20s$summary)
+  # print(RN_bear_20s$DIC)
+  # which(RN_bear_20s$summary[,"Rhat"] > 1.1)
+  # mcmcplot(RN_bear_20s$samples)
+  # save(RN_bear_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bear_20s_", Sys.Date(), ".RData"))
   
-  
+    
   #'  ----------------------------
   #####  Setup data for unmarked  #####
   #'  ----------------------------
@@ -434,10 +470,9 @@
   wolf_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[5]][[1]], sitecovs = stations_npp21s, srvycovs = srvy_covs_21s)
   wolf_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[5]][[1]], sitecovs = stations_npp22s, srvycovs = srvy_covs_22s)
 
-  
-  #'  -----------------------
-  ####  Royle-Nichols model  ####  
-  #'  -----------------------
+  #'  -------------------------------
+  #####  Run RN model with unmarked  #####  
+  #'  -------------------------------
   #'  Fit Royle-Nichles model (RN model) to detection/non-detection data to estimate
   #'  relative abundance and detection probability per species and season
   #'  ~ covariates affecting per-individual detection probability ~ covariates affecting abundance
