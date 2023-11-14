@@ -138,13 +138,13 @@
     det_hist <- detectionHistory(recordTable = dets,
                                  camOp = cam_probs,
                                  stationCol = "NewLocationID",
-                                 speciesCol = "Species",
+                                 # speciesCol = "Species",
                                  recordDateTimeCol = "posix_date_time",
                                  recordDateTimeFormat = "%Y-%m-%d %H:%M:%S",
                                  species = spp,
                                  occasionLength = 1,
                                  day1 = start_date, 
-                                 datesAsOccasionNames = TRUE,
+                                 datesAsOccasionNames = FALSE,
                                  # occasionStartTime = 12, # starts at noon
                                  timeZone = "America/Edmonton",
                                  output = y,
@@ -170,9 +170,19 @@
   }
   #'  Create season-specific detection histories for species listed below
   spp_smr <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf", "elk", "moose", "muledeer", "whitetaileddeer", "rabbit_hare")
-  DH_npp20s_RNmod <- lapply(spp_smr, DH, dets = npp20s_det_events, cam_probs = npp20s_probs, start_date = "2020-07-01", y = "binary", rm_rows = rm_rows_npp20s, oc = 77) 
-  DH_npp21s_RNmod <- lapply(spp_smr, DH, dets = npp21s_det_events, cam_probs = npp21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_npp21s, oc = 77)
-  DH_npp22s_RNmod <- lapply(spp_smr, DH, dets = npp22s_det_events, cam_probs = npp22s_probs, start_date = "2022-07-01", y = "binary", rm_rows = rm_rows_npp22s, oc = 77)
+  DHeff_npp20s_RNmod <- lapply(spp_smr, DH, dets = npp20s_det_events, cam_probs = npp20s_probs, start_date = "2020-07-01", y = "binary", rm_rows = rm_rows_npp20s, oc = 77) 
+  DHeff_npp21s_RNmod <- lapply(spp_smr, DH, dets = npp21s_det_events, cam_probs = npp21s_probs, start_date = "2021-07-01", y = "binary", rm_rows = rm_rows_npp21s, oc = 77)
+  DHeff_npp22s_RNmod <- lapply(spp_smr, DH, dets = npp22s_det_events, cam_probs = npp22s_probs, start_date = "2022-07-01", y = "binary", rm_rows = rm_rows_npp22s, oc = 77)
+  
+  #'  Remove sampling effort from species-specific DH_npp lists
+  strip_list <- function(dh) {
+    #'  Keep only the detection history per species
+    dh_only <- dh[[1]]
+    return(dh_only)
+  }
+  DH_npp20s_RNmod <- lapply(DHeff_npp20s_RNmod, strip_list)
+  DH_npp21s_RNmod <- lapply(DHeff_npp21s_RNmod, strip_list)
+  DH_npp22s_RNmod <- lapply(DHeff_npp22s_RNmod, strip_list)
   
   #'  --------------------
   #####  Sampling effort  #####
@@ -188,9 +198,9 @@
              nhrs = ndays*24)
     return(effort)
   }
-  effort_20s_RNmod <- sampling_effort(DH_npp20s_RNmod)
-  effort_21s_RNmod <- sampling_effort(DH_npp21s_RNmod)
-  effort_22s_RNmod <- sampling_effort(DH_npp22s_RNmod)
+  effort_20s_RNmod <- sampling_effort(DHeff_npp20s_RNmod)
+  effort_21s_RNmod <- sampling_effort(DHeff_npp21s_RNmod)
+  effort_22s_RNmod <- sampling_effort(DHeff_npp22s_RNmod)
   
   #' #'  ------------------------
   #' #####  SAVE detection data  #####
@@ -283,37 +293,23 @@
     
     return(formatted)
   }
-  stations_npp20s <- format_covs(cams_eoe20s, dets = DH_npp20s_RNmod[[1]][[1]], effort = effort_20s_RNmod) 
-  stations_npp21s <- format_covs(cams_eoe21s, dets = DH_npp21s_RNmod[[1]][[1]], effort = effort_21s_RNmod) 
-  stations_npp22s <- format_covs(cams_eoe22s, dets = DH_npp22s_RNmod[[1]][[1]], effort = effort_22s_RNmod) 
-  
-  #' #'  Re-factor GMU covariate so reference category is consistent across years
-  #' refactor_gmu <- function(covs, new_levels) {
-  #'   order_gmu <- new_levels 
-  #'   covs <- covs %>%
-  #'     mutate(
-  #'       GMU = fct_relevel(GMU, order_gmu)
-  #'     )
-  #'   return(covs)
-  #' }
-  #' stations_npp20s <- refactor_gmu(stations_npp20s, new_levels = c("GMU10A", "GMU6"))
-  #' stations_npp21s <- refactor_gmu(stations_npp21s, new_levels = c("GMU10A", "GMU6", "GMU1"))
-  #' stations_npp22s <- refactor_gmu(stations_npp22s, new_levels = c("GMU10A", "GMU6", "GMU1"))
-  
-  #' #'  List annual covariate data
-  #' covs_list <- list(stations_npp20s, stations_npp21s, stations_npp22s)
+  stations_npp20s <- format_covs(cams_eoe20s, dets = DHeff_npp20s_RNmod[[1]][[1]], effort = effort_20s_RNmod) 
+  stations_npp21s <- format_covs(cams_eoe21s, dets = DHeff_npp21s_RNmod[[1]][[1]], effort = effort_21s_RNmod) 
+  stations_npp22s <- format_covs(cams_eoe22s, dets = DHeff_npp22s_RNmod[[1]][[1]], effort = effort_22s_RNmod) 
   
   #'  Double check things are ordered correctly!!!!
-  stations_npp21s[82:90,1:4]
-  DH_npp21s_RNmod[[1]][[1]][82:90,1:3]
+  stations_npp22s[82:90,1:4]
+  DH_npp22s_RNmod[[1]][82:90,1:3]
   
   #'  Double check percent forested habitat and elevation aren't too correlated
+  cor(stations_npp20s$PercFor, stations_npp20s$Elev)
+  cor(stations_npp21s$PercFor, stations_npp21s$Elev)
   cor(stations_npp22s$PercFor, stations_npp22s$Elev)
   
   #'  -----------------------------------
   #####  Format survey-level covariates  #####
   #'  -----------------------------------
-  #'  Scale survey-level covariates
+  #'  Scale survey-level covariates (really only relevant if using 7-day sampling occasions)
   scale_srvy_cov <- function(srvy_covs) {
     #'  Reduce to just number of days per sampling occasion camera was operating
     skinny_srvy_covs <- srvy_covs %>% dplyr::select(-c(NewLocationID, ndays, nhrs))
@@ -351,32 +347,29 @@
   #'  ------------------------
   #####  Setup data for JAGS  #####
   #'  ------------------------
-  #'  Define survey dimensions
-  survey_dimensions <- function(dh) {
-    nsite <- dim(dh)[1]
-    nsurvey <- dim(dh)[2]
-    ndims <- list(nsite, nsurvey)
-    names(ndims) <- c("nsite", "nsurvey")
-    return(ndims)
-  }
-  ndim_20s <- survey_dimensions(DH_npp20s_RNmod[[1]][[1]])
-  ndim_21s <- survey_dimensions(DH_npp21s_RNmod[[1]][[1]])
-  ndim_22s <- survey_dimensions(DH_npp22s_RNmod[[1]][[1]])
-  
   #'  Bundle detection histories and covariates for each species and year
-  bundle_dat <- function(dh, nsite, nsurvey, cov) {
-    bundled <- list(y = dh[[1]], nsite = nsite, nsurvey = nsurvey, ngmu = as.numeric(unique(cov$GMU)),
-                    GMU = as.numeric(cov$GMU), Setup = as.numeric(cov$Setup), PercFor = cov$PercFor, 
-                    Elev = cov$Elev, nDays = cov$nDays)
+  bundle_dat <- function(dh, nsite, nsurvey, cov, effort) {
+    #'  Convert detection history to matrix
+    dh <- as.matrix(dh)
+    dimnames(dh) <- NULL
+    #'  Bundle data for JAGS
+    bundled <- list(y = dh, 
+                    nsites = dim(dh)[1], 
+                    nsurveys = dim(dh)[2], 
+                    ngmu = max(as.numeric(cov$GMU)),
+                    nsets = max(as.numeric(cov$Setup)),
+                    gmu = as.numeric(cov$GMU), 
+                    setup = as.numeric(cov$Setup),
+                    forest = as.numeric(cov$PercFor), 
+                    elev = as.numeric(cov$Elev), 
+                    ndays = as.numeric(cov$nDays), 
+                    seffort = as.numeric(effort))
     str(bundled)
     return(bundled)
   }
-  data_JAGS_bundle_20s <- lapply(DH_npp20s_RNmod, bundle_dat, nsite = ndim_20s$nsite, 
-                            nsurvey = ndim_20s$nsurvey, cov = stations_npp20s)
-  data_JAGS_bundle_21s <- lapply(DH_npp21s_RNmod, bundle_dat, nsite = ndim_21s$nsite, 
-                            nsurvey = ndim_21s$nsurvey, cov = stations_npp21s)
-  data_JAGS_bundle_22s <- lapply(DH_npp22s_RNmod, bundle_dat, nsite = ndim_22s$nsite, 
-                            nsurvey = ndim_22s$nsurvey, cov = stations_npp22s)
+  data_JAGS_bundle_20s <- lapply(DH_npp20s_RNmod, bundle_dat, cov = stations_npp20s, effort = zeffort_RNmod[[1]])
+  data_JAGS_bundle_21s <- lapply(DH_npp21s_RNmod, bundle_dat, cov = stations_npp21s, effort = zeffort_RNmod[[2]])
+  data_JAGS_bundle_22s <- lapply(DH_npp22s_RNmod, bundle_dat, cov = stations_npp22s, effort = zeffort_RNmod[[3]])
   
   save(data_JAGS_bundle_20s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_20s.RData")
   save(data_JAGS_bundle_21s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_21s.RData")
@@ -385,12 +378,9 @@
   #'  Initial values
   #'  Using naive occupancy as a starting point for local abundance
   initial_n <- function(dh) {
-    #'  Sum detections per row
-    ninit <- apply(dh[[1]], 1, sum, na.rm = TRUE)
-    #'  Revert to 1 if >1
-    ninit[ninit > 1] <- 1
-    #'  Ensure data are numeric
-    ninit <- as.numeric(ninit)
+    #'  Max value per row
+    ninit <- apply(dh, 1, max, na.rm = TRUE)
+    ninit <- as.vector(ninit)
     return(ninit)
   }
   #'  Apply function per species for each year
@@ -399,16 +389,16 @@
   ninit_22s <- lapply(DH_npp22s_RNmod, initial_n)
   
   #'  Parameters monitored
-  params <- c("beta0", "beta1", "beta2", "beta3", "beta4", "alpha0", "alpha1", "alpha2", 
-              "totalN", "gmuN", "meanlambda", "meanpsi", "meanp", "meanr", "rSetup", 
-              "N", "siteN")
+  params <- c("mean.lambda", "beta0", "beta1", "beta2", "beta3", "beta4", 
+              "mean.r", "alpha0", "alpha1", "alpha2", "rSetup", "meanp",
+              "totalN", "gmuN", "occSites", "meanpsi", "N")
   
   #'  MCMC settings
   nc <- 3
-  ni <- 1000
-  nb <- 500
-  nt <- 1
-  na <- 200
+  ni <- 15000
+  nb <- 2000
+  nt <- 10
+  na <- 1000
   
   #'  ---------------------------
   #####  Run RN model with JAGS  #####
@@ -416,28 +406,221 @@
   source("./Scripts/Relative_Abundance/RNmodel_JAGS_code.R")
   
   ######  Black bear models  ######
-  inits_bear20s <- function(){list(N = ninit_20s[[1]])}
-  inits_bear21s <- function(){list(N = ninit_21s[[1]])}
-  inits_bear22s <- function(){list(N = ninit_22s[[1]])}
-  
+  #'  Summer 2020
   start.time = Sys.time()
+  inits_bear20s <- function(){list(N = ninit_20s[[1]])}
   RN_bear_20s <- jags(data_JAGS_bundle_20s[[1]], inits = inits_bear20s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, 
-                      n.adapt = na)#, DIC = TRUE, parallel = TRUE)
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_bear_20s$summary)
-  # print(RN_bear_20s$DIC)
-  # which(RN_bear_20s$summary[,"Rhat"] > 1.1)
-  # mcmcplot(RN_bear_20s$samples)
-  # save(RN_bear_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bear_20s_", Sys.Date(), ".RData"))
+  which(RN_bear_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_bear_20s$samples)
+  save(RN_bear_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bear_20s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2021
+  start.time = Sys.time()
+  inits_bear21s <- function(){list(N = ninit_21s[[1]])}
+  RN_bear_21s <- jags(data_JAGS_bundle_21s[[1]], inits = inits_bear21s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_bear_21s$summary)
+  which(RN_bear_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_bear_21s$samples)
+  save(RN_bear_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bear_21s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2022
+  start.time = Sys.time()
+  inits_bear22s <- function(){list(N = ninit_22s[[1]])}
+  RN_bear_22s <- jags(data_JAGS_bundle_22s[[1]], inits = inits_bear22s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_bear_22s$summary)
+  which(RN_bear_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_bear_22s$samples)
+  save(RN_bear_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bear_22s_", Sys.Date(), ".RData"))
+  
+  
+  ######  Bobcat models  ######
+  #'  Summer 2020
+  start.time = Sys.time()
+  inits_bob20s <- function(){list(N = ninit_20s[[2]])}
+  RN_bob_20s <- jags(data_JAGS_bundle_20s[[2]], inits = inits_bob20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_bob_20s$summary)
+  which(RN_bob_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_bob_20s$samples)
+  save(RN_bob_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_20s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2021
+  start.time = Sys.time()
+  inits_bob21s <- function(){list(N = ninit_21s[[2]])}
+  RN_bob_21s <- jags(data_JAGS_bundle_21s[[2]], inits = inits_bob21s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_bob_21s$summary)
+  which(RN_bob_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_bob_21s$samples)
+  save(RN_bon_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_21s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2022
+  start.time = Sys.time()
+  inits_bob22s <- function(){list(N = ninit_22s[[2]])}
+  RN_bob_22s <- jags(data_JAGS_bundle_22s[[2]], inits = inits_bob22s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_bob_22s$summary)
+  which(RN_bob_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_bob_22s$samples)
+  save(RN_bob_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_22s_", Sys.Date(), ".RData"))
+  
+  
+  ######  Coyote models  ######
+  #'  Summer 2020
+  start.time = Sys.time()
+  inits_coy20s <- function(){list(N = ninit_20s[[3]])}
+  RN_coy_20s <- jags(data_JAGS_bundle_20s[[3]], inits = inits_coy20s, params,
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_coy_20s$summary)
+  which(RN_coy_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_coy_20s$samples)
+  save(RN_coy_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_coy_20s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2021
+  start.time = Sys.time()
+  inits_coy21s <- function(){list(N = ninit_21s[[3]])}
+  RN_coy_21s <- jags(data_JAGS_bundle_21s[[3]], inits = inits_coy21s, params,
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_coy_21s$summary)
+  which(RN_coy_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_coy_21s$samples)
+  save(RN_coy_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_coy_21s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2022
+  start.time = Sys.time()
+  inits_coy22s <- function(){list(N = ninit_22s[[3]])}
+  RN_coy_22s <- jags(data_JAGS_bundle_22s[[3]], inits = inits_coy22s, params,
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_coy_22s$summary)
+  which(RN_coy_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_coy_22s$samples)
+  save(RN_coy_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_coy_22s_", Sys.Date(), ".RData"))
+  
+  
+  ######  Mountain lion models  ######
+  #'  Summer 2020
+  start.time = Sys.time()
+  inits_lion20s <- function(){list(N = ninit_20s[[4]])}
+  RN_lion_20s <- jags(data_JAGS_bundle_20s[[4]], inits = inits_lion20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_lion_20s$summary)
+  which(RN_lion_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_lion_20s$samples)
+  save(RN_lion_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2021
+  start.time = Sys.time()
+  inits_lion21s <- function(){list(N = ninit_21s[[4]])}
+  RN_lion_21s <- jags(data_JAGS_bundle_21s[[4]], inits = inits_lion21s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_lion_21s$summary)
+  which(RN_lion_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_lion_21s$samples)
+  save(RN_lion_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_21s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2022
+  start.time = Sys.time()
+  inits_lion22s <- function(){list(N = ninit_22s[[4]])}
+  RN_lion_22s <- jags(data_JAGS_bundle_22s[[4]], inits = inits_lion22s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_lion_22s$summary)
+  which(RN_lion_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_lion_22s$samples)
+  save(RN_lion_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_22s_", Sys.Date(), ".RData"))
+  
+  
+  ######  Wolf models  ######
+  #'  Summer 2020
+  start.time = Sys.time()
+  inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
+  RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wolf_20s$summary)
+  which(RN_wolf_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wolf_20s$samples)
+  save(RN_wolf_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_20s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2021
+  start.time = Sys.time()
+  inits_wolf21s <- function(){list(N = ninit_21s[[5]])}
+  RN_wolf_21s <- jags(data_JAGS_bundle_21s[[5]], inits = inits_wolf21s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wolf_21s$summary)
+  which(RN_wolf_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wolf_21s$samples)
+  save(RN_wolf_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_21s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2022
+  start.time = Sys.time()
+  inits_wolf22s <- function(){list(N = ninit_22s[[5]])}
+  RN_wolf_22s <- jags(data_JAGS_bundle_22s[[5]], inits = inits_wolf22s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wolf_22s$summary)
+  which(RN_wolf_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wolf_22s$samples)
+  save(RN_wolf_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_22s_", Sys.Date(), ".RData"))
+  
   
     
   #'  ----------------------------
   #####  Setup data for unmarked  #####
   #'  ----------------------------
-  #'  Single-season, single-species occupancy unmarkedDF --> unmarkedFrameOccu 
+  #'  Create list of survey level covariates for unmarked (one list per year)
+  srvy_covs_20s <- list(effort = zeffort_RNmod[[1]])
+  srvy_covs_21s <- list(effort = zeffort_RNmod[[2]])
+  srvy_covs_22s <- list(effort = zeffort_RNmod[[3]])
+  
   #'  Function to create unmarked dataframes for Royle-Nichols occupancy models
+  #'  Single-season, single-species occupancy unmarkedDF --> unmarkedFrameOccu 
   umf_setup <- function(dh, listnames, sitecovs, srvycovs, plotit = T) {
     
     #'  Create array with detection histories, site-level and survey-level covariates
