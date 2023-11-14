@@ -27,10 +27,11 @@
       #'  Define priors
       #'  -------------
       #'  Abundance priors
-      beta0 ~ dnorm(0,0.001)
-      beta1 ~ dnorm(0,0.001)
-      beta2 ~ dnorm(0,0.001)
-      beta3 ~ dnorm(0,0.001)
+      beta0 ~ dunif(-10, 10)      # Abundance intercept
+      mean.lambda <- exp(beta0)
+      beta1 ~ dnorm(0, 0.001)
+      beta2 ~ dnorm(0, 0.001)
+      beta3 ~ dnorm(0, 0.001)
       
       #'  Categorical effect for GMU needs multiple beta4 coefficients
       beta4[1] <- 0
@@ -39,42 +40,34 @@
       }
       
       #'  Detection priors
-      alpha0 ~ dnorm(0,0.001)
-      alpha1 ~ dnorm(0,0.001)
+      mean.r ~ dunif(0, 1)        # Detection intercept
+      alpha0 <- logit(mean.r)
+      alpha1 ~ dnorm(0, 0.001)
       
       #'  Categorical effect for camera setup needs multiple alpha2 coefficients
       alpha2[1] <- 0
-      for(cam in 2:2) {
+      for(cam in 2:nsets) {
         alpha2[cam] ~ dnorm(0,0.001)
       }
+      
       
       #'  Define likelihood
       #'  -----------------
       #'  Latent state (abundance)
-      for(i in 1:nsite) {
-        log.lambda[i] <- beta0 + beta1*PercFor[i] + beta2*Elev[i] + beta3*pow(Elev[i],2) + beta4[GMU[i]]
-        log(lambda[i]) <- log.lambda[i] 
-        # log(lambda[i]) <- beta0 + beta1*PercFor[i] + beta2*Elev[i] + beta3*pow(Elev[i],2) + beta4[GMU[i]]
+      for(i in 1:nsites){
         N[i] ~ dpois(lambda[i])
-      
-      #'  Detection state
-        for(j in 1:nsurvey) {
-          logit.r[i,j] <- alpha0 + alpha1*nDays[i] + alpha2[Setup[i]]
-          logit(r[i,j]) <- logit.r[i,j]
-          # logit(r[i,j]) <- alpha0 + alpha1*nDays[i] + alpha2[Setup[i]]
-          p[i,j] <- 1 - (1 - r[i,j]) ^ N[i]
-          # p[i,j] <- 1 - pow((1 - r[i,j]), N[i])
+        lambda[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[i]])
+        
+        #'  Detection state
+        for(j in 1:nsurveys){
           y[i,j] ~ dbern(p[i,j])
+          p[i,j] <- 1 - pow((1 - r[i,j]), N[i])
+          logit(r[i,j]) <- alpha0 + alpha1 * ndays[i] + alpha2[setup[i]]  #alpha1 * seffort[i,j] if using 7-day sampling occasions
         }
       }
       
       #' #'  Derived paramters
       #' #'  -----------------
-      #' #'  Site-specific abundance
-      #' for(i in 1:nsite) {
-      #'   siteN[i] <- exp(beta0 + beta1*PercFor[i] + beta2*Elev[i] + beta3*pow(Elev[i],2) + beta4[GMU[i]])
-      #' }
-      #' 
       #' #'  Mean abundance per GMU
       #' for(gmu in 1:ngmu) {
       #'   gmuN[gmu] <- exp(beta0 + beta4[gmu])
@@ -86,19 +79,16 @@
       #' }
       #' 
       #' #'  Total abundance across camera sites (NOTE this is different than summing across gmuN)
-      #' totalN <- sum(N[i:nsite])
+      #' totalN <- sum(N[])
       #' 
-      #' #'  Total sites and total sites occupied (N > 0)
-      #' nSites <- count(N[i:nsite])
+      #' #'  Total sites occupied (N > 0)
       #' occSites <- count(N[i:nsite] > 0)
       #' 
-      #' #'  Mean occupancy (psi)
-      #' meanpsi <- occSites/nSites
+      #' #'  Mean occupancy probability
+      #' meanpsi <- 1 - exp(-mean.lambda)
       #' 
-      #' #'  Mean detection probability, per-individual detection probability, and lambda
+      #' #'  Mean detection probability
       #' meanp <- mean(p[])
-      #' meanr <- mean(r[])
-      #' meanlambda <- mean(lambda[])
       
       }
       ")
