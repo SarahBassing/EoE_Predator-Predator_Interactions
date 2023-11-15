@@ -416,8 +416,7 @@
               "mean.r", "alpha0", "alpha1", "alpha2", "rSetup", "mu.r", "mean.p",
               "lambdaGMU", "mu.lambda", "totalN", "occSites", "mean.psi", 
               "totalN.gmu10a", "densitykm2.gmu10a", "density100km2.gmu10a", 
-              "totalN.gmu6", "densitykm2.gmu6", "density100km2.gmu6", 
-              "Ngmu1", "Ngmu2", "Ngmu3", "N")
+              "totalN.gmu6", "densitykm2.gmu6", "density100km2.gmu6", "N")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept, i.e., mean lambda for GMU10A 
   #'  mean.r = the intercept, i.e., per-individual detection probability at random sites
