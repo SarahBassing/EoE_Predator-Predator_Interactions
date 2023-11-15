@@ -278,9 +278,9 @@
     cam_covs <- left_join(cam_covs, cam_operable, by = "NewLocationID")
     #'  Rename, format, and scale as needed
     formatted <- cam_covs %>%
-      mutate(GMUs = ifelse(GMU == "GMU10A", 1, 2),
+      mutate(GMUs = ifelse(GMU == "GMU10A", 1, 2),  # GMU10A represents the intercept!
              GMUs = ifelse(GMU == "GMU1", 3, GMUs),
-             Setup = ifelse(Setup == "ungulate", 1, 2)) %>%
+             Setup = ifelse(Setup == "ungulate", 1, 2)) %>%  #'  Ungulate (random) cameras represent the intercept!
       transmute(NewLocationID = as.factor(NewLocationID),
                 Season = as.factor(Season),
                 GMU = as.factor(GMUs),
@@ -352,18 +352,41 @@
     #'  Convert detection history to matrix
     dh <- as.matrix(dh)
     dimnames(dh) <- NULL
+    #'  Count number of sites per GMU
+    ncams_perGMU <- cov %>%
+      group_by(GMU) %>%
+      summarise(nsites = n()) %>%
+      ungroup()
+    #'  Split up covariates by GMU
+    covs_GMU10A <- filter(cov, GMU == 1)
+    covs_GMU6 <- filter(cov, GMU == 2)
+    covs_GMU1 <- filter(cov, GMU == 3)
     #'  Bundle data for JAGS
     bundled <- list(y = dh, 
                     nsites = dim(dh)[1], 
                     nsurveys = dim(dh)[2], 
                     ngmu = max(as.numeric(cov$GMU)),
                     nsets = max(as.numeric(cov$Setup)),
+                    ncams1 = as.numeric(ncams_perGMU[1,2]), # GMU10A
+                    ncams2 = as.numeric(ncams_perGMU[2,2]), # GMU6
+                    ncams3 = as.numeric(ifelse(is.na(ncams_perGMU[3,2]), 0, ncams_perGMU[3,2])), #GMU1
                     gmu = as.numeric(cov$GMU), 
                     setup = as.numeric(cov$Setup),
                     forest = as.numeric(cov$PercFor), 
                     elev = as.numeric(cov$Elev), 
                     ndays = as.numeric(cov$nDays), 
-                    seffort = as.numeric(effort))
+                    seffort = as.numeric(effort),
+                    #'  GMU-specific covariates for predicting N
+                    forest1 = as.numeric(covs_GMU10A$PercFor),
+                    forest2 = as.numeric(covs_GMU6$PercFor),
+                    forest3 = as.numeric(covs_GMU1$PercFor),
+                    elev1 = as.numeric(covs_GMU10A$Elev),
+                    elev2 = as.numeric(covs_GMU6$Elev),
+                    elev3 = as.numeric(covs_GMU1$Elev),
+                    #'  Area of each (km2)
+                    area1 = as.numeric(8527.31),
+                    area2 = as.numeric(5905.44),
+                    area3 = as.numeric(14648.92))
     str(bundled)
     return(bundled)
   }
@@ -390,8 +413,16 @@
   
   #'  Parameters monitored
   params <- c("mean.lambda", "beta0", "beta1", "beta2", "beta3", "beta4", 
-              "mean.r", "alpha0", "alpha1", "alpha2", "rSetup", "meanp",
-              "totalN", "gmuN", "occSites", "meanpsi", "N")
+              "mean.r", "alpha0", "alpha1", "alpha2", "rSetup", "mu.r", "mean.p",
+              "lambdaGMU", "mu.lambda", "totalN", "occSites", "mean.psi", 
+              "totalN.gmu10a", "densitykm2.gmu10a", "density100km2.gmu10a", 
+              "totalN.gmu6", "densitykm2.gmu6", "density100km2.gmu6", 
+              "Ngmu1", "Ngmu2", "Ngmu3", "N")
+  #'  NOTE about mean vs mu lambda and r: 
+  #'  mean.lambda = the intercept, i.e., mean lambda for GMU10A 
+  #'  mean.r = the intercept, i.e., per-individual detection probability at random sites
+  #'  mu.lambda = lambda averaged across all GMUs
+  #'  mu.r = per-individual detection probability averaged across all sites 
   
   #'  MCMC settings
   nc <- 3
@@ -403,14 +434,14 @@
   #'  ---------------------------
   #####  Run RN model with JAGS  #####
   #'  ---------------------------
-  source("./Scripts/Relative_Abundance/RNmodel_JAGS_code.R")
+  source("./Scripts/Relative_Abundance/RNmodel_JAGS_code_2020.R")
   
   ######  Black bear models  ######
   #'  Summer 2020
   start.time = Sys.time()
   inits_bear20s <- function(){list(N = ninit_20s[[1]])}
   RN_bear_20s <- jags(data_JAGS_bundle_20s[[1]], inits = inits_bear20s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -419,6 +450,7 @@
   mcmcplot(RN_bear_20s$samples)
   save(RN_bear_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bear_20s_", Sys.Date(), ".RData"))
   
+  source("./Scripts/Relative_Abundance/RNmodel_JAGS_code.R")
   #'  Summer 2021
   start.time = Sys.time()
   inits_bear21s <- function(){list(N = ninit_21s[[1]])}
