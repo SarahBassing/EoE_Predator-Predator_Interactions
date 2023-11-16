@@ -412,11 +412,12 @@
   ninit_22s <- lapply(DH_npp22s_RNmod, initial_n)
   
   #'  Parameters monitored
-  params <- c("mean.lambda", "beta0", "beta1", "beta2", "beta3", "beta4", 
-              "mean.r", "alpha0", "alpha1", "alpha2", "rSetup", "mu.r", "mean.p",
-              "lambdaGMU", "mu.lambda", "totalN", "occSites", "mean.psi", 
+  params <- c("beta0", "beta1", "beta2", "beta3", "beta4", #"mean.lambda", 
+              "alpha0", "alpha1", "alpha2", "rSetup", "mu.r", "mean.p", #"mean.r", 
+              "mu.lambda", "totalN", "occSites", "mean.psi", 
               "totalN.gmu10a", "densitykm2.gmu10a", "density100km2.gmu10a", 
-              "totalN.gmu6", "densitykm2.gmu6", "density100km2.gmu6", "N")
+              "totalN.gmu6", "densitykm2.gmu6", "density100km2.gmu6", 
+              "totalN.gmu1", "densitykm2.gmu1", "density100km2.gmu1","N")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept, i.e., mean lambda for GMU10A 
   #'  mean.r = the intercept, i.e., per-individual detection probability at random sites
@@ -433,10 +434,10 @@
   #'  ---------------------------
   #####  Run RN model with JAGS  #####
   #'  ---------------------------
+  ######  2020  Analyses  ######
   source("./Scripts/Relative_Abundance/RNmodel_JAGS_code_2020.R")
   
-  ######  Black bear models  ######
-  #'  Summer 2020
+  ######  Black bear  ######
   start.time = Sys.time()
   inits_bear20s <- function(){list(N = ninit_20s[[1]])}
   RN_bear_20s <- jags(data_JAGS_bundle_20s[[1]], inits = inits_bear20s, params,
@@ -448,8 +449,64 @@
   which(RN_bear_20s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_bear_20s$samples)
   save(RN_bear_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bear_20s_", Sys.Date(), ".RData"))
+
+  ######  Bobcat  ######
+  start.time = Sys.time()
+  inits_bob20s <- function(){list(N = ninit_20s[[2]])}
+  RN_bob_20s <- jags(data_JAGS_bundle_20s[[2]], inits = inits_bob20s, params,
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_bob_20s$summary)
+  which(RN_bob_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_bob_20s$samples)
+  save(RN_bob_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_20s_", Sys.Date(), ".RData"))
   
+  ######  Coyote  ######
+  start.time = Sys.time()
+  inits_coy20s <- function(){list(N = ninit_20s[[3]])}
+  RN_coy_20s <- jags(data_JAGS_bundle_20s[[3]], inits = inits_coy20s, params,
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_coy_20s$summary)
+  which(RN_coy_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_coy_20s$samples)
+  save(RN_coy_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_coy_20s_", Sys.Date(), ".RData"))
+  
+  ######  Mountain lion  ######
+  start.time = Sys.time()
+  inits_lion20s <- function(){list(N = ninit_20s[[4]])}
+  RN_lion_20s <- jags(data_JAGS_bundle_20s[[4]], inits = inits_lion20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_lion_20s$summary)
+  which(RN_lion_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_lion_20s$samples)
+  save(RN_lion_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData"))
+  
+  ######  Wolf  ######
+  start.time = Sys.time()
+  inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
+  RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wolf_20s$summary)
+  which(RN_wolf_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wolf_20s$samples)
+  save(RN_wolf_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_20s_", Sys.Date(), ".RData"))
+  
+  
+  ######  2021 & 2022  Analyses  ######
   source("./Scripts/Relative_Abundance/RNmodel_JAGS_code.R")
+  
+  ######  Black bear  ######
   #'  Summer 2021
   start.time = Sys.time()
   inits_bear21s <- function(){list(N = ninit_21s[[1]])}
@@ -476,21 +533,7 @@
   mcmcplot(RN_bear_22s$samples)
   save(RN_bear_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bear_22s_", Sys.Date(), ".RData"))
   
-  
-  ######  Bobcat models  ######
-  #'  Summer 2020
-  start.time = Sys.time()
-  inits_bob20s <- function(){list(N = ninit_20s[[2]])}
-  RN_bob_20s <- jags(data_JAGS_bundle_20s[[2]], inits = inits_bob20s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                      n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_bob_20s$summary)
-  which(RN_bob_20s$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_bob_20s$samples)
-  save(RN_bob_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_20s_", Sys.Date(), ".RData"))
-  
+  ######  Bobcat  ######
   #'  Summer 2021
   start.time = Sys.time()
   inits_bob21s <- function(){list(N = ninit_21s[[2]])}
@@ -517,21 +560,7 @@
   mcmcplot(RN_bob_22s$samples)
   save(RN_bob_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_22s_", Sys.Date(), ".RData"))
   
-  
-  ######  Coyote models  ######
-  #'  Summer 2020
-  start.time = Sys.time()
-  inits_coy20s <- function(){list(N = ninit_20s[[3]])}
-  RN_coy_20s <- jags(data_JAGS_bundle_20s[[3]], inits = inits_coy20s, params,
-                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                     n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_coy_20s$summary)
-  which(RN_coy_20s$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_coy_20s$samples)
-  save(RN_coy_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_coy_20s_", Sys.Date(), ".RData"))
-  
+  ######  Coyote  ######
   #'  Summer 2021
   start.time = Sys.time()
   inits_coy21s <- function(){list(N = ninit_21s[[3]])}
@@ -558,21 +587,7 @@
   mcmcplot(RN_coy_22s$samples)
   save(RN_coy_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_coy_22s_", Sys.Date(), ".RData"))
   
-  
-  ######  Mountain lion models  ######
-  #'  Summer 2020
-  start.time = Sys.time()
-  inits_lion20s <- function(){list(N = ninit_20s[[4]])}
-  RN_lion_20s <- jags(data_JAGS_bundle_20s[[4]], inits = inits_lion20s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                      n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_lion_20s$summary)
-  which(RN_lion_20s$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_lion_20s$samples)
-  save(RN_lion_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData"))
-  
+  ######  Mountain lion  ######
   #'  Summer 2021
   start.time = Sys.time()
   inits_lion21s <- function(){list(N = ninit_21s[[4]])}
@@ -599,21 +614,7 @@
   mcmcplot(RN_lion_22s$samples)
   save(RN_lion_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_22s_", Sys.Date(), ".RData"))
   
-  
-  ######  Wolf models  ######
-  #'  Summer 2020
-  start.time = Sys.time()
-  inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
-  RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                      n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wolf_20s$summary)
-  which(RN_wolf_20s$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_wolf_20s$samples)
-  save(RN_wolf_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_20s_", Sys.Date(), ".RData"))
-  
+  ######  Wolf  ######
   #'  Summer 2021
   start.time = Sys.time()
   inits_wolf21s <- function(){list(N = ninit_21s[[5]])}
