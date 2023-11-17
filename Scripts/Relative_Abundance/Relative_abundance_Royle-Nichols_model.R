@@ -454,7 +454,7 @@
   start.time = Sys.time()
   inits_bob20s <- function(){list(N = ninit_20s[[2]])}
   RN_bob_20s <- jags(data_JAGS_bundle_20s[[2]], inits = inits_bob20s, params,
-                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -467,7 +467,7 @@
   start.time = Sys.time()
   inits_coy20s <- function(){list(N = ninit_20s[[3]])}
   RN_coy_20s <- jags(data_JAGS_bundle_20s[[3]], inits = inits_coy20s, params,
-                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -480,7 +480,7 @@
   start.time = Sys.time()
   inits_lion20s <- function(){list(N = ninit_20s[[4]])}
   RN_lion_20s <- jags(data_JAGS_bundle_20s[[4]], inits = inits_lion20s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -493,7 +493,7 @@
   start.time = Sys.time()
   inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
   RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
