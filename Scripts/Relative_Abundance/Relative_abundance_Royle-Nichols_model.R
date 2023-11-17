@@ -426,10 +426,10 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 20000
-  nb <- 5000
+  ni <- 50000
+  nb <- 10000
   nt <- 10
-  na <- 2000
+  na <- 5000
   
   #'  ---------------------------
   #####  Run RN model with JAGS  #####
@@ -461,7 +461,7 @@
   print(RN_bob_20s$summary)
   which(RN_bob_20s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_bob_20s$samples)
-  save(RN_bob_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_20s_", Sys.Date(), ".RData"))
+  save(RN_bob_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_20s_", Sys.Date(), ".RData")) 
   
   ######  Coyote  ######
   start.time = Sys.time()
@@ -487,7 +487,7 @@
   print(RN_lion_20s$summary)
   which(RN_lion_20s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_lion_20s$samples)
-  save(RN_lion_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData"))
+  save(RN_lion_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData")) 
   
   ######  Wolf  ######
   start.time = Sys.time()
@@ -500,7 +500,7 @@
   print(RN_wolf_20s$summary)
   which(RN_wolf_20s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wolf_20s$samples)
-  save(RN_wolf_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_20s_", Sys.Date(), ".RData"))
+  save(RN_wolf_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_20s_", Sys.Date(), ".RData")) 
   
   
   ######  2021 & 2022  Analyses  ######
@@ -545,7 +545,7 @@
   print(RN_bob_21s$summary)
   which(RN_bob_21s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_bob_21s$samples)
-  save(RN_bon_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_21s_", Sys.Date(), ".RData"))
+  save(RN_bob_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_bob_21s_", Sys.Date(), ".RData"))
   
   #'  Summer 2022
   start.time = Sys.time()
