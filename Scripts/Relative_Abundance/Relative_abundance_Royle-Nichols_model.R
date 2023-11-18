@@ -615,12 +615,13 @@
   save(RN_lion_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_22s_", Sys.Date(), ".RData"))
   
   ######  Wolf  ######
+  ni_wolf <- 75000
   #'  Summer 2021
   start.time = Sys.time()
   inits_wolf21s <- function(){list(N = ninit_21s[[5]])}
   RN_wolf_21s <- jags(data_JAGS_bundle_21s[[5]], inits = inits_wolf21s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_wolf, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wolf_21s$summary)
@@ -633,7 +634,7 @@
   inits_wolf22s <- function(){list(N = ninit_22s[[5]])}
   RN_wolf_22s <- jags(data_JAGS_bundle_22s[[5]], inits = inits_wolf22s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_wolf, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wolf_22s$summary)
