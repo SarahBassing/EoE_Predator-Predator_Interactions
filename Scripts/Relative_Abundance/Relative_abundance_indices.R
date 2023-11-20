@@ -274,18 +274,22 @@
   #'  --------------------
   ####  Correlation test  ####
   #'  --------------------
-  #'  Read in TIFC density estimates for comparison (Becker et al. 2022)
-  # tifc_density <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density.csv")
+  #'  Load all relative abundance metrics
+  load("./Data/Relative abundance data/RAI Phase 2/eoe_RAI.RData")
   tifc_density <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density_edd_predonly.csv")
+  load("./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
   
   #'  Test for correlation between different RAI metrics
-  compare_counts <- function(dets, tifc) {
+  compare_counts <- function(dets, tifc, rn) {
     tifc <- dplyr::select(tifc, c("location", "common_name", "cpue", "cpue_km2", "cpue_100km2")) 
     names(tifc) <- c("NewLocationID", "Species", "cpue", "cpue_km2", "cpue_100km2")
+    
+    rn <- dplyr::select(rn, -c("GMU", "Setup", "season", "RN.sd"))
     
     all_RAIs <- dets %>%
       #'  Bind tifc density measure to larger RAI data set
       left_join(tifc, by = c("NewLocationID", "Species")) %>%
+      left_join(rn, by = c("NewLocationID", "Species")) %>%
       #'  Filter out observations of non-focal species included in RAI but not TIFC
       filter(!is.na(cpue_100km2)) %>%
       #'  Reduce to species of interest and remove sites with all NAs
@@ -305,12 +309,12 @@
       dplyr::select(-NewLocationID) %>%
       group_by(Species) %>%
       #'  Calculate correlation coefficient for each pairwise combo of counts
-      summarize(img_dets = round(cor(RAI_nimgs, RAI_ndets), 3), 
-                img_hrs = round(cor(RAI_nimgs, RAI_nhrs), 3),
-                dets_hrs = round(cor(RAI_nhrs, RAI_ndets), 3),
-                img_tifc = round(cor(RAI_nimgs, cpue_km2), 3), #cpue_100km2
-                dets_tifc = round(cor(RAI_ndets, cpue_km2), 3),
-                hrs_tifc = round(cor(RAI_nhrs, cpue_km2), 3)) %>%
+      summarize(img_hrs = round(cor(RAI_nimgs, RAI_nhrs), 3),
+                img_tifc = round(cor(RAI_nimgs, cpue_km2), 3), 
+                hrs_tifc = round(cor(RAI_nhrs, cpue_km2), 3),
+                img_rn = round(cor(RAI_nimgs, RN.n), 3),
+                hrs_rn = round(cor(RAI_nhrs, RN.n), 3),
+                tifc_rn = round(cor(cpue_km2, RN.n), 3)) %>%
       ungroup()
     print(pearsons_cor)
     
@@ -319,9 +323,9 @@
     
     return(RAI_TIFC)
   }
-  eoe20s_abund <- compare_counts(eoe_RAI[[1]], tifc_density[tifc_density$season == "Smr20",]) 
-  eoe21s_abund <- compare_counts(eoe_RAI[[2]], tifc_density[tifc_density$season == "Smr21",]) 
-  eoe22s_abund <- compare_counts(eoe_RAI[[3]], tifc_density[tifc_density$season == "Smr22",]) 
+  eoe20s_abund <- compare_counts(eoe_RAI[[1]], tifc = tifc_density[tifc_density$season == "Smr20",], rn = RN_abundance[[1]]) 
+  eoe21s_abund <- compare_counts(eoe_RAI[[2]], tifc = tifc_density[tifc_density$season == "Smr21",], rn = RN_abundance[[2]]) 
+  eoe22s_abund <- compare_counts(eoe_RAI[[3]], tifc = tifc_density[tifc_density$season == "Smr22",], rn = RN_abundance[[3]]) 
   
   #'  List all relative abundance indices per year
   all_RAI_metrics <- list(eoe20s_abund[[1]], eoe21s_abund[[1]], eoe22s_abund[[1]])
