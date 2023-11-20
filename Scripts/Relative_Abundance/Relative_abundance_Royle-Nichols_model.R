@@ -643,6 +643,73 @@
   save(RN_wolf_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_22s_", Sys.Date(), ".RData"))
   
   
+  #'  --------------------------
+  ####  Summarize density data  ####
+  #'  --------------------------
+  #'  Load model outputs
+  filenames <- list.files("./Outputs/Relative_Abundance/RN_model/JAGS_out", pattern="*.RData", full.names=TRUE)
+  lapply(filenames, load, environment())
+  
+  #'  Format GMU specific mean & sd
+  gmu_densities <- function(mod, spp, yr) {
+    #'  Pull out relevant summary stats 
+    gmu10a_mean <- round(mod$mean$density100km2.gmu10a, 2)
+    gmu10a_sd <- round(mod$sd$density100km2.gmu10a, 3)
+    gmu6_mean <- round(mod$mean$density100km2.gmu6, 2)
+    gmu6_sd <- round(mod$sd$density100km2.gmu6, 3)
+    gmu1_mean <- round(mod$mean$density100km2.gmu1, 2)
+    gmu1_sd <- round(mod$sd$density100km2.gmu1, 3)
+    
+    #'  Create data frame
+    mod_summary <- cbind(spp, yr, gmu1_mean, gmu1_sd, gmu6_mean, gmu6_sd, gmu10a_mean, gmu10a_sd)
+    mod_summary <- as.data.frame(mod_summary) %>%
+      mutate(gmu1_mean = ifelse(yr == "2020", NA, gmu1_mean),
+             gmu1_sd = ifelse(yr == "2020", NA, gmu1_sd))
+    names(mod_summary) <- c("Species", "Year", "GMU1 avg. density", "GMU1 SD", 
+                            "GMU6 avg. density", "GMU6 SD", "GMU10A avg. density", "GMU10A SD")
+    
+    return(mod_summary)
+  }
+  bear_density_20s <- gmu_densities(RN_bear_20s, spp = "black bear", yr = 2020)
+  bear_density_21s <- gmu_densities(RN_bear_21s, spp = "black bear", yr = 2021)
+  bear_density_22s <- gmu_densities(RN_bear_22s, spp = "black bear", yr = 2022)
+  bob_density_20s <- gmu_densities(RN_bob_20s, spp = "bobcat", yr = 2020)
+  bob_density_21s <- gmu_densities(RN_bob_21s, spp = "bobcat", yr = 2021)
+  bob_density_22s <- gmu_densities(RN_bob_22s, spp = "bobcat", yr = 2022)
+  coy_density_20s <- gmu_densities(RN_coy_20s, spp = "coyote", yr = 2020)
+  coy_density_21s <- gmu_densities(RN_coy_21s, spp = "coyote", yr = 2021)
+  coy_density_22s <- gmu_densities(RN_coy_22s, spp = "coyote", yr = 2022)
+  lion_density_20s <- gmu_densities(RN_lion_20s, spp = "mountain lion", yr = 2020)
+  lion_density_21s <- gmu_densities(RN_lion_21s, spp = "mountain lion", yr = 2021)
+  lion_density_22s <- gmu_densities(RN_lion_22s, spp = "mountain lion", yr = 2022)
+  wolf_density_20s <- gmu_densities(RN_wolf_20s, spp = "wolf", yr = 2020)
+  wolf_density_21s <- gmu_densities(RN_wolf_21s, spp = "wolf", yr = 2021)
+  wolf_density_22s <- gmu_densities(RN_wolf_22s, spp = "wolf", yr = 2022)
+  
+  #'  Merge all together
+  RN_density <- rbind(bear_density_20s, bear_density_21s, bear_density_22s, bob_density_20s, bob_density_21s, bob_density_22s,
+                      coy_density_20s, coy_density_21s, coy_density_22s, lion_density_20s, lion_density_21s, lion_density_22s,
+                      wolf_density_20s, wolf_density_21s, wolf_density_22s)
+  #'  GMU1
+  RN_density_gmu1 <- dplyr::select(RN_density, c("Species", "Year", "GMU1 avg. density", "GMU1 SD")) %>%
+    rename("Mean density" = "GMU1 avg. density") %>%
+    rename("SD" = "GMU1 SD") %>%
+    filter(Year != "2020") %>%
+    arrange(Year, `Mean density`)
+  RN_density_gmu6 <- dplyr::select(RN_density, c("Species", "Year", "GMU6 avg. density", "GMU6 SD")) %>%
+    rename("Mean density" = "GMU6 avg. density") %>%
+    rename("SD" = "GMU6 SD") %>%
+    arrange(Year, `Mean density`)
+  RN_density_gmu10a <- dplyr::select(RN_density, c("Species", "Year", "GMU10A avg. density", "GMU10A SD")) %>%
+    rename("Mean density" = "GMU10A avg. density") %>%
+    rename("SD" = "GMU10A SD") %>%
+    arrange(Year, `Mean density`)
+  
+  write_csv(RN_density_gmu1, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu1.csv")
+  write_csv(RN_density_gmu6, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu6.csv")
+  write_csv(RN_density_gmu10a, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu10a.csv")
+  
+  
     
   #'  ----------------------------
   #####  Setup data for unmarked  #####
