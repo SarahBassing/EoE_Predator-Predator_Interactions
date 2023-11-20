@@ -202,32 +202,18 @@
   effort_21s_RNmod <- sampling_effort(DHeff_npp21s_RNmod)
   effort_22s_RNmod <- sampling_effort(DHeff_npp22s_RNmod)
   
-  #' #'  ------------------------
-  #' #####  SAVE detection data  #####
-  #' #'  ------------------------
-  #' #'  Seasonal detection histories
-  #' save(DH_npp20s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp20s_RNmod.RData")
-  #' save(DH_npp21s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp21s_RNmod.RData")
-  #' save(DH_npp22s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp22s_RNmod.RData")
-  #' #' Sampling effort
-  #' save(effort_20s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp20s_RNmod.RData")
-  #' save(effort_21s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp21s_RNmod.RData")
-  #' save(effort_22s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp22s_RNmod.RData")
-  #' 
-  #' #'  Save for publication
-  #' DetectionHist_Smr20 <- list(DH_npp20s_RNmod[[1]][[1]], DH_npp20s_RNmod[[2]][[1]], DH_npp20s_RNmod[[3]][[1]], DH_npp20s_RNmod[[4]][[1]], DH_npp20s_RNmod[[5]][[1]])
-  #' DetectionHist_Smr21 <- list(DH_npp21s_RNmod[[1]][[1]], DH_npp21s_RNmod[[2]][[1]], DH_npp21s_RNmod[[3]][[1]], DH_npp21s_RNmod[[4]][[1]], DH_npp21s_RNmod[[5]][[1]])
-  #' DetectionHist_Smr22 <- list(DH_npp22s_RNmod[[1]][[1]], DH_npp22s_RNmod[[2]][[1]], DH_npp22s_RNmod[[3]][[1]], DH_npp22s_RNmod[[4]][[1]], DH_npp22s_RNmod[[5]][[1]])
-  #' SamplingEffort_Smr20 <- rn_effort_20s
-  #' SamplingEffort_Smr21 <- rn_effort_21s
-  #' SamplingEffort_Smr22 <- rn_effort_22s
-  #' ####  UPDATE WORKING DIRECTORY EVENTUALLY
-  #' # save(DetectionHist_Smr20, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/DetectionHist_smr20_RNmod.RData")
-  #' # save(DetectionHist_Smr21, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/DetectionHist_smr21_RNmod.RData")
-  #' # save(DetectionHist_Smr22, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/DetectionHist_smr22_RNmod.RData")
-  #' # save(SamplingEffort_Smr20, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/SamplingEffort_smr20_RNmod.RData")
-  #' # save(SamplingEffort_Smr21, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/SamplingEffort_smr21_RNmod.RData")
-  #' # save(SamplingEffort_Smr22, file = "C:/Users/sbassing/OneDrive - University of Idaho/Repositories/Idaho_Predator_CoOccurrence/Data/SamplingEffort_smr22_RNmod.RData")
+  #'  ------------------------
+  #####  SAVE detection data  #####
+  #'  ------------------------
+  #'  Seasonal detection histories
+  save(DH_npp20s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp20s_RNmod.RData")
+  save(DH_npp21s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp21s_RNmod.RData")
+  save(DH_npp22s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp22s_RNmod.RData")
+  #' Sampling effort
+  save(effort_20s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp20s_RNmod.RData")
+  save(effort_21s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp21s_RNmod.RData")
+  save(effort_22s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp22s_RNmod.RData")
+
 
   #'  ---------------------------------
   #####  Format site-level covariates  #####
@@ -708,6 +694,60 @@
   write_csv(RN_density_gmu1, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu1.csv")
   write_csv(RN_density_gmu6, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu6.csv")
   write_csv(RN_density_gmu10a, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu10a.csv")
+  
+  #'  List model outputs together 
+  rn_bear_list <- list(RN_bear_20s, RN_bear_21s, RN_bear_22s)
+  rn_bob_list <- list(RN_bob_20s, RN_bob_21s, RN_bob_22s)
+  rn_coy_list <- list(RN_coy_20s, RN_coy_21s, RN_coy_22s)
+  rn_lion_list <- list(RN_lion_20s, RN_lion_21s, RN_lion_22s)
+  rn_wolf_list <- list(RN_wolf_20s, RN_wolf_21s, RN_wolf_22s)
+  
+  #'  List one detection history per year (doesn't matter which species it relates to)
+  dh_list <- list(DH_npp20s_RNmod[[1]], DH_npp21s_RNmod[[1]], DH_npp22s_RNmod[[3]])
+  
+  #'  Save estimated N per site
+  estimated_N <- function(mod, dh, spp) {
+    #'  Grab estimated N and SD per site
+    RN.n <- mod$mean$N
+    RN.sd <- mod$sd$N
+    #'  Grab camera location
+    # dh <- dh[[1]]
+    locs <- rownames(dh)
+    #'  Merge and formatin into single data frame with corresponding N & SD per site
+    out <- cbind(locs, RN.n, RN.sd)
+    RN_est <- as.data.frame(out) %>%
+      mutate(NewLocationID = locs, 
+             Species = spp,
+             RN.n = as.numeric(RN.n),
+             RN.sd = as.numeric(RN.sd)) %>%
+      separate(locs, c("GMU", "Setup", "site"), sep = "_") %>%
+      dplyr::select(-site) %>%
+      relocate(NewLocationID, .before = "GMU") %>%
+      relocate(Species, .after = "NewLocationID")
+    return(RN_est)
+  }
+  rn_bear_out <- mapply(estimated_N, rn_bear_list, dh = dh_list, spp = "bear_black", SIMPLIFY = FALSE)
+  rn_bob_out <- mapply(estimated_N, rn_bob_list, dh = dh_list, spp = "bobcat", SIMPLIFY = FALSE)
+  rn_coy_out <- mapply(estimated_N, rn_coy_list, dh = dh_list, spp = "coyote", SIMPLIFY = FALSE)
+  rn_lion_out <- mapply(estimated_N, rn_lion_list, dh = dh_list, spp = "mountain_lion", SIMPLIFY = FALSE)
+  rn_wolf_out <- mapply(estimated_N, rn_wolf_list, dh = dh_list, spp = "wolf", SIMPLIFY = FALSE)
+  
+  rn_2020 <- rbind(rn_bear_out[[1]], rn_bob_out[[1]], rn_coy_out[[1]], rn_lion_out[[1]], rn_wolf_out[[1]]) %>%
+    arrange(NewLocationID, Species) %>%
+    mutate(season = "Smr20") %>%
+    relocate(season, .after = Setup)
+  rn_2021 <- rbind(rn_bear_out[[2]], rn_bob_out[[2]], rn_coy_out[[2]], rn_lion_out[[2]], rn_wolf_out[[2]]) %>%
+    arrange(NewLocationID, Species) %>%
+    mutate(season = "Smr21") %>%
+    relocate(season, .after = Setup)
+  rn_2022 <- rbind(rn_bear_out[[3]], rn_bob_out[[3]], rn_coy_out[[3]], rn_lion_out[[3]], rn_wolf_out[[3]]) %>%
+    arrange(NewLocationID, Species) %>%
+    mutate(season = "Smr22") %>%
+    relocate(season, .after = Setup)
+ 
+  RN_abundance <- list(rn_2020, rn_2021, rn_2022)
+  save(RN_abundance, file = "./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
+  
   
   
     
