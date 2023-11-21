@@ -271,6 +271,188 @@
   #'  Save
   save(eoe_RAI, file = "./Data/Relative abundance data/RAI Phase 2/eoe_RAI.RData")
   
+  
+  #####  Visualize relative abundance indices  #####
+  #'  -----------------------------------------
+  #'  Map relative density data per species, study area and year
+  library(sf)
+  library(ggplot2)
+  library(patchwork)
+  
+  #'  Load spatial data
+  eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
+    st_transform("+proj=longlat +datum=WGS84 +no_defs")
+  cams_20s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp")
+  cams_21s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_21s_wgs84.shp")
+  cams_22s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_22s_wgs84.shp")
+  
+  #'  List camera spatial data
+  cam_list <- list(cams_20s_wgs84, cams_21s_wgs84, cams_22s_wgs84)
+  
+  #'  Load and reorganize RAI data by species and year
+  load("./Data/Relative abundance data/RAI Phase 2/eoe_RAI.RData")
+  RAI_bear <- list(eoe_RAI[[1]][eoe_RAI[[1]]$Species == "bear_black",], eoe_RAI[[2]][eoe_RAI[[2]]$Species == "bear_black",], eoe_RAI[[3]][eoe_RAI[[3]]$Species == "bear_black",])
+  RAI_bob <- list(eoe_RAI[[1]][eoe_RAI[[1]]$Species == "bobcat",], eoe_RAI[[2]][eoe_RAI[[2]]$Species == "bobcat",], eoe_RAI[[3]][eoe_RAI[[3]]$Species == "bobcat",])
+  RAI_coy <- list(eoe_RAI[[1]][eoe_RAI[[1]]$Species == "coyote",], eoe_RAI[[2]][eoe_RAI[[2]]$Species == "coyote",], eoe_RAI[[3]][eoe_RAI[[3]]$Species == "coyote",])
+  RAI_lion <- list(eoe_RAI[[1]][eoe_RAI[[1]]$Species == "mountain_lion",], eoe_RAI[[2]][eoe_RAI[[2]]$Species == "mountain_lion",], eoe_RAI[[3]][eoe_RAI[[3]]$Species == "mountain_lion",])
+  RAI_wolf <- list(eoe_RAI[[1]][eoe_RAI[[1]]$Species == "wolf",], eoe_RAI[[2]][eoe_RAI[[2]]$Species == "wolf",], eoe_RAI[[3]][eoe_RAI[[3]]$Species == "wolf",])
+
+  #'  Append RAI to spatial data
+  spatial_rai <- function(rai, spp, cams) {
+    #'  Filter data to single species
+    single_spp_rai <- rai %>%
+      filter(Species == spp) %>%
+      #'  Rename camera location column to match spatial data
+      rename("NwLctID" = "NewLocationID") 
+    
+    #'  Join spatial data with rai data
+    rai_shp <- full_join(cams, single_spp_rai, by = "NwLctID") %>%
+      mutate(Species = ifelse(is.na(Species), spp, Species),
+             RAI_nimgs = ifelse(is.na(RAI_nimgs), 0, RAI_nimgs),
+             RAI_ndets = ifelse(is.na(RAI_ndets), 0, RAI_ndets),
+             RAI_nhrs = ifelse(is.na(RAI_nhrs), 0, RAI_nhrs)) %>%
+      #'  Change camera location column back to something less awkward
+      rename("NewLocationID" = "NwLctID") 
+    
+    return(rai_shp)
+  }
+  spatial_rai_bear <- mapply(rai = RAI_bear, spatial_rai, spp = "bear_black", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_rai_bob <- mapply(rai = RAI_bob, spatial_rai, spp = "bobcat", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_rai_coy <- mapply(rai = RAI_coy, spatial_rai, spp = "coyote", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_rai_lion <- mapply(rai = RAI_lion, spatial_rai, spp = "mountain_lion", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_rai_wolf <- mapply(rai = RAI_wolf, spatial_rai, spp = "wolf", cams = cam_list, SIMPLIFY = FALSE)
+  
+  #'  List spatial RAI data and save
+  spatial_RAI_list <- list(spatial_rai_bear, spatial_rai_bob, spatial_rai_coy, spatial_rai_lion, spatial_rai_wolf)
+  save(spatial_RAI_list, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_RAI_list.RData")
+  
+  year_list <- list("2020", "2021", "2022")
+  
+  #'  Function to map RAI
+  map_rai <- function(sf_rai, yr, spp) {
+    #'  Create column for GMU
+    sf_rai <- sf_rai %>%
+      mutate(locs = NewLocationID) %>%
+      separate(NewLocationID, c("GMU", "Setup", "site"), sep = "_") %>%
+      dplyr::select(-site) %>%
+      rename("NewLocationID" = "locs")
+    
+    #'  Filter spatial RN data by study area
+    sf_rai_gmu1 <- sf_rai[sf_rai$GMU == "GMU1",]
+    sf_rai_gmu6 <- sf_rai[sf_rai$GMU == "GMU6",]
+    sf_rai_gmu10a <- sf_rai[sf_rai$GMU == "GMU10A",]
+    
+    #'  GMU 1 plot
+    gmu1_rai <- ggplot() +
+      geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "1",], fill = NA) +
+      geom_sf(data = sf_rai_gmu1, aes(size = RAI_nhrs), shape  = 21, 
+              col = "darkred", fill = "darkred", alpha = 3/10) +
+      scale_size_continuous(range = c(0,12)) +
+      labs(size = "Relative abundance", x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+      ggtitle(yr)
+    
+    #'  GMU 6 plot
+    gmu6_rai <- ggplot() +
+      geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "6",], fill = NA) +
+      geom_sf(data = sf_rai_gmu6, aes(size = RAI_nhrs), shape  = 21, 
+              col = "darkgreen", fill = "darkgreen", alpha = 3/10) +
+      scale_size_continuous(range = c(0,12)) +
+      labs(size = "Relative abundance", x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+      ggtitle(yr)
+    
+    #'  GMU 10A plot
+    gmu10a_rai <- ggplot() +
+      geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
+      geom_sf(data = sf_rai_gmu10a, aes(size = RAI_nhrs), shape = 21, 
+              col = "darkblue", fill = "darkblue", alpha = 3/10) +
+      scale_size_continuous(range = c(0,12)) +
+      labs(size = "Relative abundance", x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+      ggtitle(yr)
+    
+    #'  Plot each map
+    print(gmu1_rai); print(gmu6_rai); print(gmu10a_rai)
+    
+    #'  List GMU RAI maps together
+    gmu_maps <- list(gmu1_rai, gmu6_rai, gmu10a_rai)
+    
+    return(gmu_maps)
+  }
+  rai_maps_bear <- mapply(map_rai, sf_rai = spatial_rai_bear, yr = year_list, spp = "Black bear", SIMPLIFY = FALSE)
+  rai_maps_bob <- mapply(map_rai, sf_rai = spatial_rai_bob, yr = year_list, spp = "Bobcat", SIMPLIFY = FALSE)
+  rai_maps_coy <- mapply(map_rai, sf_rai = spatial_rai_coy, yr = year_list, spp = "Coyote", SIMPLIFY = FALSE)
+  rai_maps_lion <- mapply(map_rai, sf_rai = spatial_rai_lion, yr = year_list, spp = "Mountain lion", SIMPLIFY = FALSE)
+  rai_maps_wolf <- mapply(map_rai, sf_rai = spatial_rai_wolf, yr = year_list, spp = "wolf", SIMPLIFY = FALSE)
+  
+  #'  Plot same species and study area back to back across years
+  gmu_by_yr_plots <- function(fig, spp) {
+    #'  Note: list order is [[i]][[j]] 
+    #'  where i = 2020, 2021, or 2022 and j = GMU1, GMU6, or GMU10a 
+    #'  GMU 1 plots
+    gmu1_patch <- fig[[1]][[1]] + fig[[2]][[1]] + fig[[3]][[1]] +
+      plot_annotation(paste("GMU 1", spp, "relative abundance index"))
+    
+    #'  GMU 6 plots
+    gmu6_patch <- fig[[1]][[2]] + fig[[2]][[2]] + fig[[3]][[2]] +
+      plot_annotation(paste("GMU 6", spp, "relative abundance index"))
+    
+    #'  GMU 10A plots
+    gmu10a_patch <- fig[[1]][[3]] + fig[[2]][[3]] + fig[[3]][[3]] +
+      plot_annotation(paste("GMU 10A", spp, "relative abundance index"))
+    
+    #'  Print figure panels
+    print(gmu1_patch); print(gmu6_patch); print(gmu10a_patch)
+    
+    #'  List
+    gmu_patchwork_list <- list(gmu1_patch, gmu6_patch, gmu10a_patch)
+    
+    return(gmu_patchwork_list)
+  }
+  rai_gmu_bear <- gmu_by_yr_plots(rai_maps_bear, spp = "black bear")
+  rai_gmu_bob <- gmu_by_yr_plots(rai_maps_bob, spp = "bobcat")
+  rai_gmu_coy <- gmu_by_yr_plots(rai_maps_coy, spp = "coyote")
+  rai_gmu_lion <- gmu_by_yr_plots(rai_maps_lion, spp = "mountain lion")
+  rai_gmu_wolf <- gmu_by_yr_plots(rai_maps_wolf, spp = "wolf")
+  
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_bear.tiff", rai_gmu_bear[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_bear.tiff", rai_gmu_bear[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_bear.tiff", rai_gmu_bear[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_bob.tiff", rai_gmu_bob[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_bob.tiff", rai_gmu_bob[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_bob.tiff", rai_gmu_bob[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_coy.tiff", rai_gmu_coy[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_coy.tiff", rai_gmu_coy[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_coy.tiff", rai_gmu_coy[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_lion.tiff", rai_gmu_lion[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_lion.tiff", rai_gmu_lion[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_lion.tiff", rai_gmu_lion[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_wolf.tiff", rai_gmu_wolf[[1]],
+         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_wolf.tiff", rai_gmu_wolf[[2]],
+         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_wolf.tiff", rai_gmu_wolf[[3]],
+         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  
+  
+  
+  
   #'  --------------------
   ####  Correlation test  ####
   #'  --------------------
