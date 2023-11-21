@@ -264,7 +264,7 @@
   
   #'  List spatial TIFC data and save
   spatial_tifc_list <- list(spatial_tifc_bear, spatial_tifc_bob, spatial_tifc_coy, spatial_tifc_lion, spatial_tifc_wolf)
-  save(spatial_tifc_list, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_tifc_list.R")
+  save(spatial_tifc_list, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_tifc_list.RData")
   
   
   #'  Function to map TIFC relative density index
