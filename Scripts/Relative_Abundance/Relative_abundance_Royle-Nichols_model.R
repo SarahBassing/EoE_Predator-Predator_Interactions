@@ -702,13 +702,13 @@
   rn_lion_list <- list(RN_lion_20s, RN_lion_21s, RN_lion_22s)
   rn_wolf_list <- list(RN_wolf_20s, RN_wolf_21s, RN_wolf_22s)
   
-  #'  List one detection history per year (doesn't matter which species it relates to)
-  dh_list <- list(DH_npp20s_RNmod[[1]], DH_npp21s_RNmod[[1]], DH_npp22s_RNmod[[3]])
-  
   #'  Load saved detection histories
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp20s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp21s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp22s_RNmod.RData")
+  
+  #'  List one detection history per year (doesn't matter which species it relates to)
+  dh_list <- list(DH_npp20s_RNmod[[1]], DH_npp21s_RNmod[[1]], DH_npp22s_RNmod[[3]])
   
   #'  Save estimated N per site
   estimated_N <- function(mod, dh, spp) {
@@ -815,7 +815,7 @@
       geom_sf(data = sf_rn_gmu1, aes(size = RN.n.rounded), shape  = 21, 
               col = "darkred", fill = "darkred", alpha = 3/10) +
       scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
-      labs(size = "Local abundance", x = "Longitude", y = "Latitude") +
+      labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
       theme_classic() +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
       ggtitle(yr)
@@ -826,7 +826,7 @@
       geom_sf(data = sf_rn_gmu6, aes(size = RN.n.rounded), shape  = 21, 
               col = "darkgreen", fill = "darkgreen", alpha = 3/10) +
       scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
-      labs(size = "Local abundance", x = "Longitude", y = "Latitude") +
+      labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
       theme_classic() +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
       ggtitle(yr)
@@ -837,7 +837,7 @@
       geom_sf(data = sf_rn_gmu10a, aes(size = RN.n.rounded), shape = 21, 
               col = "darkblue", fill = "darkblue", alpha = 3/10) +
       scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
-      labs(size = "Local abundance", x = "Longitude", y = "Latitude") +
+      labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
       theme_classic() +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
       ggtitle(yr)
@@ -845,7 +845,7 @@
     #'  Plot each map
     print(gmu1_rn); print(gmu6_rn); print(gmu10a_rn)
     
-    #'  List GMU TIFC maps together
+    #'  List GMU local abundance estimate maps together
     gmu_maps <- list(gmu1_rn, gmu6_rn, gmu10a_rn)
     
     return(gmu_maps)
@@ -917,8 +917,9 @@
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_wolf.tiff", rn_gmu_wolf[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
   
-  
-    
+  #'  -----------------------
+  ####  LIKELIHOOD APPROACH  ####
+  #'  -----------------------
   #'  ----------------------------
   #####  Setup data for unmarked  #####
   #'  ----------------------------
