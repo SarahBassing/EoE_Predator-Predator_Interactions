@@ -395,15 +395,15 @@
     #'  where i = 2020, 2021, or 2022 and j = GMU1, GMU6, or GMU10a 
     #'  GMU 1 plots
     gmu1_patch <- fig[[1]][[1]] + fig[[2]][[1]] + fig[[3]][[1]] +
-      plot_annotation(paste("GMU 1", spp, "relative abundance index"))
+      plot_annotation(paste("GMU 1", spp, "relative abundance index (detection rate)"))
     
     #'  GMU 6 plots
     gmu6_patch <- fig[[1]][[2]] + fig[[2]][[2]] + fig[[3]][[2]] +
-      plot_annotation(paste("GMU 6", spp, "relative abundance index"))
+      plot_annotation(paste("GMU 6", spp, "relative abundance index (detection rate)"))
     
     #'  GMU 10A plots
     gmu10a_patch <- fig[[1]][[3]] + fig[[2]][[3]] + fig[[3]][[3]] +
-      plot_annotation(paste("GMU 10A", spp, "relative abundance index"))
+      plot_annotation(paste("GMU 10A", spp, "relative abundance index (detection rate)"))
     
     #'  Print figure panels
     print(gmu1_patch); print(gmu6_patch); print(gmu10a_patch)
@@ -419,35 +419,35 @@
   rai_gmu_lion <- gmu_by_yr_plots(rai_maps_lion, spp = "mountain lion")
   rai_gmu_wolf <- gmu_by_yr_plots(rai_maps_wolf, spp = "wolf")
   
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_bear.tiff", rai_gmu_bear[[1]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu1_bear.tiff", rai_gmu_bear[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_bear.tiff", rai_gmu_bear[[2]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu6_bear.tiff", rai_gmu_bear[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_bear.tiff", rai_gmu_bear[[3]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu10A_bear.tiff", rai_gmu_bear[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_bob.tiff", rai_gmu_bob[[1]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu1_bob.tiff", rai_gmu_bob[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_bob.tiff", rai_gmu_bob[[2]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu6_bob.tiff", rai_gmu_bob[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_bob.tiff", rai_gmu_bob[[3]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu10A_bob.tiff", rai_gmu_bob[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_coy.tiff", rai_gmu_coy[[1]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu1_coy.tiff", rai_gmu_coy[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_coy.tiff", rai_gmu_coy[[2]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu6_coy.tiff", rai_gmu_coy[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_coy.tiff", rai_gmu_coy[[3]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu10A_coy.tiff", rai_gmu_coy[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_lion.tiff", rai_gmu_lion[[1]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu1_lion.tiff", rai_gmu_lion[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_lion.tiff", rai_gmu_lion[[2]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu6_lion.tiff", rai_gmu_lion[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_lion.tiff", rai_gmu_lion[[3]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu10A_lion.tiff", rai_gmu_lion[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu1_wolf.tiff", rai_gmu_wolf[[1]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu1_wolf.tiff", rai_gmu_wolf[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu6_wolf.tiff", rai_gmu_wolf[[2]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu6_wolf.tiff", rai_gmu_wolf[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_wolf.tiff", rai_gmu_wolf[[3]],
+  ggsave("./Outputs/Relative_Abundance/Figures/RAI_gmu10A_wolf.tiff", rai_gmu_wolf[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
 
     
