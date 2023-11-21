@@ -754,8 +754,8 @@
   save(RN_abundance, file = "./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
   
   
-  #####  Visualize TIFC density data  #####
-  #'  --------------------------------
+  #####  Visualize local abundance data  #####
+  #'  -----------------------------------
   #'  Map relative density data per species, study area and year
   library(sf)
   library(ggplot2)
