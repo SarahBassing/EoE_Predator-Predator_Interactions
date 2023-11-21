@@ -348,7 +348,7 @@
       geom_sf(data = sf_rai_gmu1, aes(size = RAI_nhrs), shape  = 21, 
               col = "darkred", fill = "darkred", alpha = 3/10) +
       scale_size_continuous(range = c(0,12)) +
-      labs(size = "Relative abundance", x = "Longitude", y = "Latitude") +
+      labs(size = "Average hourly \ndetections per day", x = "Longitude", y = "Latitude") +
       theme_classic() +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
       ggtitle(yr)
@@ -359,7 +359,7 @@
       geom_sf(data = sf_rai_gmu6, aes(size = RAI_nhrs), shape  = 21, 
               col = "darkgreen", fill = "darkgreen", alpha = 3/10) +
       scale_size_continuous(range = c(0,12)) +
-      labs(size = "Relative abundance", x = "Longitude", y = "Latitude") +
+      labs(size = "Average hourly \ndetections per day", x = "Longitude", y = "Latitude") +
       theme_classic() +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
       ggtitle(yr)
@@ -370,7 +370,7 @@
       geom_sf(data = sf_rai_gmu10a, aes(size = RAI_nhrs), shape = 21, 
               col = "darkblue", fill = "darkblue", alpha = 3/10) +
       scale_size_continuous(range = c(0,12)) +
-      labs(size = "Relative abundance", x = "Longitude", y = "Latitude") +
+      labs(size = "Average hourly \ndetections per day", x = "Longitude", y = "Latitude") +
       theme_classic() +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
       ggtitle(yr)
@@ -449,10 +449,8 @@
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RAI_gmu10A_wolf.tiff", rai_gmu_wolf[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  
-  
-  
-  
+
+    
   #'  --------------------
   ####  Correlation test  ####
   #'  --------------------
