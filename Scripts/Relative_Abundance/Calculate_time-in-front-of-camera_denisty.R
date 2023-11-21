@@ -333,15 +333,15 @@
     #'  where i = 2020, 2021, or 2022 and j = GMU1, GMU6, or GMU10a 
     #'  GMU 1 plots
     gmu1_patch <- fig[[1]][[1]] + fig[[2]][[1]] + fig[[3]][[1]] +
-      plot_annotation(paste("GMU 1", spp, "relative density index"))
+      plot_annotation(paste("GMU 1", spp, "relative density index (TIFC method)"))
     
     #'  GMU 6 plots
     gmu6_patch <- fig[[1]][[2]] + fig[[2]][[2]] + fig[[3]][[2]] +
-      plot_annotation(paste("GMU 6", spp, "relative density index"))
+      plot_annotation(paste("GMU 6", spp, "relative density index (TIFC method)"))
     
     #'  GMU 10A plots
     gmu10a_patch <- fig[[1]][[3]] + fig[[2]][[3]] + fig[[3]][[3]] +
-      plot_annotation(paste("GMU 10A", spp, "relative density index"))
+      plot_annotation(paste("GMU 10A", spp, "relative density index (TIFC method)"))
     
     #'  Print figure panels
     print(gmu1_patch); print(gmu6_patch); print(gmu10a_patch)
