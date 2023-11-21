@@ -1,5 +1,5 @@
   #'  ----------------------------------------
-  #'  Calculate denisty with TIFC method
+  #'  Calculate density with TIFC method
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  September 2023
@@ -12,7 +12,7 @@
   #'  Effective detection distance (EDD) appended to TIFC in Effective_detection_distance.R
   #'  Sequential probimgs generated in Detection_data_cleaning.R (Data_Formatting folder)
   #'  Sampling effort data generated in Detection_histories_for_occmod.R (MultiSpp_OccMod folder)
-  #'  Leave probabilities taken directly from Becker et al. (2018)
+  #'  Leave probabilities taken directly from Becker et al. (2022)
   #'  ----------------------------------------
     
   #'  Load libraries
@@ -27,10 +27,6 @@
   #'  -------------------------------  
   #'  TIFC data
   load("./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time_avg_edd.RData") #eoe_all_fov-time_edd.RData
-  # load("./Data/Relative abundance data/RAI Phase 2/eoe_all_fov-time.RData")
-  # df_tt_full_20s <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_20s_fov-time.csv") 
-  # df_tt_full_21s <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_21s_fov-time.csv")
-  # df_tt_full_22s <- read_csv("./Data/Relative abundance data/RAI Phase 2/eoe_all_22s_fov-time.csv")
   
   #'  Filter to focal species
   focal_spp <- function(df_tt_full) {
@@ -161,6 +157,7 @@
     relocate(setup, .after = "gmu")
   
   #'  SAVE! 
+  save(tifc_density_list, file = "./Data/Relative abundance data/RAI Phase 2/TIFC_density_list.RData")
   write_csv(df_density, "./Data/Relative abundance data/RAI Phase 2/eoe_all_years_density_avg_edd_predonly.csv")
   
   
