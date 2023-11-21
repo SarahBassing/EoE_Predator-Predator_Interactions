@@ -807,7 +807,7 @@
     sf_rn_gmu6 <- sf_rn[sf_rn$GMU == "GMU6",]
     sf_rn_gmu10a <- sf_rn[sf_rn$GMU == "GMU10A",]
     
-    size_breaks <- c(1, 2, 3, 5, 7, 9, 12)
+    size_breaks <- c(0, 1, 2, 3, 5, 7, 9, 12)
     
     #'  GMU 1 plot
     gmu1_rn <- ggplot() +
