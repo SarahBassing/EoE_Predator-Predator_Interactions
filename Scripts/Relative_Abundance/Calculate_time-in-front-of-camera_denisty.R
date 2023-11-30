@@ -165,13 +165,13 @@
   #'  ---------------------------------------------------------
   #'  Summary stats for density estimates
   density_stats <- df_density %>%
-    group_by(gmu, common_name) %>%
+    group_by(season, gmu, common_name) %>%
     summarise(mean_density_km2 = round(mean(cpue_km2_sec, na.rm = TRUE), 2),
               se_density_km2 = round((sd(cpue_km2_sec, na.rm = TRUE)/sqrt(nrow(.))), 2),
               mean_density_100km2 = round(mean(cpue_100km2, na.rm = TRUE), 2),
               se_density_100km2 = round((sd(cpue_100km2, na.rm = TRUE)/sqrt(nrow(.))), 2)) %>%
     ungroup() %>%
-    arrange(gmu, mean_density_km2)
+    arrange(season, gmu, mean_density_km2)
   print(density_stats)
   write_csv(density_stats, "./Data/Relative abundance data/RAI Phase 2/tifc_density_stats_avg_edd_predonly.csv")
   
