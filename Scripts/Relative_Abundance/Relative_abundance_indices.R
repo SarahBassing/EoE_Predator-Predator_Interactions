@@ -271,6 +271,31 @@
   #'  Save
   save(eoe_RAI, file = "./Data/Relative abundance data/RAI Phase 2/eoe_RAI.RData")
   
+  #'  Summary stats for RAI
+  rai_stats <- function(rai) {
+    summary_dat <- rai %>%
+      #'  Add GMU to dataset
+      mutate(gmu = sub("_.*", "", NewLocationID),
+             setup = ifelse(grepl("P", NewLocationID), "predator", "ungulate")) %>%
+      relocate(gmu, .after = "NewLocationID") %>%
+      relocate(setup, .after = "gmu") %>%
+      filter(Species == "bear_black" | Species == "bobcat" | Species == "coyote" | Species == "mountain_lion" | Species == "wolf") %>%
+      group_by(gmu, Species) %>%
+      summarise(mean_RAI = round(mean(RAI_nhrs, na.rm = TRUE), 3),
+                se_RAI = round((sd(RAI_nhrs, na.rm = TRUE)/sqrt(nrow(.))), 3)) %>%
+      ungroup() %>%
+      arrange(gmu, mean_RAI)
+    print(summary_dat)
+    return(summary_dat)
+  }
+  rai_summary_stats <- lapply(eoe_RAI, rai_stats)
+  rai_summary_stats_20s <- rai_summary_stats[[1]] %>% mutate(Year = "2020")
+  rai_summary_stats_21s <- rai_summary_stats[[2]] %>% mutate(Year = "2021")
+  rai_summary_stats_22s <- rai_summary_stats[[3]] %>% mutate(Year = "2022")
+  rai_summary_stats_all <- rbind(rai_summary_stats_20s, rai_summary_stats_21s, rai_summary_stats_22s)
+  
+  write_csv(rai_summary_stats_all, "./Data/Relative abundance data/RAI Phase 2/RAI_summary_stats.csv")
+  
   
   #####  Visualize relative abundance indices  #####
   #'  -----------------------------------------
