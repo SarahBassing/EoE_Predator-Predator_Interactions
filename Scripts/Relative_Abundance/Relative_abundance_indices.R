@@ -542,16 +542,19 @@
   #####  Visualize mean RAI, TIFC, & RN  #####
   #'  -----------------------------------
   #'  Read in summary data and reformat to be consistent
+  #'  Mean detection rate
   mean_DR <- read_csv("./Data/Relative abundance data/RAI Phase 2/RAI_summary_stats.csv") %>%
     mutate(RAI_method = "DR")
-  names(mean_DR) <- c("GMU", "Species", "Mean", "Uncertainty", "Year", "RAI_method")
+  names(mean_DR) <- c("GMU", "Species", "Mean", "Variability", "Year", "RAI_method")
+  #'  TIFC mean density
   mean_TIFC <- read_csv("./Data/Relative abundance data/RAI Phase 2/tifc_density_stats_avg_edd_predonly.csv") %>%
     mutate(season = ifelse(season == "Smr20", "2020", season),
            season = ifelse(season == "Smr21", "2021", season),
            season = ifelse(season == "Smr22", "2022", season),
            season = as.numeric(season),
            RAI_method = "TIFC")
-  names(mean_TIFC) <- c("Year", "GMU", "Species", "mean_density_km2", "se_density_km2", "Mean", "Uncertainty", "RAI_method")
+  names(mean_TIFC) <- c("Year", "GMU", "Species", "mean_density_km2", "se_density_km2", "Mean", "Variability", "RAI_method")
+  #'  RN model GMU-wide average density estimates
   mean_RN_gmu1 <- read_csv("./Outputs/Relative_Abundance/RN_model/RN_density_gmu1.csv") %>% mutate(GMU = "GMU1")
   mean_RN_gmu6 <- read_csv("./Outputs/Relative_Abundance/RN_model/RN_density_gmu6.csv") %>% mutate(GMU = "GMU6")
   mean_RN_gmu10A <- read_csv("./Outputs/Relative_Abundance/RN_model/RN_density_gmu10A.csv") %>% mutate(GMU = "GMU10A")
@@ -559,43 +562,69 @@
     mutate(Species = ifelse(Species == "black bear", "bear_black", Species),
            Species = ifelse(Species == "mountain lion", "mountain_lion", Species), 
            RAI_method = "RN model")
-  names(mean_RN) <- c("Species", "Year", "Mean", "Uncertainty", "GMU", "RAI_method")
+  names(mean_RN) <- c("Species", "Year", "Mean", "Variability", "GMU", "RAI_method")
+  #'  RN model local abundance estimates (to be averaged)
+  load("./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
+  mean_RNn_20s <- RN_abundance[[1]] %>%
+    group_by(GMU, Species) %>%
+    summarise(mean_RN_abundance = round(mean(RN.n), 3),
+              se_RN_abundance = round((sd(RN.n, na.rm = TRUE)/sqrt(nrow(.))), 3)) %>%
+    ungroup() %>%
+    mutate(Year = as.numeric("2020"), 
+           RAI_method = "RN model")
+  mean_RNn_21s <- RN_abundance[[2]] %>%
+    group_by(GMU, Species) %>%
+    summarise(mean_RN_abundance = round(mean(RN.n), 3),
+              se_RN_abundance = round((sd(RN.n, na.rm = TRUE)/sqrt(nrow(.))), 3)) %>%
+    ungroup() %>%
+    mutate(Year = as.numeric("2021"),
+           RAI_method = "RN model")
+  mean_RNn_22s <- RN_abundance[[3]] %>%
+    group_by(GMU, Species) %>%
+    summarise(mean_RN_abundance = round(mean(RN.n), 3),
+              se_RN_abundance = round((sd(RN.n, na.rm = TRUE)/sqrt(nrow(.))), 3)) %>%
+    ungroup() %>%
+    mutate(Year = as.numeric("2022"), 
+           RAI_method = "RN model")
+  mean_RNn <- rbind(mean_RNn_20s, mean_RNn_21s, mean_RNn_22s)
+  names(mean_RNn) <- c("GMU", "Species", "Mean", "Variability", "Year", "RAI_method")
   
   #'  Bind summary data together
-  all_metrics <- full_join(mean_DR, mean_TIFC, by = c("Year", "GMU", "Species", "RAI_method", "Mean", "Uncertainty")) %>%
-    full_join(mean_RN, by = c("Year", "GMU", "Species", "RAI_method", "Mean", "Uncertainty")) %>%
+  all_metrics <- full_join(mean_DR, mean_TIFC, by = c("Year", "GMU", "Species", "RAI_method", "Mean", "Variability")) %>%
+    full_join(mean_RNn, by = c("Year", "GMU", "Species", "RAI_method", "Mean", "Variability")) %>%
     mutate(Year = as.factor(as.character(Year))) %>%
     relocate(Year, .before = GMU) %>%
     relocate(RAI_method, .after = "Species") %>%
     dplyr::select(-c("mean_density_km2", "se_density_km2"))
   
   #'  Facet_grid labels
-  RAI_names <- c("Detection rate (SE)", "RN density (SD)", "TIFC density (SE)")
+  RAI_names <- c("Detection rate (SE)", "RN abundance (SE)", "TIFC density (SE)")
   names(RAI_names) <- c("DR", "RN model", "TIFC")
   
   RAI_comparison_plot <- ggplot(all_metrics, aes(x = Species, y = Mean, color = GMU)) +
-    geom_errorbar(aes(ymin = Mean-Uncertainty, ymax = Mean+Uncertainty, width = 0.3), position = position_dodge(width=0.9)) +
+    geom_errorbar(aes(ymin = Mean-Variability, ymax = Mean+Variability, width = 0.3), position = position_dodge(width=0.9)) +
     geom_point(stat = "identity", position = position_dodge(width=0.9), size = 2) +
     facet_grid(RAI_method ~ Year, scales = "free", labeller = labeller(RAI_method = RAI_names)) +
     theme_bw(base_size = 18) +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("Predator relative abundance indices")
+    ggtitle("Predator relative abundance indices") +
+    ylab("Mean RAI")
   RAI_comparison_plot_gmu1 <- ggplot(all_metrics[all_metrics$GMU == "GMU1",], aes(x = Species, y = Mean)) + 
-    geom_errorbar(aes(ymin = Mean-Uncertainty, ymax = Mean+Uncertainty, width = 0.3), position = position_dodge(width=0.9), color = "#D55E00") +
+    geom_errorbar(aes(ymin = Mean-Variability, ymax = Mean+Variability, width = 0.3), position = position_dodge(width=0.9), color = "#D55E00") +
     geom_point(stat = "identity", position = position_dodge(width=0.9), size = 2, color = "#D55E00") +
     facet_grid(RAI_method ~ Year, scales = "free", labeller = labeller(RAI_method = RAI_names)) +
     theme_bw(base_size = 18) +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("Predator relative abundance indices, GMU1")
   RAI_comparison_plot_gmu6 <- ggplot(all_metrics[all_metrics$GMU == "GMU6",], aes(x = Species, y = Mean)) + 
-    geom_errorbar(aes(ymin = Mean-Uncertainty, ymax = Mean+Uncertainty, width = 0.3), position = position_dodge(width=0.9), color = "#0072B2") +
+    geom_errorbar(aes(ymin = Mean-Variability, ymax = Mean+Variability, width = 0.3), position = position_dodge(width=0.9), color = "#0072B2") +
     geom_point(stat = "identity", position = position_dodge(width=0.9), size = 2, color = "#0072B2") +
     facet_grid(RAI_method ~ Year, scales = "free", labeller = labeller(RAI_method = RAI_names)) +
     theme_bw(base_size = 18) +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("Predator relative abundance indices, GMU6")
   RAI_comparison_plot_gmu10a <- ggplot(all_metrics[all_metrics$GMU == "GMU10A",], aes(x = Species, y = Mean)) + 
-    geom_errorbar(aes(ymin = Mean-Uncertainty, ymax = Mean+Uncertainty, width = 0.3), position = position_dodge(width=0.9), color = "#CC79A7") +
+    geom_errorbar(aes(ymin = Mean-Variability, ymax = Mean+Variability, width = 0.3), position = position_dodge(width=0.9), color = "#CC79A7") +
     geom_point(stat = "identity", position = position_dodge(width=0.9), size = 2, color = "#CC79A7") +
     facet_grid(RAI_method ~ Year, scales = "free", labeller = labeller(RAI_method = RAI_names)) +
     theme_bw(base_size = 18) +
