@@ -598,7 +598,7 @@
     dplyr::select(-c("mean_density_km2", "se_density_km2"))
   
   #'  Facet_grid labels
-  RAI_names <- c("Detection rate (SE)", "RN abundance (SE)", "TIFC density (SE)")
+  RAI_names <- c("Detection rate", "RN abundance", "TIFC density")
   names(RAI_names) <- c("DR", "RN model", "TIFC")
   
   RAI_comparison_plot <- ggplot(all_metrics, aes(x = Species, y = Mean, color = GMU)) +
