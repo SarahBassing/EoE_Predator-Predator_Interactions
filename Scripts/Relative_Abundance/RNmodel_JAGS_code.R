@@ -42,7 +42,7 @@
       #'  Detection priors
       mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
       alpha0 <- logit(mean.r)     # Detection intercept (on logit scale)
-      alpha1 ~ dnorm(0, 0.001)
+      # alpha1 ~ dnorm(0, 0.001)
       
       #'  Categorical effect for camera setup needs multiple alpha2 coefficients
       alpha2[1] <- 0
@@ -62,7 +62,7 @@
         for(j in 1:nsurveys){
           y[i,j] ~ dbern(p[i,j])
           p[i,j] <- 1 - pow((1 - r[i,j]), N[i])
-          logit(r[i,j]) <- alpha0 + alpha1 * ndays[i] + alpha2[setup[i]]  #alpha1 * seffort[i,j] if using 7-day sampling occasions
+          logit(r[i,j]) <- alpha0 + alpha2[setup[i]]  #alpha1 * seffort[i,j] if using 7-day sampling occasions
         }
       }
       
