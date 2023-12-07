@@ -399,7 +399,7 @@
   
   #'  Parameters monitored
   params <- c("beta0", "beta1", "beta2", "beta3", "beta4", #"mean.lambda", 
-              "alpha0", "alpha1", "alpha2", "rSetup", "mu.r", "mean.p", #"mean.r", 
+              "alpha0", "alpha2", "rSetup", "mu.r", "mean.p", #"alpha1" #"mean.r", 
               "mu.lambda", "totalN", "occSites", "mean.psi", 
               "totalN.gmu10a", "densitykm2.gmu10a", "density100km2.gmu10a", 
               "totalN.gmu6", "densitykm2.gmu6", "density100km2.gmu6", 
