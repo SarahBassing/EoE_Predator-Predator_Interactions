@@ -488,6 +488,58 @@
   mcmcplot(RN_wolf_20s$samples)
   save(RN_wolf_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_20s_", Sys.Date(), ".RData")) 
   
+  ######  Elk  ######
+  start.time = Sys.time()
+  inits_elk20s <- function(){list(N = ninit_20s[[6]])}
+  RN_elk_20s <- jags(data_JAGS_bundle_20s[[6]], inits = inits_elk20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_20s$summary)
+  which(RN_elk_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_20s$samples)
+  save(RN_elk_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_elk_20s_", Sys.Date(), ".RData"))
+  
+  ######  Moose  ######
+  start.time = Sys.time()
+  inits_moose20s <- function(){list(N = ninit_20s[[7]])}
+  RN_moose_20s <- jags(data_JAGS_bundle_20s[[7]], inits = inits_moose20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_moose_20s$summary)
+  which(RN_moose_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_moose_20s$samples)
+  save(RN_moose_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_moose_20s_", Sys.Date(), ".RData"))
+  
+  ######  White-tailed Deer  ######
+  start.time = Sys.time()
+  inits_wtd20s <- function(){list(N = ninit_20s[[9]])}
+  RN_wtd_20s <- jags(data_JAGS_bundle_20s[[9]], inits = inits_wtd20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_20s$summary)
+  which(RN_wtd_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wtd_20s$samples)
+  save(RN_wtd_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wtd_20s_", Sys.Date(), ".RData"))
+  
+  ######  Lagomorphs  ######
+  start.time = Sys.time()
+  inits_lago20s <- function(){list(N = ninit_20s[[10]])}
+  RN_lago_20s <- jags(data_JAGS_bundle_20s[[10]], inits = inits_lago20s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_lago_20s$summary)
+  which(RN_lago_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_lago_20s$samples)
+  save(RN_lago_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lagomorphs_20s_", Sys.Date(), ".RData"))
+  
   
   ######  2021 & 2022  Analyses  ######
   source("./Scripts/Relative_Abundance/RNmodel_JAGS_code.R")
@@ -627,6 +679,114 @@
   which(RN_wolf_22s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wolf_22s$samples)
   save(RN_wolf_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wolf_22s_", Sys.Date(), ".RData"))
+  
+  ######  Elk  ######
+  #'  Summer 2021
+  start.time = Sys.time()
+  inits_elk21s <- function(){list(N = ninit_21s[[6]])}
+  RN_elk_21s <- jags(data_JAGS_bundle_21s[[6]], inits = inits_elk21s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_21s$summary)
+  which(RN_elk_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_21s$samples)
+  save(RN_elk_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_elk_21s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2022
+  start.time = Sys.time()
+  inits_elk22s <- function(){list(N = ninit_22s[[6]])}
+  RN_elk_22s <- jags(data_JAGS_bundle_22s[[6]], inits = inits_elk22s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_22s$summary)
+  which(RN_elk_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_22s$samples)
+  save(RN_elk_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_elk_22s_", Sys.Date(), ".RData"))
+  
+  ######  Moose  ######
+  #'  Summer 2021
+  start.time = Sys.time()
+  inits_moose21s <- function(){list(N = ninit_21s[[7]])}
+  RN_moose_21s <- jags(data_JAGS_bundle_21s[[7]], inits = inits_moose21s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_moose_21s$summary)
+  which(RN_moose_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_moose_21s$samples)
+  save(RN_moose_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_moose_21s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2022
+  start.time = Sys.time()
+  inits_moose22s <- function(){list(N = ninit_22s[[7]])}
+  RN_moose_22s <- jags(data_JAGS_bundle_22s[[7]], inits = inits_moose22s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_moose_22s$summary)
+  which(RN_moose_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_moose_22s$samples)
+  save(RN_moose_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_moose_22s_", Sys.Date(), ".RData"))
+  
+  ######  White-tailed Deer  ######
+  #'  Summer 2021
+  start.time = Sys.time()
+  inits_wtd21s <- function(){list(N = ninit_21s[[9]])}
+  RN_wtd_21s <- jags(data_JAGS_bundle_21s[[9]], inits = inits_wtd21s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_21s$summary)
+  which(RN_wtd_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wtd_21s$samples)
+  save(RN_wtd_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wtd_21s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2022
+  start.time = Sys.time()
+  inits_wtd22s <- function(){list(N = ninit_22s[[9]])}
+  RN_wtd_22s <- jags(data_JAGS_bundle_22s[[9]], inits = inits_wtd22s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_22s$summary)
+  which(RN_wtd_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wtd_22s$samples)
+  save(RN_wtd_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wtd_22s_", Sys.Date(), ".RData"))
+  
+  ######  Lagomorphs  ######
+  #'  Summer 2021
+  start.time = Sys.time()
+  inits_lago21s <- function(){list(N = ninit_21s[[10]])}
+  RN_lago_21s <- jags(data_JAGS_bundle_21s[[10]], inits = inits_lago21s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_lago_21s$summary)
+  which(RN_lago_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_lago_21s$samples)
+  save(RN_lago_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lagomorphs_21s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2022
+  start.time = Sys.time()
+  inits_lago22s <- function(){list(N = ninit_22s[[10]])}
+  RN_lago_22s <- jags(data_JAGS_bundle_22s[[10]], inits = inits_lago22s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_lago_22s$summary)
+  which(RN_lago_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_lago_22s$samples)
+  save(RN_lago_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lagomorphs_22s_", Sys.Date(), ".RData"))
   
   
   #'  --------------------------
