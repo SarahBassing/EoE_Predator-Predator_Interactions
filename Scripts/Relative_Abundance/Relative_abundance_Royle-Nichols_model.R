@@ -476,11 +476,12 @@
   save(RN_lion_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData")) 
   
   ######  Wolf  ######
+  ni_wolf <- 75000
   start.time = Sys.time()
   inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
   RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_wolf, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wolf_20s$summary)
@@ -515,28 +516,30 @@
   save(RN_moose_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_moose_20s_", Sys.Date(), ".RData"))
   
   ######  White-tailed Deer  ######
+  ni_wtd <- 100000
   start.time = Sys.time()
   inits_wtd20s <- function(){list(N = ninit_20s[[9]])}
   RN_wtd_20s <- jags(data_JAGS_bundle_20s[[9]], inits = inits_wtd20s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_wtd, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_20s$summary)
-  which(RN_wtd_20s$summary[,"Rhat"] > 1.1)
+  which(RN_wtd_20s$summary[,"Rhat"] > 1.1) # N[78] N[308]
   mcmcplot(RN_wtd_20s$samples)
   save(RN_wtd_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wtd_20s_", Sys.Date(), ".RData"))
   
   ######  Lagomorphs  ######
+  ni_lag <- 100000
   start.time = Sys.time()
   inits_lago20s <- function(){list(N = ninit_20s[[10]])}
   RN_lago_20s <- jags(data_JAGS_bundle_20s[[10]], inits = inits_lago20s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_lag, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_lago_20s$summary)
-  which(RN_lago_20s$summary[,"Rhat"] > 1.1)
+  which(RN_lago_20s$summary[,"Rhat"] > 1.1) #N[58] 81
   mcmcplot(RN_lago_20s$samples)
   save(RN_lago_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lagomorphs_20s_", Sys.Date(), ".RData"))
   
@@ -740,11 +743,11 @@
   inits_wtd21s <- function(){list(N = ninit_21s[[9]])}
   RN_wtd_21s <- jags(data_JAGS_bundle_21s[[9]], inits = inits_wtd21s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_wtd, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_21s$summary)
-  which(RN_wtd_21s$summary[,"Rhat"] > 1.1)
+  which(RN_wtd_21s$summary[,"Rhat"] > 1.1) 
   mcmcplot(RN_wtd_21s$samples)
   save(RN_wtd_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wtd_21s_", Sys.Date(), ".RData"))
   
@@ -753,11 +756,11 @@
   inits_wtd22s <- function(){list(N = ninit_22s[[9]])}
   RN_wtd_22s <- jags(data_JAGS_bundle_22s[[9]], inits = inits_wtd22s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_wtd, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_22s$summary)
-  which(RN_wtd_22s$summary[,"Rhat"] > 1.1)
+  which(RN_wtd_22s$summary[,"Rhat"] > 1.1) # N[270] N[614]
   mcmcplot(RN_wtd_22s$samples)
   save(RN_wtd_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wtd_22s_", Sys.Date(), ".RData"))
   
@@ -767,7 +770,7 @@
   inits_lago21s <- function(){list(N = ninit_21s[[10]])}
   RN_lago_21s <- jags(data_JAGS_bundle_21s[[10]], inits = inits_lago21s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_lag, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_lago_21s$summary)
@@ -780,7 +783,7 @@
   inits_lago22s <- function(){list(N = ninit_22s[[10]])}
   RN_lago_22s <- jags(data_JAGS_bundle_22s[[10]], inits = inits_lago22s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_lag, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_lago_22s$summary)
