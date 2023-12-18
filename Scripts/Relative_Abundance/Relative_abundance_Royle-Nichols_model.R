@@ -760,7 +760,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_22s$summary)
-  which(RN_wtd_22s$summary[,"Rhat"] > 1.1) # N[270] N[614]
+  which(RN_wtd_22s$summary[,"Rhat"] > 1.1) 
   mcmcplot(RN_wtd_22s$samples)
   save(RN_wtd_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wtd_22s_", Sys.Date(), ".RData"))
   
