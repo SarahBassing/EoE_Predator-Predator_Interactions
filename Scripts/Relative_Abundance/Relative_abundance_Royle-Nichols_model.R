@@ -476,7 +476,7 @@
   save(RN_lion_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData")) 
   
   ######  Wolf  ######
-  ni_wolf <- 75000
+  ni_wolf <-  100000 #75000
   start.time = Sys.time()
   inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
   RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
@@ -525,7 +525,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_20s$summary)
-  which(RN_wtd_20s$summary[,"Rhat"] > 1.1) # N[78] N[308]
+  which(RN_wtd_20s$summary[,"Rhat"] > 1.1) 
   mcmcplot(RN_wtd_20s$samples)
   save(RN_wtd_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wtd_20s_", Sys.Date(), ".RData"))
   
@@ -539,7 +539,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_lago_20s$summary)
-  which(RN_lago_20s$summary[,"Rhat"] > 1.1) #N[58] 81
+  which(RN_lago_20s$summary[,"Rhat"] > 1.1) 
   mcmcplot(RN_lago_20s$samples)
   save(RN_lago_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lagomorphs_20s_", Sys.Date(), ".RData"))
   
@@ -656,7 +656,7 @@
   save(RN_lion_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_22s_", Sys.Date(), ".RData"))
   
   ######  Wolf  ######
-  ni_wolf <- 75000
+  # ni_wolf <- 75000
   #'  Summer 2021
   start.time = Sys.time()
   inits_wolf21s <- function(){list(N = ninit_21s[[5]])}
