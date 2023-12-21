@@ -21,11 +21,11 @@
   library(lubridate)
   library(stringr)
   library(ggplot2)
+  library(patchwork)
   library(tidyverse)
   
   #'  Load camera locations
   load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
-  load("./Data/IDFG camera data/Problem cams/eoe20w_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe22s_problem_cams.RData")
   
@@ -104,16 +104,14 @@
   #'  -----------------------------------------------------
   #'  Focus on sources of mortality that are reported in a relatively reliabl way
   legal_mortality <- function(mort) {
-    mort <- mort %>%
-      filter(Method == "General Hunt" | Method == "Controlled Hunt" | Method == "With Hounds" | 
-               Method == "Trapping" | Method == "Calling" | Method == "1") # 2022 bobcat data don't have clear method names, just numbers but I assume Method == "1" represents trapping b/c most common value ind dataset
-      # filter(Method != "Road Kill") %>%
-      # filter(Method != "Unknown") %>%
-      # filter(Method != "Illegal Kill") %>%
-      # filter(Method != "Other") %>%
-      # filter(Method != "Natural Mortality") 
     print(unique(mort$Species))
     print(unique(mort$Method))
+    mort <- mort %>%
+      filter(Method == "General Hunt" | Method == "Controlled Hunt" | Method == "With Hounds" | 
+               Method == "Incidental Hunting" | Method == "Trapping" | Method =="Incidental Trapping" | 
+               Method == "Calling" | Method == "1" | Method == "3") 
+    #' NOTE: 2022 bobcat data are just numbers but I assume Methods 1 & 3 represent 
+    #' trapping/hunting b/c most common values in data
     return(mort)
   }
   mort_predators_legal <- lapply(mort_predators, legal_mortality)
@@ -222,32 +220,61 @@
   (mort_preSmr22 <- morts_per_area(mort_preSmr22_n, gmu_area = eoe_area, season = "pre Smr22"))
   mort_preSmr <- rbind(mort_preSmr20, mort_preSmr21, mort_preSmr22)
   
-  #' #'  Save
-  #' save(mort_preSmr20, file = "./Data/IDFG BGMR data/mort_preSmr20.RData")
-  #' write.csv(mort_preSmr20, "./Data/IDFG BGMR data/mort_preSmr20.csv")
-  #' save(mort_preSmr21, file = "./Data/IDFG BGMR data/mort_preSmr21.RData")
-  #' write.csv(mort_preSmr21, "./Data/IDFG BGMR data/mort_preSmr21.csv")
-  #' save(mort_preSmr22, file = "./Data/IDFG BGMR data/mort_preSmr22.RData")
-  #' write.csv(mort_preSmr22, "./Data/IDFG BGMR data/mort_preSmr22.csv")
-  #' save(mort_preSmr, file = "./Data/IDFG BGMR data/mort_preSmr.RData")
-  #' write.csv(mort_preSmr, "./Data/IDFG BGMR data/mort_preSmr.csv")
+  #'  Save
+  save(mort_preSmr, file = "./Data/IDFG BGMR data/mort_preSmr.RData")
+  write.csv(mort_preSmr, "./Data/IDFG BGMR data/mort_preSmr.csv")
   
-  harvest_summary <- ggplot(mort_preSmr, aes(x = harvest_period, y = mortality_km2, color = Species, group = Species)) +
-    geom_point() + geom_line() +
+
+  #'  -------------------------
+  ####  Visualize and compare  ####
+  #'  -------------------------
+  mort_preSmr <- mutate(mort_preSmr,
+                        year = ifelse(harvest_period == "pre Smr20", "2019-2020", harvest_period),
+                        year = ifelse(year == "pre Smr21", "2020-2021", year),
+                        year = ifelse(year == "pre Smr22", "2021-2022", year))
+  harvest_summary <- ggplot(mort_preSmr, aes(x = year, y = mortality_km2, color = Species, group = Species)) +
+    geom_point(position=position_dodge(.9)) + geom_line(position=position_dodge(.9)) +
     facet_wrap(~GMU) +
+    theme_light() +
+    theme(text = element_text(size = 13)) +
     labs(title = "Reported annual harvest prior to camera trapping season", 
-         x = "Harvest year (Sept 16 - June 30)", y = "Harvest per km2")
+         x = "Harvest season (Sept 16 - June 30)", y = "Harvest (animals/km2)")
   
   ggsave("./Outputs/Relative_Abundance/Figures/Harvest_summary_data.tiff", harvest_summary,
-         units = "in", width = 9, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  #  Issues: 2022 bobcat data based on Method "1" so need further clarification on what to actually include
-  #  Coyote is based on reported trapping but many sources of mortality unaccounted for
-  #  No information about hound hunting for lions, only general hunt 
-  #  Currently not adjusted for hunter effort at all
+         units = "in", width = 10, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  #'  Issues: 
+  #'  2022 bobcat data based on Methods "1" abd "3" so need further clarification on what to actually include
+  #'  Coyote is based on reported trapping but many sources of mortality unaccounted for
+  #'  No information about hound hunting for lions, only general hunt 
+  #'  Currently not adjusted for hunter effort at all
     
+  #'  Compare to mean density per GMU and species estimated from the RN model
+  mean_RN_gmu1 <- read_csv("./Outputs/Relative_Abundance/RN_model/RN_density_gmu1.csv") %>% mutate(GMU = "GMU1")
+  mean_RN_gmu6 <- read_csv("./Outputs/Relative_Abundance/RN_model/RN_density_gmu6.csv") %>% mutate(GMU = "GMU6")
+  mean_RN_gmu10A <- read_csv("./Outputs/Relative_Abundance/RN_model/RN_density_gmu10A.csv") %>% mutate(GMU = "GMU10A")
+  mean_RNden <- rbind(mean_RN_gmu1, mean_RN_gmu6, mean_RN_gmu10A) %>% arrange(Year, GMU, Species) %>%
+    mutate(Species = str_to_title(Species))
+  names(mean_RNden) <- c("Species", "Year", "Mean", "SD", "GMU")
   
+  #'  Visualize RN density estimates over time
+  RN_density_plot <- ggplot(mean_RNden, aes(x = Year, y = Mean, color = Species, group = Species)) +
+    geom_point(position=position_dodge(.9)) + geom_line(position=position_dodge(.9)) +
+    geom_errorbar(aes(ymin = Mean - SD, ymax = Mean + SD), width = 0.2, position=position_dodge(.9)) +
+    facet_wrap(~GMU) +
+    theme_light() +
+    theme(text = element_text(size = 13)) +
+    labs(title = "Estimated annual predator density from camera data", 
+         x = "Sampling season (July 1 - Sept 15)", y = "Density (animals/km2)")
   
+  ggsave("./Outputs/Relative_Abundance/Figures/RN_density_summary_plot.tiff", RN_density_plot,
+         units = "in", width = 10, height = 6, dpi = 600, device = "tiff", compression = "lzw")
   
+  #'  Patchworked together
+  harvest_density_comparison_plot <- (harvest_summary + theme(legend.position = "none")) / RN_density_plot +
+    plot_layout(guides = 'collect')
+  
+  ggsave("./Outputs/Relative_Abundance/Figures/Comparison_harvest_to_RN_density.tiff", harvest_density_comparison_plot,
+         units = "in", width = 10, height = 12, dpi = 600, device = "tiff", compression = "lzw")
   
   
   #'  Next stop, read these into the Covaraite_Extract.R script
