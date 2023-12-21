@@ -546,6 +546,7 @@
   mean_DR <- read_csv("./Data/Relative abundance data/RAI Phase 2/RAI_summary_stats.csv") %>%
     mutate(RAI_method = "DR")
   names(mean_DR) <- c("GMU", "Species", "Mean", "Variability", "Year", "RAI_method")
+  
   #'  TIFC mean density
   mean_TIFC <- read_csv("./Data/Relative abundance data/RAI Phase 2/tifc_density_stats_avg_edd_predonly.csv") %>%
     mutate(season = ifelse(season == "Smr20", "2020", season),
@@ -554,16 +555,18 @@
            season = as.numeric(season),
            RAI_method = "TIFC")
   names(mean_TIFC) <- c("Year", "GMU", "Species", "mean_density_km2", "se_density_km2", "Mean", "Variability", "RAI_method")
-  #'  RN model GMU-wide average density estimates
+  
+  #'  RN model GMU-wide average DENSITY estimates
   mean_RN_gmu1 <- read_csv("./Outputs/Relative_Abundance/RN_model/RN_density_gmu1.csv") %>% mutate(GMU = "GMU1")
   mean_RN_gmu6 <- read_csv("./Outputs/Relative_Abundance/RN_model/RN_density_gmu6.csv") %>% mutate(GMU = "GMU6")
   mean_RN_gmu10A <- read_csv("./Outputs/Relative_Abundance/RN_model/RN_density_gmu10A.csv") %>% mutate(GMU = "GMU10A")
-  mean_RN <- rbind(mean_RN_gmu1, mean_RN_gmu6, mean_RN_gmu10A) %>% arrange(Year, GMU, Species) %>%
+  mean_RNden <- rbind(mean_RN_gmu1, mean_RN_gmu6, mean_RN_gmu10A) %>% arrange(Year, GMU, Species) %>%
     mutate(Species = ifelse(Species == "black bear", "bear_black", Species),
            Species = ifelse(Species == "mountain lion", "mountain_lion", Species), 
            RAI_method = "RN model")
-  names(mean_RN) <- c("Species", "Year", "Mean", "Variability", "GMU", "RAI_method")
-  #'  RN model local abundance estimates (to be averaged)
+  names(mean_RNden) <- c("Species", "Year", "Mean", "SD", "GMU", "RAI_method")
+  
+  #'  RN model local ABUNDANCE estimates (to be averaged)
   load("./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
   mean_RNn_20s <- RN_abundance[[1]] %>%
     group_by(GMU, Species) %>%
@@ -601,6 +604,7 @@
   RAI_names <- c("Detection rate", "RN abundance", "TIFC density")
   names(RAI_names) <- c("DR", "RN model", "TIFC")
   
+  #'  Visualize differences in DR, RN abundance, and TIFC density
   RAI_comparison_plot <- ggplot(all_metrics, aes(x = Species, y = Mean, color = GMU)) +
     geom_errorbar(aes(ymin = Mean-Variability, ymax = Mean+Variability, width = 0.3), position = position_dodge(width=0.9)) +
     geom_point(stat = "identity", position = position_dodge(width=0.9), size = 2) +
@@ -639,6 +643,5 @@
          width = 10, height = 14, dpi = 600, device = "tiff", compression = 'lzw')
   ggsave("./Outputs/Figures/RAI_comparison_plot_gmu10a.tiff", RAI_comparison_plot_gmu10a, units = "in",
          width = 10, height = 14, dpi = 600, device = "tiff", compression = 'lzw')
-  
   
   
