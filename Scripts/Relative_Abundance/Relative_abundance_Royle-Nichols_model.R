@@ -476,7 +476,7 @@
   save(RN_lion_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData")) 
   
   ######  Wolf  ######
-  ni_wolf <-  100000 #75000
+  ni_wolf <-  100000 
   start.time = Sys.time()
   inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
   RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
@@ -656,7 +656,7 @@
   save(RN_lion_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_lion_22s_", Sys.Date(), ".RData"))
   
   ######  Wolf  ######
-  # ni_wolf <- 75000
+  ni_wolf <- 100000 
   #'  Summer 2021
   start.time = Sys.time()
   inits_wolf21s <- function(){list(N = ninit_21s[[5]])}
@@ -738,6 +738,7 @@
   save(RN_moose_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_moose_22s_", Sys.Date(), ".RData"))
   
   ######  White-tailed Deer  ######
+  ni_wtd <- 100000
   #'  Summer 2021
   start.time = Sys.time()
   inits_wtd21s <- function(){list(N = ninit_21s[[9]])}
@@ -765,6 +766,7 @@
   save(RN_wtd_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_wtd_22s_", Sys.Date(), ".RData"))
   
   ######  Lagomorphs  ######
+  ni_lag <- 100000
   #'  Summer 2021
   start.time = Sys.time()
   inits_lago21s <- function(){list(N = ninit_21s[[10]])}
