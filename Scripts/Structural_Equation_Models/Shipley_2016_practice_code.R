@@ -122,5 +122,49 @@
   fit.true4 <- sem(true.model4, data = sim.data, fixed.x = FALSE)
   summary(fit.true4)
   
+  #'  Fitting a measurement model when you have a latent variable
+  #'  Pretend to have a data set with 4 imperfect measurements (observed indicators) 
+  #'  of an unobserved latent variable
+  set.seed(1)
+  string.length <- rnorm(100, 0, 10)
+  ruler.cent <- 1*string.length + rnorm(100, 0, 0.5)
+  hand.lengths <- 0.07*string.length + rnorm(100, 0, 7)
+  ruler.inches <- 0.39*string.length + rnorm(100, 0, 3.3)
+  eyeball.guess <- 1*string.length + rnorm(100, 0, 10)
+  strings <- data.frame(ruler.cent = ruler.cent, hand.lengths = hand.lengths, 
+                         ruler.inches = ruler.inches, eyeball.guess = eyeball.guess)
+  #'  =~ operator is used instead of ~, meaning the latent variable causes the indicators
+  #'  NOTE: string.length is unobserved so not included in any df; this is how lavaan knows it is latent
+  #'  Fix scale of the latent variable to unity so it is measured in units of standard deviations
+  strings.model <- "
+  string.length =~ ruler.cent + hand.lengths + ruler.inches + eyeball.guess"
+  #'  Fix variance of latent variable to unity with std.lv = TRUE
+  fit <- sem(model = strings.model, data = strings, std.lv = TRUE)
+  summary(fit)
   
+  #'  If you want to fix latent variable to something other than unity or fix some 
+  #'  latent variabces to unity but fix scales of other latent variables using the
+  #'  indicator, need to use syntax that says to not fix the path coefficient of first indicator variable & fix the variance of the latent
+  strings.model <- "
+  string.length =~ NA*ruler.cent + hand.lengths + ruler.inches + eyeball.guess 
+  string.length ~~1*string.length" 
+  fit <- sem(model = strings.model, data = strings)
+  summary(fit)
+  #' NA*ruler.cent allows model to estimate path coefficient, otherwise if std.lv 
+  #' is not set to TRUE then package default fies the scale of the latent variable 
+  #' by fixing the first path coefficient to unity
+  #' string.length ~~1*string.length explicitly fixes variance of latent variable to unity
+  
+  #'  If you want to fix scale fo latent variable to that of first indicator variable 
+  #'  you can allow variance of latent variable to be freely estimated but fix
+  #'  path coefficient to first indicator variable to 1. This is the default process
+  #'  with the most basic syntax for measurement models
+  strings.model <- "
+  string.length =~ ruler.cent + hand.lengths + ruler.inches + eyeball.guess"
+  fit <- sem(model = strings.model, data = strings)
+  summary(fit)
+  #'  Get total proportion of total variance of each indicator that is explained by
+  #'  latent value (highest correlation with ruler.cent, lowest with hand.lengths)
+  inspect(fit, "r2") 
+  predict(fit)
   
