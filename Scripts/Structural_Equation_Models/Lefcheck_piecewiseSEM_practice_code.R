@@ -10,10 +10,12 @@
   
   #install.packages("piecewiseSEM")
   library(piecewiseSEM)
+    
+  #'  ------------------------------------
+  ####  piecewise SEM with linear models  ####
+  #'  ------------------------------------
   data(keeley)
-  
-  #'  Example DAG
-  #'  age --> firesev --> cover
+  #'  DAG:  age --> firesev --> cover
   
   #'  Define the list of structural equations, written in linear modeling format
   keeley_psem <- psem(
@@ -94,5 +96,66 @@
   ####  piecewise SEM with generalized mixed effects models  ####
   #'  -------------------------------------------------------
   data(shipley)
+  #'  DAG:  lat --> DD --> Date --> Growth --> Survival
   
+  #'  Load additional packages
+  # install.packages("nlme")
+  library(nlme)
+  library(lme4)
+  
+  #'  Analyze diagram using piecewise method, recognizing hierarchical structure 
+  #'  and non-normality of the data
+  shipley_psem <- psem(
+    lme(DD ~ lat, random = ~1 | site / tree, na.action = na.omit, data = shipley),
+    lme(Date ~ DD, random = ~1 | site / tree, na.action = na.omit, data = shipley),
+    lme(Growth ~ Date, random = ~1 | site / tree, na.action = na.omit, data = shipley),
+    
+    glmer(Live ~ Growth + (1 | site) + (1 | tree),
+          family = binomial(link = "logit"), data = shipley)
+  )
+  
+  summary(shipley_psem, .progressBar = FALSE)
+  
+  
+  #'  Test piecewise SEM and the log-likelihood approach to GoF with a generalized
+  #'  additive model (GAM)
+  #'  DAG: x1 --> x2 --> x3 & x4 --> x5
+  library(mgcv)
+  
+  #'  Start by generating data
+  set.seed(100)
+  n <- 100
+  x1 <- rchisq(n, 7)
+  mu2 <- 10*x1/(5 + x1)
+  x2 <- rnorm(n, mu2, 1)
+  x2[x2 <= 0] <- 0.1
+  x3 <- rpois(n, lambda = (0.5*x2))
+  x4 <- rpois(n, lambda = (0.5*x2))
+  p.x5 <- exp(-0.5*x3 + 0.5*x4)/(1 + exp(-0.5*x3 + 0.5*x4))
+  x5 <- rbinom(n, size = 1, prob = p.x5)
+  dat2 <- data.frame(x1 = x1, x2 = x2, x3 = x3, x4 = x4, x5 = x5)
+  
+  #'  Define SEM, assuming multivariate normality
+  shipley_psem2 <- psem(
+    lm(x2 ~ x1, data = dat2),
+    lm(x3 ~ x2, data = dat2),
+    lm(x4 ~ x2, data = dat2),
+    lm(x5 ~ x3 + x4, data = dat2)
+  )
+  LLchisq(shipley_psem2)
+  
+  #'  Define structural equations using a combination of non-normal distributions
+  #'  and generalized additive models
+  shipley_psem3 <- psem(
+    gam(x2 ~ s(x1), data = dat2, family = gaussian),
+    glm(x3 ~ x2, data = dat2, family = poisson),
+    gam(x4 ~ x2, data = dat2, family = poisson),
+    glm(x5 ~ x3 + x4, data = dat2, family = binomial)
+  )
+  LLchisq(shipley_psem3)
+  
+  #'  Model selection using AIC
+  AIC(shipley_psem2, shipley_psem3)
+  
+  summary(shipley_psem3)
   
