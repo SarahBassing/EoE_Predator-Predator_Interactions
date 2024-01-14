@@ -893,7 +893,7 @@
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp22s_RNmod.RData")
   
   #'  List one detection history per year (doesn't matter which species it relates to)
-  dh_list <- list(DH_npp20s_RNmod[[1]], DH_npp21s_RNmod[[1]], DH_npp22s_RNmod[[3]])
+  dh_list <- list(DH_npp20s_RNmod[[1]], DH_npp21s_RNmod[[1]], DH_npp22s_RNmod[[1]])
   
   #'  Save estimated N per site
   estimated_N <- function(mod, dh, spp) {
@@ -903,7 +903,7 @@
     #'  Grab camera location
     # dh <- dh[[1]]
     locs <- rownames(dh)
-    #'  Merge and formatin into single data frame with corresponding N & SD per site
+    #'  Merge and format into single data frame with corresponding N & SD per site
     out <- cbind(locs, RN.n, RN.sd)
     RN_est <- as.data.frame(out) %>%
       mutate(NewLocationID = locs, 
@@ -940,7 +940,7 @@
     mutate(season = "Smr21") %>%
     relocate(season, .after = Setup)
   rn_2022 <- rbind(rn_bear_out[[3]], rn_bob_out[[3]], rn_coy_out[[3]], rn_lion_out[[3]], rn_wolf_out[[3]],
-                   rn_elk_out[[2]], rn_lago_out[[2]], rn_moose_out[[2]], rn_wtd_out[[2]]) %>%
+                   rn_elk_out[[3]], rn_lago_out[[3]], rn_moose_out[[3]], rn_wtd_out[[3]]) %>%
     arrange(NewLocationID, Species) %>%
     mutate(season = "Smr22") %>%
     relocate(season, .after = Setup)
@@ -1209,29 +1209,29 @@
   #'  Including all variables (even if not significant for all spp/years) to make as predictive as possible
   #'  Not using model selection here b/c testing competing models with SEM stage of analysis,
   #'  this is simply to derive a predicted representation of variation in predator abundance
-  (bear20s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), bear_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (bear21s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), bear_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (bear22s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), bear_22s_umf, se = TRUE, engine = "C", threads = 4))
+  (bear20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bear_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  (bear21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bear_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  (bear22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bear_22s_umf, se = TRUE, engine = "C", threads = 4))
   bear_rn_list <- list(bear20s.rn, bear21s.rn, bear22s.rn)
   
-  (bob20s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), bob_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (bob21s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), bob_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (bob22s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), bob_22s_umf, se = TRUE, engine = "C", threads = 4))
+  (bob20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bob_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  (bob21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bob_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  (bob22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bob_22s_umf, se = TRUE, engine = "C", threads = 4))
   bob_rn_list <- list(bob20s.rn, bob21s.rn, bob22s.rn)
   
-  (coy20s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), coy_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (coy21s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), coy_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (coy22s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), coy_22s_umf, se = TRUE, engine = "C", threads = 4))
+  (coy20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), coy_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  (coy21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), coy_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  (coy22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), coy_22s_umf, se = TRUE, engine = "C", threads = 4))
   coy_rn_list <- list(coy20s.rn, coy21s.rn, coy22s.rn)
   
-  (lion20s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), lion_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (lion21s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), lion_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (lion22s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), lion_22s_umf, se = TRUE, engine = "C", threads = 4)) 
+  (lion20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), lion_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  (lion21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), lion_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  (lion22s.rn <- occuRN(~ Setu + nDays ~ GMU + PercFor + Elev + I(Elev^2), lion_22s_umf, se = TRUE, engine = "C", threads = 4)) 
   lion_rn_list <- list(lion20s.rn, lion21s.rn, lion22s.rn)
   
-  (wolf20s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), wolf_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (wolf21s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), wolf_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (wolf22s.rn <- occuRN(~ Setup + nDays ~ GMU + PercFor + Elev + I(Elev^2), wolf_22s_umf, se = TRUE, engine = "C", threads = 4))
+  (wolf20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), wolf_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  (wolf21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), wolf_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  (wolf22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), wolf_22s_umf, se = TRUE, engine = "C", threads = 4))
   wolf_rn_list <- list(wolf20s.rn, wolf21s.rn, wolf22s.rn)
   
   #'  Empirical Bayes estimates of abundance at each site
