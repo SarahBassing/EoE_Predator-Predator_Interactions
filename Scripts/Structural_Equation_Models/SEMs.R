@@ -11,6 +11,7 @@
 
   #'  Load libraries
   library(piecewiseSEM)
+  library(lme4)
   library(tidyverse)
   
   #'  Load RN model local abundance estimates
@@ -83,7 +84,8 @@
     rename(Effect_year = Year.y) %>%
     dplyr::select(-c(wolf.y, Cause_year, Effect_year)) %>%
     relocate(wolf, .before = "bear_black") %>%
-    relocate(Cause_effect_yrs, .after = "Setup") 
+    relocate(Cause_effect_yrs, .after = "Setup") %>%
+    filter(!is.na(Effect_season))
 
   #'  Mountain lions are dominant over all other species
   lion_centric <- left_join(lion_dom, lag_community, by = c("GMU", "NewLocationID", "CellID", "Setup", "Cause_effect_yrs")) %>%
@@ -94,7 +96,8 @@
     rename(Effect_year = Year.y) %>%
     dplyr::select(-c(mountain_lion.y, Cause_year, Effect_year)) %>%
     relocate(mountain_lion, .before = "bear_black") %>%
-    relocate(Cause_effect_yrs, .after = "Setup")
+    relocate(Cause_effect_yrs, .after = "Setup") %>%
+    filter(!is.na(Effect_season))
   
   #'  Wolves and mountain lions are both dominant over other species
   wolf_lion_centric <- left_join(wolf_dom, lion_dom, by = c("GMU", "NewLocationID", "CellID", "Setup", "Year", "Season", "Cause_effect_yrs")) %>%
@@ -108,10 +111,62 @@
     dplyr::select(-c(wolf.y, mountain_lion.y, Cause_year, Effect_year)) %>%
     relocate(mountain_lion, .before = "bear_black") %>%
     relocate(wolf, .before = "mountain_lion") %>%
-    relocate(Cause_effect_yrs, .after = "Setup")
+    relocate(Cause_effect_yrs, .after = "Setup") %>%
+    filter(!is.na(Effect_season))
+  
+  #'  -------------------------------------------------
+  ####  Run SEM based on hypothesized causal networks  ####
+  #'  -------------------------------------------------
+  #'  DAG 1: Wolf-centric, exploitation competition
+  #'  wolf --> wtd 
+  #'           wtd --> bear
+  #'           wtd --> lion
+  #'           wtd --> coyote
+  #'                   coyote --> bobcat
+  #'                   coyote --> lagomorphs
+  #'                              lagomorphs --> bobcat
+  #'           wtd --> bobcat 
+  #'  wolf --> elk 
+  #'           elk --> bear
+  #'  wolf --> moose
   
   
+  dag1_psem <- psem(
+    lm(whitetailed_deer ~ wolf, data = wolf_centric),
+    lm(elk ~ wolf, data = wolf_centric),
+    lm(moose ~ wolf, data = wolf_centric),
+    lm(bear_black ~ whitetailed_deer + elk, data = wolf_centric),
+    lm(bobcat ~ whitetailed_deer + coyote + lagomorphs, data = wolf_centric),
+    lm(coyote ~  whitetailed_deer, data = wolf_centric),
+    lm(mountain_lion ~ whitetailed_deer, data = wolf_centric),
+    data = wolf_centric
+  )
   
+  summary(dag1_psem, .progressBar = FALSE)
+  
+  
+  dag1_rnd_psem <- psem(
+    lme(whitetailed_deer ~ wolf, random = ~1 | CellID, data = wolf_centric),
+    lme(elk ~ wolf, random = ~1 | CellID, data = wolf_centric),
+    lme(moose ~ wolf, random = ~1 | CellID, data = wolf_centric),
+    lme(bear_black ~ whitetailed_deer + elk, random = ~1 | CellID, data = wolf_centric),
+    lme(bobcat ~ whitetailed_deer + coyote + lagomorphs, random = ~1 | CellID, data = wolf_centric),
+    lme(coyote ~  whitetailed_deer, random = ~1 | CellID, data = wolf_centric),
+    lme(mountain_lion ~ whitetailed_deer, random = ~1 | CellID, data = wolf_centric),
+    data = wolf_centric
+  )
+  summary(dat1_rnd_psem, .progressBar = FALSE)
+  
+  dag1_rnd_count_psem <- psem(
+    glmer(whitetailed_deer ~ wolf + (1 | CellID), data = wolf_centric),
+    glmer(elk ~ wolf + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
+    glmer(moose ~ wolf + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
+    glmer(bear_black ~ whitetailed_deer + elk + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
+    glmer(bobcat ~ whitetailed_deer + coyote + lagomorphs + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
+    glmer(coyote ~  whitetailed_deer + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
+    glmer(mountain_lion ~ whitetailed_deer + (1 | CellID), family = poisson(link = "log"), data = wolf_centric)
+  )
+  summary(dag1_rnd_count_psem, .progressBar = FALSE)
   
   
   
