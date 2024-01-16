@@ -11,6 +11,7 @@
 
   #'  Load libraries
   library(piecewiseSEM)
+  library(nlme)
   library(lme4)
   library(tidyverse)
   
@@ -130,7 +131,7 @@
   #'           elk --> bear
   #'  wolf --> moose
   
-  
+  #'  Assume normality with linear format
   dag1_psem <- psem(
     lm(whitetailed_deer ~ wolf, data = wolf_centric),
     lm(elk ~ wolf, data = wolf_centric),
@@ -141,10 +142,9 @@
     lm(mountain_lion ~ whitetailed_deer, data = wolf_centric),
     data = wolf_centric
   )
-  
   summary(dag1_psem, .progressBar = FALSE)
   
-  
+  #'  Incorporate spatial autocorrelation for paired random and trail cameras with a site-level random effect
   dag1_rnd_psem <- psem(
     lme(whitetailed_deer ~ wolf, random = ~1 | CellID, data = wolf_centric),
     lme(elk ~ wolf, random = ~1 | CellID, data = wolf_centric),
@@ -155,16 +155,29 @@
     lme(mountain_lion ~ whitetailed_deer, random = ~1 | CellID, data = wolf_centric),
     data = wolf_centric
   )
-  summary(dat1_rnd_psem, .progressBar = FALSE)
+  summary(dag1_rnd_psem, .progressBar = FALSE)
+  AIC(dag1_psem, dag1_rnd_psem)
+  
+  #'  Adjust RN estimates to count data
+  wolf_centric_round <- wolf_centric %>%
+    mutate(wolf = round(wolf, digits = 0),
+           bear_black = round(bear_black, 0),
+           bobcat = round(bobcat, 0),
+           coyote = round(coyote, 0),
+           elk = round(elk, 0),
+           lagomorphs = round(lagomorphs, 0),
+           moose = round(moose, 0),
+           mountain_lion = round(mountain_lion, 0),
+           whitetailed_deer = round(whitetailed_deer, 0))
   
   dag1_rnd_count_psem <- psem(
-    glmer(whitetailed_deer ~ wolf + (1 | CellID), data = wolf_centric),
-    glmer(elk ~ wolf + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
-    glmer(moose ~ wolf + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
-    glmer(bear_black ~ whitetailed_deer + elk + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
-    glmer(bobcat ~ whitetailed_deer + coyote + lagomorphs + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
-    glmer(coyote ~  whitetailed_deer + (1 | CellID), family = poisson(link = "log"), data = wolf_centric),
-    glmer(mountain_lion ~ whitetailed_deer + (1 | CellID), family = poisson(link = "log"), data = wolf_centric)
+    glmer(whitetailed_deer ~ wolf + (1 | CellID), data = wolf_centric_round),
+    glmer(elk ~ wolf + (1 | CellID), family = poisson(link = "log"), data = wolf_centric_round),
+    glmer(moose ~ wolf + (1 | CellID), family = poisson(link = "log"), data = wolf_centric_round),
+    glmer(bear_black ~ whitetailed_deer + elk + (1 | CellID), family = poisson(link = "log"), data = wolf_centric_round),
+    glmer(bobcat ~ whitetailed_deer + coyote + lagomorphs + (1 | CellID), family = poisson(link = "log"), data = wolf_centric_round),
+    glmer(coyote ~  whitetailed_deer + (1 | CellID), family = poisson(link = "log"), data = wolf_centric_round),
+    glmer(mountain_lion ~ whitetailed_deer + (1 | CellID), family = poisson(link = "log"), data = wolf_centric_round)
   )
   summary(dag1_rnd_count_psem, .progressBar = FALSE)
   
