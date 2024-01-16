@@ -12,6 +12,7 @@
   #'  Load libraries
   library(piecewiseSEM)
   library(lme4)
+  library(nlme)
   library(tidyverse)
   
   #'  Load RN model local abundance estimates
@@ -141,7 +142,6 @@
     lm(mountain_lion ~ whitetailed_deer, data = wolf_centric),
     data = wolf_centric
   )
-  
   summary(dag1_psem, .progressBar = FALSE)
   
   
@@ -155,7 +155,7 @@
     lme(mountain_lion ~ whitetailed_deer, random = ~1 | CellID, data = wolf_centric),
     data = wolf_centric
   )
-  summary(dat1_rnd_psem, .progressBar = FALSE)
+  summary(dag1_rnd_psem, .progressBar = FALSE)
   
   dag1_rnd_count_psem <- psem(
     glmer(whitetailed_deer ~ wolf + (1 | CellID), data = wolf_centric),
