@@ -132,6 +132,7 @@
   
   #'  DAG 1a: Wolves directly negatively affect competitors (and moose), 
   #'  which indirectly affects subordinate predators and other prey
+  #'  Assume normality with linear format
   dag1a_psem <- psem(
     lm(bear_black ~ wolf, data = wolf_centric),
     lm(coyote ~ wolf, data = wolf_centric),
@@ -143,8 +144,12 @@
     lm(lagomorphs ~ bobcat + coyote, data = wolf_centric),
     data = wolf_centric
   )
+  basisSet(dag1a_psem)
+  dSep(dag1a_psem)
   summary(dag1a_psem)
 
+  #'  Incorporate spatial autocorrelation for paired random and trail cameras with 
+  #'  a site-level random effect
   dag1a_auto_psem <- psem(
     lmer(bear_black ~ wolf + (1 | CellID), data = wolf_centric),
     lmer(coyote ~ wolf + (1 | CellID), data = wolf_centric),
@@ -157,6 +162,7 @@
     data = wolf_centric
   )
   summary(dag1a_auto_psem)
+  AIC(dag1a_psem, dag1a_auto_psem)
   
   #'  DAG 1b: Wolves directly negatively affect competitors and ungulate prey, 
   #'  which indirectly affects subordinate predators and prey
@@ -185,9 +191,39 @@
     data = wolf_centric
   )
   summary(dag1b_auto_psem)
+  AIC(dag1b_psem, dag1b_auto_psem)
   
+  #'  DAG 2: Wolves directly positively affect generalist predators via scavenging 
+  #'  but negatively affect “specialist” competitor and ungulate prey, which 
+  #'  indirectly affects subordinate predators and prey
+  dag2_psem <- psem(
+    lm(bear_black ~ wolf + mountain_lion, data = wolf_centric),
+    lm(coyote ~ wolf + mountain_lion, data = wolf_centric),
+    lm(moose ~ wolf, data = wolf_centric),
+    lm(mountain_lion ~ wolf, data = wolf_centric),
+    lm(bobcat ~ mountain_lion + coyote, data = wolf_centric),
+    lm(elk ~ mountain_lion + bear_black + wolf, data = wolf_centric),
+    lm(whitetailed_deer ~ mountain_lion + bear_black + bobcat + coyote + wolf, data = wolf_centric),
+    lm(lagomorphs ~ bobcat + coyote, data = wolf_centric),
+    data = wolf_centric
+  )
+  summary(dag2_psem)
   
-  #'  Assume normality with linear format
+  dag2_auto_psem <- psem(
+    lmer(bear_black ~ wolf + mountain_lion + (1 | CellID), data = wolf_centric),
+    lmer(coyote ~ wolf + mountain_lion + (1 | CellID), data = wolf_centric),
+    lmer(moose ~ wolf + (1 | CellID), data = wolf_centric),
+    lmer(mountain_lion ~ wolf + (1 | CellID), data = wolf_centric),
+    lmer(bobcat ~ mountain_lion + coyote + (1 | CellID), data = wolf_centric),
+    lmer(elk ~ mountain_lion + bear_black + (1 | CellID), data = wolf_centric),
+    lmer(whitetailed_deer ~ mountain_lion + bear_black + bobcat + coyote + (1 | CellID), data = wolf_centric),
+    lmer(lagomorphs ~ bobcat + coyote + (1 | CellID), data = wolf_centric),
+    data = wolf_centric
+  )
+  summary(dag2_auto_psem)
+  AIC(dag2_psem, dag2_auto_psem)
+  
+  #'  DAG 3: Wolves directly affect prey which indirectly affects predators
   dag3_psem <- psem(
     lm(whitetailed_deer ~ wolf, data = wolf_centric),
     lm(elk ~ wolf, data = wolf_centric),
@@ -201,7 +237,6 @@
   )
   summary(dag3_psem, .progressBar = FALSE)
   
-  #'  Incorporate spatial autocorrelation for paired random and trail cameras with a site-level random effect
   dag3_auto_psem <- psem(
     lmer(whitetailed_deer ~ wolf + (1 | CellID), data = wolf_centric),
     lmer(elk ~ wolf + (1 | CellID), data = wolf_centric),
@@ -215,6 +250,65 @@
   )
   summary(dag3_auto_psem, .progressBar = FALSE)
   AIC(dag3_psem, dag3_auto_psem)
+  
+  
+  #'  DAG 4: Wolves directly affect closest competitor and primary prey, which 
+  #'  indirectly affects other predators and secondary prey
+  dag4_psem <- psem(
+    lm(mountain_lion ~ wolf, data = wolf_centric),
+    lm(moose ~ wolf, data = wolf_centric),
+    lm(elk ~ wolf, data = wolf_centric),
+    lm(whitetailed_deer ~ mountain_lion, data = wolf_centric),
+    lm(bear_black ~ elk + whitetailed_deer, data = wolf_centric),
+    lm(bobcat ~ whitetailed_deer + coyote + lagomorphs, data = wolf_centric),
+    lm(coyote ~ whitetailed_deer, data = wolf_centric),
+    lm(lagomorphs ~ coyote, data = wolf_centric),
+    data = wolf_centric
+  )
+  summary(dag4_psem)
+  
+  dag4_auto_psem <- psem(
+    lmer(mountain_lion ~ wolf + (1 | CellID), data = wolf_centric),
+    lmer(moose ~ wolf + (1 | CellID), data = wolf_centric),
+    lmer(elk ~ wolf + (1 | CellID), data = wolf_centric),
+    lmer(whitetailed_deer ~ mountain_lion + (1 | CellID), data = wolf_centric),
+    lmer(bear_black ~ elk + whitetailed_deer + (1 | CellID), data = wolf_centric),
+    lmer(bobcat ~ whitetailed_deer + coyote + lagomorphs + (1 | CellID), data = wolf_centric),
+    lmer(coyote ~ whitetailed_deer + (1 | CellID), data = wolf_centric),
+    lmer(lagomorphs ~ coyote + (1 | CellID), data = wolf_centric),
+    data = wolf_centric
+  )
+  summary(dag4_auto_psem)
+  AIC(dag4_psem, dag4_auto_psem)
+  
+  
+  #'  DAG 5: Lions directly negatively affect competitors and ungulate prey, 
+  #'  which indirectly affects subordinate predators and prey
+  dag5_psem <- psem(
+    lm(wolf ~ mountain_lion, data = wolf_centric),
+    lm(bear_black ~ mountain_lion, data = wolf_centric),
+    lm(bobcat ~ mountain_lion + coyote, data = wolf_centric),
+    lm(moose ~ wolf, data = wolf_centric),
+    lm(coyote ~ mountain_lion + wolf, data = wolf_centric),
+    lm(elk ~ mountain_lion + wolf + bear_black, data = wolf_centric),
+    lm(whitetailed_deer ~ mountain_lion + wolf + bear_black + coyote + bobcat, data = wolf_centric),
+    lm(lagomorphs ~ coyote + bobcat, data = wolf_centric),
+    data = wolf_centric
+  )
+  summary(dag5_psem)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   #' #'  Adjust RN estimates to count data
   #' wolf_centric_round <- wolf_centric %>%
