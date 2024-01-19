@@ -33,7 +33,17 @@
       dplyr::select(-c(RN.sd, season)) %>%
       #'  Create column per species with their site-specific local abundance estimate
       pivot_wider(names_from = "Species",
-                  values_from = "RN.n")
+                  values_from = "RN.n") #%>%
+      #' #'  Z-transform local abundance estimates
+      #' mutate(zbear_black = scale(bear_black),
+      #'        zbobcat = scale(bobcat),
+      #'        zcoyote = scale(coyote),
+      #'        zelk = scale(elk),
+      #'        zlagomorphs = scale(lagomorphs),
+      #'        zmoose = scale(moose),
+      #'        zmountain_lion = scale(mountain_lion),
+      #'        zwhitetailed_deer = scale(whitetailed_deer),
+      #'        zwolf = scale(wolf))
     return(pivot_data_wide)
   }
   RN_wide <- lapply(RN_abundance, wide_data)
@@ -46,7 +56,7 @@
   head(RN_wide[[3]])
   
   #'  List species
-  spp_list <- list("bear_black", "bobcat", "coyote", "elk", "lagomorphs", "moose", "mountain_lion", "wolf", "whitetailed_deer")
+  spp_list <- list("bear_black", "bobcat", "coyote", "elk", "lagomorphs", "moose", "mountain_lion", "whitetailed_deer", "wolf")
   spp_names <- as.vector(unlist(spp_list))
   
   #'  Append local abundance estimates across all years for each individual species
@@ -60,7 +70,7 @@
   
   #'  Lag local abundance of subordinate predators by one year
   #'  Keep local abundance of dominant predators for first two years
-  wolf_dom <- spp_specific_n_list[[8]] %>%
+  wolf_dom <- spp_specific_n_list[[9]] %>%
     filter(Year != "yr3") %>%
     #'  Column to connect causal year of dominant predator to effect year of subordinate species
     mutate(Cause_effect_yrs = ifelse(Season == "Smr20", "yr1_effects_yr2", "yr2_effects_yr3"))
