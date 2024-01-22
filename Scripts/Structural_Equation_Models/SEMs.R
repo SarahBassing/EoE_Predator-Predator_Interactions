@@ -383,4 +383,64 @@
   AIC(dag8_psem, dag8_auto_psem)
   
   
+  #'  ---------------------------------------
+  #####  Causal relationships with time lag  #####
+  #'  ---------------------------------------
+  #'  Lag local abundance of each species based on where they appear in the 
+  #'  causal relationships
+  wolf_yr1 <- spp_specific_n_list[[9]] %>%
+    filter(Year != "yr3") %>%
+    #'  Column to connect causal year of dominant predator to effect year of subordinate species
+    mutate(Cause_effect_yrs = ifelse(Season == "Smr20", "yr1_effects_yr2", "yr2_effects_yr3"))
+  lion_yr1 <- spp_specific_n_list[[7]] %>%
+    filter(Year != "yr3") %>%
+    #'  Column to connect causal year of dominant predator to effect year of subordinate species
+    mutate(Cause_effect_yrs = ifelse(Season == "Smr20", "yr1_effects_yr2", "yr2_effects_yr3"))
+  #'  Keep local abundance of subordinate species for second two years
+  lag_yr2 <- RN_wide_20s_22s %>%
+    filter(Year != "yr1") %>%
+    #'  Column to connect causal year of dominant predator to effect year of subordinate species
+    mutate(Cause_effect_yrs = ifelse(Season == "Smr21", "yr1_effects_yr2", "yr2_effects_yr3"))
+  #'  Keep local abundance of subordinate species for third year
+  lag_yr3 <- localN_yr2 %>%
+    filter(Year == "yr3") %>%
+    #'  Column to connect causal year of dominant predator to effect year of subordinate species
+    mutate(Cause_effect_yrs = "yr2_effects_yr3")
+  
+  ######  DAG 1a time lag  ######
+  #'  wolf yr 1 --> bear, coyote, lion, moose yr 2 --> bobcat, elk, whitetail yr 3
+  yr1 <- wolf_yr1
+  yr2 <- lag_yr2 %>% dplyr::select(-c(wolf, bobcat, elk, whitetailed_deer))
+  yr3 <- lag_yr3 %>% dplyr::select(-c(wolf, bear_black, coyote, mountain_lion, moose))
+  timelag1 <- left_join(wolf_yr1, yr2, by = c("GMU", "NewLocationID", "CellID", "Setup", "Cause_effect_yrs"))
+  
+    wolf_centric <- left_join(wolf_dom, lag_community, by = c("GMU", "NewLocationID", "CellID", "Setup", "Cause_effect_yrs")) %>%
+      rename(wolf = wolf.x) %>%
+      rename(Cause_season = Season.x) %>%
+      rename(Cause_year = Year.x) %>%
+      rename(Effect_season = Season.y) %>%
+      rename(Effect_year = Year.y) %>%
+      dplyr::select(-c(wolf.y, Cause_year, Effect_year)) %>%
+      relocate(wolf, .before = "bear_black") %>%
+      relocate(Cause_effect_yrs, .after = "Setup") %>%
+      filter(!is.na(Effect_season))
+  
+  dag1a_lag <- psem(
+    lm(elk ~ bear_black + wolf, data = timelag1),
+    lm(whitetailed_deer ~ bear_black + mountain_lion + wolf, data = timelag1),
+    lm(bobcat ~ mountain_lion + coyote + wolf, data = timelag1),
+    lm(coyote ~ wolf, data = timelag1),
+    lm(moose ~ wolf, data = timelag1),
+    data = timelag1
+  )
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
