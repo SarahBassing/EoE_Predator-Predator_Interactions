@@ -297,9 +297,10 @@
   summary(dag4_auto_psem)
   AIC(dag4_psem, dag4_auto_psem)
   
-  ######  DAG 5  ######
-  #'  Lions directly negatively affect competitors and ungulate prey, which 
-  #'  indirectly affects subordinate predators and prey
+  ######  DAG 5 & 6  ######
+  #'  Lions have direct (positive or negative) effect on competitors (positively 
+  #'  via scavenging, negatively via interference) which affects ungulate prey 
+  #'  directly and indirectly through other predators
   dag5_psem <- psem(
     lm(wolf ~ mountain_lion, data = localN_z),
     lm(bear_black ~ mountain_lion, data = localN_z),
@@ -313,19 +314,73 @@
   )
   summary(dag5_psem)
   
+  dag5_auto_psem <- psem(
+    lmer(wolf ~ mountain_lion + (1 | CellID), data = localN_z),
+    lmer(bear_black ~ mountain_lion + (1 | CellID), data = localN_z),
+    lmer(bobcat ~ mountain_lion + coyote + (1 | CellID), data = localN_z),
+    lmer(moose ~ wolf + (1 | CellID), data = localN_z),
+    lmer(coyote ~ mountain_lion + wolf + (1 | CellID), data = localN_z),
+    lmer(elk ~ mountain_lion + wolf + bear_black + (1 | CellID), data = localN_z),
+    lmer(whitetailed_deer ~ mountain_lion + wolf + bear_black + coyote + bobcat + (1 | CellID), data = localN_z),
+    lmer(lagomorphs ~ coyote + bobcat + (1 | CellID), data = localN_z),
+    data = localN_z
+  )
+  summary(dag5_auto_psem)
+  AIC(dag5_psem, dag5_auto_psem)
   
+  ######  DAG 7  ######
+  #'  Lions directly affect prey which indirectly affects predators
+  dag7_psem <- psem(
+    lm(elk ~ mountain_lion, data = localN_z),
+    lm(moose ~ wolf, data = localN_z),
+    lm(whitetailed_deer ~ mountain_lion, data = localN_z),
+    lm(lagomorphs ~ coyote, data = localN_z),
+    lm(bear_black ~ elk + whitetailed_deer, data = localN_z),
+    lm(bobcat ~ whitetailed_deer + coyote + lagomorphs, data = localN_z),
+    lm(wolf ~ elk + whitetailed_deer, data = localN_z),
+    data = localN_z
+  )
+  summary(dag7_psem)
   
+  dag7_auto_psem <- psem(
+    lmer(elk ~ mountain_lion + (1 | CellID), data = localN_z),
+    lmer(moose ~ wolf + (1 | CellID), data = localN_z),
+    lmer(whitetailed_deer ~ mountain_lion + (1 | CellID), data = localN_z),
+    lmer(lagomorphs ~ coyote + (1 | CellID), data = localN_z),
+    lmer(bear_black ~ elk + whitetailed_deer + (1 | CellID), data = localN_z),
+    lmer(bobcat ~ whitetailed_deer + coyote + lagomorphs + (1 | CellID), data = localN_z),
+    lmer(wolf ~ elk + whitetailed_deer + (1 | CellID), data = localN_z),
+    data = localN_z
+  )
+  summary(dag7_auto_psem)
+  AIC(dag7_psem, dag7_auto_psem)
   
+  ######  DAG 8  ######
+  #'  Apex predators directly affect prey which indirectly affects predators
+  dag8_psem <- psem(
+    lm(elk ~ wolf + mountain_lion, data = localN_z),
+    lm(whitetailed_deer ~ wolf + mountain_lion, data = localN_z),
+    lm(moose ~ wolf, data = localN_z),
+    lm(bear_black ~ elk, data = localN_z),
+    lm(bobcat ~ whitetailed_deer + lagomorphs + coyote, data = localN_z),
+    lm(coyote ~ whitetailed_deer, data = localN_z),
+    lm(lagomorphs ~ coyote, data = localN_z),
+    data = localN_z
+  )
+  summary(dag8_psem)
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  dag8_auto_psem <- psem(
+    lmer(elk ~ wolf + mountain_lion + (1 | CellID), data = localN_z),
+    lmer(whitetailed_deer ~ wolf + mountain_lion + (1 | CellID), data = localN_z),
+    lmer(moose ~ wolf + (1 | CellID), data = localN_z),
+    lmer(bear_black ~ elk + (1 | CellID), data = localN_z),
+    lmer(bobcat ~ whitetailed_deer + lagomorphs + coyote + (1 | CellID), data = localN_z),
+    lmer(coyote ~ whitetailed_deer + (1 | CellID), data = localN_z),
+    lmer(lagomorphs ~ coyote + (1 | CellID), data = localN_z),
+    data = localN_z
+  )
+  summary(dag8_auto_psem)
+  AIC(dag8_psem, dag8_auto_psem)
   
   
   
