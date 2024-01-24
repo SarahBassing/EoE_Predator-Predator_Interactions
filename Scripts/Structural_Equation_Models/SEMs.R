@@ -396,10 +396,14 @@
     filter(Year != "yr3") %>%
     #'  Column to connect causal year to effect year of subordinate species
     mutate(Cause_effect_yrs = ifelse(Season == "Smr20", "yr1_effects_yr2", "yr2_effects_yr3"))
+  #'  Local abundance of species in year 1
+  yr1 <- RN_wide_20s_22s %>%
+    filter(Year == "yr1") %>%
+    #'  Column to connect causal year to effect year of subordinate species
+    mutate(Cause_effect_yrs = ifelse(Season == "Smr20", "yr1_effects_yr2", "yr2_effects_yr3"))
   #'  Local abundance of species being affected in year 2 by year 1 species
   lag_yr2 <- RN_wide_20s_22s %>%
     filter(Year == "yr2") %>%
-    #filter(Year != "yr1") %>%
     #'  Column to connect causal year to effect year of subordinate species
     mutate(Cause_effect_yrs = ifelse(Season == "Smr21", "yr1_effects_yr2", "yr2_effects_yr3"))
   #'  Local abundance of species being affected in year 3 by year 1 and year 2 species
@@ -408,39 +412,91 @@
     #'  Column to connect causal year to effect year of subordinate species
     mutate(Cause_effect_yrs = "yr2_effects_yr3")
   
-  #'  DAG 1a: wolf yr 1 --> bear, coyote, lion, moose yr 2 --> bobcat, elk, whitetail yr 3
-  #'  Merge local abundance for year 1 dominant that directly affect year 2 subordinate species 
-  dom_smr20 <- wolf_yr1[wolf_yr1$Year == "yr1",]
-  sub_smr21 <- lag_yr2 %>% dplyr::select(-c(wolf, bobcat, elk, whitetailed_deer, lagomorphs))
-  tst1 <- left_join(dom_smr20, sub_smr21, by = c("GMU", "NewLocationID", "CellID", "Setup"))
-  #'  Merge local abundance for species above that effect year 3 subordinate species
-  sub_smr22 <- lag_yr3 %>% dplyr::select(-c(wolf, bear_black, coyote, mountain_lion, moose, lagomorphs)) 
-  tst2 <- left_join(tst1, sub_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
-    dplyr::select(c("GMU", "NewLocationID", "CellID", "Setup", "wolf", "bear_black", "coyote", "moose", "mountain_lion", "bobcat", "elk", "whitetailed_deer"))
-  #'  Merge local abundance for year 2 dominant that directly affect year 3 subordinate species
-  dom_smr21 <- wolf_yr1[wolf_yr1$Year == "yr2",]
-  sub_smr22 <- lag_yr3 %>% dplyr::select(-c(wolf, bobcat, elk, whitetailed_deer, lagomorphs))
-  tst3 <- left_join(dom_smr21, sub_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
-    dplyr::select(c("GMU", "NewLocationID", "CellID", "Setup", "wolf", "bear_black", "coyote", "moose", "mountain_lion")) %>%
-    mutate(bobcat = NA, 
-           elk = NA, 
-           whitetailed_deer = NA)
-  lagged_data <- bind_rows(tst2, tst3) %>%
-    arrange(GMU, NewLocationID, CellID)
+  #'  Merge local abundance for year 1 dominant that directly affect year 2 species 
+  #'  which directly affects year 3 species
+  lag_localN_3yrs <- function(dom_spp, yr2, yr3, spp_drop1, spp_drop2, keep1, keep2) {
+    dom_smr20 <- dom_spp[dom_spp$Year == "yr1",]
+    sub_smr21 <- yr2 %>% dplyr::select(-starts_with(spp_drop1))
+    tst1 <- left_join(dom_smr20, sub_smr21, by = c("GMU", "NewLocationID", "CellID", "Setup"))
+    #'  Merge local abundance for species above that effect year 3 subordinate species
+    sub_smr22 <- yr3 %>% dplyr::select(-starts_with(spp_drop2)) 
+    tst2 <- left_join(tst1, sub_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
+      dplyr::select(starts_with(keep1)) %>%
+      mutate(start_yr = "Smr20") %>%
+      relocate(start_yr, .after = "Setup")
+    #'  Merge local abundance for year 2 dominant that directly affect year 3 subordinate species
+    dom_smr21 <- dom_spp[dom_spp$Year == "yr2",]
+    sub_smr22 <- yr3 %>% dplyr::select(-spp_drop1)
+    tst3 <- left_join(dom_smr21, sub_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
+      dplyr::select(starts_with(keep2)) %>%
+      mutate(start_yr = "Smr21") %>%
+      relocate(start_yr, .after = "Setup")
+    lagged_data <- bind_rows(tst2, tst3) %>%
+      arrange(GMU, NewLocationID, CellID)
+    return(lagged_data)
+  }
+  #'  df1: wolf yr 1 --> bear, coyote, lion, moose yr 2 --> bobcat, elk, whitetail yr 3
+  df1 <- lag_localN_3yrs(dom_spp = wolf_yr1, yr2 = lag_yr2, yr3 = lag_yr3, 
+                         spp_drop1 = c("wolf", "bobcat", "elk", "whitetailed_deer", "lagomorphs"), 
+                         spp_drop2 = c("wolf", "bear_black", "coyote", "mountain_lion", "moose", "lagomorphs"),
+                         keep1 = c("GMU", "NewLocationID", "CellID", "Setup", "wolf", "bear_black", "coyote", "moose", "mountain_lion", "bobcat", "elk", "whitetailed_deer"),
+                         keep2 = c("GMU", "NewLocationID", "CellID", "Setup", "wolf", "bear_black", "coyote", "moose", "mountain_lion"))
+  
+  #'  Merge local abundance for species that directly affect another species the following year
+  lag_localN_1yr <- function(dom_spp, yr1, yr2, yr3, spp_drop1, spp_drop2, keep1, keep2, drop_cols) {
+    #'  Merge local abundance of dominant species that directly affect subordinate species
+    dom_yr1 <- dom_spp[dom_spp$Year == "yr1",]
+    dom_yr2 <- dom_spp[dom_spp$Year == "yr2",]
+    sub_yr2 <- yr2 %>% dplyr::select(-starts_with(spp_drop1))
+    sub_yr3 <- yr3 %>% dplyr::select(-starts_with(spp_drop1))
+    tst1_yr1.2 <- left_join(dom_yr1, sub_yr2, by = c("GMU", "NewLocationID", "CellID", "Setup"))
+    tst1_yr2.3 <- left_join(dom_yr2, sub_yr3, by = c("GMU", "NewLocationID", "CellID", "Setup"))
+    tst1 <- bind_rows(tst1_yr1.2, tst1_yr2.3) %>% filter(!is.na(Season.y)) %>%
+      mutate(start_yr = Season.x) %>%
+      dplyr::select(-starts_with(drop_cols)) %>%
+      relocate(start_yr, .after ="Setup")
+    #'  Merge local abundance for subordinate species that directly affect other subordinate species
+    sub_yr1 <- yr1 %>% dplyr::select(-starts_with(spp_drop1)) 
+    sub_yr2 <- yr2 %>% dplyr::select(-starts_with(spp_drop1))
+    sub2_yr2 <- yr2 %>% dplyr::select(-starts_with(spp_drop2)) 
+    sub2_yr3 <- yr3 %>% dplyr::select(-starts_with(spp_drop2))
+    tst2_yr1.2 <- left_join(sub_yr1, sub2_yr2, by = c("GMU", "NewLocationID", "CellID", "Setup"))
+    tst2_yr2.3 <- left_join(sub_yr2, sub2_yr3, by = c("GMU", "NewLocationID", "CellID", "Setup"))
+    tst2 <- bind_rows(tst2_yr1.2, tst2_yr2.3) %>% filter(!is.na(Season.y)) %>%
+      mutate(start_yr = Season.x) %>%
+      dplyr::select(-starts_with(drop_cols)) %>%
+      relocate(start_yr, .after ="Setup")
+    #'  Merge into single data frame...... bind_rows or join????
+    tst3 <- left_join(dom_smr21, sub_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
+      dplyr::select(starts_with(keep2)) %>%
+      mutate(start_yr = "Smr21") %>%
+      relocate(start_yr, .after = "Setup")
+    lagged_data <- bind_rows(tst2, tst3) %>%
+      arrange(GMU, NewLocationID, CellID)
+    return(lagged_data)
+  }
+  #'  df1: wolf yr 1 --> bear, coyote, lion, moose yr 2 --> bobcat, elk, whitetail yr 3
+  df1 <- lag_localN_3yrs(dom_spp = wolf_yr1, yr1 = yr1, yr2 = lag_yr2, yr3 = lag_yr3, 
+                         spp_drop1 = c("wolf", "bobcat", "elk", "whitetailed_deer", "lagomorphs"), 
+                         spp_drop2 = c("wolf", "bear_black", "coyote", "mountain_lion", "moose", "lagomorphs"),
+                         drop_cols = c("Season.x", "Season.y", "Year.x", "Year.y", "Cause_effect_yrs.x", "Cause_effect_yrs.y"))
+  
+  
   
   
   
   
   ######  DAG 1a time lag  ######
+  #'  DAG 1a: wolf yr 1 --> bear, coyote, lion, moose yr 2 --> bobcat, elk, whitetail yr 3
   dag1a_lag <- psem(
-    lm(elk ~ bear_black + wolf, data = timelag1),
-    lm(whitetailed_deer ~ bear_black + mountain_lion + wolf, data = timelag1),
-    lm(bobcat ~ mountain_lion + coyote + wolf, data = timelag1),
-    lm(coyote ~ wolf, data = timelag1),
-    lm(moose ~ wolf, data = timelag1),
-    data = timelag1
+    lmer(elk ~ bear_black + wolf + (1 | CellID), data = df1),
+    lmer(whitetailed_deer ~ bear_black + mountain_lion + wolf + (1 | CellID), data = df1),
+    lmer(bobcat ~ mountain_lion + coyote + wolf + (1 | CellID), data = df1),
+    lmer(coyote ~ wolf + (1 | CellID), data = df1),
+    lmer(moose ~ wolf + (1 | CellID), data = df1),
+    data = df1
   )
-  
+  summary(dag1a_lag)
   
   
   
