@@ -11,6 +11,7 @@
 
   #'  Load libraries
   library(piecewiseSEM)
+  library(labelled)
   library(lme4)
   library(tidyverse)
   
@@ -60,83 +61,17 @@
   
   #'  Z-transform local abundance estimates
   localN_z <- RN_wide_20s_22s %>%
-    mutate(zbear_black = scale(bear_black),
-           zbobcat = scale(bobcat),
-           zcoyote = scale(coyote),
-           zelk = scale(elk),
-           zlagomorphs = scale(lagomorphs),
-           zmoose = scale(moose),
-           zmountain_lion = scale(mountain_lion),
-           zwhitetailed_deer = scale(whitetailed_deer),
-           zwolf = scale(wolf))
+    mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
   
   #'  Create correlation matrix for all continuous covariates at once
   cov_correlation <- function(dat) {
     covs <- dat %>%
-      dplyr::select(c("zbear_black", "zbobcat", "zcoyote", "zelk", "zlagomorphs", 
-                      "zmoose", "zmountain_lion", "zwhitetailed_deer", "zwolf"))
+      dplyr::select(c("bear_black", "bobcat", "coyote", "elk", "lagomorphs", 
+                      "moose", "mountain_lion", "whitetailed_deer", "wolf"))
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
-  (localN_corr <- cov_correlation(localN_z)) # Absolutely NOTHING's correlated
-  
-  
-  
-  #' #'  Lag local abundance of subordinate predators by one year
-  #' #'  Keep local abundance of dominant predators for first two years
-  #' wolf_dom <- spp_specific_n_list[[9]] %>%
-  #'   filter(Year != "yr3") %>%
-  #'   #'  Column to connect causal year of dominant predator to effect year of subordinate species
-  #'   mutate(Cause_effect_yrs = ifelse(Season == "Smr20", "yr1_effects_yr2", "yr2_effects_yr3"))
-  #' lion_dom <- spp_specific_n_list[[7]] %>%
-  #'   filter(Year != "yr3") %>%
-  #'   #'  Column to connect causal year of dominant predator to effect year of subordinate species
-  #'   mutate(Cause_effect_yrs = ifelse(Season == "Smr20", "yr1_effects_yr2", "yr2_effects_yr3"))
-  #' #'  Keep local abundance of subordinate predators for second two years
-  #' lag_community <- RN_wide_20s_22s %>%
-  #'   filter(Year != "yr1") %>%
-  #'   #'  Column to connect causal year of dominant predator to effect year of subordinate species
-  #'   mutate(Cause_effect_yrs = ifelse(Season == "Smr21", "yr1_effects_yr2", "yr2_effects_yr3"))
-  #' 
-  #' #'  Combine dominant predator and lagged subordinate predator data
-  #' #'  Wolves are dominant over all other species
-  #' wolf_centric <- left_join(wolf_dom, lag_community, by = c("GMU", "NewLocationID", "CellID", "Setup", "Cause_effect_yrs")) %>%
-  #'   rename(wolf = wolf.x) %>%
-  #'   rename(Cause_season = Season.x) %>%
-  #'   rename(Cause_year = Year.x) %>%
-  #'   rename(Effect_season = Season.y) %>%
-  #'   rename(Effect_year = Year.y) %>%
-  #'   dplyr::select(-c(wolf.y, Cause_year, Effect_year)) %>%
-  #'   relocate(wolf, .before = "bear_black") %>%
-  #'   relocate(Cause_effect_yrs, .after = "Setup") %>%
-  #'   filter(!is.na(Effect_season))
-  #' 
-  #' #'  Mountain lions are dominant over all other species
-  #' lion_centric <- left_join(lion_dom, lag_community, by = c("GMU", "NewLocationID", "CellID", "Setup", "Cause_effect_yrs")) %>%
-  #'   rename(mountain_lion = mountain_lion.x) %>%
-  #'   rename(Cause_season = Season.x) %>%
-  #'   rename(Cause_year = Year.x) %>%
-  #'   rename(Effect_season = Season.y) %>%
-  #'   rename(Effect_year = Year.y) %>%
-  #'   dplyr::select(-c(mountain_lion.y, Cause_year, Effect_year)) %>%
-  #'   relocate(mountain_lion, .before = "bear_black") %>%
-  #'   relocate(Cause_effect_yrs, .after = "Setup") %>%
-  #'   filter(!is.na(Effect_season))
-  #' 
-  #' #'  Wolves and mountain lions are both dominant over other species
-  #' wolf_lion_centric <- left_join(wolf_dom, lion_dom, by = c("GMU", "NewLocationID", "CellID", "Setup", "Year", "Season", "Cause_effect_yrs")) %>%
-  #'   left_join(lag_community, by = c("GMU", "NewLocationID", "CellID", "Setup", "Cause_effect_yrs")) %>%
-  #'   rename(mountain_lion = mountain_lion.x) %>%
-  #'   rename(wolf = wolf.x) %>%
-  #'   rename(Cause_season = Season.x) %>%
-  #'   rename(Cause_year = Year.x) %>%
-  #'   rename(Effect_season = Season.y) %>%
-  #'   rename(Effect_year = Year.y) %>%
-  #'   dplyr::select(-c(wolf.y, mountain_lion.y, Cause_year, Effect_year)) %>%
-  #'   relocate(mountain_lion, .before = "bear_black") %>%
-  #'   relocate(wolf, .before = "mountain_lion") %>%
-  #'   relocate(Cause_effect_yrs, .after = "Setup") %>%
-  #'   filter(!is.na(Effect_season))
+  cov_correlation(localN_z) # Absolutely NOTHING's correlated
   
   #'  ---------------------------------------------
   ####  SEM based on hypothesized causal networks  ####
@@ -386,13 +321,15 @@
   #'  ---------------------------------------
   #####  Causal relationships with time lag  #####
   #'  ---------------------------------------
+  ######  Reformat data to include 1-year time lag  ######
+  #'  ----------------------------------------------
   #'  Lag local abundance of each species based on when they start in the causal relationships
   #'  Local abundance of wolves and lions start yr 1 when they are the dominant predator
-  wolf_yr1 <- spp_specific_n_list[[9]] %>%
+  wolf <- spp_specific_n_list[[9]] %>%
     filter(Year != "yr3") %>%
     #'  Column to connect causal year to effect year of subordinate species
     mutate(Cause_effect_yrs = ifelse(Season == "Smr20", "yr1_effects_yr2", "yr2_effects_yr3"))
-  lion_yr1 <- spp_specific_n_list[[7]] %>%
+  lion <- spp_specific_n_list[[7]] %>%
     filter(Year != "yr3") %>%
     #'  Column to connect causal year to effect year of subordinate species
     mutate(Cause_effect_yrs = ifelse(Season == "Smr20", "yr1_effects_yr2", "yr2_effects_yr3"))
@@ -407,94 +344,133 @@
     #'  Column to connect causal year to effect year of subordinate species
     mutate(Cause_effect_yrs = ifelse(Season == "Smr21", "yr1_effects_yr2", "yr2_effects_yr3"))
   #'  Local abundance of species being affected in year 3 by year 1 and year 2 species
-  lag_yr3 <- RN_wide_20s_22s %>% #lag_yr2 %>%
+  lag_yr3 <- RN_wide_20s_22s %>% 
     filter(Year == "yr3") %>%
     #'  Column to connect causal year to effect year of subordinate species
     mutate(Cause_effect_yrs = "yr2_effects_yr3")
   
-  #'  Merge local abundance for year 1 dominant that directly affect year 2 species 
-  #'  which directly affects year 3 species
-  lag_localN_3yrs <- function(dom_spp, yr2, yr3, spp_drop1, spp_drop2, keep1, keep2) {
-    dom_smr20 <- dom_spp[dom_spp$Year == "yr1",]
-    sub_smr21 <- yr2 %>% dplyr::select(-starts_with(spp_drop1))
-    tst1 <- left_join(dom_smr20, sub_smr21, by = c("GMU", "NewLocationID", "CellID", "Setup"))
-    #'  Merge local abundance for species above that effect year 3 subordinate species
-    sub_smr22 <- yr3 %>% dplyr::select(-starts_with(spp_drop2)) 
-    tst2 <- left_join(tst1, sub_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
-      dplyr::select(starts_with(keep1)) %>%
+  #'  Format data frames one of two ways:
+  #'  -----------------------------------
+  #'  1) Merge local N for species across a 3-year time-lagged relationship
+  #'  Species A in Year 1 affects species B in Year 2 which affect species C in Year 3
+  #'  Rows in df follow one of two patterns:
+  #'  Smr20 --> Smr21 --> Smr22 
+  #'  sppA  --> sppB  --> sppC
+  #'            sppA  --> sppB
+  localN_lag_3yrs <- function(center_of_universe, Smr21, Smr22, spp_drop1, spp_drop2, keep1, keep2) {
+    #'  Merge species A yr1 (Smr20) with species B yr2 (Smr21)
+    sppA_smr20 <- center_of_universe[center_of_universe$Season == "Smr20",]
+    sppB_smr21 <- Smr21 %>% dplyr::select(-all_of(starts_with(spp_drop1)))
+    sppA.B <- left_join(sppA_smr20, sppB_smr21, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
+      filter(!is.na(Season.y))
+    #'  Merge species A & B yr1 & yr2 (Smr20 & Smr21) above with species C yr3 (Smr22)
+    sppC_smr22 <- Smr22 %>% dplyr::select(-all_of(starts_with(spp_drop2))) 
+    sppA.B.C <- left_join(sppA.B, sppC_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
+      dplyr::select(all_of(starts_with(keep1))) %>%
       mutate(start_yr = "Smr20") %>%
       relocate(start_yr, .after = "Setup")
-    #'  Merge local abundance for year 2 dominant that directly affect year 3 subordinate species
-    dom_smr21 <- dom_spp[dom_spp$Year == "yr2",]
-    sub_smr22 <- yr3 %>% dplyr::select(-spp_drop1)
-    tst3 <- left_join(dom_smr21, sub_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
-      dplyr::select(starts_with(keep2)) %>%
+    #'  Merge species A yr2 (Smr21) with species C yr3 (Smr22)
+    sppA_smr21 <- center_of_universe[center_of_universe$Season == "Smr21",]
+    sppB_smr22 <- Smr22 %>% dplyr::select(-all_of(spp_drop1))
+    sppA.B.nextyr <- left_join(sppA_smr21, sppB_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
+      dplyr::select(all_of(starts_with(keep2))) %>%
       mutate(start_yr = "Smr21") %>%
       relocate(start_yr, .after = "Setup")
-    lagged_data <- bind_rows(tst2, tst3) %>%
-      arrange(GMU, NewLocationID, CellID)
+    #'  Merge both lagged data sets and z-transform local abundance estimates
+    lagged_data <- bind_rows(sppA.B.C, sppA.B.nextyr) %>%
+      arrange(GMU, NewLocationID, CellID) %>%
+      #'  Center and scale all numeric variables
+      mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
     return(lagged_data)
   }
-  #'  df1: wolf yr 1 --> bear, coyote, lion, moose yr 2 --> bobcat, elk, whitetail yr 3
-  df1 <- lag_localN_3yrs(dom_spp = wolf_yr1, yr2 = lag_yr2, yr3 = lag_yr3, 
+  #'  df1) yr 1: wolf --> yr 2: bear, coyote, lion, moose --> yr 3: bobcat, elk, whitetail 
+  df1_lagA.B.C <- localN_lag_3yrs(center_of_universe = wolf, Smr21 = lag_yr2, Smr22 = lag_yr3, 
                          spp_drop1 = c("wolf", "bobcat", "elk", "whitetailed_deer", "lagomorphs"), 
                          spp_drop2 = c("wolf", "bear_black", "coyote", "mountain_lion", "moose", "lagomorphs"),
                          keep1 = c("GMU", "NewLocationID", "CellID", "Setup", "wolf", "bear_black", "coyote", "moose", "mountain_lion", "bobcat", "elk", "whitetailed_deer"),
                          keep2 = c("GMU", "NewLocationID", "CellID", "Setup", "wolf", "bear_black", "coyote", "moose", "mountain_lion"))
+  #' #'  Drop any row with missing data.... OH MY GOD WE LOSE A LOT OF DATA
+  #' df1_lagA.B.C <- df1_lagA.B.C[complete.cases(df1_lagA.B.C),]
   
-  #'  Merge local abundance for species that directly affect another species the following year
-  lag_localN_1yr <- function(dom_spp, yr1, yr2, yr3, spp_drop1, spp_drop2, keep1, keep2, drop_cols) {
-    #'  Merge local abundance of dominant species that directly affect subordinate species
-    dom_yr1 <- dom_spp[dom_spp$Year == "yr1",]
-    dom_yr2 <- dom_spp[dom_spp$Year == "yr2",]
-    sub_yr2 <- yr2 %>% dplyr::select(-starts_with(spp_drop1))
-    sub_yr3 <- yr3 %>% dplyr::select(-starts_with(spp_drop1))
-    tst1_yr1.2 <- left_join(dom_yr1, sub_yr2, by = c("GMU", "NewLocationID", "CellID", "Setup"))
-    tst1_yr2.3 <- left_join(dom_yr2, sub_yr3, by = c("GMU", "NewLocationID", "CellID", "Setup"))
-    tst1 <- bind_rows(tst1_yr1.2, tst1_yr2.3) %>% filter(!is.na(Season.y)) %>%
+  
+  #'  2) Merge local N for species that affect another species the following year
+  #'  Year 1 species affects Year 2 species which affect Year 3 species but only 
+  #'  focus on pairwise partial sequences (i.e., yr1 to yr2 or yr2 to yr3) 
+  #'  Smr20 --> Smr21 --> Smr22 
+  #'  sppA  --> sppB
+  #'            sppB  -->  sppC   # Note: data for sppB here is same as sppB data above!
+  #'            sppA  -->  sppB   # Start sequence over in Smr21, despite lacking Smr23 data for sppC 
+  #'  sppB  --> sppC              # Start mid-sequence where sppB in Smr20 affects sppC in Smr21, despite lacking Smr19 data for sppA 
+  localN_lag_1yr <- function(center_of_universe, Smr20, Smr21, Smr22, spp_drop1, spp_drop2, keep1, keep2, drop_cols) {
+    #'  Merge yr1 species that affect yr2 species
+    sppA_cause_Smr20 <- center_of_universe[center_of_universe$Season == "Smr20",]
+    sppA_cause_Smr21 <- center_of_universe[center_of_universe$Season == "Smr21",]
+    sppB_effect_Smr21 <- Smr21 %>% dplyr::select(-all_of(starts_with(spp_drop1)))
+    sppB_effect_Smr22 <- Smr22 %>% dplyr::select(-all_of(starts_with(spp_drop1)))
+    sppA.B_Smr20.21 <- left_join(sppA_cause_Smr20, sppB_effect_Smr21, by = c("GMU", "NewLocationID", "CellID", "Setup"))
+    sppA.B_Smr21.22 <- left_join(sppA_cause_Smr21, sppB_effect_Smr22, by = c("GMU", "NewLocationID", "CellID", "Setup"))
+    sppA.B_lag <- bind_rows(sppA.B_Smr20.21, sppA.B_Smr21.22) %>% filter(!is.na(Season.y)) %>%
       mutate(start_yr = Season.x) %>%
       dplyr::select(-starts_with(drop_cols)) %>%
-      relocate(start_yr, .after ="Setup")
-    #'  Merge local abundance for subordinate species that directly affect other subordinate species
-    sub_yr1 <- yr1 %>% dplyr::select(-starts_with(spp_drop1)) 
-    sub_yr2 <- yr2 %>% dplyr::select(-starts_with(spp_drop1))
-    sub2_yr2 <- yr2 %>% dplyr::select(-starts_with(spp_drop2)) 
-    sub2_yr3 <- yr3 %>% dplyr::select(-starts_with(spp_drop2))
-    tst2_yr1.2 <- left_join(sub_yr1, sub2_yr2, by = c("GMU", "NewLocationID", "CellID", "Setup"))
-    tst2_yr2.3 <- left_join(sub_yr2, sub2_yr3, by = c("GMU", "NewLocationID", "CellID", "Setup"))
-    tst2 <- bind_rows(tst2_yr1.2, tst2_yr2.3) %>% filter(!is.na(Season.y)) %>%
+      relocate(start_yr, .after ="Setup") %>%
+      arrange(GMU, NewLocationID, CellID) %>%
+      #'  Center and scale all continuous variables
+      mutate_at(scale, .vars = vars(-c("GMU", "NewLocationID", "CellID", "Setup", "start_yr")))
+    #'  Merge yr2 species that affect yr3 species
+    sppB_cause_Smr20 <- Smr20 %>% dplyr::select(-all_of(starts_with(spp_drop1))) 
+    sppB_cause_Smr21 <- Smr21 %>% dplyr::select(-all_of(starts_with(spp_drop1)))
+    sppC_effect_Smr21 <- Smr21 %>% dplyr::select(-all_of(starts_with(spp_drop2)))
+    sppC_effect_Smr22 <- Smr22 %>% dplyr::select(-all_of(starts_with(spp_drop2)))
+    sppB.C_Smr20.21 <- left_join(sppB_cause_Smr20, sppC_effect_Smr21, by = c("GMU", "NewLocationID", "CellID", "Setup"))
+    sppB.C_Smr21.22 <- left_join(sppB_cause_Smr21, sppC_effect_Smr22, by = c("GMU", "NewLocationID", "CellID", "Setup"))
+    sppB.C_lag <- bind_rows(sppB.C_Smr20.21, sppB.C_Smr21.22) %>% filter(!is.na(Season.y)) %>%
       mutate(start_yr = Season.x) %>%
-      dplyr::select(-starts_with(drop_cols)) %>%
-      relocate(start_yr, .after ="Setup")
-    #'  Merge into single data frame...... bind_rows or join????
-    tst3 <- left_join(dom_smr21, sub_smr22, by = c("GMU", "NewLocationID", "CellID", "Setup")) %>%
-      dplyr::select(starts_with(keep2)) %>%
-      mutate(start_yr = "Smr21") %>%
-      relocate(start_yr, .after = "Setup")
-    lagged_data <- bind_rows(tst2, tst3) %>%
-      arrange(GMU, NewLocationID, CellID)
+      dplyr::select(-all_of(starts_with(drop_cols))) %>%
+      relocate(start_yr, .after ="Setup") %>%
+      arrange(GMU, NewLocationID, CellID) %>%
+      #'  Center and scale all numeric variables
+      mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
+    #'  List two lagged data sets
+    lagged_data <- list(sppA.B_lag, sppB.C_lag) 
     return(lagged_data)
   }
   #'  df1: wolf yr 1 --> bear, coyote, lion, moose yr 2 --> bobcat, elk, whitetail yr 3
-  df1 <- lag_localN_3yrs(dom_spp = wolf_yr1, yr1 = yr1, yr2 = lag_yr2, yr3 = lag_yr3, 
+  df1_lagA.B_lagB.C <- localN_lag_1yr(center_of_universe = wolf, Smr20 = yr1, Smr21 = lag_yr2, Smr22 = lag_yr3, 
                          spp_drop1 = c("wolf", "bobcat", "elk", "whitetailed_deer", "lagomorphs"), 
                          spp_drop2 = c("wolf", "bear_black", "coyote", "mountain_lion", "moose", "lagomorphs"),
                          drop_cols = c("Season.x", "Season.y", "Year.x", "Year.y", "Cause_effect_yrs.x", "Cause_effect_yrs.y"))
   
   
-  
-  
-  
+  #'  Correlation matrix for all continuous covariates
+  cov_correlation <- function(dat) {
+    covs <- dat %>%
+      dplyr::select(-c("GMU", "NewLocationID", "CellID", "Setup", "start_yr"))
+    cor_matrix <- cor(covs, use = "complete.obs")
+    return(cor_matrix)
+  }
+  cov_correlation(df1_lagA.B.C)
+  cov_correlation(df1_lagA.B_lagB.C[[1]]); cov_correlation(df1_lagA.B_lagB.C[[2]])
   
   ######  DAG 1a time lag  ######
   #'  DAG 1a: wolf yr 1 --> bear, coyote, lion, moose yr 2 --> bobcat, elk, whitetail yr 3
+  #'  lag across 3 years
   dag1a_lag <- psem(
-    lmer(elk ~ bear_black + wolf + (1 | CellID), data = df1),
-    lmer(whitetailed_deer ~ bear_black + mountain_lion + wolf + (1 | CellID), data = df1),
-    lmer(bobcat ~ mountain_lion + coyote + wolf + (1 | CellID), data = df1),
-    lmer(coyote ~ wolf + (1 | CellID), data = df1),
-    lmer(moose ~ wolf + (1 | CellID), data = df1),
-    data = df1
+    lmer(moose ~ wolf + (1 | CellID), data = df1_lagA.B.C),
+    lmer(coyote ~ wolf + (1 | CellID), data = df1_lagA.B.C),
+    lmer(bobcat ~ mountain_lion + coyote + (1 | CellID), data = df1_lagA.B.C),
+    lmer(elk ~ bear_black + mountain_lion + (1 | CellID), data = df1_lagA.B.C),
+    lmer(whitetailed_deer ~ bear_black + mountain_lion + (1 | CellID), data = df1_lagA.B.C),
+    data = df1_lagA.B.C
+  )
+  summary(dag1a_lag)
+  #'  pairwise lag...................NOT WORKING WITH LIST DATA
+  dag1a_lag <- psem(
+    lmer(elk ~ bear_black + mountain_lion + (1 | CellID), data = df1_lagA.B_lagB.C[[2]]),
+    lmer(whitetailed_deer ~ bear_black + mountain_lion + (1 | CellID), data = df1_lagA.B_lagB.C[[2]]),
+    lmer(bobcat ~ mountain_lion + coyote + (1 | CellID), data = df1_lagA.B_lagB.C[[2]]),
+    lmer(coyote ~ wolf + (1 | CellID), data = df1_lagA.B_lagB.C[[1]]),
+    lmer(moose ~ wolf + (1 | CellID), data = df1_lagA.B_lagB.C[[1]]),
+    data = list(df1_lagA.B_lagB.C[[1]], df1_lagA.B_lagB.C[[2]])
   )
   summary(dag1a_lag)
   
