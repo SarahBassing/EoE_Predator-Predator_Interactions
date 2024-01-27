@@ -250,7 +250,7 @@
   cams_eoe20s <- format_cam_station(eoe_probcams_20s, season = "Smr20", habitat_covs = covariate_list[[1]])
   cams_eoe21s <- format_cam_station(eoe_probcams_21s, season = "Smr21", habitat_covs = covariate_list[[2]])
   cams_eoe22s <- format_cam_station(eoe_probcams_22s, season = "Smr22", habitat_covs = covariate_list[[3]])
-
+  
   #'  Scale and format site-level covariates
   format_covs <- function(cams, dets, effort) {   
     #'  Remove rows where camera was inoperable the entire season - covariates at 
