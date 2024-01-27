@@ -13,16 +13,46 @@
   library(piecewiseSEM)
   library(labelled)
   library(lme4)
+  #install.packages("multcompView", repos="http://R-Forge.R-project.org")
+  library(multcompView)
   library(tidyverse)
   
   #'  Load RN model local abundance estimates
   load("./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
   
+  #'  Load camera site covariate data
+  load("./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022.RData")
+  #'  Reformat camera covariates
+  format_cam_covs <- function(dat, season) {
+    covs <- dat %>%
+      #'  Define NLCD landcover classifications using https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
+      mutate(NLCD_30m = ifelse(Landcover_30m2 == 21, "Shrub mix", Landcover_30m2),     #Developed, Open Space
+             NLCD_30m = ifelse(Landcover_30m2 == 31, "Grassland/wetland", NLCD_30m),   #Barren Land
+             NLCD_30m = ifelse(Landcover_30m2 == 41, "Forested", NLCD_30m),            #Deciduous Forest
+             NLCD_30m = ifelse(Landcover_30m2 == 42, "Forested", NLCD_30m),            #Evergreen Forest
+             NLCD_30m = ifelse(Landcover_30m2 == 43, "Forested", NLCD_30m),            #Mixed Forest
+             NLCD_30m = ifelse(Landcover_30m2 == 52, "Shrub mix", NLCD_30m),           #Shrub/Scrub
+             NLCD_30m = ifelse(Landcover_30m2 == 71, "Grassland/wetland", NLCD_30m),   #Grassland/Herbaceous
+             NLCD_30m = ifelse(Landcover_30m2 == 81, "Grassland/wetland", NLCD_30m),   #Pasture/Hay
+             NLCD_30m = ifelse(Landcover_30m2 == 82, "Grassland/wetland", NLCD_30m),   #Cultivated Crops
+             NLCD_30m = ifelse(Landcover_30m2 == 90, "Forested", NLCD_30m),            #Woody Wetlands
+             NLCD_30m = ifelse(Landcover_30m2 == 95, "Grassland/wetland", NLCD_30m),   #Emergent Herbaceous Wetlands
+             Season = season) %>%
+      relocate(Season, .after = "GMU")
+    return(covs)
+  }
+  cams_eoe20s <- format_cam_covs(covariate_list[[1]], season = "Smr20")
+  cams_eoe21s <- format_cam_covs(covariate_list[[2]], season = "Smr21")
+  cams_eoe22s <- format_cam_covs(covariate_list[[3]], season = "Smr22")
+  
+  cam_covs_list <- list(cams_eoe20s, cams_eoe21s, cams_eoe22s)
+  save(cam_covs_list, file = "./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022_updated.RData")
+  
   #'  -----------------------------------------------------
   ####  Format local abundance estimates for SEM analyses  ####
   #'  -----------------------------------------------------
   #'  Long to wide data structure
-  wide_data <- function(dat) {
+  wide_data <- function(dat, covs) {
     pivot_data_wide <- dat %>%
       #'  Create categorical year variable
       mutate(Season = season, 
@@ -34,10 +64,14 @@
       dplyr::select(-c(RN.sd, season)) %>%
       #'  Create column per species with their site-specific local abundance estimate
       pivot_wider(names_from = "Species",
-                  values_from = "RN.n")
+                  values_from = "RN.n") %>%
+      left_join(covs, by = c("NewLocationID", "GMU", "Season")) %>% 
+      mutate(NLCD_30m = factor(NLCD_30m, levels = c("Forested", "Shrub mix", "Grassland/wetland"))) %>%
+      dplyr::select(-c(Landcover_30m2, HabLayer_30m2))
     return(pivot_data_wide)
   }
-  RN_wide <- lapply(RN_abundance, wide_data)
+  # RN_wide <- lapply(RN_abundance, wide_data)
+  RN_wide <- mapply(wide_data, RN_abundance, cam_covs_list, SIMPLIFY = FALSE)
   
   #'  Unlist as one single dataframe
   RN_wide_20s_22s <- do.call(rbind, RN_wide)
@@ -53,7 +87,8 @@
   #'  Append local abundance estimates across all years for each individual species
   spp_specific_n <- function(dat, spp) {
     local_n_est <- do.call(rbind, dat) %>%
-      dplyr::select(c("GMU", "NewLocationID", "CellID", "Setup","Season", "Year", all_of(spp)))
+      dplyr::select(c("GMU", "NewLocationID", "CellID", "Setup","Season", "Year", 
+                      "dist2rd", "NLCD_30m", "Dist2Rural", all_of(spp)))
     return(local_n_est)
   }
   spp_specific_n_list <- lapply(spp_list, spp_specific_n, dat = RN_wide)
@@ -67,11 +102,25 @@
   cov_correlation <- function(dat) {
     covs <- dat %>%
       dplyr::select(c("bear_black", "bobcat", "coyote", "elk", "lagomorphs", 
-                      "moose", "mountain_lion", "whitetailed_deer", "wolf"))
+                      "moose", "mountain_lion", "whitetailed_deer", "wolf",
+                      "dist2rd", "Dist2Rural", "perc_forest"))
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
   cov_correlation(localN_z) # Absolutely NOTHING's correlated
+  
+  tst_psem <- psem(
+    lm(bear_black ~ wolf, data = localN_z),
+    lm(coyote ~ wolf, data = localN_z),
+    lm(moose ~ wolf, data = localN_z),
+    lm(mountain_lion ~ wolf, data = localN_z),
+    lm(bobcat ~ mountain_lion + coyote, data = localN_z),
+    lm(elk ~ NLCD_30m +mountain_lion, data = localN_z),
+    lm(whitetailed_deer ~ NLCD_30m + mountain_lion, data = localN_z),
+    lm(lagomorphs ~ NLCD_30m + bobcat, data = localN_z),
+    data = localN_z
+  )
+  summary(tst_psem)
   
   #'  ---------------------------------------------
   ####  SEM based on hypothesized causal networks  ####
@@ -87,9 +136,9 @@
     lm(moose ~ wolf, data = localN_z),
     lm(mountain_lion ~ wolf, data = localN_z),
     lm(bobcat ~ mountain_lion + coyote, data = localN_z),
-    lm(elk ~ mountain_lion + bear_black, data = localN_z),
-    lm(whitetailed_deer ~ mountain_lion + bear_black + bobcat + coyote, data = localN_z),
-    lm(lagomorphs ~ bobcat + coyote, data = localN_z),
+    lm(elk ~ NLCD_30m + mountain_lion + bear_black, data = localN_z),
+    lm(whitetailed_deer ~ NLCD_30m + mountain_lion + bear_black + bobcat + coyote, data = localN_z),
+    lm(lagomorphs ~ NLCD_30m + bobcat + coyote, data = localN_z),
     data = localN_z
   )
   basisSet(dag1a_psem)
@@ -415,7 +464,7 @@
       relocate(start_yr, .after ="Setup") %>%
       arrange(GMU, NewLocationID, CellID) %>%
       #'  Center and scale all continuous variables
-      mutate_at(scale, .vars = vars(-c("GMU", "NewLocationID", "CellID", "Setup", "start_yr")))
+      mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
     #'  Merge yr2 species that affect yr3 species
     sppB_cause_Smr20 <- Smr20 %>% dplyr::select(-all_of(starts_with(spp_drop1))) 
     sppB_cause_Smr21 <- Smr21 %>% dplyr::select(-all_of(starts_with(spp_drop1)))
@@ -427,6 +476,7 @@
       mutate(start_yr = Season.x) %>%
       dplyr::select(-all_of(starts_with(drop_cols))) %>%
       relocate(start_yr, .after ="Setup") %>%
+      mutate(bear_black_b = bear_black, coyote_b = coyote, moose_b = moose, mountain_lion_b = mountain_lion) %>%
       arrange(GMU, NewLocationID, CellID) %>%
       #'  Center and scale all numeric variables
       mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
@@ -439,6 +489,7 @@
                          spp_drop1 = c("wolf", "bobcat", "elk", "whitetailed_deer", "lagomorphs"), 
                          spp_drop2 = c("wolf", "bear_black", "coyote", "mountain_lion", "moose", "lagomorphs"),
                          drop_cols = c("Season.x", "Season.y", "Year.x", "Year.y", "Cause_effect_yrs.x", "Cause_effect_yrs.y"))
+  head(df1_lagA.B_lagB.C)
   
   
   #'  Correlation matrix for all continuous covariates
@@ -463,6 +514,13 @@
     data = df1_lagA.B.C
   )
   summary(dag1a_lag)
+  
+  
+  
+  
+  
+  
+  
   #'  pairwise lag...................NOT WORKING WITH LIST DATA
   dag1a_lag <- psem(
     lmer(elk ~ bear_black + mountain_lion + (1 | CellID), data = df1_lagA.B_lagB.C[[2]]),
