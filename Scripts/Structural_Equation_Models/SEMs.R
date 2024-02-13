@@ -107,14 +107,16 @@
   }
   RN_wide_annual <- mapply(wide_data_by_year, dat = RN_wide, yr = list("yr1", "yr2", "yr3"), SIMPLIFY = FALSE)
   #'  Sneak peak of each year
-  head(RN_per_yr[[1]])
-  head(RN_per_yr[[2]])
-  head(RN_per_yr[[3]])
+  head(RN_wide_annual[[1]])
+  head(RN_wide_annual[[2]])
+  head(RN_wide_annual[[3]])
   
   #'  Unlist as one single data frame (annual columns per species and covariates)
-  RN_wide_annual_20s_22s <- full_join(RN_per_yr[[1]], RN_per_yr[[2]], by = c("NewLocationID", "CellID", "GMU", "Setup")) %>%
-    full_join(RN_per_yr[[3]], by = c("NewLocationID", "CellID", "GMU", "Setup")) %>%
+  RN_wide_annual_20s_22s <- full_join(RN_wide_annual[[1]], RN_wide_annual[[2]], by = c("NewLocationID", "CellID", "GMU", "Setup")) %>%
+    full_join(RN_wide_annual[[3]], by = c("NewLocationID", "CellID", "GMU", "Setup")) %>%
     arrange(GMU, NewLocationID)
+  head(RN_wide_annual_20s_22s)
+  tail(RN_wide_annual_20s_22s)
   
   #'  Z-transform local abundance estimates
   # localN_z <- RN_wide_20s_22s %>%
@@ -138,7 +140,7 @@
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
-  cov_correlation(localN_z) 
+  cov_correlation(localN_z) #'  Annual prey N correlated across years
   
   #'  Drop sites with NAs (missing 1+ years of data)
   localN_z <- drop_na(localN_z)
