@@ -170,47 +170,94 @@
   #'  Predators affect their primary prey species; predators affect their competitors
   #'  through interference competition
   H.td1_psem <- psem(
-      lm(mountain_lion.yr2 ~ wolf.yr1 + bear_black.yr1, data = localN_z),
-      lm(mountain_lion.yr3 ~ wolf.yr2 + bear_black.yr2, data = localN_z),
-      lm(bear_black.yr2 ~ wolf.yr1, data = localN_z),
-      lm(bear_black.yr3 ~ wolf.yr2, data = localN_z),
-      lm(coyote.yr2 ~ wolf.yr1 + mountain_lion.yr1, data = localN_z),
-      lm(coyote.yr3 ~ wolf.yr2 + mountain_lion.yr2, data = localN_z),
-      lm(bobcat.yr2 ~ coyote.yr1, data = localN_z),
-      lm(bobcat.yr3 ~ coyote.yr2, data = localN_z),
-      lm(moose.yr2 ~ wolf.yr1, data = localN_z),
-      lm(moose.yr3 ~ wolf.yr2, data = localN_z),
-      lm(elk.yr2 ~ wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
-      lm(elk.yr3 ~ wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
-      lm(whitetailed_deer.yr2 ~ mountain_lion.yr1 + bear_black.yr1, data = localN_z),
-      lm(whitetailed_deer.yr3 ~ mountain_lion.yr2 + bear_black.yr2, data = localN_z),
-      lm(lagomorphs.yr2 ~ coyote.yr1 + bobcat.yr1, data = localN_z),
-      lm(lagomorphs.yr3 ~ coyote.yr2 + bobcat.yr2, data = localN_z),
-      data = localN_z)
-    # basisSet(H.td1_psem)
-    # dSep(H.td1_psem)
-    summary(H.td1_psem)
+    lm(mountain_lion.yr2 ~ wolf.yr1 + bear_black.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ wolf.yr2 + bear_black.yr2, data = localN_z),
+    lm(bear_black.yr2 ~ wolf.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ wolf.yr2, data = localN_z),
+    lm(coyote.yr2 ~ wolf.yr1 + mountain_lion.yr1, data = localN_z),
+    lm(coyote.yr3 ~ wolf.yr2 + mountain_lion.yr2, data = localN_z),
+    lm(bobcat.yr2 ~ coyote.yr1, data = localN_z),
+    lm(bobcat.yr3 ~ coyote.yr2, data = localN_z),
+    lm(moose.yr2 ~ wolf.yr1, data = localN_z),
+    lm(moose.yr3 ~ wolf.yr2, data = localN_z),
+    lm(elk.yr2 ~ wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(elk.yr3 ~ wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    lm(whitetailed_deer.yr2 ~ mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    lm(lagomorphs.yr2 ~ coyote.yr1 + bobcat.yr1, data = localN_z),
+    lm(lagomorphs.yr3 ~ coyote.yr2 + bobcat.yr2, data = localN_z),
+    data = localN_z)
+  # basisSet(H.td1_psem)
+  # dSep(H.td1_psem)
+  summary(H.td1_psem)
   
   ######  H.td2  ######
   #'  Predators affect their primary prey species; predators affect their competitors
   #'  through exploitative competition via their primary prey
-  
+  H.td2_psem <- psem(
+    lm(mountain_lion.yr2 ~ elk.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ elk.yr2, data = localN_z),
+    lm(bear_black.yr2 ~ elk.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ elk.yr2, data = localN_z),
+    lm(coyote.yr2 ~ lagomorphs.yr1, data = localN_z),
+    lm(coyote.yr3 ~ lagomorphs.yr2, data = localN_z),
+    lm(moose.yr2 ~ wolf.yr1, data = localN_z),
+    lm(moose.yr3 ~ wolf.yr2, data = localN_z),
+    lm(elk.yr2 ~ wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(elk.yr3 ~ wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    lm(whitetailed_deer.yr2 ~ mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(whitetailed_deer.yr1 ~ mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    lm(lagomorphs.yr2 ~ coyote.yr1 + bobcat.yr1, data = localN_z),
+    lm(lagomorphs.yr3 ~ coyote.yr2 + bobcat.yr2, data = localN_z),
+    data = localN_z)
+  summary(H.td2_psem)
+    
   ######  H.td3  ######
   #'  Predators affect the most abundant prey species; predators affect their competitors
   #'  through interference competition
+  H.td3_psem <- psem(
+    lm(mountain_lion.yr2 ~ wolf.yr1 + bear_black.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ wolf.yr2 + bear_black.yr2, data = localN_z),
+    lm(bear_black.yr2 ~ wolf.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ wolf.yr2, data = localN_z),
+    lm(coyote.yr2 ~ wolf.yr1, data = localN_z),
+    lm(coyote.yr3 ~ wolf.yr2, data = localN_z),
+    lm(bobcat.yr2 ~ coyote.yr1, data = localN_z),
+    lm(bobcat.yr3 ~ coyote.yr2, data = localN_z),
+    lm(whitetailed_deer.yr2 ~ wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    data = localN_z)
+  summary(H.td3_psem)
   
   ######  H.td4  ######
   #'  Predators affect the most abundant prey species; predators affect their competitors
   #'  through exploitative competition via the most abundant prey (wolves dominant)
+  H.td4_psem <- psem(
+    lm(mountain_lion.yr2 ~ bear_black.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ bear_black.yr2, data = localN_z),
+    lm(coyote.yr2 ~ whitetailed_deer.yr1 + lagomorphs.yr1, data = localN_z),
+    lm(coyote.yr3 ~ whitetailed_deer.yr2 + lagomorphs.yr2, data = localN_z),
+    lm(whitetailed_deer.yr2 ~ wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    lm(lagomorphs.yr2 ~ coyote.yr1 + bobcat.yr1, data = localN_z),
+    lm(lagomorphs.yr3 ~ coyote.yr2 + bobcat.yr2, data = localN_z),
+    data = localN_z)
+  summary(H.td4_psem)
   
   ######  H.td5  ######
   #'  Predators affect the most abundant prey species; predators affect their competitors
   #'  through exploitative competition via the most abundant prey (lions dominant)
-  
-  
-  
-  
-  
+  H.td5_psem <- psem(
+    lm(wolf.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+    lm(wolf.yr3 ~ whitetailed_deer.yr2, data = localN_z),
+    lm(coyote.yr2 ~ whitetailed_deer.yr1 + lagomorphs.yr1, data = localN_z),
+    lm(coyote.yr3 ~ whitetailed_deer.yr2 + lagomorphs.yr2, data = localN_z),
+    lm(whitetailed_deer.yr2 ~ wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    lm(lagomorphs.yr2 ~ coyote.yr1 + bobcat.yr1, data = localN_z),
+    lm(lagomorphs.yr3 ~ coyote.yr2 + bobcat.yr2, data = localN_z),
+    data = localN_z)
+  summary(H.td5_psem)
   
   #'  ---------------------------------------------
   #####  Causal relationships with NO time lag  #####
