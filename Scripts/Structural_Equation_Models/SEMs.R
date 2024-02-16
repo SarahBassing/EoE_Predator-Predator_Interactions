@@ -26,19 +26,19 @@
   format_cam_covs <- function(dat, season) {
     covs <- dat %>%
       #'  Define NLCD landcover classifications using https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
-      mutate(NLCD_30m = ifelse(Landcover_30m2 == "Herbaceous", "Grassland/wetland", Landcover_30m2),        #14: Herbaceous
-             NLCD_30m = ifelse(Landcover_30m2 == "Hay/Pasture", "Grassland/wetland", NLCD_30m),             #15: Hay/Pasture
-             NLCD_30m = ifelse(Landcover_30m2 == "Developed, Open Space", "Shrub mix", NLCD_30m),           #21: Developed, Open Space
-             NLCD_30m = ifelse(Landcover_30m2 == "Barren Land", "Grassland/wetland", NLCD_30m),             #31: Barren Land
+      mutate(NLCD_30m = ifelse(Landcover_30m2 == "Herbaceous", "Grassland", Landcover_30m2),        #14: Herbaceous
+             NLCD_30m = ifelse(Landcover_30m2 == "Hay/Pasture", "Agriculture", NLCD_30m),             #15: Hay/Pasture
+             NLCD_30m = ifelse(Landcover_30m2 == "Developed, Open Space", "Agriculture", NLCD_30m),           #21: Developed, Open Space
+             NLCD_30m = ifelse(Landcover_30m2 == "Barren Land", "Other", NLCD_30m),             #31: Barren Land
              NLCD_30m = ifelse(Landcover_30m2 == "Deciduous Forest", "Forested", NLCD_30m),                 #41: Deciduous Forest
              NLCD_30m = ifelse(Landcover_30m2 == "Evergreen Forest", "Forested", NLCD_30m),                 #42: Evergreen Forest
              NLCD_30m = ifelse(Landcover_30m2 == "Mixed Forest", "Forested", NLCD_30m),                     #43: Mixed Forest
-             NLCD_30m = ifelse(Landcover_30m2 == "Shrub/Scrub", "Shrub mix", NLCD_30m),                     #52: Shrub/Scrub
-             NLCD_30m = ifelse(Landcover_30m2 == "Grassland/Herbaceous", "Grassland/wetland", NLCD_30m),    #71: Grassland/Herbaceous
-             NLCD_30m = ifelse(Landcover_30m2 == "Pasture/Hay", "Grassland/wetland", NLCD_30m),             #81: Pasture/Hay
-             NLCD_30m = ifelse(Landcover_30m2 == "Cultivated Crops", "Grassland/wetland", NLCD_30m),        #82: Cultivated Crops
-             NLCD_30m = ifelse(Landcover_30m2 == "Woody Wetlands", "Forested", NLCD_30m),                   #90: Woody Wetlands
-             NLCD_30m = ifelse(Landcover_30m2 == "Emergent Herbaceous Wetlands", "Grassland/wetland", NLCD_30m), #95: Emergent Herbaceous Wetlands
+             NLCD_30m = ifelse(Landcover_30m2 == "Shrub/Scrub", "Shrubland", NLCD_30m),                     #52: Shrub/Scrub
+             NLCD_30m = ifelse(Landcover_30m2 == "Grassland/Herbaceous", "Grassland", NLCD_30m),    #71: Grassland/Herbaceous
+             NLCD_30m = ifelse(Landcover_30m2 == "Pasture/Hay", "Agriculture", NLCD_30m),             #81: Pasture/Hay
+             NLCD_30m = ifelse(Landcover_30m2 == "Cultivated Crops", "Agriculture", NLCD_30m),        #82: Cultivated Crops
+             NLCD_30m = ifelse(Landcover_30m2 == "Woody Wetlands", "Riparian", NLCD_30m),                   #90: Woody Wetlands
+             NLCD_30m = ifelse(Landcover_30m2 == "Emergent Herbaceous Wetlands", "Riparian", NLCD_30m), #95: Emergent Herbaceous Wetlands
              Season = season) %>%
       relocate(Season, .after = "GMU")
     return(covs)
