@@ -45,7 +45,7 @@
   crs(elev, describe = TRUE, proj = TRUE)
   crs(habclass, describe = TRUE, proj = TRUE)
   crs(dist2suburbs, describe = TRUE, proj = TRUE)
-  # projection(id)
+  projection(id)
   projection(rds)
   
   res(pforest)
@@ -105,14 +105,14 @@
   #'  ------------------------
   #####  Wolf data generated from camera detections  ####
   load("./Data/Wolf count data/count_eoe20s_wolf.RData")
-  load("./Data/Wolf count data/min_group_size_eoe20s.RData") 
-  
+  load("./Data/Wolf count data/min_group_size_eoe20s.RData")
+
   load("./Data/Wolf count data/count_eoe20w_wolf.RData")
-  load("./Data/Wolf count data/min_group_size_eoe20w.RData") 
-  
+  load("./Data/Wolf count data/min_group_size_eoe20w.RData")
+
   load("./Data/Wolf count data/count_eoe21s_wolf.RData")
   load("./Data/Wolf count data/min_group_size_eoe21s.RData")
-  
+
   #'  Make sure everything is ordered correctly
   arrange_dat <- function(dat) {
     dat <- arrange(dat, NewLocationID)
@@ -121,13 +121,13 @@
   min_group_size_eoe20s <- arrange_dat(min_group_size_eoe20s)
   min_group_size_eoe20w <- arrange_dat(min_group_size_eoe20w)
   min_group_size_eoe21s <- arrange_dat(min_group_size_eoe21s)
-  
+
   #####  Predator mortality data  ####
   #'  Mortality data provided by IDFG
   load("./Data/IDFG BGMR data/mort_preSmr20.RData")
   load("./Data/IDFG BGMR data/mort_preWtr20.RData")
   load("./Data/IDFG BGMR data/mort_preSmr21.RData")
-  
+
   reformat_mort_dat <- function(mort) {
     #'  Split predator mortality data by species
     mort <- dplyr::select(mort, -gmu_area)
@@ -157,13 +157,13 @@
   mort_Wtr20_df <- reformat_mort_dat(mort_preWtr20) %>%
     filter(GMU != "GMU1")
   mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
-  
+
   #'  summarize mortality data
   Season <- c("2018-2019", "2018-2019", "2019-2020", "2019-2020", "2020-2021", "2020-2021", "2020-2021")
   mort_summary <- rbind(mort_Smr19_df, mort_Smr20_df, mort_Smr21_df)
   mort_summary <- cbind(Season, mort_summary)
   names(mort_summary)[names(mort_summary) == "Season"] <- "Harvest season (fall - winter)"
-  
+
   mort_summary_noGMU1 <- filter(mort_summary, GMU != "GMU1") %>%
     dplyr::select(`Harvest season (fall - winter)`, Bear_mort_n, Bob_mort_n, Lion_mort_n, Wolf_mort_n) %>%
     group_by(`Harvest season (fall - winter)`) %>%
@@ -183,7 +183,7 @@
   #'  ----------------------------------
   ####  COVARIATE EXTRACTION & MERGING  ####
   #'  ----------------------------------
-  cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs, min_group_size, mort, relativeN) {
+  cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs, min_group_size, mort, relativeN) { 
     
     #'  Extract covariate data for each camera site from spatial layers
     perc_forest <- terra::extract(pforest, vect(locs_aea)) %>%
@@ -222,18 +222,17 @@
       #'  "other" since species other than elk/wtd were present
       mutate(dominantprey = ifelse(dominantprey == 0, "other", dominantprey)) %>%
       full_join(mort, by = "GMU") %>%
-      dplyr::select(-c(geometry, ID, Lat, Long)) %>%
+      dplyr::select(-c(geometry, ID, Lat, Long)) %>% 
       arrange(NewLocationID)
     
      return(covs)
   }
   eoe_covs_20s <- cov_extract(locs_aea = cams_aea[[1]], locs_nad83 = cams_nad83[[1]], locs_hab_crs = cams_hab_crs[[1]], 
-                              min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df, relativeN = spp_diversity_Smr20)
+                              min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df, relativeN = spp_diversity_Smr20) 
   eoe_covs_20w <- cov_extract(locs_aea = cams_aea[[2]], locs_nad83 = cams_nad83[[2]], locs_hab_crs = cams_hab_crs[[2]], 
-                              min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df, relativeN = spp_diversity_Wtr20)
+                              min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df, relativeN = spp_diversity_Wtr20)  
   eoe_covs_21s <- cov_extract(locs_aea = cams_aea[[3]], locs_nad83 = cams_nad83[[3]], locs_hab_crs = cams_hab_crs[[3]], 
-                              min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df, relativeN = spp_diversity_Smr21)
-
+                              min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df, relativeN = spp_diversity_Smr21) 
   
   #'  -------------------------
   ####  Covariate exploration  ####
