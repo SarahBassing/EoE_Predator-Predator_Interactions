@@ -22,6 +22,15 @@
   
   #'  Load camera site covariate data
   load("./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022.RData")
+  
+  #'  Load & fromat covariate data extracted from Google Earth Engine
+  gfc <- read_csv("./Data/GEE outputs/GFC_annual_canopy_loss_area.csv") %>%
+    mutate(LossYear = Year_add1 + 2001,
+           ProportionLost_sq_m = CanopyLossArea_sq_m/BufferArea_sq_m) %>%
+    dplyr::select(c(NewLocationID, LossYear, CanopyLossArea_sq_m, ProportionLost_sq_m))
+    
+  nlcd <- read_csv("./Data/GEE outputs/NLCD_frequencies_2019_2021.csv")
+  
   #'  Reformat camera covariates
   format_cam_covs <- function(dat, season) {
     covs <- dat %>%
