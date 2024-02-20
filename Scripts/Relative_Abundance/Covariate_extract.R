@@ -15,6 +15,7 @@
   library(sf)
   library(rgeos)
   library(terra)
+  library(lubridate)
   library(tidyverse)
   library(ggplot2)
   library(grid)
@@ -31,6 +32,7 @@
   habclass <- rast("./Shapefiles/IDFG spatial data/HabLayer_30m2.tif")
   dist2suburbs <- rast("./Shapefiles/GEE/HumanSettlement/Dist2Suburbs.tif")
   dist2rural <- rast("./Shapefiles/GEE/HumanSettlement/Dist2Rural.tif")
+  mtbs <- st_read(dsn = "./Shapefiles/MTBS_perimeter_data", layer = "mtbs_perims_DD")
   #'  IDFG Geodatabase with roads
   idfg_gdb <- "./Shapefiles/IDFG spatial data/IDFG Geodatabase.gdb"
   st_layers(idfg_gdb)
@@ -44,6 +46,7 @@
   crs(dist2suburbs, describe = TRUE, proj = TRUE)
   st_crs(id)
   st_crs(rds)
+  st_crs(mtbs)
   
   res(pforest)
   res(nlcd)
@@ -60,6 +63,7 @@
   #'  Reproject shapefiles
   id_aea <- st_transform(id, aea)
   id_nad83 <- st_transform(id, nad83)
+  mtbs_nad83 <- st_transform(mtbs, nad83) # Takes a hot second
   
   #'  Convert NAs to 0 - happens when pixel was suburban or rural and surrounded 
   #'  by other suburban or rural pixels so no distance to calculated (should be 0)
@@ -108,60 +112,6 @@
   plot(id_aea[1], add = TRUE, col = NA)
   plot(cams_aea[[2]], add = TRUE, col = "black", cex = 0.75)
   
-  
-  #' #'  ------------------------
-  #' ####  Additional data sets  ####
-  #' #'  ------------------------
-  #' #####  Predator mortality data  ####
-  #' #'  Mortality data provided by IDFG
-  #' load("./Data/IDFG BGMR data/mort_preSmr19.RData")
-  #' load("./Data/IDFG BGMR data/mort_preSmr20.RData")
-  #' load("./Data/IDFG BGMR data/mort_preWtr20.RData")
-  #' load("./Data/IDFG BGMR data/mort_preSmr21.RData")
-  #' 
-  #' reformat_mort_dat <- function(mort) {
-  #'   #'  Split predator mortality data by species
-  #'   mort <- dplyr::select(mort, -gmu_area)
-  #'   mort_bear <- filter(mort, Species == "Black Bear") %>%
-  #'     rename(Bear_mort_n = total_mortalities,
-  #'            Bear_mort_km2 = mortality_km2) %>%
-  #'     dplyr::select(-Species)
-  #'   mort_bob <- filter(mort, Species == "Bobcat") %>%
-  #'     rename(Bob_mort_n = total_mortalities,
-  #'            Bob_mort_km2 = mortality_km2) %>%
-  #'     dplyr::select(-c(Species, GMU))
-  #'   mort_lion <- filter(mort, Species == "Mountain Lion") %>%
-  #'     rename(Lion_mort_n = total_mortalities,
-  #'            Lion_mort_km2 = mortality_km2) %>%
-  #'     dplyr::select(-c(Species, GMU))
-  #'   mort_wolf <- filter(mort, Species == "Wolf") %>%
-  #'     rename(Wolf_mort_n = total_mortalities,
-  #'            Wolf_mort_km2 = mortality_km2) %>%
-  #'     dplyr::select(-c(Species, GMU))
-  #'   mort_df <- as.data.frame(cbind(mort_bear, mort_bob, mort_lion, mort_wolf))
-  #'   return(mort_df)
-  #' }
-  #' mort_Smr19_df <- reformat_mort_dat(mort_preSmr19) %>%
-  #'   filter(GMU != "GMU1")
-  #' mort_Smr20_df <- reformat_mort_dat(mort_preSmr20) %>%
-  #'   filter(GMU != "GMU1")
-  #' mort_Wtr20_df <- reformat_mort_dat(mort_preWtr20) %>%
-  #'   filter(GMU != "GMU1")
-  #' mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
-  #' 
-  #' #'  summarize mortality data
-  #' Season <- c("2018-2019", "2018-2019", "2019-2020", "2019-2020", "2020-2021", "2020-2021", "2020-2021")
-  #' mort_summary <- rbind(mort_Smr19_df, mort_Smr20_df, mort_Smr21_df)
-  #' mort_summary <- cbind(Season, mort_summary)
-  #' names(mort_summary)[names(mort_summary) == "Season"] <- "Harvest season (fall - winter)"
-  #' 
-  #' mort_summary_noGMU1 <- filter(mort_summary, GMU != "GMU1") %>%
-  #'   dplyr::select(`Harvest season (fall - winter)`, Bear_mort_n, Bob_mort_n, Lion_mort_n, Wolf_mort_n) %>%
-  #'   group_by(`Harvest season (fall - winter)`) %>%
-  #'   summarise(across(everything(), sum),
-  #'             .groups = 'drop') %>%
-  #'   ungroup()
-  
   #'  ----------------------------------
   ####  COVARIATE EXTRACTION & MERGING  ####
   #'  ----------------------------------
@@ -180,6 +130,14 @@
     nearestrd <- st_nearest_feature(locs_nad83, rds)
     #'  Calculate distance to nearest road (in meters)
     dist2rd <- as.numeric(st_distance(locs_nad83, rds[nearestrd,], by_element = T))
+    #'  Intersect overlapping cameras & burn perimeters
+    mtbs_simple <- mtbs_nad83 %>% 
+      dplyr::select("Ig_Date", "Incid_Name", "Incid_Type") %>%
+      mutate(Burn_year = format(as.Date(Ig_Date, format="%Y-%m-%d"),"%Y")) 
+    mtbs_cam_inter <- st_intersection(locs_nad83, mtbs_simple)
+    #'  Save burn year
+    mtbs_burn_yr <- as.data.frame(mtbs_cam_inter) %>%
+      dplyr::select(c("NewLocationID", "Burn_year"))
     
     #'  Join each extracted covariate to the unique camera location data
     covs <- as.data.frame(locs_aea) %>%
@@ -191,6 +149,8 @@
       full_join(dist2suburbs, by = "ID") %>%
       full_join(dist2rural, by = "ID") %>%
       cbind(dist2rd) %>%
+      full_join(mtbs_burn_yr, by = "NewLocationID") %>%
+      relocate(Burn_year, .after = dist2rd) %>%
       mutate(GMU = sub("_.*", "", NewLocationID), 
              dist2rd = round(dist2rd, digits = 2)) %>%
       relocate(GMU, .after = NewLocationID) %>%
