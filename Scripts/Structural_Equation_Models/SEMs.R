@@ -126,8 +126,8 @@
              habitat_type = ifelse(NLCD_class == "71", "Grassland", habitat_type),         #71: Grassland/Herbaceous
              habitat_type = ifelse(NLCD_class == "81", "Agriculture", habitat_type),       #81: Pasture/Hay
              habitat_type = ifelse(NLCD_class == "82", "Agriculture", habitat_type),       #82: Cultivated Crops
-             habitat_type = ifelse(NLCD_class == "90", "Riparian", habitat_type),          #90: Woody Wetlands
-             habitat_type = ifelse(NLCD_class == "95", "Riparian", habitat_type)) %>%      #95: Emergent Herbaceous Wetlands)
+             habitat_type = ifelse(NLCD_class == "90", "Riparian_woodland", habitat_type),      #90: Woody Wetlands
+             habitat_type = ifelse(NLCD_class == "95", "Riparian_wetland", habitat_type)) %>%   #95: Emergent Herbaceous Wetlands)
       relocate(habitat_type, .after = "NewLocationID")
     
     #'  Filter data to the dominant habitat class within defined radius of camera
@@ -186,8 +186,25 @@
   cams_eoe21s <- format_cam_covs(covariate_list[[2]], landcov = landcover21[[1]], camYr = 2021, season = "Smr21") 
   cams_eoe22s <- format_cam_covs(covariate_list[[3]], landcov = landcover21[[1]], camYr = 2022, season = "Smr22") 
   
+  #'  List annual covariate data
   cam_covs_list <- list(cams_eoe20s, cams_eoe21s, cams_eoe22s)
+    
+  #'  Group habitat classes into fewer categories owing to few observations for some types of habitat
+  #'  Grouping all burn categories with loss category, agriculture & riparian_wetland with grassland,
+  #'  and riparian_woodland with forested
+  lumped_habitat_class <- function(cov) {
+    grouped_habitat <- cov %>%
+      mutate(habitat_cat = ifelse(Habitat_class == "Burn_1_5" | Habitat_class == "Burn_6_10" | 
+                                    Habitat_class == "Burn_11_15" | Habitat_class == "Burn_16_20" | 
+                                    Habitat_class == "Burn_over20", "Loss_1_20", Habitat_class),
+             habitat_cat = ifelse(Habitat_class == "Agriculture" | Habitat_class == "Riparian_wetland", "Grassland", habitat_cat),
+             habitat_cat = ifelse(Habitat_class == "Riparian_woodland", "Forested", habitat_cat))
+    print(table(grouped_habitat$habitat_cat))
+    return(grouped_habitat)
+  }
+  cam_covs_list <- lapply(cam_covs_list, lumped_habitat_class)
   save(cam_covs_list, file = "./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022_updated.RData")
+  
   
   #'  -----------------------------------------------------
   ####  Format local abundance estimates for SEM analyses  ####
