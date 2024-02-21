@@ -14,7 +14,7 @@
   library(labelled)
   library(lme4)
   #install.packages("multcompView", repos="http://R-Forge.R-project.org")
-  library(multcompView)
+  # library(multcompView)
   library(tidyverse)
   
   #'  Load RN model local abundance estimates
@@ -30,33 +30,59 @@
   #'  ----------------------------
   #'  PRISM total monthly precipitation (averaged per GMU)
   precip <- read_csv("./Data/GEE outputs/PRISM_GMUavg_monthly_total_precip.csv") %>%
-    dplyr::select(c(featureID, date, meanMonthlyValue)) %>%
-    #'  Rename GMUs
-    mutate(GMU = ifelse(featureID == "00000000000000000000", "GMU1", featureID),
-           GMU = ifelse(featureID == "00000000000000000001", "GMU6", GMU),
-           GMU = ifelse(featureID == "00000000000000000002", "GMU10A", GMU)) %>%
-    #'  Rename and reformat columns
-    transmute(GMU = GMU,
-              Date = date,
-              Month = as.numeric(format(as.Date(date, format="%Y-%m-%d"),"%m")),
-              meanPPT_mm = meanMonthlyValue) %>%
-    #'  Filter to winter months (Dec, Jan, Feb) of each year
-    filter(Month <= 2 | Month == 12)
-  
+    dplyr::select(c(featureID, date, meanMonthlyValue))
   #'  PRISM minimum monthly temperature (averaged per GMU)
   temp <- read_csv("./Data/GEE outputs/PRISM_GMUavg_monthly_min_temp.csv") %>%
-    dplyr::select(c(featureID, date, meanMonthlyValue)) %>%
-    #'  Rename GMUs
-    mutate(GMU = ifelse(featureID == "00000000000000000000", "GMU1", featureID),
-           GMU = ifelse(featureID == "00000000000000000001", "GMU6", GMU),
-           GMU = ifelse(featureID == "00000000000000000002", "GMU10A", GMU)) %>%
-    #'  Rename and reformat columns
-    transmute(GMU = GMU,
-              Date = date,
-              Month = as.numeric(format(as.Date(date, format="%Y-%m-%d"),"%m")),
-              meanMinTemp_C = meanMonthlyValue) %>%
-    #'  Filter to winter months (Dec, Jan, Feb) of each year
-    filter(Month <= 2 | Month == 12)
+    dplyr::select(c(featureID, date, meanMonthlyValue))
+  
+  #'  Function to reformat and summarize weather data
+  format_weather <- function(prism) {
+    avg_winter_weather <- prism %>%
+      #'  Rename GMUs
+      mutate(GMU = ifelse(featureID == "00000000000000000000", "GMU1", featureID),
+             GMU = ifelse(featureID == "00000000000000000001", "GMU6", GMU),
+             GMU = ifelse(featureID == "00000000000000000002", "GMU10A", GMU)) %>%
+      #'  Reformat columns & add season column
+      transmute(GMU = GMU,
+                Date = date,
+                Year = as.numeric(format(as.Date(date, format="%Y-%m-%d"),"%Y")),
+                Month = as.numeric(format(as.Date(date, format="%Y-%m-%d"),"%m")),
+                Season = ifelse(Year == 2019, "Wtr1920", "Wtr2223"),
+                Season = ifelse(Year == 2020 & Month <=2, "Wtr1920", Season),
+                Season = ifelse(Year == 2020 & Month == 12, "Wtr2021", Season),
+                Season = ifelse(Year == 2021 & Month <=2, "Wtr2021", Season),
+                Season = ifelse(Year == 2021 & Month == 12, "Wtr2122", Season),
+                Season = ifelse(Year == 2022 & Month <=2, "Wtr2122", Season),
+                meanWeather = meanMonthlyValue) %>%
+      #'  Filter to winter months (Dec, Jan, Feb) of each year
+      filter(Month <= 2 | Month == 12) %>%
+      #'  Average monthly weather by year and GMU
+      group_by(GMU, Season) %>%
+      summarise(DecFeb_meanWeather = mean(meanWeather),
+                DecFeb_meanWeather_se = sd(meanWeather)/sqrt(nrow(.))) %>%
+      ungroup() %>%
+      #'  Standardize average monthly weather (mean = 0, SD = 1)
+      mutate(DecFeb_meanWeather_z = scale(DecFeb_meanWeather))
+    
+    #'  Double check standardized data
+    print(mean(avg_winter_weather$DecFeb_meanWeather_z))
+    print(sd(avg_winter_weather$DecFeb_meanWeather_z))
+    
+    return(avg_winter_weather)
+  }
+  wtr_totalPrecip <- format_weather(precip) %>%
+    rename("DecFeb_meanPPT_mm" = "DecFeb_meanWeather") %>%
+    rename("DecFeb_meanPPT_se" = "DecFeb_meanWeather_se") %>%
+    rename("DecFeb_meanPPT_z" = "DecFeb_meanWeather_z")
+  wtr_minTemp <- format_weather(temp) %>%
+    rename("DecFeb_meanMinTemp_C" = "DecFeb_meanWeather") %>%
+    rename("DecFeb_meanMinTemp_se" = "DecFeb_meanWeather_se") %>%
+    rename("DecFeb_meanMinTemp_z" = "DecFeb_meanWeather_z")
+    
+  #'  Generate Winter Severity Index (WSI) per year and GMU ()
+  WSI <- full_join(wtr_totalPrecip, wtr_minTemp, by = c("GMU", "Season")) %>%
+    mutate(DecFeb_WSI = DecFeb_meanPPT_z * DecFeb_meanMinTemp_z) %>%
+    dplyr::select(c("GMU", "Season", "DecFeb_WSI"))
   
   #'  Hansen's Global Forest Change dataset (area and year of canopy loss surrounding camera)
   gfc <- read_csv("./Data/GEE outputs/GFC_annual_canopy_loss_area.csv") %>% 
@@ -165,6 +191,8 @@
   format_cam_covs <- function(dat, landcov, season, camYr) {
     covs <- full_join(dat, landcov, by = "NewLocationID") %>%
       full_join(gfc, by = "NewLocationID") %>%
+      full_join(precip, by = c("GMU", "Season")) %>%
+      full_join(temp, by = c("GMU", "Season")) %>%
       relocate(Burn_year, .after = "percentPix") %>%
       mutate(Season = season,
              #'  Calculate number of years since burn/canopy loss
