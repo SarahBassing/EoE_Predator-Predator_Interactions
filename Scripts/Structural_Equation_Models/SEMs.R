@@ -28,6 +28,36 @@
   
   #'  Google Earth Engine datasets
   #'  ----------------------------
+  #'  PRISM total monthly precipitation (averaged per GMU)
+  precip <- read_csv("./Data/GEE outputs/PRISM_GMUavg_monthly_total_precip.csv") %>%
+    dplyr::select(c(featureID, date, meanMonthlyValue)) %>%
+    #'  Rename GMUs
+    mutate(GMU = ifelse(featureID == "00000000000000000000", "GMU1", featureID),
+           GMU = ifelse(featureID == "00000000000000000001", "GMU6", GMU),
+           GMU = ifelse(featureID == "00000000000000000002", "GMU10A", GMU)) %>%
+    #'  Rename and reformat columns
+    transmute(GMU = GMU,
+              Date = date,
+              Month = as.numeric(format(as.Date(date, format="%Y-%m-%d"),"%m")),
+              meanPPT_mm = meanMonthlyValue) %>%
+    #'  Filter to winter months (Dec, Jan, Feb) of each year
+    filter(Month <= 2 | Month == 12)
+  
+  #'  PRISM minimum monthly temperature (averaged per GMU)
+  temp <- read_csv("./Data/GEE outputs/PRISM_GMUavg_monthly_min_temp.csv") %>%
+    dplyr::select(c(featureID, date, meanMonthlyValue)) %>%
+    #'  Rename GMUs
+    mutate(GMU = ifelse(featureID == "00000000000000000000", "GMU1", featureID),
+           GMU = ifelse(featureID == "00000000000000000001", "GMU6", GMU),
+           GMU = ifelse(featureID == "00000000000000000002", "GMU10A", GMU)) %>%
+    #'  Rename and reformat columns
+    transmute(GMU = GMU,
+              Date = date,
+              Month = as.numeric(format(as.Date(date, format="%Y-%m-%d"),"%m")),
+              meanMinTemp_C = meanMonthlyValue) %>%
+    #'  Filter to winter months (Dec, Jan, Feb) of each year
+    filter(Month <= 2 | Month == 12)
+  
   #'  Hansen's Global Forest Change dataset (area and year of canopy loss surrounding camera)
   gfc <- read_csv("./Data/GEE outputs/GFC_annual_canopy_loss_area.csv") %>% 
     #'  Make canopy loss year easier to interpret
