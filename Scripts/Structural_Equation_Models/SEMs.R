@@ -20,41 +20,150 @@
   #'  Load RN model local abundance estimates
   load("./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
   
-  #'  Load camera site covariate data
-  load("./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022.RData")
+  #'  ----------------------------------
+  ####  Load and format covariate data  ####
+  #'  ----------------------------------
+  #'  Camera site covariate data
+  load("./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022.RData") # make sure it's updated version with mtbs data
   
-  #'  Load & fromat covariate data extracted from Google Earth Engine
-  gfc <- read_csv("./Data/GEE outputs/GFC_annual_canopy_loss_area.csv") %>%
-    mutate(LossYear = Year_add1 + 2001,
-           ProportionLost_sq_m = CanopyLossArea_sq_m/BufferArea_sq_m) %>%
-    dplyr::select(c(NewLocationID, LossYear, CanopyLossArea_sq_m, ProportionLost_sq_m))
+  #'  Google Earth Engine datasets
+  #'  ----------------------------
+  #'  Hansen's Global Forest Change dataset (area and year of canopy loss surrounding camera)
+  gfc <- read_csv("./Data/GEE outputs/GFC_annual_canopy_loss_area.csv") %>% 
+    #'  Make canopy loss year easier to interpret
+    mutate(CanopyLossYear = Year_add1 + 2001,
+           #'  Calculate proportion of canopy loss within area surrounding camera
+           CanopyLossProp = CanopyLossArea_sq_m/BufferArea_sq_m,
+           CanopyLossArea_sq_m = round(CanopyLossArea_sq_m, 3),
+           CanopyLossProp = round(CanopyLossProp, 5)) %>%
+    #'  Remove unnecessary columns and rows
+    dplyr::select(c(NewLocationID, CanopyLossYear, CanopyLossArea_sq_m, CanopyLossProp)) %>%
+    filter(CanopyLossArea_sq_m > 0) %>% 
+    #'  Retain loss year where largest proportion of area was lost (not necessarily the most recent - want to represent the "dominant" habitat type so even if smaller more recent loss occurred area is best represented by larger, older loss)
+    group_by(NewLocationID) %>%
+    slice_max(order_by = CanopyLossProp, n = 1) %>% 
+    ungroup() %>%
+    arrange(NewLocationID)
+    #' #'  Reformat so each loss year has a column identifying proportion of canopy lost that year (drop loss area) (only do if NOT slicing by year of max canopyloss)
+    #' pivot_wider(!CanopyLossArea_sq_m, names_from = CanopyLossYear, values_from = CanopyLossProp) %>%
+    #' transmute(NewLocationID = NewLocationID,
+    #'           across(.cols = "2001":"2022",
+    #'               .fns = ~ ., # Any data processing should go here
+    #'               .names = "canopyloss_{.col}")) %>%
+    #' arrange(NewLocationID)
+  
+  #'  National Landcover Database (frequency of landcover class surrounding camera)
+  nlcd <- read_csv("./Data/GEE outputs/NLCD_frequencies_2019_2021.csv") %>%
+    dplyr::select(c(NwLctID, landcover_2019, landcover_2021)) %>%
+    mutate(landcover_2019 = str_replace_all(landcover_2019, "[[{}]]", ""),
+           landcover_2021 = str_replace_all(landcover_2021, "[[{}]]", ""))
+  nlcd19 <- nlcd %>% dplyr::select(c(NwLctID, landcover_2019)) %>%
+    #'  Remove GMU1 cameras from this dataset
+    mutate(GMU = sub("_.*", "", NwLctID)) %>%
+    filter(GMU != "GMU1") %>%
+    dplyr::select(-GMU) %>%
+    #'  Separate wonky GEE character string grouping all landcover outputs together 
+    #'  (FYI separate does something weird with extra columns so be sure to provide 
+    #'  double the max number of possible landcover types). Ignore warning about missing pieces.
+    separate(landcover_2019, into = c("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", "col11", "col12", "col13", "col14", "col15", "col16", "col17", "col18", "col19", "col20", "col21", "col22"), sep = "[, ]")
+  nlcd21 <- nlcd %>% dplyr::select(c(NwLctID, landcover_2021)) %>%
+    separate(landcover_2021, into = c("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", "col11", "col12", "col13", "col14", "col15", "col16", "col17", "col18", "col19", "col20", "col21", "col22"), sep = "[, ]")
+  
+  #'  Function to reformat NLCD data extracted from GEE
+  habitat_frequencies <- function(dat) {
+    reformatted <- dat %>%
+      #'  Convert to long format to organize columns better
+      pivot_longer(!NwLctID, names_to = "col_name", values_to = "landcover_class") %>%
+      #'  Split landcover class from number of pixels
+      separate(landcover_class, into = c("NLCD_class", "npixels"), sep = "[=]") %>%
+      #'  Drop unneeded columns and rows
+      dplyr::select(-col_name) %>%
+      filter(!is.na(npixels)) %>%
+      #'  Reformat npixels 
+      mutate(npixels = as.numeric(npixels),
+             npixels = round(npixels, 2)) %>%
+      #'  Calculate proportion of pixels made up by each cover type near camera
+      group_by(NwLctID) %>%
+      reframe(NLCD_class = NLCD_class,
+              npixels = npixels,
+              totalPix = sum(npixels),
+              percentPix = npixels/totalPix) %>%
+      ungroup() %>%
+      mutate(percentPix = round(percentPix, 3)) %>%
+      arrange(NwLctID) %>%
+      rename("NewLocationID" = "NwLctID") %>%
+      #'  Define NLCD landcover classifications using https://developers.google.com/earth-engine/datasets/catalog/USGS_NLCD_RELEASES_2021_REL_NLCD
+      mutate(habitat_type = ifelse(NLCD_class == "11", "Other", NLCD_class),               #11: Open water
+             habitat_type = ifelse(NLCD_class == "21", "Developed", habitat_type),         #21: Developed, open space: mixture of constructed materials, mostly vegetation in the form of lawn grasses
+             habitat_type = ifelse(NLCD_class == "22", "Developed", habitat_type),         #22: Developed, low intensity: areas with a mixture of constructed materials and vegetation, most commonly single-family housing units
+             habitat_type = ifelse(NLCD_class == "23", "Developed", habitat_type),         #21: Developed, medium intensity: areas with a mixture of constructed materials and vegetation, most commonly single-family housing units
+             habitat_type = ifelse(NLCD_class == "24", "Developed", habitat_type),         #22: Developed, high intensity: highly developed areas where people reside or work in high numbers
+             habitat_type = ifelse(NLCD_class == "31", "Other", habitat_type),             #31: Barren Land
+             habitat_type = ifelse(NLCD_class == "41", "Forested", habitat_type),          #41: Deciduous Forest
+             habitat_type = ifelse(NLCD_class == "42", "Forested", habitat_type),          #42: Evergreen Forest
+             habitat_type = ifelse(NLCD_class == "43", "Forested", habitat_type),          #43: Mixed Forest
+             habitat_type = ifelse(NLCD_class == "52", "Shrubland", habitat_type),         #52: Shrub/Scrub
+             habitat_type = ifelse(NLCD_class == "71", "Grassland", habitat_type),         #71: Grassland/Herbaceous
+             habitat_type = ifelse(NLCD_class == "81", "Agriculture", habitat_type),       #81: Pasture/Hay
+             habitat_type = ifelse(NLCD_class == "82", "Agriculture", habitat_type),       #82: Cultivated Crops
+             habitat_type = ifelse(NLCD_class == "90", "Riparian", habitat_type),          #90: Woody Wetlands
+             habitat_type = ifelse(NLCD_class == "95", "Riparian", habitat_type)) %>%      #95: Emergent Herbaceous Wetlands)
+      relocate(habitat_type, .after = "NewLocationID")
     
-  nlcd <- read_csv("./Data/GEE outputs/NLCD_frequencies_2019_2021.csv")
-  
-  #'  Reformat camera covariates
-  format_cam_covs <- function(dat, season) {
-    covs <- dat %>%
-      #'  Define NLCD landcover classifications using https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description
-      mutate(NLCD_30m = ifelse(Landcover_30m2 == "Herbaceous", "Grassland", Landcover_30m2),        #14: Herbaceous
-             NLCD_30m = ifelse(Landcover_30m2 == "Hay/Pasture", "Agriculture", NLCD_30m),             #15: Hay/Pasture
-             NLCD_30m = ifelse(Landcover_30m2 == "Developed, Open Space", "Agriculture", NLCD_30m),           #21: Developed, Open Space
-             NLCD_30m = ifelse(Landcover_30m2 == "Barren Land", "Other", NLCD_30m),             #31: Barren Land
-             NLCD_30m = ifelse(Landcover_30m2 == "Deciduous Forest", "Forested", NLCD_30m),                 #41: Deciduous Forest
-             NLCD_30m = ifelse(Landcover_30m2 == "Evergreen Forest", "Forested", NLCD_30m),                 #42: Evergreen Forest
-             NLCD_30m = ifelse(Landcover_30m2 == "Mixed Forest", "Forested", NLCD_30m),                     #43: Mixed Forest
-             NLCD_30m = ifelse(Landcover_30m2 == "Shrub/Scrub", "Shrubland", NLCD_30m),                     #52: Shrub/Scrub
-             NLCD_30m = ifelse(Landcover_30m2 == "Grassland/Herbaceous", "Grassland", NLCD_30m),    #71: Grassland/Herbaceous
-             NLCD_30m = ifelse(Landcover_30m2 == "Pasture/Hay", "Agriculture", NLCD_30m),             #81: Pasture/Hay
-             NLCD_30m = ifelse(Landcover_30m2 == "Cultivated Crops", "Agriculture", NLCD_30m),        #82: Cultivated Crops
-             NLCD_30m = ifelse(Landcover_30m2 == "Woody Wetlands", "Riparian", NLCD_30m),                   #90: Woody Wetlands
-             NLCD_30m = ifelse(Landcover_30m2 == "Emergent Herbaceous Wetlands", "Riparian", NLCD_30m), #95: Emergent Herbaceous Wetlands
-             Season = season) %>%
-      relocate(Season, .after = "GMU")
+    #'  Filter data to the dominant habitat class within defined radius of camera
+    #'  (dominant is defined as the landcover class comprising the largest proportion
+    #'  of pixels within defined radius of camera)
+    dominant_habitat <- reformatted %>%
+      group_by(NewLocationID) %>%
+      slice_max(order_by = percentPix, n = 1) %>%
+      ungroup() %>%
+      arrange(NewLocationID)
+    
+    #'  Review dominant habitat types
+    print(table(dominant_habitat$habitat_type))
+    
+    #'  List both datasets together
+    landcover_list <- list(dominant_habitat, reformatted)
+    names(landcover_list) <- c("dominant_habitat", "percent_landcover")
+    
+    return(landcover_list)
+  }
+  landcover19 <- habitat_frequencies(nlcd19)
+  landcover21 <- habitat_frequencies(nlcd21)
+    
+  #'  Add GEE data to larger covariate df
+  format_cam_covs <- function(dat, landcov, season, camYr) {
+    covs <- full_join(dat, landcov, by = "NewLocationID") %>%
+      full_join(gfc, by = "NewLocationID") %>%
+      relocate(Burn_year, .after = "percentPix") %>%
+      mutate(Season = season,
+             #'  Calculate number of years since burn/canopy loss
+             YrsSinceBurn = camYr - as.numeric(Burn_year),
+             YrsSinceBurn = ifelse(YrsSinceBurn <0, NA, YrsSinceBurn),
+             YrsSinceLoss = camYr - CanopyLossYear,
+             YrsSinceLoss = ifelse(YrsSinceLoss <0, NA, YrsSinceLoss),
+             #'  Categorize years since burn/canopy loss following Barker et al. (2018) and Ganz et al. (2024)
+             DisturbanceLoss = ifelse(YrsSinceLoss <= 20, "Loss_1_20", habitat_type),
+             DisturbanceBurn = ifelse(YrsSinceBurn <= 5, "Burn_1_5", habitat_type),
+             DisturbanceBurn = ifelse(YrsSinceBurn > 5 & YrsSinceBurn <=10, "Burn_6_10", DisturbanceBurn),
+             DisturbanceBurn = ifelse(YrsSinceBurn > 10 & YrsSinceBurn <=15, "Burn_10_15", DisturbanceBurn),
+             DisturbanceBurn = ifelse(YrsSinceBurn > 15 & YrsSinceBurn <=20, "Burn_16_20", DisturbanceBurn),
+             DisturbanceBurn = ifelse(YrsSinceBurn > 20, "Burn_over20", DisturbanceBurn),
+             #'  Generate a single habitat class covariate representing dominant habitat type and years since burn/canopy loss (if forested)
+             Habitat_class = habitat_type,
+             Habitat_class = ifelse(!is.na(DisturbanceLoss) & Habitat_class == "Forested", DisturbanceLoss, Habitat_class),
+             Habitat_class = ifelse(!is.na(DisturbanceBurn) & Habitat_class == "Loss_1_20", DisturbanceBurn, Habitat_class)) %>%
+      relocate(Season, .after = "GMU") %>%
+      filter(!is.na(GMU))
+    
+    #'  Review new habitat classes
+    print(table(covs$Habitat_class))
+    
     return(covs)
   }
-  cams_eoe20s <- format_cam_covs(covariate_list[[1]], season = "Smr20")
-  cams_eoe21s <- format_cam_covs(covariate_list[[2]], season = "Smr21")
-  cams_eoe22s <- format_cam_covs(covariate_list[[3]], season = "Smr22")
+  cams_eoe20s <- format_cam_covs(covariate_list[[1]], landcov = landcover19[[1]], camYr = 2020, season = "Smr20") 
+  cams_eoe21s <- format_cam_covs(covariate_list[[2]], landcov = landcover21[[1]], camYr = 2021, season = "Smr21") 
+  cams_eoe22s <- format_cam_covs(covariate_list[[3]], landcov = landcover21[[1]], camYr = 2022, season = "Smr22") 
   
   cam_covs_list <- list(cams_eoe20s, cams_eoe21s, cams_eoe22s)
   save(cam_covs_list, file = "./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022_updated.RData")
