@@ -104,7 +104,7 @@
                 DecFeb_meanWeather_se = sd(meanWeather)/sqrt(nrow(.))) %>%
       ungroup() %>%
       #'  Standardize average monthly weather (mean = 0, SD = 1)
-      mutate(DecFeb_meanWeather_z = scale(DecFeb_meanWeather))
+      mutate(DecFeb_meanWeather_z = as.numeric(scale(DecFeb_meanWeather)))
     
     #'  Double check standardized data
     print(mean(avg_winter_weather$DecFeb_meanWeather_z))
