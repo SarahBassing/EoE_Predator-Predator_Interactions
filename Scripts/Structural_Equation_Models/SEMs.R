@@ -627,27 +627,98 @@
   #'  Prey affected by previous summer's forage and recent winter severity;
   #'  predators affect their primary prey species; predators affect their 
   #'  competitors through interference competition
-  H.tdbu1_psem <- psem(
-    lm(wolf.yr2 ~ wolf.yr1, data = localN_z),
-    lm(wolf.yr3 ~ wolf.yr2, data = localN_z),
-    lm(mountain_lion.yr2 ~ mountain_lion.yr1 + bear_black.yr1 + wolf.yr1, data = localN_z),
-    lm(mountain_lion.yr3 ~ mountain_lion.yr2 + bear_black.yr2 + wolf.yr2, data = localN_z),
-    lm(bear_black.yr2 ~ bear_black.yr1 + habitat_class.yr1 + wolf.yr1, data = localN_z),
-    lm(bear_black.yr3 ~ bear_black.yr2 + habitat_class.yr2 + wolf.yr2, data = localN_z),
-    lm(coyote.yr2 ~ coyote.yr1 + wolf.yr1 + mountain_lion.yr1, data = localN_z),
-    lm(coyote.yr3 ~ coyote.yr2 + wolf.yr2 + mountain_lion.yr2, data = localN_z),
-    lm(bobcat.yr2 ~ bobcat.yr1 + coyote.yr1, data = localN_z),
-    lm(bobcat.yr3 ~ bobcat.yr2 + coyote.yr2, data = localN_z),
-    lm(moose.yr2 ~ moose.yr1 + wolf.yr1 + habitat_class.yr1, data = localN_z), # + DecFeb_WSI.yr2
-    lm(moose.yr3 ~ moose.yr2 + wolf.yr2 + habitat_class.yr2, data = localN_z), # + DecFeb_WSI.yr3
-    lm(elk.yr2 ~ elk.yr1 + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1 + habitat_class.yr1, data = localN_z),
-    lm(elk.yr3 ~ elk.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2 + habitat_class.yr2, data = localN_z),
-    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1 + mountain_lion.yr1 + bear_black.yr1 + habitat_class.yr1, data = localN_z),
-    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2 + mountain_lion.yr2 + bear_black.yr2 + habitat_class.yr2, data = localN_z),
-    lm(lagomorphs.yr2 ~ lagomorphs.yr1 + coyote.yr1 + bobcat.yr1 + habitat_class.yr1, data = localN_z),
-    lm(lagomorphs.yr3 ~ lagomorphs.yr2 + coyote.yr2 + bobcat.yr2 + habitat_class.yr2, data = localN_z),
+  H.tdbu1_psem <- psem(        # + DecFeb_WSI.yr2
+    lm(wolf.yr2 ~ wolf.yr1 + moose.yr1 + whitetailed_deer.yr1, data = localN_z), # + bear_black.yr1 + mountain_lion.yr1
+    lm(wolf.yr3 ~ wolf.yr2 + moose.yr2 + mountain_lion.yr2, data = localN_z), # + bear_black.yr2 + whitetailed_deer.yr2
+    lm(mountain_lion.yr2 ~ mountain_lion.yr1 + wolf.yr2 + moose.yr1 + whitetailed_deer.yr1, data = localN_z), # + bear_black.yr1 + wolf.yr1 + moose.yr2 + whitetailed_deer.yr2
+    lm(mountain_lion.yr3 ~ wolf.yr3, data = localN_z), # + bear_black.yr2 + wolf.yr2 + mountain_lion.yr2 + 
+    lm(bear_black.yr2 ~ bear_black.yr1 + whitetailed_deer.yr1 + habitat_class.yr1, data = localN_z), # + wolf.yr1
+    lm(bear_black.yr3 ~ bear_black.yr2 + wolf.yr2 + habitat_class.yr2, data = localN_z), # + whitetailed_deer.yr2
+    lm(coyote.yr2 ~ coyote.yr1 + whitetailed_deer.yr1 + elk.yr1 + bear_black.yr2 + bear_black.yr1, data = localN_z), # + wolf.yr1 + mountain_lion.yr1 + wolf.yr2
+    lm(coyote.yr3 ~ coyote.yr2 + bear_black.yr3 + wolf.yr3, data = localN_z), # + wolf.yr2 + mountain_lion.yr2 + whitetailed_deer.yr2 + elk.yr2 + bear_black.yr2
+    lm(bobcat.yr2 ~ bobcat.yr1 + coyote.yr2 + mountain_lion.yr2 + whitetailed_deer.yr1, data = localN_z), # + coyote.yr1 + mountain_lion.yr1 + lagomorphs.yr1
+    lm(bobcat.yr3 ~ bobcat.yr2 + coyote.yr3 + mountain_lion.yr2 + mountain_lion.yr3 + whitetailed_deer.yr2 + lagomorphs.yr2, data = localN_z), # + coyote.yr2
+    lm(moose.yr2 ~ moose.yr1 + wolf.yr2, data = localN_z), # + wolf.yr1 + habitat_class.yr1
+    lm(moose.yr3 ~ moose.yr2 + wolf.yr3, data = localN_z), # + wolf.yr2 + habitat_class.yr2
+    lm(elk.yr2 ~ elk.yr1 + bear_black.yr2 + moose.yr1 + moose.yr2 + habitat_class.yr1, data = localN_z), # + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1
+    lm(elk.yr3 ~ elk.yr2 + bear_black.yr3 + moose.yr2 + moose.yr3 + habitat_class.yr2, data = localN_z), # + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2 
+    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1 + mountain_lion.yr1+ coyote.yr2, data = localN_z), # + habitat_class.yr1 + bear_black.yr1 + wolf.yr1 + moose.yr2 
+    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2 + habitat_class.yr2 + moose.yr3 + wolf.yr2 + coyote.yr3, data = localN_z), # + mountain_lion.yr2 + bear_black.yr2
+    lm(lagomorphs.yr2 ~ lagomorphs.yr1 + habitat_class.yr1, data = localN_z), # + coyote.yr1 + bobcat.yr1
+    lm(lagomorphs.yr3 ~ lagomorphs.yr2 + habitat_class.yr2, data = localN_z), #  + coyote.yr2 + bobcat.yr2
     data = localN_z)
-  summary(H.tdbu1_psem)
+  
+  #'  Add correlated errors 
+  #'  Accounting for autoregression at different time lags than t to t+1
+  H.tdbu1_psem <- update(H.tdbu1_psem, wolf.yr3 %~~% wolf.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr3 %~~% mountain_lion.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, bear_black.yr3 %~~% bear_black.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, bobcat.yr3 %~~% bobcat.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, moose.yr3 %~~% moose.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, whitetailed_deer.yr3 %~~% whitetailed_deer.yr1)
+  
+  #'  Among species already hypothesized to interact but at a different time lag
+  H.tdbu1_psem <- update(H.tdbu1_psem, wolf.yr3 %~~% mountain_lion.yr1)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr3 %~~% wolf.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, coyote.yr3 %~~% wolf.yr1)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, moose.yr3 %~~% wolf.yr1)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, bear_black.yr2 %~~% habitat_class.yr2)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, bear_black.yr3 %~~% habitat_class.yr3)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, elk.yr3 %~~% habitat_class.yr1)
+  
+  #'  Among species/habitats not previously hypothesize to interact but interactions are biologically plausible
+  #'  Predator abundances are likely correlated with certain habitat types related
+  #'  to their own preferences or prey distributions
+  H.tdbu1_psem <- update(H.tdbu1_psem, bobcat.yr2 %~~% habitat_class.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, bobcat.yr3 %~~% habitat_class.yr2)
+  H.tdbu1_psem <- update(H.tdbu1_psem, bobcat.yr2 %~~% habitat_class.yr2)
+  H.tdbu1_psem <- update(H.tdbu1_psem, bobcat.yr3 %~~% habitat_class.yr3)
+  H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr2 %~~% habitat_class.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr3 %~~% habitat_class.yr2)
+  H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr2 %~~% habitat_class.yr2)
+  H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr3 %~~% habitat_class.yr3)
+  H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr3 %~~% habitat_class.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr3 %~~% elk.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, wolf.yr2 %~~% habitat_class.yr1)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, wolf.yr3 %~~% habitat_class.yr2)
+  H.tdbu1_psem <- update(H.tdbu1_psem, wolf.yr2 %~~% habitat_class.yr2)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, wolf.yr3 %~~% habitat_class.yr3)
+  
+  #'  Among species not previously hypothesized to interact and not sure what's driving this correlation structure
+  H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr2 %~~% bobcat.yr1)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, mountain_lion.yr3 %~~% bobcat.yr2)
+  H.tdbu1_psem <- update(H.tdbu1_psem, bobcat.yr2 %~~% wolf.yr1)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, bobcat.yr3 %~~% wolf.yr2)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, bobcat.yr3 %~~% wolf.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, lagomorphs.yr2 %~~% moose.yr1)
+  # H.tdbu1_psem <- update(H.tdbu1_psem, lagomorphs.yr3 %~~% moose.yr2)
+  H.tdbu1_psem <- update(H.tdbu1_psem, whitetailed_deer.yr3 %~~% elk.yr3)
+  H.tdbu1_psem <- update(H.tdbu1_psem, elk.yr2 %~~% whitetailed_deer.yr1)
+  H.tdbu1_psem <- update(H.tdbu1_psem, coyote.yr3 %~~% mountain_lion.yr3)
+  H.tdbu1_psem <- update(H.tdbu1_psem, wolf.yr3 %~~% bear_black.yr1)
+  
+  #'  Add causal relationships identified by Dsep that were missing in original model 
+  #'  Among species already hypothesized to interact but at a different time lag
+  #'  Bear t ~ habitat t --> nixed due to convergence issues (probably too many categories) so added correlated error
+  #'  Moose t ~ wolf t
+  #'  Bobcat t ~ coyote t + mountain_lion t
+  #'  Elk t ~ bear_black t + moose t
+  #'  Coyote t ~ bear_balck t + wolf t
+  #'  Mountain lion t ~ wolf t
+  #'  Whitetailed_deer t ~ moose t + coyote t
+  
+  #'  Among species not previously hypothesized to interact but interactions are biologically plausible
+  #'  Bobcat t ~ Mountain lion (t-1) + whitetailed_deer (t-1) + lagomorphs (t-1)
+  #'  Bear t ~ whitetailed_deer (t-1)
+  #'  Coyote t ~ whitetailed_deer (t-1) + elk (t-1) + bear (t-1)
+  #'  Mountain lion t ~ moose (t-1) + whitetailed_deer (t-1)
+  #'  wolf t ~ moose (t-1) + whitetailed_deer (t-1) + mountain_lion (t-1) + bear (t-1) 
+  #'  Elk t ~ moose (t-1)
+  #'  Whitetailed_deer t ~ wolf (t-1)
+  
+  out <- summary(H.tdbu1_psem, getOption("max.print")); print(out)
+  out_coeffs <- out$coefficients
+  out_ds <- dSep(H.tdbu1_psem)
   
   ######  H.tdbu2  ######
   #'  Prey affected by previous summer's forage and recent winter severity;
