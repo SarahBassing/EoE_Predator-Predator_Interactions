@@ -99,9 +99,9 @@
   #' cams_20s_wgs84 <- cams_wgs84[[1]]; cams_21s_wgs84 <- cams_wgs84[[2]]; cams_22s_wgs84 <- cams_wgs84[[3]]
   #' 
   #' wd <- getwd()
-  #' st_write(cams_20s_wgs84, dsn = paste0(wd,"/Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp"), layer = "cams_20s_wgs84.shp")
-  #' st_write(cams_21s_wgs84, dsn = paste0(wd,"/Shapefiles/IDFG spatial data/Camera_locations/cams_21s_wgs84.shp"), layer = "cams_21s_wgs84.shp")
-  #' st_write(cams_22s_wgs84, dsn = paste0(wd,"/Shapefiles/IDFG spatial data/Camera_locations/cams_22s_wgs84.shp"), layer = "cams_22s_wgs84.shp")
+  # st_write(cams_20s_wgs84, dsn = paste0(wd,"/Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp"), layer = "cams_20s_wgs84.shp")
+  # st_write(cams_21s_wgs84, dsn = paste0(wd,"/Shapefiles/IDFG spatial data/Camera_locations/cams_21s_wgs84.shp"), layer = "cams_21s_wgs84.shp")
+  # st_write(cams_22s_wgs84, dsn = paste0(wd,"/Shapefiles/IDFG spatial data/Camera_locations/cams_22s_wgs84.shp"), layer = "cams_22s_wgs84.shp")
   
   #'  Double check these are plotting correctly
   plot(pforest, main = "Camera locations over percent forested habitat, 500m radius")
