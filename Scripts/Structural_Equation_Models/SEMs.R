@@ -13,6 +13,7 @@
   library(piecewiseSEM)
   library(labelled)
   library(lme4)
+  library(MASS)
   #install.packages("multcompView", repos="http://R-Forge.R-project.org")
   # library(multcompView)
   library(tidyverse)
@@ -227,43 +228,106 @@
              Year = ifelse(Year == "Smr21", "yr2", Year),
              Year = ifelse(Year == "Smr22", "yr3", Year)) %>%
       #'  Drop extra columns
-      dplyr::select(-c(RN.sd, season)) %>%
+      dplyr::select(-c(season)) %>%
       #'  Create column per species with their site-specific local abundance estimate
       pivot_wider(names_from = "Species",
-                  values_from = "RN.n") %>%
+                  values_from = c("RN.n", "RN.sd")) %>%
       left_join(covs, by = c("NewLocationID", "GMU", "Season"))
     return(pivot_data_wide)
   }
   RN_wide <- mapply(wide_data, RN_abundance, sem_covs_list, SIMPLIFY = FALSE)
   
-  #' #'  Version 1: Unlist as one single data frame (one column per species)
-  #' RN_wide_20s_22s <- do.call(rbind, RN_wide)
-  #' head(RN_wide_20s_22s)
-  #' 
-  #' #'  Version 2: Keep each species's data in list form
-  #' #'  List species
-  #' spp_list <- list("bear_black", "bobcat", "coyote", "elk", "lagomorphs", "moose", "mountain_lion", "whitetailed_deer", "wolf")
-  #' spp_names <- as.vector(unlist(spp_list))
-  #' 
-  #' #'  Append local abundance estimates across all years for each individual species
-  #' spp_specific_n <- function(dat, spp) {
-  #'   local_n_est <- do.call(rbind, dat) %>%
-  #'     dplyr::select(c("GMU", "NewLocationID", "CellID", "Setup","Season", "Year", 
-  #'                     "dist2rd", "NLCD_30m", "Dist2Rural", all_of(spp)))
-  #'   return(local_n_est)
-  #' }
-  #' spp_specific_n_list <- lapply(spp_list, spp_specific_n, dat = RN_wide)
-  #' names(spp_specific_n_list) <- spp_names
+  #'  ---------------------------
+  #####  Box Cox Transform data  #####
+  #'  ---------------------------
+  #'  Grab just the local abundance estimates per species
+  skinny_dat <- function(dat) {
+    newdat <- dat %>%
+      dplyr::select(contains("RN.n_"))
+    return(newdat)
+  }
+  RN_wide_skinny <- lapply(RN_wide, skinny_dat)
   
-  #'  Version 3: Wide data structure but this time one column per year for each species & covariate
+  #'  Grab corresponding column names
+  dat_colnames <- function(dat) {
+    RN_cols <- names(dat)
+    return(RN_cols)
+  }
+  RN_wide_colnames <- lapply(RN_wide_skinny, dat_colnames)
+
+  #'  Create empty matrix to hold transformed variables
+  empty_matrix <- function(dat) {
+    bx_dat <- matrix(NA, nrow = nrow(dat), ncol = length(dat))
+    return(bx_dat)
+  }
+  bx_dat <- lapply(RN_wide_skinny, empty_matrix)
+  
+  #'  Loop through each column and pass boxcox function to linear model of data
+  #'  Why this won't work in a normal function... I don't know
+  #'  YEAR 1
+  for(i in 1:length(RN_wide_skinny[[1]])) {
+    x <- pull(RN_wide_skinny[[1]][,i])
+    b <- boxcox(lm(x ~ 1))
+    #'  Extract lambda for each species
+    lambda <- b$x[which.max(b$y)]
+    print(lambda)
+    #'  Transform variable based on exact lambda parameter
+    new_x_exact <- (x^lambda-1)/lambda
+    #'  Add transformed variable to the new matrix
+    bx_dat[[1]][,i] <- new_x_exact
+  }
+  colnames(bx_dat[[1]]) <- RN_wide_colnames[[1]]
+  
+  #'  YEAR 2
+  for(i in 1:length(RN_wide_skinny[[2]])) {
+    x <- pull(RN_wide_skinny[[2]][,i])
+    b <- boxcox(lm(x ~ 1))
+    #'  Extract lambda for each species
+    lambda <- b$x[which.max(b$y)]
+    print(lambda)
+    #'  Transform variable based on exact lambda parameter
+    new_x_exact <- (x^lambda-1)/lambda
+    #'  Add transformed variable to the new matrix
+    bx_dat[[2]][,i] <- new_x_exact
+  }
+  colnames(bx_dat[[2]]) <- RN_wide_colnames[[2]]
+  
+  #'  YEAR 3
+  for(i in 1:length(RN_wide_skinny[[3]])) {
+    x <- pull(RN_wide_skinny[[3]][,i])
+    b <- boxcox(lm(x ~ 1))
+    #'  Extract lambda for each species
+    lambda <- b$x[which.max(b$y)]
+    print(lambda)
+    #'  Transform variable based on exact lambda parameter
+    new_x_exact <- (x^lambda-1)/lambda
+    #'  Add transformed variable to the new matrix
+    bx_dat[[3]][,i] <- new_x_exact
+  }
+  colnames(bx_dat[[3]]) <- RN_wide_colnames[[3]]
+  
+  #'  Add annual covariates and site info back to dataset   -------------------------NEED TO ADD SD DATA BACK TOO
+  add_covs_back <- function(olddat, newdat) {
+    covs <- dplyr::select(olddat, c("NewLocationID", "CellID", "GMU", "Setup", 
+                                    "Season", "Year", "habitat_class", "DecFeb_WSI"))
+    dat <- bind_cols(covs, newdat) %>%
+      relocate(habitat_class, .after = last_col()) %>%
+      relocate(DecFeb_WSI, .after = last_col())
+    dat <- as.data.frame(dat)
+    return(dat)
+  }
+  full_bx_dat <- mapply(add_covs_back, RN_wide, bx_dat, SIMPLIFY = FALSE)
+  
+  #'  Create wide data structure but this time one column per year for each species & covariate
   wide_data_by_year <- function(dat, yr) {
     data_by_yr <- dat %>%
       #'  Add year identifier to each column name
-      rename_with(.cols = bear_black:DecFeb_WSI, function(x){paste0(x, ".", yr)}) %>% 
+      rename_with(.cols = RN.n_bear_black:DecFeb_WSI, function(x){paste0(x, ".", yr)}) %>% 
       dplyr::select(-c(Season, Year))
     return(data_by_yr)
   }
-  RN_wide_annual <- mapply(wide_data_by_year, dat = RN_wide, yr = list("yr1", "yr2", "yr3"), SIMPLIFY = FALSE)
+  # RN_wide_annual <- mapply(wide_data_by_year, dat = RN_wide, yr = list("yr1", "yr2", "yr3"), SIMPLIFY = FALSE)
+  RN_wide_annual <- mapply(wide_data_by_year, dat = full_bx_dat, yr = list("yr1", "yr2", "yr3"), SIMPLIFY = FALSE)
   #'  Sneak peak of each year
   head(RN_wide_annual[[1]])
   head(RN_wide_annual[[2]])
@@ -304,9 +368,9 @@
            habitat_class.yr3 = factor(habitat_class.yr3, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
   
   #'  Visualize data
-  hist(localN_z$bear_black.yr1)
-  hist(localN_z$bear_black.yr2)
-  hist(localN_z$bear_black.yr3)
+  hist(localN_z$RN.n_bear_black.yr1)
+  hist(localN_z$RN.n_bear_black.yr2)
+  hist(localN_z$RN.n_bear_black.yr3)
   hist(localN_z$bobcat.yr1)
   hist(localN_z$bobcat.yr2)
   hist(localN_z$bobcat.yr3)
