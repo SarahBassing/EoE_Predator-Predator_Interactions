@@ -241,26 +241,33 @@
   #####  Box Cox Transform data  #####
   #'  ---------------------------
   #'  Grab just the local abundance estimates per species
-  skinny_dat <- function(dat) {
+  dat_n <- function(dat) {
     newdat <- dat %>%
       dplyr::select(contains("RN.n_"))
     return(newdat)
   }
-  RN_wide_skinny <- lapply(RN_wide, skinny_dat)
+  RN_wide_n <- lapply(RN_wide, dat_n)
+  
+  dat_sd <- function(dat) {
+    newdat <- dat %>%
+      dplyr::select(contains("RN.sd_"))
+    return(newdat)
+  }
+  RN_wide_sd <- lapply(RN_wide, dat_sd)
   
   #'  Grab corresponding column names
   dat_colnames <- function(dat) {
     RN_cols <- names(dat)
     return(RN_cols)
   }
-  RN_wide_colnames <- lapply(RN_wide_skinny, dat_colnames)
+  RN_wide_colnames <- lapply(RN_wide_n, dat_colnames)
 
   #'  Create empty matrix to hold transformed variables
   empty_matrix <- function(dat) {
     bx_dat <- matrix(NA, nrow = nrow(dat), ncol = length(dat))
     return(bx_dat)
   }
-  bx_dat <- lapply(RN_wide_skinny, empty_matrix)
+  bx_dat <- lapply(RN_wide_n, empty_matrix)
   
   #'  Loop through each column and pass boxcox function to linear model of data
   #'  Why this won't work in a normal function... I don't know
@@ -306,17 +313,18 @@
   }
   colnames(bx_dat[[3]]) <- RN_wide_colnames[[3]]
   
-  #'  Add annual covariates and site info back to dataset   -------------------------NEED TO ADD SD DATA BACK TOO
-  add_covs_back <- function(olddat, newdat) {
+  #'  Add annual covariates and site info back to dataset   
+  add_covs_back <- function(olddat, newdat, datsd) {
     covs <- dplyr::select(olddat, c("NewLocationID", "CellID", "GMU", "Setup", 
                                     "Season", "Year", "habitat_class", "DecFeb_WSI"))
     dat <- bind_cols(covs, newdat) %>%
+      bind_cols(datsd) %>%
       relocate(habitat_class, .after = last_col()) %>%
       relocate(DecFeb_WSI, .after = last_col())
     dat <- as.data.frame(dat)
     return(dat)
   }
-  full_bx_dat <- mapply(add_covs_back, RN_wide, bx_dat, SIMPLIFY = FALSE)
+  full_bx_dat <- mapply(add_covs_back, olddat = RN_wide, newdat = bx_dat, datsd = RN_wide_sd, SIMPLIFY = FALSE)
   
   #'  Create wide data structure but this time one column per year for each species & covariate
   wide_data_by_year <- function(dat, yr) {
@@ -347,13 +355,8 @@
   #'  Create correlation matrix for all continuous covariates at once
   cov_correlation <- function(dat) {
     covs <- dat %>%
-      dplyr::select(c("bear_black.yr1", "bobcat.yr1", "coyote.yr1", "elk.yr1", "lagomorphs.yr1", 
-                    "moose.yr1", "mountain_lion.yr1", "whitetailed_deer.yr1", "wolf.yr1", "DecFeb_WSI.yr1",
-                    "bear_black.yr2", "bobcat.yr2", "coyote.yr2", "elk.yr2", "lagomorphs.yr2", 
-                    "moose.yr2", "mountain_lion.yr2", "whitetailed_deer.yr2", "wolf.yr2", "DecFeb_WSI.yr2",
-                    "bear_black.yr3", "bobcat.yr3", "coyote.yr3", "elk.yr3", "lagomorphs.yr3", 
-                    "moose.yr3", "mountain_lion.yr3", "whitetailed_deer.yr3", "wolf.yr3", "DecFeb_WSI.yr3"))
-    cor_matrix <- cor(covs, use = "complete.obs")
+      dplyr::select(contains(c("RN.n_", "DecFeb_WSI")))
+      cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
   cov_correlation(localN_z) #'  Annual prey N correlated across years
@@ -368,38 +371,14 @@
            habitat_class.yr3 = factor(habitat_class.yr3, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
   
   #'  Visualize data
-  hist(localN_z$RN.n_bear_black.yr1)
-  hist(localN_z$RN.n_bear_black.yr2)
-  hist(localN_z$RN.n_bear_black.yr3)
-  hist(localN_z$bobcat.yr1)
-  hist(localN_z$bobcat.yr2)
-  hist(localN_z$bobcat.yr3)
-  hist(localN_z$coyote.yr1)
-  hist(localN_z$coyote.yr2)
-  hist(localN_z$coyote.yr3)
-  hist(localN_z$elk.yr1)
-  hist(localN_z$elk.yr2)
-  hist(localN_z$elk.yr3)
-  hist(localN_z$lagomorphs.yr1)
-  hist(localN_z$lagomorphs.yr2)
-  hist(localN_z$lagomorphs.yr3)
-  hist(localN_z$moose.yr1)
-  hist(localN_z$moose.yr2)
-  hist(localN_z$moose.yr3)
-  hist(localN_z$mountain_lion.yr1)
-  hist(localN_z$mountain_lion.yr2)
-  hist(localN_z$mountain_lion.yr3)
-  hist(localN_z$whitetailed_deer.yr1)
-  hist(localN_z$whitetailed_deer.yr2)
-  hist(localN_z$whitetailed_deer.yr3)
-  hist(localN_z$wolf.yr1)
-  hist(localN_z$wolf.yr2)
-  hist(localN_z$wolf.yr3)
-  hist(RN_wide_annual_20s_22s$wolf.yr2)
-  hist(log(RN_wide_annual_20s_22s$wolf.yr2))
-  #'  Most histograms have major right tail... 
-  #'  Should I be logging and then z-transforming the data??? 
-  #'  Kinda weird b/c response variable becomes explanatory variable
+  plot_histograms <- function(dat) {
+    ndat <- dplyr::select(dat, contains("RN.n_"))
+    for(i in 1:length(ndat)) {
+      hist(ndat[,i])
+    }
+  }
+  plot_histograms(localN_z)
+  
   
   #' #'  Reformat from wide to long while retaining species.yr category per observation
   #' RN_long_annual_20s_22s <- localN_z %>% 
