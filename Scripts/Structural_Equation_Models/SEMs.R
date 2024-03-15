@@ -379,6 +379,11 @@
   }
   plot_histograms(localN_z)
   
+  #'  Remove RN.n_ from local abundance column names
+  names(localN_z) <- gsub(pattern = "RN.n*_", replacement = "", x = names(localN_z))
+  #'  Remove RN. from sd column names
+  names(localN_z) <- gsub(pattern = "RN._*", replacement = "", x = names(localN_z))
+  
   
   #' #'  Reformat from wide to long while retaining species.yr category per observation
   #' RN_long_annual_20s_22s <- localN_z %>% 
