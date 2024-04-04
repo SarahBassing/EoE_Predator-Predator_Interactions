@@ -151,7 +151,7 @@
   }
   landcover19 <- habitat_frequencies(nlcd19)
   landcover21 <- habitat_frequencies(nlcd21)
-    
+  
   #'  Add GEE data to larger covariate df
   format_cam_covs <- function(dat, landcov, season, camYr) {
     covs <- full_join(dat, landcov, by = "NewLocationID") %>%
@@ -205,7 +205,7 @@
     return(grouped_habitat)
   }
   cam_covs_list <- lapply(cam_covs_list, lumped_habitat_class)
-  save(cam_covs_list, file = "./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022_updated.RData")
+  # save(cam_covs_list, file = "./Data/Relative abundance data/RAI Phase 2/site_covariates_2020-2022_updated.RData")
   
   #'  Focus on only habitat class and weather variables
   sem_covs <- function(covs) {
@@ -539,6 +539,7 @@
   #' save(localN_z, file = "./Data/Relative abundance data/RAI Phase 2/data_for_SEM_annual_n.RData")
   #' save(localN_z_1YrLag, file = "./Data/Relative abundance data/RAI Phase 2/data_for_SEM_1YrLag_n.RData")
   
+  print("IGNORE WARNINGS!")
   
   
   
