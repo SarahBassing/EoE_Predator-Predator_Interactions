@@ -17,13 +17,87 @@
   #'  Run script to prepare data for SEMs
   source("./Scripts/Structural_Equation_Models/Format_data_for_SEMs.R")
 
+  #'  Take a quick look
+  head(localN_z); head(localN_z_1YrLag)
+  
+  #'  ---------------------------
+  ####  SEM direct effects only  ####
+  #'  ---------------------------
+  tst <- psem(
+    lm(whitetailed_deer.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + coyote.Tminus1 + habitat_class.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag), # + bear_black.Tminus1
+    lm(elk.T ~ habitat_class.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag), #wolf.Tminus1 + mountain_lion.Tminus1 + 
+    data = localN_z_1YrLag
+  )
+  tst <- update(tst, elk.T %~~% whitetailed_deer.T)
+  summary(tst)
+  
+  tst2 <- psem(
+    lm(whitetailed_deer.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + coyote.Tminus1 + habitat_class.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag),
+    lm(elk.T ~ habitat_class.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag),
+    lm(moose.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + habitat_class.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag),
+    data = localN_z_1YrLag
+  )
+  tst2 <- update(tst2, elk.T %~~% whitetailed_deer.T)
+  tst2 <- update(tst2, moose.T %~~% coyote.T)
+  summary(tst2)
+  
+  tst3 <- psem(
+    lm(whitetailed_deer.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + coyote.Tminus1 + habitat_class.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag),
+    lm(elk.T ~ habitat_class.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag),
+    lm(moose.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + habitat_class.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag),
+    lm(lagomorphs.T ~ bobcat.Tminus1 + habitat_class.Tminus1, weights = precision_lagomorphs.T, data = localN_z_1YrLag),
+    data = localN_z_1YrLag
+  )
+  tst3 <- update(tst3, elk.T %~~% whitetailed_deer.T)
+  tst3 <- update(tst3, moose.T %~~% coyote.Tminus1)
+  tst3 <- update(tst3, whitetailed_deer.T %~~% bobcat.Tminus1)
+  tst3 <- update(tst3, elk.T %~~% bobcat.Tminus1)
+  tst3 <- update(tst3, moose.T %~~% bobcat.Tminus1)
+  summary(tst3)
+  
+  tst4 <- psem(
+    lm(whitetailed_deer.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + coyote.Tminus1 + habitat_class.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag), # + bear_black.Tminus1
+    lm(elk.T ~ habitat_class.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag), 
+    lm(mountain_lion.T ~ wolf.Tminus1 + habitat_class.Tminus1, weights = precision_mountain_lion.T, data = localN_z_1YrLag),
+    lm(coyote.T ~ wolf.Tminus1 + habitat_class.Tminus1, weights = precision_coyote.T, data = localN_z_1YrLag),
+    data = localN_z_1YrLag
+  )
+  tst4 <- update(tst4, elk.T %~~% whitetailed_deer.T)
+  tst4 <- update(tst4, mountain_lion.T %~~% whitetailed_deer.T)
+  tst4 <- update(tst4, mountain_lion.T %~~% mountain_lion.Tminus1)  # not 100% sure we can do this...
+  summary(tst4)
   
   
   
   
+  #####  H.td1  #####
+  H.td1_psem_direct <- psem(
+    lm(mountain_lion.T ~ wolf.Tminus1 + bear_black.Tminus1, weights = precision_mountain_lion.T, data = localN_z_1YrLag),
+    lm(bear_black.T ~ wolf.Tminus1, weights = precision_bear_black.T, data = localN_z_1YrLag),
+    lm(coyote.T ~ wolf.Tminus1 + mountain_lion.Tminus1, weights = precision_coyote.T, data = localN_z_1YrLag),
+    lm(bobcat.T ~ coyote.Tminus1, weights = precision_bobcat.T, data = localN_z_1YrLag),
+    lm(moose.T ~ wolf.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag),
+    lm(elk.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag),
+    lm(whitetailed_deer.T ~ mountain_lion.Tminus1 + bear_black.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag),
+    lm(lagomorphs.T ~ coyote.Tminus1 + bobcat.Tminus1, weights = precision_lagomorphs.T, data = localN_z_1YrLag),
+    data = localN_z_1YrLag
+  )
+  summary(H.td1_psem_direct)
   
-  
-  
+  #####  H.BU1  #####
+  H.bu1_psem_direct <- psem(
+    lm(wolf.T ~ elk.Tminus1 + moose.Tminus1, weights = precision_wolf.T, data = localN_z_1YrLag),
+    lm(mountain_lion.T ~ wolf.Tminus1 + bear_black.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, weights = precision_mountain_lion.T, data = localN_z_1YrLag),
+    lm(bear_black.T ~ wolf.Tminus1 + elk.Tminus1, weights = precision_bear_black.T, data = localN_z_1YrLag),
+    lm(coyote.T ~ wolf.Tminus1 + whitetailed_deer.Tminus1 + lagomorphs.Tminus1, weights = precision_coyote.T, data = localN_z_1YrLag),
+    lm(bobcat.T ~ coyote.Tminus1 + lagomorphs.Tminus1, weights = precision_bobcat.T, data = localN_z_1YrLag),
+    lm(elk.T ~ habitat_class.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag),
+    lm(moose.T ~ habitat_class.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag),
+    lm(whitetailed_deer.T ~ habitat_class.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag),
+    lm(lagomorphs.T ~ habitat_class.Tminus1, weights = precision_lagomorphs.T, data = localN_z_1YrLag),
+    data = localN_z_1YrLag
+  )
+  summary(H.bu1_psem_direct)
   
   
   #'  ---------------------------------------------
@@ -42,6 +116,29 @@
   #'  - predators affect competitors through exploitative competition via their
   #'      primary prey or the most abundant prey species
   #'  ----------------------------------------------
+  #'  Still not working - adding and removing correlations but moving target
+  tst4 <- psem(lm(elk.yr2 ~ habitat_class.yr1 + elk.yr1, weights = precision_elk.yr2, data = localN_z), #wolf.yr1 + mountain_lion.yr1 + 
+              lm(elk.yr3 ~ habitat_class.yr2 + elk.yr2, weights = precision_elk.yr3, data = localN_z), #wolf.yr2 + mountain_lion.yr2 + 
+              lm(whitetailed_deer.yr2 ~ mountain_lion.yr1 + coyote.yr1 + habitat_class.yr1 + whitetailed_deer.yr1, weights = precision_whitetailed_deer.yr2, data = localN_z),
+              lm(whitetailed_deer.yr3 ~ mountain_lion.yr2 + coyote.yr2 + habitat_class.yr2, weights = precision_whitetailed_deer.yr3, data = localN_z), # + whitetailed_deer.yr2
+              data = localN_z)
+  tst4 <- update(tst4, elk.yr2 %~~% whitetailed_deer.yr1)
+  # tst4 <- update(tst4, elk.yr3 %~~% whitetailed_deer.yr2)
+  tst4 <- update(tst4, elk.yr1 %~~% whitetailed_deer.yr3)
+  tst4 <- update(tst4, whitetailed_deer.yr3 %~~% elk.yr3)
+  tst4 <- update(tst4, whitetailed_deer.yr2 %~~% elk.yr2)
+  tst4 <- update(tst4, whitetailed_deer.yr1 %~~% whitetailed_deer.yr2)
+  tst4 <- update(tst4, whitetailed_deer.yr2 %~~% whitetailed_deer.yr3)
+  tst4 <- update(tst4, whitetailed_deer.yr1 %~~% whitetailed_deer.yr3)
+  tst4 <- update(tst4, whitetailed_deer.yr3 %~~% coyote.yr1)
+  # tst4 <- update(tst4, whitetailed_deer.yr3 %~~% mountain_lion.yr1)
+  tst4 <- update(tst4, elk.yr3 %~~% mountain_lion.yr1)
+  tst4 <- update(tst4, whitetailed_deer.yr2 %~~% mountain_lion.yr2)
+  tst4 <- update(tst4, elk.yr3 %~~% habitat_class.yr1)
+  summary(tst4)
+  
+  
+  
   #####  Top-down system  #####
   #'  Models center around hypothesis that predators structure the food web. Models 
   #'  include a combination of possible species interactions within the top-down framework.
@@ -50,24 +147,24 @@
   #'  Predators affect their primary prey species; predators affect their competitors
   #'  through interference competition
   H.td1_psem <- psem(
-    lm(wolf.yr2 ~ wolf.yr1, data = localN_z, weights = sd_wolf.yr2),
-    lm(wolf.yr3 ~ wolf.yr2, data = localN_z, weights = sd_wolf.yr3),
-    lm(mountain_lion.yr2 ~ wolf.yr1 + bear_black.yr1 + mountain_lion.yr1, data = localN_z, weights = sd_mountain_lion.yr2),
-    lm(mountain_lion.yr3 ~ wolf.yr2 + bear_black.yr2 + mountain_lion.yr2, data = localN_z, weights = sd_mountain_lion.yr3),
-    lm(bear_black.yr2 ~ wolf.yr1 + bear_black.yr1, data = localN_z, weights = sd_bear_black.yr2),
-    lm(bear_black.yr3 ~ wolf.yr2 + bear_black.yr2, data = localN_z, weights = sd_bear_black.yr3),
-    lm(coyote.yr2 ~ wolf.yr1 + mountain_lion.yr1 + coyote.yr1, data = localN_z, weights = sd_coyote.yr2),
-    lm(coyote.yr3 ~ wolf.yr2 + mountain_lion.yr2 + coyote.yr2, data = localN_z, weights = sd_coyote.yr3),
-    lm(bobcat.yr2 ~ coyote.yr1 + bobcat.yr1, data = localN_z, weights = sd_bobcat.yr2),
-    lm(bobcat.yr3 ~ coyote.yr2 + bobcat.yr2, data = localN_z, weights = sd_bobcat.yr3),
-    lm(moose.yr2 ~ wolf.yr1 + moose.yr1, data = localN_z, weights = sd_moose.yr2),
-    lm(moose.yr3 ~ wolf.yr2 + moose.yr2, data = localN_z, weights = sd_moose.yr3),
-    lm(elk.yr2 ~ wolf.yr1 + mountain_lion.yr1 + bear_black.yr1 + elk.yr1, data = localN_z, weights = sd_elk.yr2),
-    lm(elk.yr3 ~ wolf.yr2 + mountain_lion.yr2 + bear_black.yr2 + elk.yr2, data = localN_z, weights = sd_elk.yr3),
-    lm(whitetailed_deer.yr2 ~ mountain_lion.yr1 + bear_black.yr1 + whitetailed_deer.yr1, data = localN_z, weights = sd_whitetailed_deer.yr2),
-    lm(whitetailed_deer.yr3 ~ mountain_lion.yr2 + bear_black.yr2 + whitetailed_deer.yr2, data = localN_z, weights = sd_whitetailed_deer.yr3),
-    lm(lagomorphs.yr2 ~ coyote.yr1 + bobcat.yr1 + lagomorphs.yr1, data = localN_z, weights = sd_lagomorphs.yr2),
-    lm(lagomorphs.yr3 ~ coyote.yr2 + bobcat.yr2 + lagomorphs.yr2, data = localN_z, weights = sd_lagomorphs.yr3),
+    lm(wolf.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr2),
+    lm(wolf.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr3),
+    lm(mountain_lion.yr2 ~ wolf.yr1 + bear_black.yr1 + mountain_lion.yr1, data = localN_z, weights = precision_mountain_lion.yr2),
+    lm(mountain_lion.yr3 ~ wolf.yr2 + bear_black.yr2 + mountain_lion.yr2, data = localN_z, weights = precision_mountain_lion.yr3),
+    lm(bear_black.yr2 ~ wolf.yr1 + bear_black.yr1, data = localN_z, weights = precision_bear_black.yr2),
+    lm(bear_black.yr3 ~ wolf.yr2 + bear_black.yr2, data = localN_z, weights = precision_bear_black.yr3),
+    lm(coyote.yr2 ~ wolf.yr1 + mountain_lion.yr1 + coyote.yr1, data = localN_z, weights = precision_coyote.yr2),
+    lm(coyote.yr3 ~ wolf.yr2 + mountain_lion.yr2 + coyote.yr2, data = localN_z, weights = precision_coyote.yr3),
+    lm(bobcat.yr2 ~ coyote.yr1 + bobcat.yr1, data = localN_z, weights = precision_bobcat.yr2),
+    lm(bobcat.yr3 ~ coyote.yr2 + bobcat.yr2, data = localN_z, weights = precision_bobcat.yr3),
+    lm(moose.yr2 ~ wolf.yr1 + moose.yr1, data = localN_z, weights = precision_moose.yr2),
+    lm(moose.yr3 ~ wolf.yr2 + moose.yr2, data = localN_z, weights = precision_moose.yr3),
+    lm(elk.yr2 ~ wolf.yr1 + mountain_lion.yr1 + bear_black.yr1 + elk.yr1, data = localN_z, weights = precision_elk.yr2),
+    lm(elk.yr3 ~ wolf.yr2 + mountain_lion.yr2 + bear_black.yr2 + elk.yr2, data = localN_z, weights = precision_elk.yr3),
+    lm(whitetailed_deer.yr2 ~ mountain_lion.yr1 + bear_black.yr1 + whitetailed_deer.yr1, data = localN_z, weights = precision_whitetailed_deer.yr2),
+    lm(whitetailed_deer.yr3 ~ mountain_lion.yr2 + bear_black.yr2 + whitetailed_deer.yr2, data = localN_z, weights = precision_whitetailed_deer.yr3),
+    lm(lagomorphs.yr2 ~ coyote.yr1 + bobcat.yr1 + lagomorphs.yr1, data = localN_z, weights = precision_lagomorphs.yr2),
+    lm(lagomorphs.yr3 ~ coyote.yr2 + bobcat.yr2 + lagomorphs.yr2, data = localN_z, weights = precision_lagomorphs.yr3),
     data = localN_z)
   # basisSet(H.td1_psem)
   # dSep(H.td1_psem)
