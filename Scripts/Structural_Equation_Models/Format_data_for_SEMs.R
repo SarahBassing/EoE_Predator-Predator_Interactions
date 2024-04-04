@@ -226,12 +226,14 @@
              Year = season,
              Year = ifelse(Year == "Smr20", "yr1", season),
              Year = ifelse(Year == "Smr21", "yr2", Year),
-             Year = ifelse(Year == "Smr22", "yr3", Year)) %>%
+             Year = ifelse(Year == "Smr22", "yr3", Year),
+             #'  Calculate the precision (1/var) of each estimate
+             RN.precision = 1 / (RN.sd^2)) %>%
       #'  Drop extra columns
-      dplyr::select(-c(season)) %>%
-      #'  Create column per species with their site-specific local abundance estimate
+      dplyr::select(-c(season, RN.sd)) %>%
+      #'  Create column per species with their site-specific local abundance & precision estimate
       pivot_wider(names_from = "Species",
-                  values_from = c("RN.n", "RN.sd")) %>%
+                  values_from = c("RN.n", "RN.precision")) %>%
       left_join(covs, by = c("NewLocationID", "GMU", "Season"))
     return(pivot_data_wide)
   }
@@ -261,7 +263,7 @@
   
   dat_sd <- function(dat) {
     newdat <- dat %>%
-      dplyr::select(contains("RN.sd_"))
+      dplyr::select(contains("RN.precision_")) 
     return(newdat)
   }
   RN_wide_sd <- lapply(RN_wide, dat_sd)
@@ -371,11 +373,72 @@
   head(RN_wide_annual_20s_22s)
   tail(RN_wide_annual_20s_22s)
   
+  #'  Z-transform local abundance estimates (per year b/c annual estimates are stand alone variables)
+  localN_z <- RN_wide_annual_20s_22s %>%
+    #mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
+    mutate(across(starts_with(c("RN.n_", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
+  
+  #'  Create correlation matrix for all continuous covariates at once
+  cov_correlation <- function(dat) {
+    covs <- dat %>%
+      dplyr::select(contains(c("RN.n_", "DecFeb_WSI")))
+    cor_matrix <- cor(covs, use = "complete.obs")
+    return(cor_matrix)
+  }
+  cov_correlation(localN_z) #'  Annual prey N correlated across years
+  
+  #'  Drop sites with NAs (missing 1+ years of data)
+  localN_z <- drop_na(localN_z)
+  
+  #'  Make sure habitat classes are categorical factors
+  localN_z <- localN_z %>%
+    mutate(habitat_class.yr1 = factor(habitat_class.yr1, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
+           habitat_class.yr2 = factor(habitat_class.yr2, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
+           habitat_class.yr3 = factor(habitat_class.yr3, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
+  
+  #'  Visualize data
+  plot_histograms <- function(dat) {
+    ndat <- dplyr::select(dat, contains("RN.n_"))
+    for(i in 1:length(ndat)) {
+      hist(ndat[,i])
+    }
+  }
+  plot_histograms(localN_z)
+  
+  #'  Remove RN.n_ from local abundance column names
+  names(localN_z) <- gsub(pattern = "RN.n*_", replacement = "", x = names(localN_z))
+  #'  Remove RN. from sd column names
+  names(localN_z) <- gsub(pattern = "RN._*", replacement = "", x = names(localN_z))
+  
+  #'  Check out a few basic relationships
+  summary(lm(whitetailed_deer.yr2 ~ mountain_lion.yr1, data = localN_z, weights = precision_mountain_lion.yr1)) 
+  summary(lm(whitetailed_deer.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_mountain_lion.yr2)) 
+  summary(lm(elk.yr2 ~ mountain_lion.yr1, data = localN_z, weights = precision_mountain_lion.yr1))  
+  summary(lm(elk.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_mountain_lion.yr2))  
+  summary(lm(whitetailed_deer.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
+  summary(lm(whitetailed_deer.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
+  summary(lm(elk.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
+  summary(lm(elk.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
+  summary(lm(moose.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
+  summary(lm(moose.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
+  summary(lm(whitetailed_deer.yr2 ~ coyote.yr1, data = localN_z, weights = precision_coyote.yr1))
+  summary(lm(whitetailed_deer.yr3 ~ coyote.yr2, data = localN_z, weights = precision_coyote.yr2))
+  summary(lm(mountain_lion.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
+  summary(lm(mountain_lion.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
+  summary(lm(bear_black.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
+  summary(lm(bear_black.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
+  summary(lm(coyote.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
+  summary(lm(coyote.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
+  summary(lm(coyote.yr2 ~ mountain_lion.yr1, data = localN_z, weights = precision_mountain_lion.yr1))  
+  summary(lm(coyote.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_mountain_lion.yr2))  
+  summary(lm(bobcat.yr2 ~ coyote.yr1, data = localN_z, weights = precision_coyote.yr1))
+  summary(lm(bobcat.yr3 ~ coyote.yr2, data = localN_z, weights = precision_coyote.yr2))
+  
   #'  ----------------------------------------------
   #####  Time period format: t-1 vs t across years  #####
   #'  ----------------------------------------------
-  #'  Box-Cox Transformation on grouped data
-  #'  T minus 1 group
+  #'  Box-Cox Transformation on grouped data to make data more normal
+  #'  T minus 1 group (per species)
   for(i in 1:length(RN_stack_n[[1]])) {
     x <- pull(RN_stack_n[[1]][,i])
     b <- boxcox(lm(x ~ 1))
@@ -389,7 +452,7 @@
   }
   colnames(bx_dat_stack[[1]]) <- RN_stack_colnames[[1]]
   
-  #'  T group
+  #'  T group (per species)
   for(i in 1:length(RN_stack_n[[2]])) {
     x <- pull(RN_stack_n[[2]][,i])
     b <- boxcox(lm(x ~ 1))
@@ -423,12 +486,8 @@
   #'  Join t-1 and t data based on camera location
   RN_wide_1YrLag_20s_22s <- full_join(dat_t_minus_1, dat_t, by = c("NewLocationID", "CellID", "GMU", "Setup", "GroupYear"))
   
-  
-  
-  
-  
   #'  Z-transform local abundance estimates (per year b/c annual estimates are stand alone variables)
-  localN_z <- RN_wide_annual_20s_22s %>%
+  localN_z_1YrLag <- RN_wide_1YrLag_20s_22s %>%
     #mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
     mutate(across(starts_with(c("RN.n_", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
   
@@ -439,16 +498,15 @@
       cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
-  cov_correlation(localN_z) #'  Annual prey N correlated across years
+  cov_correlation(localN_z_1YrLag) #'  Annual prey N correlated across years
   
   #'  Drop sites with NAs (missing 1+ years of data)
-  localN_z <- drop_na(localN_z)
+  localN_z_1YrLag <- drop_na(localN_z_1YrLag)
   
   #'  Make sure habitat classes are categorical factors
-  localN_z <- localN_z %>%
-    mutate(habitat_class.yr1 = factor(habitat_class.yr1, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
-           habitat_class.yr2 = factor(habitat_class.yr2, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
-           habitat_class.yr3 = factor(habitat_class.yr3, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
+  localN_z_1YrLag <- localN_z_1YrLag %>%
+    mutate(habitat_class.Tminus1 = factor(habitat_class.Tminus1, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
+           habitat_class.T = factor(habitat_class.T, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
   
   #'  Visualize data
   plot_histograms <- function(dat) {
@@ -457,18 +515,29 @@
       hist(ndat[,i])
     }
   }
-  plot_histograms(localN_z)
+  plot_histograms(localN_z_1YrLag)
   
   #'  Remove RN.n_ from local abundance column names
-  names(localN_z) <- gsub(pattern = "RN.n*_", replacement = "", x = names(localN_z))
+  names(localN_z_1YrLag) <- gsub(pattern = "RN.n*_", replacement = "", x = names(localN_z_1YrLag))
   #'  Remove RN. from sd column names
-  names(localN_z) <- gsub(pattern = "RN._*", replacement = "", x = names(localN_z))
+  names(localN_z_1YrLag) <- gsub(pattern = "RN._*", replacement = "", x = names(localN_z_1YrLag))
+
+  #'  Check out a few basic relationships
+  summary(lm(whitetailed_deer.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_mountain_lion.Tminus1))  
+  summary(lm(elk.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_mountain_lion.Tminus1))  
+  summary(lm(whitetailed_deer.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
+  summary(lm(elk.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
+  summary(lm(moose.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
+  summary(lm(whitetailed_deer.T ~ coyote.Tminus1, data = localN_z_1YrLag, weights = precision_coyote.Tminus1))
+  summary(lm(bear_black.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
+  summary(lm(mountain_lion.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
+  summary(lm(coyote.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
+  summary(lm(coyote.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_mountain_lion.Tminus1))
+  summary(lm(bobcat.T ~ coyote.Tminus1, data = localN_z_1YrLag, weights = precision_coyote.Tminus1))
   
-  
-  
-  
-  
-  
+  #' #'  Save outputs
+  #' save(localN_z, file = "./Data/Relative abundance data/RAI Phase 2/data_for_SEM_annual_n.RData")
+  #' save(localN_z_1YrLag, file = "./Data/Relative abundance data/RAI Phase 2/data_for_SEM_1YrLag_n.RData")
   
   
   
