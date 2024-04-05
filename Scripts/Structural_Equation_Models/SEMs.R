@@ -24,33 +24,36 @@
   ####  SEM direct effects only  ####
   #'  ---------------------------
   tst <- psem(
-    lm(whitetailed_deer.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + coyote.Tminus1 + habitat_class.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag), # + bear_black.Tminus1
+    lm(whitetailed_deer.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + coyote.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag), # + bear_black.Tminus1  + habitat_class.Tminus1
     lm(elk.T ~ habitat_class.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag), #wolf.Tminus1 + mountain_lion.Tminus1 + 
     data = localN_z_1YrLag
   )
   tst <- update(tst, elk.T %~~% whitetailed_deer.T)
   summary(tst)
+  coefs(tst)
   
   tst2 <- psem(
-    lm(whitetailed_deer.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + coyote.Tminus1 + habitat_class.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag),
+    lm(whitetailed_deer.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + coyote.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag), # + habitat_class.Tminus1
     lm(elk.T ~ habitat_class.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag),
-    lm(moose.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + habitat_class.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag),
+    lm(moose.T ~ wolf.Tminus1 + mountain_lion.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag), # + habitat_class.Tminus1
     data = localN_z_1YrLag
   )
   tst2 <- update(tst2, elk.T %~~% whitetailed_deer.T)
-  tst2 <- update(tst2, moose.T %~~% coyote.T)
+  # tst2 <- update(tst2, moose.T %~~% coyote.T)
+  tst2 <- update(tst2, moose.T %~~% coyote.Tminus1)
   summary(tst2)
   
   tst3 <- psem(
-    lm(whitetailed_deer.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + coyote.Tminus1 + habitat_class.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag),
+    lm(whitetailed_deer.T ~ wolf.Tminus1 + habitat_class.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag), #  + mountain_lion.Tminus1
     lm(elk.T ~ habitat_class.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag),
-    lm(moose.T ~ wolf.Tminus1 + mountain_lion.Tminus1 + habitat_class.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag),
+    lm(moose.T ~ wolf.Tminus1 + mountain_lion.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag), # + habitat_class.Tminus1
     lm(lagomorphs.T ~ bobcat.Tminus1 + habitat_class.Tminus1, weights = precision_lagomorphs.T, data = localN_z_1YrLag),
     data = localN_z_1YrLag
   )
   tst3 <- update(tst3, elk.T %~~% whitetailed_deer.T)
   tst3 <- update(tst3, moose.T %~~% coyote.Tminus1)
   tst3 <- update(tst3, whitetailed_deer.T %~~% bobcat.Tminus1)
+  tst3 <- update(tst3, whitetailed_deer.T %~~% coyote.Tminus1)
   tst3 <- update(tst3, elk.T %~~% bobcat.Tminus1)
   tst3 <- update(tst3, moose.T %~~% bobcat.Tminus1)
   summary(tst3)
