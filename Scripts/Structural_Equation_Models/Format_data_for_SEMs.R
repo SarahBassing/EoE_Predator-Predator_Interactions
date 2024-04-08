@@ -33,20 +33,20 @@
   #'  Source script to load & format average monthly precip & temp data
   #'  Produces standardized average monthly total precipitation and standardized 
   #'  average monthly minimum temp for each winter and GMU for past 50 years
-  source("./Scripts/Structural_Equation_Models/Format_weather_data.R")   ########## at some point redo this so each cam location has unique avg monthly data across years (at scale of PRISM ~4600m*4600m res)
+  source("./Scripts/Structural_Equation_Models/Format_weather_data.R")   
     
-  #'  Generate Winter Severity Index (WSI) per year and GMU ()
-  wsi <- full_join(wtr_totalPrecip, wtr_minTemp, by = c("GMU", "Season")) %>%
+  #'  Generate Winter Severity Index (WSI) per year and NewLocationID
+  wsi <- full_join(wtr_totalPrecip, wtr_minTemp, by = c("NewLocationID", "Season")) %>%
     #'  Multiply standardized precip by standardized temp data
     mutate(DecFeb_WSI = DecFeb_meanPPT_z * DecFeb_meanMinTemp_z) %>%
-    dplyr::select(c("GMU", "Season", "DecFeb_WSI")) %>%
+    dplyr::select(c("NewLocationID", "Season", "DecFeb_WSI")) %>%
     #'  Filter to the winters preceding Summer 2020, 2021, and 2022 surveys
     filter(Season == "Wtr1920" | Season == "Wtr2021" | Season == "Wtr2122") %>%
     #'  Change Season column to reference annual summer sampling
     rename("PreviousWinter" = "Season") %>%
     mutate(Season = ifelse(PreviousWinter == "Wtr1920", "Smr20", "Smr22"),
            Season = ifelse(PreviousWinter == "Wtr2021", "Smr21", Season)) %>%
-    relocate(Season, .after = "GMU")
+    relocate(Season, .after = "NewLocationID")
   print(wsi)
   
   #'  Hansen's Global Forest Change dataset (area and year of canopy loss surrounding camera)
@@ -139,15 +139,16 @@
       slice_max(order_by = percentPix, n = 1) %>%
       ungroup() %>%
       arrange(NewLocationID)
-    
+
     #'  Review dominant habitat types
     print(table(dominant_habitat$habitat_type))
-    
+
     #'  List both datasets together
     landcover_list <- list(dominant_habitat, reformatted)
     names(landcover_list) <- c("dominant_habitat", "percent_landcover")
-    
+
     return(landcover_list)
+    return()
   }
   landcover19 <- habitat_frequencies(nlcd19)
   landcover21 <- habitat_frequencies(nlcd21)
@@ -173,8 +174,12 @@
              #'  Generate a single habitat class covariate representing dominant habitat type and years since burn/canopy loss (if forested)
              Habitat_class = habitat_type,
              Habitat_class = ifelse(!is.na(DisturbanceLoss) & Habitat_class == "Forested", DisturbanceLoss, Habitat_class),
-             Habitat_class = ifelse(!is.na(DisturbanceBurn) & Habitat_class == "Loss_1_20", DisturbanceBurn, Habitat_class)) %>%
-      left_join(wsi, by = c("GMU", "Season")) %>%
+             Habitat_class = ifelse(!is.na(DisturbanceBurn) & Habitat_class == "Loss_1_20", DisturbanceBurn, Habitat_class),
+             #'  Grab percentPix for sites with disturbance to indicate percent disturbed forest within last 20 years
+             #'  (0 % disturbed forest if the dominant habitat class is unburned/logged forest or any other landcover type)
+             PercDisturbedForest = ifelse(Habitat_class == "Loss_1_20" | Habitat_class == "Burn_1_5" | 
+                                            Habitat_class == "Burn_6_10" | Habitat_class == "Burn_16_20", percentPix, 0)) %>%
+      left_join(wsi, by = c("NewLocationID", "Season")) %>%
       relocate(Season, .after = "GMU") %>%
       filter(!is.na(GMU))
     
@@ -210,7 +215,7 @@
   #'  Focus on only habitat class and weather variables
   sem_covs <- function(covs) {
     skinny_covs <- covs %>%
-      dplyr::select(c(NewLocationID, GMU, Season, habitat_class, DecFeb_WSI))
+      dplyr::select(c(NewLocationID, GMU, Season, habitat_class, PercDisturbedForest, DecFeb_WSI))
     return(skinny_covs)
   }
   sem_covs_list <- lapply(cam_covs_list, sem_covs)
@@ -341,10 +346,12 @@
   #'  Add annual covariates and site info back to dataset   
   add_covs_back <- function(olddat, newdat, datsd) {
     covs <- dplyr::select(olddat, c("NewLocationID", "CellID", "GMU", "Setup", 
-                                    "Season", "Year", "habitat_class", "DecFeb_WSI"))
+                                    "Season", "Year", "habitat_class", 
+                                    "PercDisturbedForest", "DecFeb_WSI"))
     dat <- bind_cols(covs, newdat) %>%
       bind_cols(datsd) %>%
       relocate(habitat_class, .after = last_col()) %>%
+      relocate(PercDisturbedForest, .after = last_col()) %>%
       relocate(DecFeb_WSI, .after = last_col())
     dat <- as.data.frame(dat)
     return(dat)
@@ -376,12 +383,12 @@
   #'  Z-transform local abundance estimates (per year b/c annual estimates are stand alone variables)
   localN_z <- RN_wide_annual_20s_22s %>%
     #mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
-    mutate(across(starts_with(c("RN.n_", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
+    mutate(across(starts_with(c("RN.n_", "PercDisturbedForest", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
   
   #'  Create correlation matrix for all continuous covariates at once
   cov_correlation <- function(dat) {
     covs <- dat %>%
-      dplyr::select(contains(c("RN.n_", "DecFeb_WSI")))
+      dplyr::select(contains(c("RN.n_", "PercDisturbedForest", "DecFeb_WSI")))
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
@@ -433,6 +440,13 @@
   summary(lm(coyote.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_mountain_lion.yr2))  
   summary(lm(bobcat.yr2 ~ coyote.yr1, data = localN_z, weights = precision_coyote.yr1))
   summary(lm(bobcat.yr3 ~ coyote.yr2, data = localN_z, weights = precision_coyote.yr2))
+  
+  plot(whitetailed_deer.yr2 ~ mountain_lion.yr1, data = localN_z)
+  plot(elk.yr3 ~ mountain_lion.yr2, data = localN_z)
+  plot(whitetailed_deer.yr2 ~ wolf.yr1, data = localN_z)
+  plot(whitetailed_deer.yr3 ~ wolf.yr2, data = localN_z)
+  plot(moose.yr2 ~ wolf.yr1, data = localN_z)
+  plot(moose.yr3 ~ wolf.yr2, data = localN_z)
   
   #'  ----------------------------------------------
   #####  Time period format: t-1 vs t across years  #####
@@ -489,12 +503,12 @@
   #'  Z-transform local abundance estimates (per year b/c annual estimates are stand alone variables)
   localN_z_1YrLag <- RN_wide_1YrLag_20s_22s %>%
     #mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
-    mutate(across(starts_with(c("RN.n_", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
+    mutate(across(starts_with(c("RN.n_", "PercDisturbedForest", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
   
   #'  Create correlation matrix for all continuous covariates at once
   cov_correlation <- function(dat) {
     covs <- dat %>%
-      dplyr::select(contains(c("RN.n_", "DecFeb_WSI")))
+      dplyr::select(contains(c("RN.n_", "PercDisturbedForest", "DecFeb_WSI")))
       cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
@@ -535,10 +549,16 @@
   summary(lm(coyote.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_mountain_lion.Tminus1))
   summary(lm(bobcat.T ~ coyote.Tminus1, data = localN_z_1YrLag, weights = precision_coyote.Tminus1))
   
+  plot(whitetailed_deer.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag)
+  plot(elk.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag)
+  plot(whitetailed_deer.T ~ wolf.Tminus1, data = localN_z_1YrLag)
+  plot(moose.T ~ wolf.Tminus1, data = localN_z_1YrLag)
+  plot(coyote.T ~ wolf.Tminus1, data = localN_z_1YrLag)
+  
   #' #'  Save outputs
   #' save(localN_z, file = "./Data/Relative abundance data/RAI Phase 2/data_for_SEM_annual_n.RData")
   #' save(localN_z_1YrLag, file = "./Data/Relative abundance data/RAI Phase 2/data_for_SEM_1YrLag_n.RData")
-  
+
   print("IGNORE WARNINGS!")
   
   
