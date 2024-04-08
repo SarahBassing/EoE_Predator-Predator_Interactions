@@ -6,6 +6,8 @@
   #'  --------------------------------
   #'  Load 50 years of monthly PRISM weather data, reformat and generate 
   #'  standardized monthly averages per winter from Dec. 1972 - Feb. 2023.
+  #'  Standardizing across 50 years of data means each monthly average is 
+  #'  represented relative to the 50-year average and 50-year variability.
   #'  Winter months = December, January, February
   #'  --------------------------------
   
@@ -13,20 +15,17 @@
   library(tidyverse)
   
   #'  PRISM total monthly precipitation (averaged per GMU)
-  precip <- read_csv("./Data/GEE outputs/PRISM_GMUavg_monthly_total_precip_1972_2023.csv") %>%
-    dplyr::select(c(featureID, date, meanMonthlyValue))
+  precip <- read_csv("./Data/GEE outputs/PRISM_camBuff_monthly_total_precip_1972_2023.csv") %>%  
+    dplyr::select(c(NewLocationID, date, meanMonthlyValue))
   #'  PRISM minimum monthly temperature (averaged per GMU)
-  temp <- read_csv("./Data/GEE outputs/PRISM_GMUavg_monthly_min_temp_1972_2023.csv") %>%
-    dplyr::select(c(featureID, date, meanMonthlyValue))
+  temp <- read_csv("./Data/GEE outputs/PRISM_camBuff_monthly_min_temp_1972_2023.csv") %>%  
+    dplyr::select(c(NewLocationID, date, meanMonthlyValue))
   
   #'  Function to add season column to weather data
   add_season <- function(prism) {
     annual_winter_season <- prism %>%
-      #'  Rename GMUs
-      mutate(GMU = ifelse(featureID == "00000000000000000000", "GMU1", featureID),
-             GMU = ifelse(featureID == "00000000000000000001", "GMU6", GMU),
-             GMU = ifelse(featureID == "00000000000000000002", "GMU10A", GMU),
-             Year = as.numeric(format(as.Date(date, format="%Y-%m-%d"),"%Y")),
+      #'  Reformat
+      mutate(Year = as.numeric(format(as.Date(date, format="%Y-%m-%d"),"%Y")),
              Month = as.numeric(format(as.Date(date, format="%Y-%m-%d"),"%m"))) %>%
       #'  Filter to winter months (Dec, Jan, Feb) of each year
       filter(Month <= 2 | Month == 12) %>%
@@ -94,16 +93,17 @@
   format_weather <- function(prism) {
     avg_winter_weather <- prism %>%
       #'  Reformat columns
-      transmute(GMU = GMU,
+      transmute(NewLocationID = NewLocationID,
                 Season = Season,
                 Date = date,
                 meanWeather = meanMonthlyValue) %>%
-      #'  Average monthly weather by year and GMU
-      group_by(GMU, Season) %>%
+      #'  Average monthly weather by year and site
+      group_by(NewLocationID, Season) %>%
       summarise(DecFeb_meanWeather = mean(meanWeather),
                 DecFeb_meanWeather_se = sd(meanWeather)/sqrt(nrow(.))) %>%
       ungroup() %>%
       #'  Standardize average monthly weather (mean = 0, SD = 1)
+      #'  This represents the monthly mean relative to the 50 year average and SD
       mutate(DecFeb_meanWeather_z = as.numeric(scale(DecFeb_meanWeather)))
     
     #'  Double check standardized data
