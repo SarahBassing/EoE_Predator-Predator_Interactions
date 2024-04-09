@@ -100,6 +100,22 @@
   )
   summary(h.td2)
   
+  #'  Updated h.td1 model based on results from d-sep tests
+  h.td2 <- psem(
+    lm(moose.T ~ moose.Tminus1 + wolf.Tminus1 + wolf.T + mountain_lion.Tminus1 + coyote.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag),
+    lm(elk.T ~ elk.Tminus1 + wolf.Tminus1 + wolf.T + mountain_lion.Tminus1, weights = precision_elk.T, data = localN_z_1YrLag),
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.T, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag),
+    lm(lagomorphs.T ~ lagomorphs.Tminus1 + bobcat.Tminus1, weights = precision_lagomorphs.T, data = localN_z_1YrLag),
+    lm(bear_black.T ~ bear_black.Tminus1 + wolf.Tminus1 + whitetailed_deer.Tminus1, weights = precision_bear_black.T, data = localN_z_1YrLag),
+    lm(bobcat.T ~ bobcat.Tminus1 + coyote.Tminus1 + coyote.T + whitetailed_deer.Tminus1, weights = precision_bobcat.T, data = localN_z_1YrLag),
+    lm(mountain_lion.T ~ mountain_lion.Tminus1 + wolf.Tminus1 + wolf.T + bear_black.T + whitetailed_deer.Tminus1, weights = precision_mountain_lion.T, data = localN_z_1YrLag),
+    lm(coyote.T ~ coyote.Tminus1 + wolf.T + bobcat.Tminus1, weights = precision_coyote.T, data = localN_z_1YrLag),
+    data = localN_z_1YrLag
+  )
+  summary(h.td2)
+  
+  
+  
   #'  Bottom up prey affects primary predator
   h.bu1 <- psem(
     lm(moose.T ~ moose.Tminus1 + PercDisturbedForest.Tminus1 + PercDisturbedForest.T + DecFeb_WSI.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag),
