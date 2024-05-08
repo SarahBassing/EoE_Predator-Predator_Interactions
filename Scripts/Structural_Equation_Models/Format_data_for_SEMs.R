@@ -176,7 +176,7 @@
              Habitat_class = ifelse(!is.na(DisturbanceLoss) & Habitat_class == "Forested", DisturbanceLoss, Habitat_class),
              Habitat_class = ifelse(!is.na(DisturbanceBurn) & Habitat_class == "Loss_1_20", DisturbanceBurn, Habitat_class),
              #'  Grab percentPix for sites with disturbance to indicate percent disturbed forest within last 20 years
-             #'  (0 % disturbed forest if the dominant habitat class is unburned/logged forest or any other landcover type)
+             #'  (0 % disturbed forest if the dominant habitat class is unburned/unlogged forest or any other landcover type)
              PercDisturbedForest = ifelse(Habitat_class == "Loss_1_20" | Habitat_class == "Burn_1_5" | 
                                             Habitat_class == "Burn_6_10" | Habitat_class == "Burn_16_20", percentPix, 0)) %>%
       left_join(wsi, by = c("NewLocationID", "Season")) %>%
