@@ -10,6 +10,7 @@
   #'  --------------------------------
   
   library(piecewiseSEM)
+  library(semEff)
   library(labelled)
   library(lme4)
   library(tidyverse)
@@ -75,10 +76,23 @@
     data = localN_z_1YrLag
   )
   summary(reduced_mod)
-  reduced_mod <- update(reduced_mod, bobcat.T %~~% lagomorphs.T)
-  reduced_mod <- update(reduced_mod, bobcat.T %~~% elk.T)
-  reduced_mod <- update(reduced_mod, lagomorphs.T %~~% wolf.T)
+  #'  Update with unspecified correlations
+  reduced_mod <- update(reduced_mod, bobcat.T %~~% lagomorphs.T) #' Unspecified only b/c a feedback loop is created if included in model
+  reduced_mod <- update(reduced_mod, bobcat.T %~~% elk.T) #' Unspecified b/c a feedback loop is created if included in model, also not a biological hypothesis
+  reduced_mod <- update(reduced_mod, lagomorphs.T %~~% wolf.T) #'  Unspecified b/c not a biological hypothesis
   summary(reduced_mod)
+  
+  #'  Calculate direct, indirect, total, and mediator effects (SE & 95% CI) for 
+  #'  all endogenous (response) variables using semEff package
+  #'  First bootstrap standardized model coefficients (necessary for calculating SEs)
+  #'  https://murphymv.github.io/semEff/reference/bootEff.html
+  #'  This takes awhile!
+  reduced_mod_bootEff <- bootEff(reduced_mod, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 4)
+  
+  #'  Second calculate standardized effects for all casual pathways
+  #'  https://murphymv.github.io/semEff/reference/semEff.html
+  (reduced_mod_semEff <- semEff(reduced_mod_bootEff))
+  summary(reduced_mod_semEff)
 
 
   #'  ---------------------------------------------------
@@ -148,7 +162,7 @@
   summary(reduced_mod_annual)
   reduced_mod_annual <- update(reduced_mod_annual, elk.yr3 %~~% moose.yr1)
   reduced_mod_annual <- update(reduced_mod_annual, elk.yr3 %~~% whitetailed_deer.yr1)
-  # reduced_mod_annual <- update(reduced_mod_annual, elk.yr3 %~~% lagomorphs.yr1)
+  reduced_mod_annual <- update(reduced_mod_annual, elk.yr3 %~~% lagomorphs.yr1)
   reduced_mod_annual <- update(reduced_mod_annual, moose.yr3 %~~% elk.yr1)
   reduced_mod_annual <- update(reduced_mod_annual, moose.yr3 %~~% elk.yr2)
   reduced_mod_annual <- update(reduced_mod_annual, moose.yr3 %~~% elk.yr3)
@@ -181,8 +195,9 @@
   summary(reduced_mod_annual)
   
   #'  I don't trust this version. Some weird correlations (yr3 pop affects yr2 pop) 
-  #'  and lots of unspecified correlation structure that d-sep says exists but then
-  #'  is not significant when estimated in the model.
+  #'  and SO MUCH unspecified correlation structure. Plus d-sep test indicates
+  #'  many of these correlations exist but they are not significant when estimated 
+  #'  in the model.
   
   
   #figure out indirect coefficients and visual
