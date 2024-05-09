@@ -82,15 +82,18 @@
   reduced_mod <- update(reduced_mod, lagomorphs.T %~~% wolf.T) #'  Unspecified b/c not a biological hypothesis
   summary(reduced_mod)
   
+  #'  Check for multicollinearity
+  RVIF(reduced_mod[[6]]) # double check what [[6]] indexes
+  
   #'  Calculate direct, indirect, total, and mediator effects (SE & 95% CI) for 
   #'  all endogenous (response) variables using semEff package
+  #'  https://murphymv.github.io/semEff/articles/semEff.html
   #'  First bootstrap standardized model coefficients (necessary for calculating SEs)
-  #'  https://murphymv.github.io/semEff/reference/bootEff.html
-  #'  This takes awhile!
-  reduced_mod_bootEff <- bootEff(reduced_mod, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 4)
+  #'  This takes awhile! 
+  reduced_mod_bootEff <- bootEff(reduced_mod, R = 5000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
   
   #'  Second calculate standardized effects for all casual pathways
-  #'  https://murphymv.github.io/semEff/reference/semEff.html
+  # (reduced_mod_semEff <- semEff(reduced_mod, ci.conf = 0.95, ci.type = "bca", bci.arg = NULL))
   (reduced_mod_semEff <- semEff(reduced_mod_bootEff))
   summary(reduced_mod_semEff)
 
