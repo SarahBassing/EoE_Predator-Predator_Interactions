@@ -96,6 +96,8 @@
   # (reduced_mod_semEff <- semEff(reduced_mod, ci.conf = 0.95, ci.type = "bca", bci.arg = NULL))
   (reduced_mod_semEff <- semEff(reduced_mod_bootEff))
   summary(reduced_mod_semEff)
+  
+  save(reduced_mod_bootEff, file = paste0("./Outputs/SEM/reduced_mod_bootEff_", Sys.Date(), ".RData"))
   save(reduced_mod_semEff, file = paste0("./Outputs/SEM/reduced_mod_semEff_", Sys.Date(), ".RData"))
 
   #'  ---------------------------------------------------
