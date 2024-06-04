@@ -99,6 +99,15 @@
   #'  Check for multicollinearity
   RVIF(reduced_mod[[6]]) # double check what [[6]] indexes
   
+  #'  Visualize SEM
+  piecewiseSEM:::plot.psem(reduced_mod, 
+                           node_attrs = data.frame(shape = "rectangle", color = "black", fillcolor = "orange"), 
+                           layout = "tree")
+  piecewiseSEM:::plot.psem(reduced_mod, 
+                           node_attrs = data.frame(shape = "rectangle", color = "orange"), 
+                           layout = "circle",
+                           output = "visNetwork")
+
   #'  Calculate direct, indirect, total, and mediator effects (SE & 95% CI) for 
   #'  all endogenous (response) variables using semEff package
   #'  https://murphymv.github.io/semEff/articles/semEff.html
@@ -107,18 +116,36 @@
   reduced_mod_bootEff <- bootEff(reduced_mod, R = 5000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
   
   #'  Second calculate standardized effects for all casual pathways
-  # (reduced_mod_semEff <- semEff(reduced_mod, ci.conf = 0.95, ci.type = "bca", bci.arg = NULL))
+  #'  Note, these are standardized unique effects (i.e., adjusted for multicollinearity;
+  #'  i.e., semipartial correlations), allowing us to fully partition effects in the system
+  #'  These tend to be smaller than the unadjusted standardized coefficients
+  #'  If there are large differences btwn the two then consideration should be given
+  #'  to the impact and relevance of multicollinearity in the system (check with RVIF())
   (reduced_mod_semEff <- semEff(reduced_mod_bootEff))
   summary(reduced_mod_semEff)
+  
+  (reduced_mod_stdEff <- stdEff(reduced_mod))
+  
+  #'  Pull out individual direct, indirect, total, and mediator effects
+  directEff <- getDirEff(reduced_mod_semEff)
+  indirectEff <- getIndEff(reduced_mod_semEff)
+  totalEff <- getTotEff(reduced_mod_semEff)
+  mediatorEff <- getMedEff(reduced_mod_semEff)
+  
+  
+  R2(reduced_mod, data = localN_z_1YrLag, type = "pearson")
   
   #'  Save 
   save(reduced_mod_bootEff, file = paste0("./Outputs/SEM/reduced_mod_bootEff_", Sys.Date(), ".RData"))
   save(reduced_mod_semEff, file = paste0("./Outputs/SEM/reduced_mod_semEff_", Sys.Date(), ".RData"))
 
-  load("./Outputs/SEM/reduced_mod_semEff_2024-05-23.RData")
+  # /load("./Outputs/SEM/reduced_mod_semEff_2024-05-23.RData")
+  load("./Outputs/SEM/reduced_mod_semEff_2024-06-04.RData")
   
   
-  
+  piecewiseSEM:::plot.psem(reduced_mod_semEff, 
+                           node_attrs = data.frame(shape = "rectangle", color = "black", fillcolor = "blue"), 
+                           layout = "tree")
   
   
   
