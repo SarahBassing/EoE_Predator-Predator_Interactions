@@ -97,15 +97,96 @@
   reduced_mod <- update(reduced_mod, wolf.T %~~% coyote.Tminus1)
   summary(reduced_mod)
   
+  #'  Run some basic model diagnostics on individuals models
+  #'  This is handy: http://www.sthda.com/english/articles/39-regression-model-diagnostics/161-linear-regression-assumptions-and-diagnostics-in-r-essentials/
+  elk_mod <- lm(elk.T ~ elk.Tminus1 + moose.Tminus1 + bear_black.T + bear_black.Tminus1 + wolf.T + wolf.Tminus1 + PercDisturbedForest.T, weights = precision_elk.T, data = localN_z_1YrLag)
+  plot(elk_mod)
+  moose_mod <- lm(moose.T ~ moose.Tminus1 + elk.T + mountain_lion.T + mountain_lion.Tminus1 + wolf.Tminus1 + DecFeb_WSI.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag)
+  plot(moose_mod)
+  wtd_mod <- lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + elk.T + elk.Tminus1 + moose.T + moose.Tminus1 + bear_black.Tminus1 + coyote.T + coyote.Tminus1+ wolf.Tminus1 + PercDisturbedForest.T + PercDisturbedForest.Tminus1 + DecFeb_WSI.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag)
+  plot(wtd_mod)
+  lago_mod <- lm(lagomorphs.T ~ lagomorphs.Tminus1 + bobcat.Tminus1 + mountain_lion.T + PercDisturbedForest.T + DecFeb_WSI.Tminus1, weights = precision_lagomorphs.T, data = localN_z_1YrLag)
+  plot(lago_mod)
+  bear_mod <- lm(bear_black.T ~ bear_black.Tminus1 + whitetailed_deer.Tminus1 + wolf.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_bear_black.T, data = localN_z_1YrLag)
+  plot(bear_mod)
+  bob_mod <- lm(bobcat.T ~ bobcat.Tminus1 + whitetailed_deer.Tminus1 + lagomorphs.Tminus1 + bear_black.T + wolf.Tminus1 + PercDisturbedForest.T, weights = precision_bobcat.T, data = localN_z_1YrLag)
+  plot(bob_mod)
+  coy_mod <- lm(coyote.T ~ coyote.Tminus1 + elk.Tminus1 + lagomorphs.T + lagomorphs.Tminus1 + bobcat.T + bobcat.Tminus1 + PercDisturbedForest.T, weights = precision_coyote.T, data = localN_z_1YrLag)
+  plot(coy_mod)
+  lion_mod <- lm(mountain_lion.T ~ mountain_lion.Tminus1 + moose.Tminus1 + whitetailed_deer.Tminus1 + lagomorphs.Tminus1 + wolf.Tminus1, weights = precision_mountain_lion.T, data = localN_z_1YrLag)
+  plot(lion_mod)
+  wolf_mod <- lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1 + whitetailed_deer.Tminus1 + mountain_lion.Tminus1 + DecFeb_WSI.Tminus1, weights = precision_wolf.T, data = localN_z_1YrLag)
+  plot(wolf_mod)
+  #'  Well this is a hot mess. FML.
+  
+  #'  Taking reduced model and including all those correlated errors back 
+  #'  into the main model even if they aren't a biological hypothesis to get rid
+  #'  of these model updates. Seeing if these unhypothesized relationships are
+  #'  showing up as indirect effects.
+  reduced_modv2 <- psem(
+    lm(elk.T ~ elk.Tminus1 + moose.Tminus1 + bear_black.T + bear_black.Tminus1 + bobcat.Tminus1 + wolf.T + wolf.Tminus1 + PercDisturbedForest.T, weights = precision_elk.T, data = localN_z_1YrLag),
+    lm(moose.T ~ moose.Tminus1 + elk.T + elk.Tminus1 + bobcat.Tminus1 + coyote.Tminus1 + mountain_lion.T + DecFeb_WSI.Tminus1, weights = precision_moose.T, data = localN_z_1YrLag),
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + elk.T + elk.Tminus1 + moose.T + moose.Tminus1 + lagomorphs.Tminus1 + bear_black.Tminus1 + coyote.T + coyote.Tminus1+ wolf.Tminus1 + PercDisturbedForest.T + PercDisturbedForest.Tminus1 + DecFeb_WSI.Tminus1, weights = precision_whitetailed_deer.T, data = localN_z_1YrLag),
+    lm(lagomorphs.T ~ lagomorphs.Tminus1 + bear_black.T + bobcat.Tminus1 + mountain_lion.T + PercDisturbedForest.T + DecFeb_WSI.Tminus1, weights = precision_lagomorphs.T, data = localN_z_1YrLag),
+    lm(bear_black.T ~ bear_black.Tminus1 + lagomorphs.Tminus1 + coyote.Tminus1 + wolf.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_bear_black.T, data = localN_z_1YrLag),
+    lm(bobcat.T ~ bobcat.Tminus1 + whitetailed_deer.Tminus1 + lagomorphs.T + lagomorphs.Tminus1 + bear_black.T + wolf.T + wolf.Tminus1 + PercDisturbedForest.T, weights = precision_bobcat.T, data = localN_z_1YrLag),
+    lm(coyote.T ~ coyote.Tminus1 + elk.T + moose.T + moose.Tminus1 + lagomorphs.T + lagomorphs.Tminus1 + bobcat.T + bobcat.Tminus1 + wolf.T, weights = precision_coyote.T, data = localN_z_1YrLag),
+    lm(mountain_lion.T ~ mountain_lion.Tminus1 + moose.Tminus1 + whitetailed_deer.Tminus1 + lagomorphs.Tminus1 + bobcat.Tminus1 + wolf.Tminus1, weights = precision_mountain_lion.T, data = localN_z_1YrLag),
+    lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1 + whitetailed_deer.Tminus1 + bobcat.Tminus1 + coyote.Tminus1 + mountain_lion.Tminus1 + DecFeb_WSI.Tminus1, weights = precision_wolf.T, data = localN_z_1YrLag),
+    data = localN_z_1YrLag
+  )
+  summary(reduced_modv2)
+  reduced_mod <- reduced_modv2
+  #'  Yeah that didn't work. Some of these relationships are popping as direct effects
+  #'  even though not biologically meaningful (e.g., bobcat --> elk)
+  
+  #'  Ultra simple model with only predators affecting predators
+  reduced_modv3 <- psem(
+    lm(bear_black.T ~ bear_black.Tminus1 + coyote.Tminus1 + wolf.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_bear_black.T, data = localN_z_1YrLag),
+    lm(bobcat.T ~ bobcat.Tminus1 + bear_black.T + wolf.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_bobcat.T, data = localN_z_1YrLag),
+    lm(coyote.T ~ coyote.Tminus1 + bobcat.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_coyote.T, data = localN_z_1YrLag),
+    lm(mountain_lion.T ~ mountain_lion.Tminus1 + bear_black.Tminus1 + wolf.Tminus1, weights = precision_mountain_lion.T, data = localN_z_1YrLag),
+    lm(wolf.T ~ wolf.Tminus1 + bear_black.Tminus1 + mountain_lion.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_wolf.T, data = localN_z_1YrLag),
+    data = localN_z_1YrLag
+  )
+  summary(reduced_modv3)
+  reduced_modv3 <- update(reduced_modv3, wolf.T %~~% coyote.Tminus1)
+  reduced_modv3 <- update(reduced_modv3, mountain_lion.T %~~% bobcat.Tminus1)
+  reduced_modv3 <- update(reduced_modv3, wolf.T %~~% bobcat.Tminus1)
+  reduced_modv3 <- update(reduced_modv3, mountain_lion.T %~~% bear_black.T)
+  reduced_modv3 <- update(reduced_modv3, wolf.T %~~% bear_black.T)
+  reduced_modv3 <- update(reduced_modv3, coyote.T %~~% bobcat.T)
+  reduced_modv3 <- update(reduced_modv3, mountain_lion.T %~~% bobcat.T)
+  reduced_modv3 <- update(reduced_modv3, wolf.T %~~% bobcat.T)
+  reduced_modv3 <- update(reduced_modv3, wolf.T %~~% coyote.T)
+  reduced_modv3 <- update(reduced_modv3, wolf.T %~~% mountain_lion.T)
+  summary(reduced_modv3)
+  
+  piecewiseSEM:::plot.psem(reduced_modv3, 
+                           node_attrs = data.frame(shape = "rectangle", color = "black", fillcolor = "orange", fontcolor = "black"), 
+                           layout = "tree")
+  
+  bear_mod <- lm(bear_black.T ~ bear_black.Tminus1 + coyote.Tminus1 + wolf.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_bear_black.T, data = localN_z_1YrLag)
+  summary(bear_mod); plot(bear_mod)
+  bob_mod <- lm(bobcat.T ~ bobcat.Tminus1 + bear_black.T + wolf.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_bobcat.T, data = localN_z_1YrLag)
+  summary(bob_mod); plot(bob_mod)
+  coy_mod <- lm(coyote.T ~ coyote.Tminus1 + bobcat.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_coyote.T, data = localN_z_1YrLag)
+  summary(coy_mod); plot(coy_mod)
+  lion_mod <- lm(mountain_lion.T ~ mountain_lion.Tminus1 + bear_black.Tminus1 + wolf.Tminus1, weights = precision_mountain_lion.T, data = localN_z_1YrLag)
+  summary(lion_mod); plot(lion_mod)
+  wolf_mod <- lm(wolf.T ~ wolf.Tminus1 + bear_black.Tminus1 + mountain_lion.Tminus1 + PercDisturbedForest.Tminus1, weights = precision_wolf.T, data = localN_z_1YrLag)
+  summary(wolf_mod); plot(wolf_mod)
+  
+  
   #'  Check for multicollinearity
   RVIF(reduced_mod[[6]]) # double check what [[6]] indexes
   
   #'  Visualize SEM
   piecewiseSEM:::plot.psem(reduced_mod, 
-                           node_attrs = data.frame(shape = "rectangle", color = "black", fillcolor = "orange"), 
+                           node_attrs = data.frame(shape = "rectangle", color = "black", fillcolor = "orange", fontcolor = "black"), 
                            layout = "tree")
   piecewiseSEM:::plot.psem(reduced_mod, 
-                           node_attrs = data.frame(shape = "rectangle", color = "orange"), 
+                           node_attrs = data.frame(shape = "rectangle", color = "orange", fontcolor = "black"), 
                            layout = "circle",
                            output = "visNetwork")
 
@@ -133,15 +214,16 @@
   totalEff <- getTotEff(reduced_mod_semEff)
   mediatorEff <- getMedEff(reduced_mod_semEff)
   
-  load("./Outputs/SEM/reduced_mod_semEff_2024-06-04.RData")
+  load("./Outputs/SEM/reduced_mod_semEff_2024-06-04.RData") #'  Original reduced model
+  load("./Outputs/SEM/reduced_mod_semEff_2024-06-05.RData") #'  reduced model v2
   
   plot(reduced_mod, return = TRUE)
-  plot(reduced_mod, node_attrs = data.frame(shape = "rectangle", width = 1, color = "black", fillcolor = "lightblue", fontcolor = "black", fontsize = 14),
-       edge_attrs = data.frame(style = "solid", color = "gray15", fontsize = 14),
+  plot(reduced_mod, node_attrs = data.frame(shape = "rectangle", fixedsize = FALSE, color = "black", fillcolor = "lightblue", fontcolor = "black", fontsize = 14),
+       edge_attrs = data.frame(style = "solid", color = "gray15", arrowsize = 0.75, fontsize = 14),
        ns_dashed = TRUE, 
        alpha = 0.05,
        show = "std",
-       digits = 3, 
+       digits = 2, 
        add_edge_label_spaces = TRUE)
   
   
