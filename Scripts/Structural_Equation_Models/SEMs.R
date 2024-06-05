@@ -97,6 +97,18 @@
   reduced_mod <- update(reduced_mod, wolf.T %~~% coyote.Tminus1)
   summary(reduced_mod)
   
+  #'  Check for multicollinearity
+  RVIF(reduced_mod[[6]]) # double check what [[6]] indexes
+  
+  #'  Visualize SEM
+  piecewiseSEM:::plot.psem(reduced_mod, 
+                           node_attrs = data.frame(shape = "rectangle", color = "black", fillcolor = "orange", fontcolor = "black"), 
+                           layout = "tree")
+  piecewiseSEM:::plot.psem(reduced_mod, 
+                           node_attrs = data.frame(shape = "rectangle", color = "orange", fontcolor = "black"), 
+                           layout = "circle",
+                           output = "visNetwork")
+  
   #'  Run some basic model diagnostics on individuals models
   #'  This is handy: http://www.sthda.com/english/articles/39-regression-model-diagnostics/161-linear-regression-assumptions-and-diagnostics-in-r-essentials/
   elk_mod <- lm(elk.T ~ elk.Tminus1 + moose.Tminus1 + bear_black.T + bear_black.Tminus1 + wolf.T + wolf.Tminus1 + PercDisturbedForest.T, weights = precision_elk.T, data = localN_z_1YrLag)
@@ -119,6 +131,7 @@
   plot(wolf_mod)
   #'  Well this is a hot mess. FML.
   
+  
   #'  Taking reduced model and including all those correlated errors back 
   #'  into the main model even if they aren't a biological hypothesis to get rid
   #'  of these model updates. Seeing if these unhypothesized relationships are
@@ -139,6 +152,7 @@
   reduced_mod <- reduced_modv2
   #'  Yeah that didn't work. Some of these relationships are popping as direct effects
   #'  even though not biologically meaningful (e.g., bobcat --> elk)
+  
   
   #'  Ultra simple model with only predators affecting predators
   reduced_modv3 <- psem(
@@ -178,18 +192,7 @@
   summary(wolf_mod); plot(wolf_mod)
   
   
-  #'  Check for multicollinearity
-  RVIF(reduced_mod[[6]]) # double check what [[6]] indexes
   
-  #'  Visualize SEM
-  piecewiseSEM:::plot.psem(reduced_mod, 
-                           node_attrs = data.frame(shape = "rectangle", color = "black", fillcolor = "orange", fontcolor = "black"), 
-                           layout = "tree")
-  piecewiseSEM:::plot.psem(reduced_mod, 
-                           node_attrs = data.frame(shape = "rectangle", color = "orange", fontcolor = "black"), 
-                           layout = "circle",
-                           output = "visNetwork")
-
   #'  Calculate direct, indirect, total, and mediator effects (SE & 95% CI) for 
   #'  all endogenous (response) variables using semEff package
   #'  https://murphymv.github.io/semEff/articles/semEff.html
