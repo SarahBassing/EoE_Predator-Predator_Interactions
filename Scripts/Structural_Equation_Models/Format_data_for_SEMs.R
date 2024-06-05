@@ -252,9 +252,9 @@
   #'  List stacked data
   dat_stack_list <- list(dat_t_minus_1, dat_t)
   
-  #'  -----------------------------------------------------------
-  #####  Format & transform data for different model structures  #####
-  #'  -----------------------------------------------------------
+  #'  ----------------------------------------------------------
+  ####  Format & transform data for different model structures  ####
+  #'  ----------------------------------------------------------
   #'  Grab just the local abundance estimates per species
   dat_n <- function(dat) {
     newdat <- dat %>%
@@ -296,6 +296,8 @@
   #'  Retaining each year as independent variable allows SEMs to assess indirect effects
   #'  and let relationships vary annually
   #'  ----------------------------------------------
+  ######  Box-Cox Transformation  ######
+  #'  ----------------------------
   #'  Loop through each column and pass boxcox function to linear model of data
   #'  Why this won't work in a normal function... I don't know
   #'  YEAR 1
@@ -340,9 +342,9 @@
   }
   colnames(bx_dat[[3]]) <- RN_wide_colnames[[3]]
   
-  #'  --------------------------------------------
-  #####  Merge local abundance, SD, & covariates  #####
-  #'  --------------------------------------------
+  #'  ---------------------------------------------
+  ######  Merge local abundance, SD, & covariates  ######
+  #'  ---------------------------------------------
   #'  Add annual covariates and site info back to dataset   
   add_covs_back <- function(olddat, newdat, datsd) {
     covs <- dplyr::select(olddat, c("NewLocationID", "CellID", "GMU", "Setup", 
@@ -451,6 +453,8 @@
   #'  ----------------------------------------------
   #####  Time period format: t-1 vs t across years  #####
   #'  ----------------------------------------------
+  ######  Box-Cox Transformation  ######
+  #'  ----------------------------
   #'  Box-Cox Transformation on grouped data to make data more normal
   #'  T minus 1 group (per species)
   for(i in 1:length(RN_stack_n[[1]])) {
@@ -480,6 +484,9 @@
   }
   colnames(bx_dat_stack[[2]]) <- RN_stack_colnames[[2]]
   
+  #'  --------------------------------------------------
+  ######  Merge t-1 & t local abundance and covariates  ######
+  #'  --------------------------------------------------
   #'  Grouping data across years so t-1 data affects t data, regardless of year,
   #'  increases sample size and eliminates annual variation in estimated relationships
   #'  but prohibits estimation of indirect effects (yr 1 & 2 affect yr 2 & 3... yr2 on both sides)
