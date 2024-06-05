@@ -12,6 +12,7 @@
   library(piecewiseSEM)
   library(semEff)
   library(labelled)
+  library(DiagrammeR)
   library(lme4)
   library(tidyverse)
   
@@ -22,7 +23,7 @@
   head(localN_z); head(localN_z_1YrLag)
   
   #'  Set options so all no rows are omitted in model output
-  options(max.print = 999999)
+  options(max.print = 9999)
   
   
   #'  -------------------------------------------------
@@ -114,6 +115,7 @@
   #'  First bootstrap standardized model coefficients (necessary for calculating SEs)
   #'  THIS TAKES AWHILE! 
   reduced_mod_bootEff <- bootEff(reduced_mod, R = 5000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  save(reduced_mod_bootEff, file = paste0("./Outputs/SEM/reduced_mod_bootEff_", Sys.Date(), ".RData"))
   
   #'  Second calculate standardized effects for all casual pathways
   #'  Note, these are standardized unique effects (i.e., adjusted for multicollinearity;
@@ -123,8 +125,7 @@
   #'  to the impact and relevance of multicollinearity in the system (check with RVIF())
   (reduced_mod_semEff <- semEff(reduced_mod_bootEff))
   summary(reduced_mod_semEff)
-  
-  (reduced_mod_stdEff <- stdEff(reduced_mod))
+  save(reduced_mod_semEff, file = paste0("./Outputs/SEM/reduced_mod_semEff_", Sys.Date(), ".RData"))
   
   #'  Pull out individual direct, indirect, total, and mediator effects
   directEff <- getDirEff(reduced_mod_semEff)
@@ -132,24 +133,16 @@
   totalEff <- getTotEff(reduced_mod_semEff)
   mediatorEff <- getMedEff(reduced_mod_semEff)
   
-  
-  R2(reduced_mod, data = localN_z_1YrLag, type = "pearson")
-  
-  #'  Save 
-  save(reduced_mod_bootEff, file = paste0("./Outputs/SEM/reduced_mod_bootEff_", Sys.Date(), ".RData"))
-  save(reduced_mod_semEff, file = paste0("./Outputs/SEM/reduced_mod_semEff_", Sys.Date(), ".RData"))
-
-  # /load("./Outputs/SEM/reduced_mod_semEff_2024-05-23.RData")
   load("./Outputs/SEM/reduced_mod_semEff_2024-06-04.RData")
   
-  
-  piecewiseSEM:::plot.psem(reduced_mod_semEff, 
-                           node_attrs = data.frame(shape = "rectangle", color = "black", fillcolor = "blue"), 
-                           layout = "tree")
-  
-  
-  
-  
+  plot(reduced_mod, return = TRUE)
+  plot(reduced_mod, node_attrs = data.frame(shape = "rectangle", width = 1, color = "black", fillcolor = "lightblue", fontcolor = "black", fontsize = 14),
+       edge_attrs = data.frame(style = "solid", color = "gray15", fontsize = 14),
+       ns_dashed = TRUE, 
+       alpha = 0.05,
+       show = "std",
+       digits = 3, 
+       add_edge_label_spaces = TRUE)
   
   
   
