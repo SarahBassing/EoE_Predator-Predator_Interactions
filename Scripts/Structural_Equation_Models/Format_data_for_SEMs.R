@@ -252,6 +252,10 @@
   #'  List stacked data
   dat_stack_list <- list(dat_t_minus_1, dat_t)
   
+  #'  Group all years together (stacking Year1, Year2, and Year3 together)
+  RN_wide_allyrs <- rbind(RN_wide[[1]], RN_wide[[2]], RN_wide[[3]]) %>%
+    filter(!is.na(DecFeb_WSI))
+  
   #'  ----------------------------------------------------------
   ####  Format & transform data for different model structures  ####
   #'  ----------------------------------------------------------
@@ -265,7 +269,10 @@
   RN_wide_n <- lapply(RN_wide, dat_n)
   #'  For stacked data
   RN_stack_n <- lapply(dat_stack_list, dat_n)
+  #'  For all data combined
+  RN_all_n <- dat_n(RN_wide_allyrs)
   
+  #'  Grab the precision estimates per species
   dat_sd <- function(dat) {
     newdat <- dat %>%
       dplyr::select(contains("RN.precision_")) 
@@ -273,6 +280,7 @@
   }
   RN_wide_sd <- lapply(RN_wide, dat_sd)
   RN_stack_sd <- lapply(dat_stack_list, dat_sd)
+  RN_all_sd <- dat_sd(RN_wide_allyrs)
   
   #'  Grab corresponding column names
   dat_colnames <- function(dat) {
@@ -281,6 +289,7 @@
   }
   RN_wide_colnames <- lapply(RN_wide_n, dat_colnames)
   RN_stack_colnames <- lapply(RN_stack_n, dat_colnames)
+  RN_all_colnames <- dat_colnames(RN_all_n)
   
   #'  Create empty matrix to hold transformed variables
   empty_matrix <- function(dat) {
@@ -289,6 +298,7 @@
   }
   bx_dat <- lapply(RN_wide_n, empty_matrix)
   bx_dat_stack <- lapply(RN_stack_n, empty_matrix)
+  bx_dat_all <- empty_matrix(RN_all_n)
   
   #'  ----------------------------------------------
   #####  Annual format: independent annual columns  #####
@@ -420,28 +430,28 @@
   names(localN_z) <- gsub(pattern = "RN._*", replacement = "", x = names(localN_z))
   
   #'  Check out a few basic relationships
-  summary(lm(whitetailed_deer.yr2 ~ mountain_lion.yr1, data = localN_z, weights = precision_mountain_lion.yr1)) 
-  summary(lm(whitetailed_deer.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_mountain_lion.yr2)) 
-  summary(lm(elk.yr2 ~ mountain_lion.yr1, data = localN_z, weights = precision_mountain_lion.yr1))  
-  summary(lm(elk.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_mountain_lion.yr2))  
-  summary(lm(whitetailed_deer.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
-  summary(lm(whitetailed_deer.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
-  summary(lm(elk.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
-  summary(lm(elk.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
-  summary(lm(moose.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
-  summary(lm(moose.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
-  summary(lm(whitetailed_deer.yr2 ~ coyote.yr1, data = localN_z, weights = precision_coyote.yr1))
-  summary(lm(whitetailed_deer.yr3 ~ coyote.yr2, data = localN_z, weights = precision_coyote.yr2))
-  summary(lm(mountain_lion.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
-  summary(lm(mountain_lion.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
-  summary(lm(bear_black.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
-  summary(lm(bear_black.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
-  summary(lm(coyote.yr2 ~ wolf.yr1, data = localN_z, weights = precision_wolf.yr1))
-  summary(lm(coyote.yr3 ~ wolf.yr2, data = localN_z, weights = precision_wolf.yr2))
-  summary(lm(coyote.yr2 ~ mountain_lion.yr1, data = localN_z, weights = precision_mountain_lion.yr1))  
-  summary(lm(coyote.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_mountain_lion.yr2))  
-  summary(lm(bobcat.yr2 ~ coyote.yr1, data = localN_z, weights = precision_coyote.yr1))
-  summary(lm(bobcat.yr3 ~ coyote.yr2, data = localN_z, weights = precision_coyote.yr2))
+  summary(lm(whitetailed_deer.yr2 ~ mountain_lion.yr1, data = localN_z, weights = precision_whitetailed_deer.yr2)) 
+  summary(lm(whitetailed_deer.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_whitetailed_deer.yr3)) 
+  summary(lm(elk.yr2 ~ mountain_lion.yr1, data = localN_z, weights = precision_elk.yr2))  
+  summary(lm(elk.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_elk.yr3))  
+  summary(lm(whitetailed_deer.yr2 ~ wolf.yr1, data = localN_z, weights = precision_whitetailed_deer.yr2))
+  summary(lm(whitetailed_deer.yr3 ~ wolf.yr2, data = localN_z, weights = precision_whitetailed_deer.yr3))
+  summary(lm(elk.yr2 ~ wolf.yr1, data = localN_z, weights = precision_elk.yr2))
+  summary(lm(elk.yr3 ~ wolf.yr2, data = localN_z, weights = precision_elk.yr3))
+  summary(lm(moose.yr2 ~ wolf.yr1, data = localN_z, weights = precision_moose.yr2))
+  summary(lm(moose.yr3 ~ wolf.yr2, data = localN_z, weights = precision_moose.yr3))
+  summary(lm(whitetailed_deer.yr2 ~ coyote.yr1, data = localN_z, weights = precision_whitetailed_deer.yr2))
+  summary(lm(whitetailed_deer.yr3 ~ coyote.yr2, data = localN_z, weights = precision_whitetailed_deer.yr3))
+  summary(lm(mountain_lion.yr2 ~ wolf.yr1, data = localN_z, weights = precision_mountain_lion.yr2))
+  summary(lm(mountain_lion.yr3 ~ wolf.yr2, data = localN_z, weights = precision_mountain_lion.yr3))
+  summary(lm(bear_black.yr2 ~ wolf.yr1, data = localN_z, weights = precision_bear_black.yr2))
+  summary(lm(bear_black.yr3 ~ wolf.yr2, data = localN_z, weights = precision_bear_black.yr3))
+  summary(lm(coyote.yr2 ~ wolf.yr1, data = localN_z, weights = precision_coyote.yr2))
+  summary(lm(coyote.yr3 ~ wolf.yr2, data = localN_z, weights = precision_coyote.yr3))
+  summary(lm(coyote.yr2 ~ mountain_lion.yr1, data = localN_z, weights = precision_coyote.yr2))  
+  summary(lm(coyote.yr3 ~ mountain_lion.yr2, data = localN_z, weights = precision_coyote.yr3))  
+  summary(lm(bobcat.yr2 ~ coyote.yr1, data = localN_z, weights = precision_bobcat.yr2))
+  summary(lm(bobcat.yr3 ~ coyote.yr2, data = localN_z, weights = precision_bobcat.yr3))
   
   plot(whitetailed_deer.yr2 ~ mountain_lion.yr1, data = localN_z)
   plot(elk.yr3 ~ mountain_lion.yr2, data = localN_z)
@@ -544,17 +554,17 @@
   names(localN_z_1YrLag) <- gsub(pattern = "RN._*", replacement = "", x = names(localN_z_1YrLag))
 
   #'  Check out a few basic relationships
-  summary(lm(whitetailed_deer.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_mountain_lion.Tminus1))  
-  summary(lm(elk.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_mountain_lion.Tminus1))  
-  summary(lm(whitetailed_deer.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
-  summary(lm(elk.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
-  summary(lm(moose.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
-  summary(lm(whitetailed_deer.T ~ coyote.Tminus1, data = localN_z_1YrLag, weights = precision_coyote.Tminus1))
-  summary(lm(bear_black.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
-  summary(lm(mountain_lion.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
-  summary(lm(coyote.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_wolf.Tminus1))
-  summary(lm(coyote.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_mountain_lion.Tminus1))
-  summary(lm(bobcat.T ~ coyote.Tminus1, data = localN_z_1YrLag, weights = precision_coyote.Tminus1))
+  summary(lm(whitetailed_deer.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_whitetailed_deer.Tminus1))  
+  summary(lm(elk.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_elk.Tminus1))  
+  summary(lm(whitetailed_deer.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_whitetailed_deer.Tminus1))
+  summary(lm(elk.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_elk.Tminus1))
+  summary(lm(moose.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_moose.Tminus1))
+  summary(lm(whitetailed_deer.T ~ coyote.Tminus1, data = localN_z_1YrLag, weights = precision_whitetailed_deer.Tminus1))
+  summary(lm(bear_black.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_bear_black.Tminus1))
+  summary(lm(mountain_lion.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_mountain_lion.Tminus1))
+  summary(lm(coyote.T ~ wolf.Tminus1, data = localN_z_1YrLag, weights = precision_coyote.Tminus1))
+  summary(lm(coyote.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_coyote.Tminus1))
+  summary(lm(bobcat.T ~ coyote.Tminus1, data = localN_z_1YrLag, weights = precision_bobcat.Tminus1))
   
   plot(whitetailed_deer.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag)
   plot(elk.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag)
@@ -562,16 +572,92 @@
   plot(moose.T ~ wolf.Tminus1, data = localN_z_1YrLag)
   plot(coyote.T ~ wolf.Tminus1, data = localN_z_1YrLag)
   
+    
+  #'  -------------------------------------------------------
+  #####  Fully combined format: All years stacked together  #####
+  #'  -------------------------------------------------------
+  ######  Box-Cox Transformation  ######
+  #'  ----------------------------
+  #'  Loop through each column and pass boxcox function to linear model of data
+  #'  Why this won't work in a normal function... I don't know
+  #'  YEAR 1
+  for(i in 1:length(RN_all_n)) {
+    x <- pull(RN_all_n[,i])
+    b <- boxcox(lm(x ~ 1))
+    #'  Extract lambda for each species
+    lambda <- b$x[which.max(b$y)]
+    print(lambda)
+    #'  Transform variable based on exact lambda parameter
+    new_x_exact <- (x^lambda-1)/lambda
+    #'  Add transformed variable to the new matrix
+    bx_dat_all[,i] <- new_x_exact
+  }
+  colnames(bx_dat_all) <- RN_all_colnames
+  
+  #'  ----------------------------------------------
+  ######  Merge all local abundance and covariates  ######
+  #'  ----------------------------------------------
+  #'  Merging tranformed fully combined data back with covaraites and precision estimates
+  full_bx_dat_all <- add_covs_back(RN_wide_allyrs, newdat = bx_dat_all, datsd = RN_all_sd)
+  
+  #'  Z-transform local abundance estimates (across years)
+  localN_z_all <- full_bx_dat_all %>%
+    #mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
+    mutate(across(starts_with(c("RN.n_", "PercDisturbedForest", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
+  
+  #'  Create correlation matrix for all continuous covariates at once
+  cov_correlation <- function(dat) {
+    covs <- dat %>%
+      dplyr::select(contains(c("RN.n_", "PercDisturbedForest", "DecFeb_WSI")))
+    cor_matrix <- cor(covs, use = "complete.obs")
+    return(cor_matrix)
+  }
+  cov_correlation(localN_z_all) #' Looks good
+  
+  #'  Make sure habitat classes are categorical factors
+  localN_z_all <- localN_z_all %>%
+    mutate(habitat_class = factor(habitat_class, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
+  
+  #'  Visualize data
+  plot_histograms <- function(dat) {
+    ndat <- dplyr::select(dat, contains("RN.n_"))
+    for(i in 1:length(ndat)) {
+      hist(ndat[,i])
+    }
+  }
+  plot_histograms(localN_z_all)
+  
+  #'  Remove RN.n_ from local abundance column names
+  names(localN_z_all) <- gsub(pattern = "RN.n*_", replacement = "", x = names(localN_z_all))
+  #'  Remove RN. from sd column names
+  names(localN_z_all) <- gsub(pattern = "RN._*", replacement = "", x = names(localN_z_all))
+  
+  #'  Check out a few basic relationships
+  summary(lm(whitetailed_deer ~ mountain_lion, data = localN_z_all, weights = precision_whitetailed_deer))  
+  summary(lm(elk ~ mountain_lion, data = localN_z_all, weights = precision_elk))  
+  summary(lm(whitetailed_deer ~ wolf, data = localN_z_all, weights = precision_whitetailed_deer))
+  summary(lm(elk ~ wolf, data = localN_z_all, weights = precision_elk))
+  summary(lm(moose ~ wolf, data = localN_z_all, weights = precision_moose))
+  summary(lm(whitetailed_deer ~ coyote, data = localN_z_all, weights = precision_whitetailed_deer))
+  summary(lm(bear_black ~ wolf, data = localN_z_all, weights = precision_bear_black))
+  summary(lm(mountain_lion ~ wolf, data = localN_z_all, weights = precision_mountain_lion))
+  summary(lm(coyote ~ wolf, data = localN_z_all, weights = precision_coyote))
+  summary(lm(coyote ~ mountain_lion, data = localN_z_all, weights = precision_mountain_lion))
+  summary(lm(bobcat ~ coyote, data = localN_z_all, weights = precision_bobcat))
+  
+  plot(whitetailed_deer ~ mountain_lion, data = localN_z_all)
+  plot(elk ~ mountain_lion, data = localN_z_all)
+  plot(whitetailed_deer ~ wolf, data = localN_z_all)
+  plot(moose ~ wolf, data = localN_z_all)
+  plot(coyote ~ wolf, data = localN_z_all)
+  
   #' #'  Save outputs
   #' save(localN_z, file = "./Data/Relative abundance data/RAI Phase 2/data_for_SEM_annual_n.RData")
   #' save(localN_z_1YrLag, file = "./Data/Relative abundance data/RAI Phase 2/data_for_SEM_1YrLag_n.RData")
-
+  #' save(localN_z_all, file = "./Data/Relative abundance data/RAI Phase 2/data_for_SEM_allYrs_n.RData")
+  
+  
   print("IGNORE WARNINGS!")
-  
-  
-  
-  
-  
   
   
   
