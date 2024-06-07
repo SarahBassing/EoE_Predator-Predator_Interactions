@@ -20,7 +20,10 @@
   source("./Scripts/Structural_Equation_Models/Format_data_for_SEMs.R")
   
   #'  Take a quick look
-  head(localN_z); head(localN_z_1YrLag)
+  head(localN_z); head(localN_z_1YrLag); head(localN_z_all)
+  localN_z_all2 <- localN_z_all %>%
+    mutate(Year = as.factor(Year),
+           Year = as.numeric(Year))
   
   #'  Set options so all no rows are omitted in model output
   options(max.print = 9999)
@@ -30,7 +33,7 @@
   ####  SEM with 1-year time lag, no annual variation  ####
   #'  -------------------------------------------------
   #'  Starting with saturated model (all possible relationships, except where 
-  #'  feedback loops arise) and reducing model to only significant reltionships. 
+  #'  feedback loops arise) and reducing model to only significant relationships. 
   #'  This version assumes relationships between species are the consistent 
   #'  across years (no annual variation in causal effects) but allows for a
   #'  1-year time lag where last year's population affects this year's population
@@ -229,6 +232,134 @@
        digits = 2, 
        add_edge_label_spaces = TRUE)
   
+  
+  
+  #'  ---------------------------------------------
+  ####  SEM with no time lag, no annual variation  ####
+  #'  ---------------------------------------------
+  #'  Starting with saturated model (all possible relationships, except where 
+  #'  feedback loops arise) and reducing model to only significant relationships. 
+  #'  This version assumes relationships between species are consistent across 
+  #'  years (no annual variation in causal effects). No time-lag in data so any
+  #'  effect of one species on another could be due to behavior (e.g., spatial
+  #'  avoidance) or demographic changes (e.g., change in abundance).
+  #'  -------------------
+  #####  Top-down model  #####
+  #'  -------------------
+  #'  At least a version of it
+  topdown <- psem(
+    lm(whitetailed_deer ~ wolf + mountain_lion + bear_black + bobcat + coyote + PercDisturbedForest + DecFeb_WSI, weights = precision_whitetailed_deer, data = localN_z_all),
+    lm(moose ~ whitetailed_deer + wolf + mountain_lion + PercDisturbedForest + DecFeb_WSI, weights = precision_moose, data = localN_z_all),
+    lm(elk ~ moose + whitetailed_deer + wolf + mountain_lion + bear_black + PercDisturbedForest + DecFeb_WSI, weights = precision_elk, data = localN_z_all),
+    lm(lagomorphs ~ bobcat + coyote + PercDisturbedForest + DecFeb_WSI, weights = precision_lagomorphs, data = localN_z_all),
+    lm(mountain_lion ~ wolf + bear_black + DecFeb_WSI, weights = precision_mountain_lion, data = localN_z_all),
+    lm(wolf ~ PercDisturbedForest + DecFeb_WSI, weights = precision_wolf, data = localN_z_all),
+    lm(bear_black ~ wolf + PercDisturbedForest + DecFeb_WSI, weights = precision_bear_black, data = localN_z_all),
+    lm(coyote ~ wolf + mountain_lion + bear_black, weights = precision_coyote, data = localN_z_all),
+    lm(bobcat ~ wolf + coyote + mountain_lion + bear_black + PercDisturbedForest + DecFeb_WSI, weights = precision_bobcat, data = localN_z_all),
+    data = localN_z_all
+  )
+  summary(topdown)
+  topdown <- update(topdown, lagomorphs %~~% bear_black)
+  topdown <- update(topdown, lagomorphs %~~% mountain_lion)
+  topdown <- update(topdown, moose  %~~% bobcat )
+  topdown <- update(topdown, moose  %~~% coyote)
+  topdown <- update(topdown, elk  %~~% bobcat)
+  topdown <- update(topdown, elk  %~~% coyote)
+  summary(topdown)
+  
+  wtd_mod <- lm(whitetailed_deer ~ wolf + mountain_lion + bear_black + bobcat + coyote + PercDisturbedForest + DecFeb_WSI, weights = precision_whitetailed_deer, data = localN_z_all)
+  summary(wtd_mod); plot(wtd_mod)
+  moose_mod <- lm(moose ~ whitetailed_deer + wolf + mountain_lion + PercDisturbedForest + DecFeb_WSI, weights = precision_moose, data = localN_z_all)
+  summary(moose_mod); plot(moose_mod)
+  elk_mod <- lm(elk ~ moose + whitetailed_deer + wolf + mountain_lion + bear_black + PercDisturbedForest + DecFeb_WSI, weights = precision_elk, data = localN_z_all)
+  summary(elk_mod); plot(elk_mod)
+  lion_mod <- lm(mountain_lion ~ wolf + bear_black + DecFeb_WSI, weights = precision_mountain_lion, data = localN_z_all)
+  summary(lion_mod); plot(lion_mod)
+  wolf_mod <- lm(wolf ~ PercDisturbedForest + DecFeb_WSI, weights = precision_wolf, data = localN_z_all)
+  summary(wolf_mod); plot(wolf_mod)
+  
+  #'  Same but with a random effect for GMU or CellID
+  topdownv2 <- psem(
+    lmer(whitetailed_deer ~ mountain_lion + bear_black + coyote + PercDisturbedForest + (1 | GMU), weights = precision_whitetailed_deer, data = localN_z_all),
+    lmer(moose ~ wolf + mountain_lion + PercDisturbedForest + DecFeb_WSI + (1 | GMU), weights = precision_moose, data = localN_z_all),
+    lmer(elk ~ moose + whitetailed_deer + wolf + bear_black + mountain_lion + PercDisturbedForest + DecFeb_WSI + (1 | GMU), weights = precision_elk, data = localN_z_all),
+    lmer(lagomorphs ~ bobcat + PercDisturbedForest + DecFeb_WSI + (1 | GMU), weights = precision_lagomorphs, data = localN_z_all),
+    lmer(mountain_lion ~ wolf + bear_black + DecFeb_WSI + (1 | GMU), weights = precision_mountain_lion, data = localN_z_all),
+    lmer(wolf ~ DecFeb_WSI + (1 | GMU), weights = precision_wolf, data = localN_z_all),
+    lmer(bear_black ~ wolf + PercDisturbedForest + DecFeb_WSI + (1 | GMU), weights = precision_bear_black, data = localN_z_all),
+    lmer(coyote ~ wolf + (1 | GMU), weights = precision_coyote, data = localN_z_all),
+    lmer(bobcat ~ wolf + coyote + mountain_lion + bear_black + whitetailed_deer + DecFeb_WSI + (1 | GMU), weights = precision_bobcat, data = localN_z_all),
+    data = localN_z_all
+  )
+  summary(topdownv2)
+  topdownv2 <- update(topdownv2, coyote %~~% lagomorphs) #'  feedback loop
+  topdownv2 <- update(topdownv2, wolf %~~% whitetailed_deer) #'  feedback loop
+  topdownv2 <- update(topdownv2, lagomorphs %~~% bear_black) #'  correlated error
+  topdownv2 <- update(topdownv2, wolf %~~% lagomorphs)
+  topdownv2 <- update(topdownv2, moose  %~~% bobcat )
+  topdownv2 <- update(topdownv2, moose  %~~% coyote)
+  topdownv2 <- update(topdownv2, elk  %~~% bobcat)
+  # topdownv2 <- update(topdownv2, elk  %~~% coyote) # Get an error when this one is included
+  summary(topdownv2)
+  
+  wtd_mod <- lmer(whitetailed_deer ~ wolf + mountain_lion + bear_black + bobcat + coyote + PercDisturbedForest + DecFeb_WSI + (1 | CellID), weights = precision_whitetailed_deer, data = localN_z_all)
+  summary(wtd_mod); plot(wtd_mod)
+  moose_mod <- lmer(moose ~ whitetailed_deer + wolf + mountain_lion + bear_black + PercDisturbedForest + DecFeb_WSI + (1 | CellID), weights = precision_moose, data = localN_z_all)
+  summary(moose_mod); plot(moose_mod)
+  elk_mod <- lmer(elk ~ moose + whitetailed_deer + wolf + bear_black + PercDisturbedForest + DecFeb_WSI + (1 | CellID), weights = precision_elk, data = localN_z_all)
+  summary(elk_mod); plot(elk_mod)
+  lago_mod <- lmer(lagomorphs ~ bobcat + coyote + PercDisturbedForest + DecFeb_WSI + (1 | CellID), weights = precision_lagomorphs, data = localN_z_all)
+  summary(lago_mod); plot(lago_mod)
+  lion_mod <- lmer(mountain_lion ~ wolf + bear_black + (1 | CellID), weights = precision_mountain_lion, data = localN_z_all)
+  summary(lion_mod); plot(lion_mod)
+  wolf_mod <- lmer(wolf ~ DecFeb_WSI + (1 | CellID), weights = precision_wolf, data = localN_z_all)
+  summary(wolf_mod); plot(wolf_mod)
+  bear_mod <- lmer(bear_black ~ wolf + PercDisturbedForest + DecFeb_WSI + (1 | CellID), weights = precision_bear_black, data = localN_z_all)
+  summary(bear_mod); plot(bear_mod)
+  coy_mod <- lmer(coyote ~ wolf + mountain_lion + bear_black + (1 | CellID), weights = precision_coyote, data = localN_z_all)
+  summary(coy_mod); plot(coy_mod)
+  bob_mod <- lmer(bobcat ~ wolf + coyote + mountain_lion + bear_black + PercDisturbedForest + DecFeb_WSI + (1 | CellID), weights = precision_bobcat, data = localN_z_all)
+  summary(bob_mod); plot(bob_mod)
+  
+  #'  --------------------
+  #####  Bottom-up model  #####
+  #'  --------------------
+  #'  At least a version of it
+  bottomup <- psem(
+    lm(wolf ~  moose + whitetailed_deer + PercDisturbedForest + DecFeb_WSI, weights = precision_wolf, data = localN_z_all),
+    lm(mountain_lion ~ moose + wolf + DecFeb_WSI, weights = precision_mountain_lion, data = localN_z_all),
+    lm(bear_black ~ elk + moose + whitetailed_deer + mountain_lion + wolf + PercDisturbedForest + DecFeb_WSI, weights = precision_bear_black, data = localN_z_all),
+    lm(coyote ~ bear_black + mountain_lion + wolf + elk + whitetailed_deer, weights = precision_coyote, data = localN_z_all),
+    lm(bobcat ~ coyote + mountain_lion + lagomorphs + whitetailed_deer + PercDisturbedForest + DecFeb_WSI, weights = precision_bobcat, data = localN_z_all),
+    lm(elk ~ mountain_lion + wolf + moose + whitetailed_deer + PercDisturbedForest + DecFeb_WSI, weights = precision_elk, data = localN_z_all),
+    lm(moose ~ PercDisturbedForest + DecFeb_WSI, weights = precision_moose, data = localN_z_all),
+    lm(whitetailed_deer ~ moose + PercDisturbedForest, weights = precision_whitetailed_deer, data = localN_z_all),
+    lm(lagomorphs ~ PercDisturbedForest + DecFeb_WSI, weights = precision_lagomorphs, data = localN_z_all),
+    data = localN_z_all
+  )
+  summary(bottomup)
+  bottomup <- update(bottomup, bobcat %~~% wolf)
+  bottomup <- update(bottomup, lagomorphs %~~% wolf)
+  bottomup <- update(bottomup, coyote %~~% moose)
+  bottomup <- update(bottomup, bobcat %~~% moose)
+  bottomup <- update(bottomup, lagomorphs %~~% whitetailed_deer)
+  bottomup <- update(bottomup, bobcat %~~% bear_black)
+  bottomup <- update(bottomup, lagomorphs %~~% bear_black)
+  summary(bottomup)
+  
+  wolf_mod <- lm(wolf ~  moose + whitetailed_deer + PercDisturbedForest + DecFeb_WSI, weights = precision_wolf, data = localN_z_all)
+  summary(wolf_mod); plot(wolf_mod)
+  lion_mod <- lm(mountain_lion ~ moose + wolf + DecFeb_WSI, weights = precision_mountain_lion, data = localN_z_all)
+  summary(lion_mod); plot(lion_mod)
+  bear_black_mod <- lm(bear_black ~ elk + moose + whitetailed_deer + mountain_lion + wolf + PercDisturbedForest + DecFeb_WSI, weights = precision_bear_black, data = localN_z_all)
+  summary(bear_black_mod); plot(bear_black_mod)
+  elk_mod <- lm(elk ~ mountain_lion + wolf + moose + whitetailed_deer + PercDisturbedForest + DecFeb_WSI, weights = precision_elk, data = localN_z_all)
+  summary(elk_mod); plot(elk_mod)
+  moose_mod <- lm(moose ~ PercDisturbedForest + DecFeb_WSI, weights = precision_moose, data = localN_z_all)
+  summary(moose_mod); plot(moose_mod)
+  wtd_mod <- lm(whitetailed_deer ~ moose + PercDisturbedForest, weights = precision_whitetailed_deer, data = localN_z_all)
+  summary(wtd_mod); plot(wtd_mod)
   
   
   
