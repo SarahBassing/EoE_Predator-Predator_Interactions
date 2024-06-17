@@ -1097,6 +1097,7 @@
   rn_gmu_moose <- gmu_by_yr_plots(rn_maps_moose, spp = "moose")
   rn_gmu_wtd <- gmu_by_yr_plots(rn_maps_wtd, spp = "white-tailed deer")
   
+  
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_bear.tiff", rn_gmu_bear[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_bear.tiff", rn_gmu_bear[[2]],
@@ -1152,6 +1153,113 @@
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_wtd.tiff", rn_gmu_wtd[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  
+  
+  
+  
+  ######  Alternative figure arrangement  ######
+  #'  ------------------------------------
+  #'  Add year to each dataframe and unlist into one single large dataframe per species
+  add_yr <- function(dat, yr) {
+    dat$Year <- yr
+    return(dat)
+  }
+  rn_bear_all <- mapply(add_yr, dat = spatial_rn_bear, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_bob_all <- mapply(add_yr, dat = spatial_rn_bob, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_coy_all <- mapply(add_yr, dat = spatial_rn_coy, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_lion_all <- mapply(add_yr, dat = spatial_rn_lion, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_wolf_all <- mapply(add_yr, dat = spatial_rn_wolf, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  
+  rn_elk_all <- mapply(add_yr, dat = spatial_rn_elk, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_lago_all <- mapply(add_yr, dat = spatial_rn_lago, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_moose_all <- mapply(add_yr, dat = spatial_rn_moose, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_wtd_all <- mapply(add_yr, dat = spatial_rn_wtd, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  
+  #'  Make one giant faceted plot where rows represent GMU and columns represent years 
+  #'  to ensure that the dot sizes are all consistent for at least a single species
+  map_rn_v2 <- function(sf_rn, spp) {
+    #'  Define size of circles
+    size_breaks <- c(0, 1, 2, 3, 5, 7, 9, 12)
+    
+    sf_rn <- mutate(sf_rn, GMU = factor(GMU, levels = c("GMU1", "GMU6", "GMU10A")))
+    pal <- c("darkcyan", "lightcoral", "darkgoldenrod3")
+    
+    #'  Create figure
+    spp_rn <- ggplot() +
+      geom_sf(data = eoe_gmu_wgs84, fill = NA) + 
+      geom_sf(data = sf_rn, aes(size = RN.n.rounded, colour = GMU, fill = GMU), shape = 21, alpha = 3/10) +
+      scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
+      scale_color_manual(values = pal) +
+      scale_fill_manual(values = pal) +
+      labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            text = element_text(size = 18)) +
+      facet_wrap(~Year) + 
+      labs(title = paste("Estimated local abundance of", spp, "from RN model, rounded to whole number"))
+    # spp_rn_gmu1 <- ggplot() +
+    #   geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "1",], fill = NA) + 
+    #   geom_sf(data = sf_rn[sf_rn$GMU == "GMU1",], aes(size = RN.n.rounded), shape = 21, col = "darkcyan", fill = "darkcyan", alpha = 3/10) +
+    #   scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
+    #   labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
+    #   theme_classic() +
+    #   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    #   facet_wrap(~Year) 
+    # spp_rn_gmu6 <- ggplot() +
+    #   geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "6",], fill = NA) + 
+    #   geom_sf(data = sf_rn[sf_rn$GMU == "GMU6",], aes(size = RN.n.rounded), shape = 21, col = "lightcoral", fill = "lightcoral", alpha = 3/10) +
+    #   scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
+    #   labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
+    #   theme_classic() +
+    #   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    #   facet_wrap(~Year) 
+    # spp_rn_gmu10a <- ggplot() +
+    #   geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) + 
+    #   geom_sf(data = sf_rn[sf_rn$GMU == "GMU10A",], aes(size = RN.n.rounded), shape = 21, col = "darkgoldenrod3", fill = "darkgoldenrod3", alpha = 3/10) +
+    #   scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
+    #   labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
+    #   theme_classic() +
+    #   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    #   facet_wrap(~Year) 
+    
+    #'  Plot each map
+    print(spp_rn)
+    
+    return(spp_rn)
+  }
+  rn_maps_bear <- map_rn_v2(rn_bear_all, spp = "black bear")
+  rn_maps_bob <- map_rn_v2(rn_bob_all, spp = "bobcat")
+  rn_maps_coy <- map_rn_v2(rn_coy_all, spp = "coyote")
+  rn_maps_lion <- map_rn_v2(rn_lion_all, spp = "mountain lion")
+  rn_maps_wolf <- map_rn_v2(rn_wolf_all, spp = "wolf")
+  rn_maps_elk <- map_rn_v2(rn_elk_all, spp = "elk")
+  rn_maps_lago <- map_rn_v2(rn_lago_all, spp = "lagomorphs")
+  rn_maps_moose <- map_rn_v2(rn_moose_all, spp = "moose")
+  rn_maps_wtd <- map_rn_v2(rn_wtd_all, spp = "white-tailed deer")
+  
+  
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_blackbear.tiff", rn_maps_bear,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_bobcat.tiff", rn_maps_bob,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_coyote.tiff", rn_maps_coy,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_lion.tiff", rn_maps_lion,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_wolf.tiff", rn_maps_wolf,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_elk.tiff", rn_maps_elk,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_lagomorphs.tiff", rn_maps_lago,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_moose.tiff", rn_maps_moose,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_wtd.tiff", rn_maps_wtd,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  
+  
+  
+
   
   
   #'  -----------------------
