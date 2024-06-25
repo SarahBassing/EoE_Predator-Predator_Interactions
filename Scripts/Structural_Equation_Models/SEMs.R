@@ -96,12 +96,20 @@
   reduced_mod <- update(reduced_mod, mountain_lion.T %~~% bobcat.T)
   reduced_mod <- update(reduced_mod, mountain_lion.T %~~% bobcat.Tminus1)
   reduced_mod <- update(reduced_mod, wolf.T %~~% bobcat.T)
-  reduced_mod <- update(reduced_mod, wolf.T %~~% coyote.T)
-  reduced_mod <- update(reduced_mod, wolf.T %~~% coyote.Tminus1)
+  reduced_mod <- update(reduced_mod, wolf.T %~~% coyote.T) #' d-sep indicates coyote affects wolf but that doesn't make sense so keeping it as unspecified
+  reduced_mod <- update(reduced_mod, wolf.T %~~% coyote.Tminus1) #' d-sep indicates coyote affects wolf but that doesn't make sense so keeping it as unspecified
   summary(reduced_mod)
   
   #'  Check for multicollinearity
-  RVIF(reduced_mod[[6]]) # double check what [[6]] indexes
+  RVIF(reduced_mod[[1]]) # elk model
+  RVIF(reduced_mod[[2]]) # moose model
+  RVIF(reduced_mod[[3]]) # white-tailed deer model
+  RVIF(reduced_mod[[4]]) # lagomorph model
+  RVIF(reduced_mod[[5]]) # black bear model
+  RVIF(reduced_mod[[6]]) # bobcat model
+  RVIF(reduced_mod[[7]]) # coyote model
+  RVIF(reduced_mod[[8]]) # mountain lion model
+  RVIF(reduced_mod[[9]]) # wolf model
   
   #'  Visualize SEM
   piecewiseSEM:::plot.psem(reduced_mod, 
@@ -366,9 +374,9 @@
   #' #'  ---------------------------------------------------
   #' ####  SEM with 1-year time lag, with annual variation  ####
   #' #'  ---------------------------------------------------
-  #' #'  Starting with saturated model (all possible relationships, except where 
-  #' #'  feedback loops arise) and reducing model to only significant relationships. 
-  #' #'  This version allows annual local abundance estimates to be stand alone 
+  #' #'  Starting with saturated model (all possible relationships, except where
+  #' #'  feedback loops arise) and reducing model to only significant relationships.
+  #' #'  This version allows annual local abundance estimates to be stand alone
   #' #'  variables and does not assume relationships between species are the same
   #' #'  from one year to the next (allows more dynamic relationships to occur).
   #' 
@@ -462,9 +470,9 @@
   #' # reduced_mod_annual <- update(reduced_mod_annual, lagomorphs.yr2 %~~% elk.yr3)
   #' summary(reduced_mod_annual)
   #' 
-  #' #'  I don't trust this version. Some weird correlations (yr3 pop affects yr2 pop) 
+  #' #'  I don't trust this version. Some weird correlations (yr3 pop affects yr2 pop)
   #' #'  and SO MUCH unspecified correlation structure. Plus d-sep test indicates
-  #' #'  many of these correlations exist but they are not significant when estimated 
+  #' #'  many of these correlations exist but they are not significant when estimated
   #' #'  in the model.
   
   
