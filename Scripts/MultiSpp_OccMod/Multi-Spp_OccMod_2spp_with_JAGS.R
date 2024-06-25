@@ -241,7 +241,7 @@
   
   #####  Parameters monitored  ####
   #'  -------------------------
-  params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
+  params <- c("Fit.obs", "Fit.sim", "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
               "mean.pSpp1", "mean.pSpp2", "z") 
   
@@ -841,6 +841,20 @@
   which(lion.bear.global$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bear.global$samples)
   save(lion.bear.global, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(global)_psix(global)_p(setup_effort)_", Sys.Date(), ".RData"))
+  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearlion_GoF.R")
+  start.time = Sys.time()
+  lion.bear.global <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearlion_GoF.txt",
+                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(lion.bear.global$summary)
+  print(lion.bear.global$DIC)
+  which(lion.bear.global$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bear.global$samples)
+  save(lion.bear.global, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(global)_psix(global)_p(setup_effort)_", Sys.Date(), ".RData"))
+  
+  
   
   #####  Top model w/ intx on detection model v1  #### 
   #'  Parameterization tests whether detection of one predator affects detection of the other
