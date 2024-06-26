@@ -67,7 +67,7 @@
 
         for(i in 1:nsites) {
           z[i] ~ dcat(lsv[i, (1:ncat)])
-          z.sim[i] ~ dcat(lsv[i,(1:ncat)]) # GoF, latent state
+          z.sim[i] ~ dcat(lsv[i,(1:ncat)]) # simulated data for GoF, latent state
         }
 
         #'  Observation model
@@ -80,20 +80,22 @@
         for(i in 1:nsites) {
           for(j in 1:nsurveys) {
             y[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])
-            # y.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z[i]]) == rdm[i, j, (1:ncat), z[i]]]
-            y.hat[i,j] <- max(rdm[i, j, (1:ncat), z[i]])  
-            r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
-
+            #'  Grab expected value based on model
+            y.hat[i,j] <- max(rdm[i, j, (1:ncat), z[i]])
+            # # y.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z[i]]) == rdm[i, j, (1:ncat), z[i]]]
+            # r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
+    
+            #'  Simulate detection data set under fitted model for GoF
             y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z.sim[i]])
-            # y.sim.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z.sim[i]]) == rdm[i, j, (1:ncat), z.sim[i]]]
-            y.sim.hat[i,j] <- max(rdm[i, j, (1:ncat), z.sim[i]]) 
-            r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
+            y.sim.hat[i,j] <- max(rdm[i, j, (1:ncat), z.sim[i]])
+            # # y.sim.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z.sim[i]]) == rdm[i, j, (1:ncat), z.sim[i]]]
+            # r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
 
           }
         }
 
-        Fit.obs<-sum(r.obs[,]^2)
-        Fit.sim<-sum(r.sim[,]^2)
+        # Fit.obs<-sum(r.obs[,]^2)
+        # Fit.sim<-sum(r.sim[,]^2)
 
         #'  2. Define arrays containing cell probabilities for categorical distributions
 
