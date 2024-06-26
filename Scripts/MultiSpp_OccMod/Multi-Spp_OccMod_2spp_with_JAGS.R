@@ -241,7 +241,7 @@
   
   #####  Parameters monitored  ####
   #'  -------------------------
-  params <- c("Fit.obs", "Fit.sim", "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
+  params <- c("y.hat", "y.sim.hat", "Fit.obs", "Fit.sim", "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
               "mean.pSpp1", "mean.pSpp2", "z") 
   
