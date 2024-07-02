@@ -75,27 +75,35 @@
         #'  For each site and survey occasion, the deteciton data are drawn from a
         #'  categorical distribution with 4 latent states (z)
 
-        Indx<-c(1,2,3,4) #maybe bring in as data?
+        Indx <- c(1,2,3,4) #maybe bring in as data?
         
         for(i in 1:nsites) {
           for(j in 1:nsurveys) {
             y[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])
             #'  Grab expected value based on model
-            y.hat[i,j] <- max(rdm[i, j, (1:ncat), z[i]])
-            # # y.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z[i]]) == rdm[i, j, (1:ncat), z[i]]]
-            # r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
+            # y.hat[i,j] <- max(rdm[i, j, (1:ncat), z[i]]) # returns only 1s
+            y.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z[i]]) == rdm[i, j, (1:ncat), z[i]]]
+            r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
     
-            #'  Simulate detection data set under fitted model for GoF
+            #'  Simulate replicate data set under fitted model for GoF
             y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z.sim[i]])
-            y.sim.hat[i,j] <- max(rdm[i, j, (1:ncat), z.sim[i]])
-            # # y.sim.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z.sim[i]]) == rdm[i, j, (1:ncat), z.sim[i]]]
-            # r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
+            # y.sim.hat[i,j] <- max(rdm[i, j, (1:ncat), z.sim[i]]) # returns only 1s
+            y.sim.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z.sim[i]]) == rdm[i, j, (1:ncat), z.sim[i]]]
+            r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
+
+    # Error in checkForRemoteErrors(val) : 
+    # 3 nodes produced errors; first error: Error in node
+    # ((max(mixture(index=[z[1]], parents= rdm[1,1,1:4,1]...rdm[1,1,1:4,4])))==mixture(index=[z[1]], parents= rdm[1,1,1:4,1]...rdm[1,1,1:4,4]))
+    # Vector node used as index
+
+    # Maybe I can figure somethout out based on AHM2 04.08 code: https://github.com/mikemeredith/AHM_code/blob/main/AHM2_ch04/AHM2_04.08.R
 
           }
         }
-
-        # Fit.obs<-sum(r.obs[,]^2)
-        # Fit.sim<-sum(r.sim[,]^2)
+        
+        #'  GOF Chi2 test statistic
+        chi2.obs <- sum(r.obs[,]^2)
+        chi2.sim <- sum(r.sim[,]^2)
 
         #'  2. Define arrays containing cell probabilities for categorical distributions
 
