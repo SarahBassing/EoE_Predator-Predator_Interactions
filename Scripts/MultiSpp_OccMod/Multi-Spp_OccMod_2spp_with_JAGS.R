@@ -201,7 +201,7 @@
                     nsecond_order_psi = ncol(psi_2order), 
                     nfirst_order_rho = dim(rho_1order)[3], 
                     nsecond_order_rho = dim(rho_2order)[3], ncat = ncats, 
-                    nspec = nspecies, nyear = nyears,
+                    nspec = nspecies, nyear = nyears, #Indx = c(1, 2, 3, 4),
                     uniquesites = as.numeric(factor(uniquesites), levels = uniquesites)) 
     #'  Summarize to make sure it looks right
     str(bundled)
@@ -243,7 +243,7 @@
   #'  -------------------------
   params <- c("y.hat", "y.sim.hat", "Fit.obs", "Fit.sim", "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
-              "mean.pSpp1", "mean.pSpp2", "z") 
+              "mean.pSpp1", "mean.pSpp2", "z") #"z.sim", 
   
   #####  MCMC settings  ####
   #'  ------------------
@@ -844,11 +844,12 @@
   
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearlion_GoF.R")
   start.time = Sys.time()
-  lion.bear.global <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+  lion.bear.global <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params, 
                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearlion_GoF.txt",
                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bear.global$summary)
+  (lion.bear.global.pval <- mean(lion.bear.global$sims.list$chi2.sim > lion.bear.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   print(lion.bear.global$DIC)
   which(lion.bear.global$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bear.global$samples)
