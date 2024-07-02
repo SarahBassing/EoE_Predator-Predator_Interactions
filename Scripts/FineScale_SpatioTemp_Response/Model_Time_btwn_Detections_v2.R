@@ -230,7 +230,7 @@
   na <- 1000
   
   #'  Parameters to monitor
-  params <- c("alpha0", "beta.sppID", "beta.prey", "beta.div", "beta.interaction", 
+  params <- c("chi2.obs", "chi2.sim", "alpha0", "beta.sppID", "beta.prey", "beta.div", "beta.interaction", 
               "beta.interaction.elk", "beta.interaction.wtd", "beta.interaction.moose",
               "beta.interaction.lago", "mu.tbd", "spp.tbd", "spp.tbd.elk", 
               "spp.tbd.moose", "spp.tbd.wtd", "spp.tbd.lago", "spp.tbd.div") #"sigma", 
@@ -259,7 +259,7 @@
   mcmcplot(tbd.bear.null$samples)
   save(tbd.bear.null, file = "./Outputs/Time_btwn_Detections/tbd.bear_intercept_only.RData") 
   
-  #####  Competitor model  ####
+  #####  Competitor model  ####    #DOUBLE CHECK GOF WITH MATT BEFORE IMPLIMENTING THROUGHOUT
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_sppID.R")
   
   #'  Run model
@@ -269,6 +269,9 @@
                           n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.bear.sppID$summary)
+  
+  (tbd.bear.sppID.pval <- mean(tbd.bear.sppID$sims.list$chi2.sim > tbd.bear.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
+  
   mcmcplot(tbd.bear.sppID$samples)
   save(tbd.bear.sppID, file = "./Outputs/Time_btwn_Detections/tbd.bear_sppID.RData") 
   #'  Keep in mind SpeciesID levels are coyote[1], bobcat[2], lion[3], wolf[4]
