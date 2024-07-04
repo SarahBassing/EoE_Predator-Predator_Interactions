@@ -82,14 +82,20 @@
             y[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])
             #'  Grab expected value based on model
             # y.hat[i,j] <- max(rdm[i, j, (1:ncat), z[i]]) # returns only 1s
-            y.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z[i]]) == rdm[i, j, (1:ncat), z[i]]]
-            r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
+            # y.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z[i]]) == rdm[i, j, (1:ncat), z[i]]]
+            y.hat[i,j] <- ifelse(max(rdm[i, j, , z[i]]) == 1, 1,
+                            ifelse(max(rdm[i, j, , z[i]]) == 2, 2,
+                              ifelse(max(rdm[i, j, , z[i]]) == 3, 3, 4)))
+            # r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
     
             #'  Simulate replicate data set under fitted model for GoF
             y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z.sim[i]])
             # y.sim.hat[i,j] <- max(rdm[i, j, (1:ncat), z.sim[i]]) # returns only 1s
-            y.sim.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z.sim[i]]) == rdm[i, j, (1:ncat), z.sim[i]]]
-            r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
+            # y.sim.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z.sim[i]]) == rdm[i, j, (1:ncat), z.sim[i]]]
+            y.sim.hat[i,j] <- ifelse(max(rdm[i, j, , z.sim[i]]) == 1, 1,
+                                ifelse(max(rdm[i, j, , z.sim[i]]) == 2, 2,
+                                  ifelse(max(rdm[i, j, , z.sim[i]]) == 3, 3, 4)))
+            # r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
 
     # Error in checkForRemoteErrors(val) : 
     # 3 nodes produced errors; first error: Error in node
@@ -97,13 +103,23 @@
     # Vector node used as index
 
     # Maybe I can figure somethout out based on AHM2 04.08 code: https://github.com/mikemeredith/AHM_code/blob/main/AHM2_ch04/AHM2_04.08.R
-
+    
+    #  From Kleiven et al. script https://dataverse.no/file.xhtml?persistentId=doi:10.18710/ZLW59W/EY8ZRT&version=4.1
+    #  If the number (sum) of zs that equal 1 is equal to the number of sites, give it a 1
+    #  If the number (sum) of zs that equal 2 PLUS the number (sum) of z that equal 1 is equal to the number of sites, give it a 2
+    #  If the number (sum) of zs that equal 3 PLUS the number (sum) of z that equal 1 is equal to the number of seits, give it a 3,
+    #  else give it a 4
+    # x[b,1] <- ifelse(sum(z[,b,1]==1) == nsite, 1,
+    #             ifelse(sum(z[,b,1]==2) + sum(z[,b,1]==1) == nsite, 2,
+    #               ifelse(sum(z[,b,1]==3) + sum(z[,b,1]==1) == nsite, 3, 4) ) )
+    
+    
           }
         }
         
-        #'  GOF Chi2 test statistic
-        chi2.obs <- sum(r.obs[,]^2)
-        chi2.sim <- sum(r.sim[,]^2)
+        #' #'  GOF Chi2 test statistic
+        #' chi2.obs <- sum(r.obs[,]^2)
+        #' chi2.sim <- sum(r.sim[,]^2)
 
         #'  2. Define arrays containing cell probabilities for categorical distributions
 
