@@ -31,6 +31,7 @@
   nlcd <- rast("./Shapefiles/National Land Cover Database (NCLD)/NLCD19_Idaho.tif")
   id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp")
   elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
+  tri <- rast("./Shapefiles/IDFG spatial data/TRI__10m2.tif")
   habclass <- rast("./Shapefiles/IDFG spatial data/HabLayer_30m2.tif")
   dist2suburbs <- rast("./Shapefiles/GEE/HumanSettlement/Dist2Suburbs.tif")
   dist2rural <- rast("./Shapefiles/GEE/HumanSettlement/Dist2Rural.tif")
@@ -191,6 +192,7 @@
       mutate(perc_forest = round(perc_forest, 3))
     landcover <- terra::extract(nlcd, vect(locs_aea))
     elev <- terra::extract(elev, vect(locs_nad83))
+    tri <- terra::extract(tri, vect(locs_nad83))
     habitat <- terra::extract(habclass, vect(locs_hab_crs))
     dist2suburbs <- terra::extract(dist2suburbs, vect(locs_nad83))
     dist2rural <- terra::extract(dist2rural, vect(locs_nad83))
@@ -205,6 +207,7 @@
       full_join(perc_forest, by = "ID") %>%
       full_join(landcover, by = "ID") %>%
       full_join(elev, by = "ID") %>%
+      full_join(tri, by = "ID") %>%
       full_join(habitat, by = "ID") %>%
       full_join(dist2suburbs, by = "ID") %>%
       full_join(dist2rural, by = "ID") %>%
@@ -240,6 +243,7 @@
   #'  Histogram of covariate data
   spread_of_covariate_data <- function(covs, season) {
     hist(covs$Elevation__10m2, breaks =  20, main = paste("Frequency of elevation at cameras\n", season))
+    hist(covs$TRI__10m2, breaks =  20, main = paste("Frequency of TRI at cameras\n", season))
     hist(covs$perc_forest, breaks =  20, main = paste("Frequency of percent forest at cameras\n", season))
     hist(covs$Dist2Suburbs, breaks =  20, main = paste("Frequency of distance of camera to suburbs\n", season))
     hist(log(covs$dist2rd), breaks =  20, main = paste("Frequency of log distance of camera to nearest road\n", season))
@@ -263,6 +267,7 @@
   
   spread_of_covariate_data <- function(covs, season) {
     hist(covs$Elevation__10m2, main = paste("Frequency of elevation at cameras\n", season))
+    hist(covs$TRI__10m2, main = paste("Frequency of TRI at cameras\n", season))
     hist(covs$perc_forest, main = paste("Frequency of percent forest at cameras\n", season))
     hist(covs$Dist2Suburbs, main = paste("Frequency of distance of camera to suburbs\n", season))
     hist(log(covs$dist2rd), main = paste("Frequency of log distance of camera to nearest road\n", season))
