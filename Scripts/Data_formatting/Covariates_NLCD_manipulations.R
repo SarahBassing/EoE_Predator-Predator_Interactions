@@ -47,6 +47,10 @@
     st_transform(nlcd_proj)
   projection(id)
   
+  #'  Generate terrain ruggedness index data from DEM
+  elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
+  tri <- terrain(elev, v = "TRI", filename = "./Shapefiles/IDFG spatial data/TRI__10m2.tif")
+  
   
   #'  -----------------------------------  
   ####  Reclassify landcover categories  ####
