@@ -1,14 +1,17 @@
   #'  ------------------------------
-  #'  Global Human Settlement Layer
+  #'  Human Impact Variables
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  January 2023
   #'  ------------------------------
-  #'  Script to convert Global Human Settlement Layer categories to binary 
-  #'  rasters based on level of human settlement: high density clusters [3], 
-  #'  low density clusters [2], rural grid cells [1], and inhabited areas [0]. 
-  #'  This can be used to generate a proximity raster in ArcGIS.
+  #'  Script to manipulate human impact variables for further analyses. Script  
+  #'  crops Gassert et al. (2023) Human Footprint layer to Idaho and converts 
+  #'  Global Human Settlement Layer categories to binary rasters based on level 
+  #'  of human settlement: high density clusters [3], low density clusters [2], 
+  #'  rural grid cells [1], and inhabited areas [0]. 
+  #'  This can be used to generate a proximity raster in ArcGIS. 
   #'  
+  #'  Gassert's Human Footprint layer downloaded from https://datadryad.org/stash/dataset/doi:10.5061/dryad.ttdz08m1f
   #'  GHSL cropped to Idaho spatial extent and downloaded from Google Earth Engine
   #'  Data details: https://developers.google.com/earth-engine/datasets/catalog/JRC_GHSL_P2016_SMOD_POP_GLOBE_V1#description
   #'  ------------------------------
@@ -19,6 +22,7 @@
   
   #'  Load data
   id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp")
+  hf <- rast("./Shapefiles")
   ihsl <- rast("./Shapefiles/GEE/HumanSettlement/Idaho_HSL_epsg8826.tif")
   
   #'  Reproject Idaho shapefile  
