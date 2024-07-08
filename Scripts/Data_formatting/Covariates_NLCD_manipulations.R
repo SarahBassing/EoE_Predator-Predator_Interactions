@@ -79,17 +79,21 @@
   #'  Buffer is based on the resolution/projection of the input raster
   #'  If in UTMs then 500m, if in lat/long then 0.005 degrees is approx. 500m
   # buffer <- raster::focalWeight(forest19, 0.005, "circle") 
-  buffer <- raster::focalWeight(forest19, 500, "circle") # when projected
+  buffer_500m <- raster::focalWeight(forest19, 500, "circle") # when projected
+  buffer_100m <- raster::focalWeight(forest19, 100, "circle")
   
   #'  Create proportional cover rasters: 
   #'  Multiples the binary raster by the focal weight and then sums within the buffer
-  perc_forest_500m <- focal(forest19, buffer)
+  perc_forest_500m <- focal(forest19, buffer_500m)
+  perc_forest_100m <- focal(forest19, buffer_100m)
   
   #'  Check it out
   plot(perc_forest_500m)
+  plot(perc_forest_100m)
   
   #'  Save
-  writeRaster(perc_forest_500m, filename = "./Shapefiles/National Land Cover Database (NCLD)/PercentForeest_500m.tif", overwrite = TRUE)
+  writeRaster(perc_forest_500m, filename = "./Shapefiles/National Land Cover Database (NCLD)/PercentForest_500m.tif", overwrite = TRUE)
+  writeRaster(perc_forest_100m, filename = "./Shapefiles/National Land Cover Database (NCLD)/PercentForest_100m.tif", overwrite = TRUE)
   
   
   
