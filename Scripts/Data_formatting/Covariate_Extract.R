@@ -28,6 +28,7 @@
   #'  ----------------
   #'  Load and review
   pforest <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForest_500m.tif")
+  pforest_100m <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForest_100m.tif")
   nlcd <- rast("./Shapefiles/National Land Cover Database (NCLD)/NLCD19_Idaho.tif")
   id <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp")
   elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
@@ -99,6 +100,10 @@
   plot(pforest, main = "Camera locations over percent forested habitat, 500m radius")
   plot(id_aea[1], add = TRUE, col = NA)
   plot(cams_aea[[3]], add = TRUE, col = "black", cex = 0.75)
+  
+  plot(pforest_100m, main = "Camera locations over percent forested habitat, 100m radius")
+  plot(id_aea[1], add = TRUE, col = NA)
+  plot(cams_aea[[3]], add = TRUE, col = "black", cex = 0.75)
 
   
   #'  ------------------------
@@ -151,26 +156,26 @@
     mort_df <- as.data.frame(cbind(mort_bear, mort_bob, mort_lion, mort_wolf))
     return(mort_df)
   }
-  mort_Smr19_df <- reformat_mort_dat(mort_preSmr19) %>%
-    filter(GMU != "GMU1")
-  mort_Smr20_df <- reformat_mort_dat(mort_preSmr20) %>%
-    filter(GMU != "GMU1")
+  # mort_Smr19_df <- reformat_mort_dat(mort_preSmr19) %>%
+  #   filter(GMU != "GMU1")
+  mort_Smr20_df <- reformat_mort_dat(mort_preSmr20) #%>%
+    #filter(GMU != "GMU1")
   mort_Wtr20_df <- reformat_mort_dat(mort_preWtr20) %>%
     filter(GMU != "GMU1")
   mort_Smr21_df <- reformat_mort_dat(mort_preSmr21)
 
   #'  summarize mortality data
-  Season <- c("2018-2019", "2018-2019", "2019-2020", "2019-2020", "2020-2021", "2020-2021", "2020-2021")
-  mort_summary <- rbind(mort_Smr19_df, mort_Smr20_df, mort_Smr21_df)
+  Season <- c("2019-2020", "2019-2020", "2020-2021", "2020-2021", "2020-2021") #"2018-2019", "2018-2019", 
+  mort_summary <- rbind(mort_Smr20_df, mort_Smr21_df) #mort_Smr19_df, 
   mort_summary <- cbind(Season, mort_summary)
   names(mort_summary)[names(mort_summary) == "Season"] <- "Harvest season (fall - winter)"
 
-  mort_summary_noGMU1 <- filter(mort_summary, GMU != "GMU1") %>%
-    dplyr::select(`Harvest season (fall - winter)`, Bear_mort_n, Bob_mort_n, Lion_mort_n, Wolf_mort_n) %>%
-    group_by(`Harvest season (fall - winter)`) %>%
-    summarise(across(everything(), sum),
-              .groups = 'drop') %>%
-    ungroup()
+  # mort_summary_noGMU1 <- filter(mort_summary, GMU != "GMU1") %>%
+  #   dplyr::select(`Harvest season (fall - winter)`, Bear_mort_n, Bob_mort_n, Lion_mort_n, Wolf_mort_n) %>%
+  #   group_by(`Harvest season (fall - winter)`) %>%
+  #   summarise(across(everything(), sum),
+  #             .groups = 'drop') %>%
+  #   ungroup()
   
   
   #####  Relative abundance index & species diversity indices  ####
@@ -187,7 +192,7 @@
   cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs, min_group_size, mort, relativeN) { 
     
     #'  Extract covariate data for each camera site from spatial layers
-    perc_forest <- terra::extract(pforest, vect(locs_aea)) %>%
+    perc_forest <- terra::extract(pforest_100m, vect(locs_aea)) %>%
       transmute(ID = ID, perc_forest = focal_sum) %>%
       mutate(perc_forest = round(perc_forest, 3))
     landcover <- terra::extract(nlcd, vect(locs_aea))
@@ -207,7 +212,7 @@
       full_join(perc_forest, by = "ID") %>%
       full_join(landcover, by = "ID") %>%
       full_join(elev, by = "ID") %>%
-      full_join(tri, by = "ID") %>%
+      full_join(tri, by = "ID") %>% 
       full_join(habitat, by = "ID") %>%
       full_join(dist2suburbs, by = "ID") %>%
       full_join(dist2rural, by = "ID") %>%
@@ -224,14 +229,14 @@
       #'  Dang it, changed some NAs to 0 in dominant prey column - set these to
       #'  "other" since species other than elk/wtd were present
       mutate(dominantprey = ifelse(dominantprey == 0, "other", dominantprey)) %>%
-      full_join(mort, by = "GMU") %>%
+      # full_join(mort, by = "GMU") %>%
       dplyr::select(-c(geometry, ID, Lat, Long)) %>% 
       arrange(NewLocationID)
     
      return(covs)
   }
   eoe_covs_20s <- cov_extract(locs_aea = cams_aea[[1]], locs_nad83 = cams_nad83[[1]], locs_hab_crs = cams_hab_crs[[1]], 
-                              min_group_size = min_group_size_eoe20s, mort = mort_Smr20_df, relativeN = spp_diversity_Smr20) 
+                              min_group_size = min_group_size_eoe20s, relativeN = spp_diversity_Smr20) #, mort = mort_Smr20_df
   eoe_covs_20w <- cov_extract(locs_aea = cams_aea[[2]], locs_nad83 = cams_nad83[[2]], locs_hab_crs = cams_hab_crs[[2]], 
                               min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df, relativeN = spp_diversity_Wtr20)  
   eoe_covs_21s <- cov_extract(locs_aea = cams_aea[[3]], locs_nad83 = cams_nad83[[3]], locs_hab_crs = cams_hab_crs[[3]], 
@@ -243,7 +248,7 @@
   #'  Histogram of covariate data
   spread_of_covariate_data <- function(covs, season) {
     hist(covs$Elevation__10m2, breaks =  20, main = paste("Frequency of elevation at cameras\n", season))
-    hist(covs$TRI__10m2, breaks =  20, main = paste("Frequency of TRI at cameras\n", season))
+    hist(covs$TRI, breaks =  20, main = paste("Frequency of TRI at cameras\n", season))
     hist(covs$perc_forest, breaks =  20, main = paste("Frequency of percent forest at cameras\n", season))
     hist(covs$Dist2Suburbs, breaks =  20, main = paste("Frequency of distance of camera to suburbs\n", season))
     hist(log(covs$dist2rd), breaks =  20, main = paste("Frequency of log distance of camera to nearest road\n", season))
@@ -260,140 +265,62 @@
     hist(covs$small_deer, breaks = 20, main = paste("Frequency of mule deer & white-tail activity at cameras\n", season))
     hist(covs$SR, main = paste("Species richness at cameras\n", season))
     hist(covs$H, main = paste("Frequency of Shannon's diversity index at cameras\n", season))
-  }
-  spread_of_covariate_data(eoe_covs_20s, season = "Summer 2020")
-  spread_of_covariate_data(eoe_covs_20w, season = "Winter 2020-2021")
-  spread_of_covariate_data(eoe_covs_21s, season = "Summer 2021")
-  
-  spread_of_covariate_data <- function(covs, season) {
-    hist(covs$Elevation__10m2, main = paste("Frequency of elevation at cameras\n", season))
-    hist(covs$TRI__10m2, main = paste("Frequency of TRI at cameras\n", season))
-    hist(covs$perc_forest, main = paste("Frequency of percent forest at cameras\n", season))
-    hist(covs$Dist2Suburbs, main = paste("Frequency of distance of camera to suburbs\n", season))
-    hist(log(covs$dist2rd), main = paste("Frequency of log distance of camera to nearest road\n", season))
-    hist(covs$elk_perday, main = paste("Frequency of elk activity at cameras\n", season))
-    hist(covs$human_perday, main = paste("Frequency of human activity at cameras\n", season))
-    hist(covs$human_motorized_perday, main = paste("Frequency of motorized vehicles at cameras\n", season))
-    hist(covs$lagomorphs_perday, main = paste("Frequency of lagomorph activity at cameras\n", season))
-    hist(covs$livestock_perday, main = paste("Frequency of livestock activity at cameras\n", season))
-    hist(covs$moose_perday, main = paste("Frequency of moose activity at cameras\n", season))
-    hist(covs$muledeer_perday, main = paste("Frequency of mule deer activity at cameras\n", season))
-    hist(covs$whitetaileddeer_perday, main = paste("Frequency of white-tailed deer activity at cameras\n", season))
-    hist(covs$ungulate_perday, main = paste("Frequency of ungulate activity at cameras\n", season))
-    hist(covs$big_deer_perday, main = paste("Frequency of elk & moose activity at cameras\n", season))
-    hist(covs$small_deer_perday, main = paste("Frequency of mule deer & white-tail activity at cameras\n", season))
+    hist(covs$H_noLago, main = paste("Frequency of Shannon's diversity index (sans lago) at cameras\n", season))
   }
   spread_of_covariate_data(eoe_covs_20s, season = "Summer 2020")
   spread_of_covariate_data(eoe_covs_20w, season = "Winter 2020-2021")
   spread_of_covariate_data(eoe_covs_21s, season = "Summer 2021")
   
   
-  #' ####  Is there a difference in relative abund by camera setup?  ####
-  #' bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #'   dplyr::select(c(NewLocationID, lagomorphs)) %>%
-  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #'          setup = factor(setup, levels = c("U", "P"))) %>%
-  #'   dplyr::select(-NewLocationID)
-  #' table(bunnies)
-  #' maxbunnies <- grobTree(textGrob("max count = 71 (U)", x=0.60,  y=0.95, hjust=0,
-  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
-  #' ggplot(bunnies, aes(x = lagomorphs, fill = setup)) +
-  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #'   labs(fill="") +
-  #'   ggtitle("Relative abundance of lagomorphs at Ungulate vs Predator cameras") +
-  #'   annotation_custom(maxbunnies)
-  #' 
-  #' ppl <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #'   dplyr::select(c(NewLocationID, human)) %>%
-  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #'          setup = factor(setup, levels = c("U", "P"))) %>%
-  #'   dplyr::select(-NewLocationID)
-  #' table(ppl)
-  #' maxppl <- grobTree(textGrob("max count = 136 (P)", x=0.60,  y=0.95, hjust=0,
-  #'                           gp=gpar(col="red", fontsize=13, fontface="italic")))
-  #' ggplot(ppl, aes(x = human, fill = setup)) +
-  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
-  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #'   labs(fill="") +
-  #'   ggtitle("Relative abundance of humans at Ungulate vs Predator cameras") +
-  #'   annotation_custom(maxppl)
-  #' 
-  #' elk <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #'   dplyr::select(c(NewLocationID, elk)) %>%
-  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #'          setup = factor(setup, levels = c("U", "P"))) %>%
-  #'   dplyr::select(-NewLocationID)
-  #' table(elk)
-  #' maxelk <- grobTree(textGrob("max count = 145 (P)", x=0.60,  y=0.95, hjust=0,
-  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
-  #' ggplot(elk, aes(x = elk, fill = setup)) +
-  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
-  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #'   labs(fill="") +
-  #'   ggtitle("Relative abundance of elk at Ungulate vs Predator cameras") +
-  #'   annotation_custom(maxelk)
-  #' 
-  #' md <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #'   dplyr::select(c(NewLocationID, muledeer)) %>%
-  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #'          setup = factor(setup, levels = c("U", "P"))) %>%
-  #'   dplyr::select(-NewLocationID)
-  #' table(md)
-  #' maxmd <- grobTree(textGrob("max count = 64 (U)", x=0.60,  y=0.95, hjust=0,
-  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
-  #' ggplot(md, aes(x = muledeer, fill = setup)) +
-  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #'   labs(fill="") +
-  #'   ggtitle("Relative abundance of mule deer at Ungulate vs Predator cameras") +
-  #'   annotation_custom(maxmd)
-  #' 
-  #' wtd <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #'   dplyr::select(c(NewLocationID, whitetaileddeer)) %>%
-  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #'          setup = factor(setup, levels = c("U", "P"))) %>%
-  #'   dplyr::select(-NewLocationID)
-  #' table(wtd)
-  #' maxwtd <- grobTree(textGrob("max count = 225 (P)", x=0.60,  y=0.95, hjust=0,
-  #'                            gp=gpar(col="red", fontsize=13, fontface="italic")))
-  #' ggplot(wtd, aes(x = whitetaileddeer, fill = setup)) +
-  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
-  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #'   labs(fill="") +
-  #'   ggtitle("Relative abundance of white-tails at Ungulate vs Predator cameras") +
-  #'   annotation_custom(maxwtd)
-  #' 
-  #' moose <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #'   dplyr::select(c(NewLocationID, moose)) %>%
-  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #'          setup = factor(setup, levels = c("U", "P"))) %>%
-  #'   dplyr::select(-NewLocationID)
-  #' table(moose)
-  #' maxmoose <- grobTree(textGrob("max count = 44 (U)", x=0.60,  y=0.95, hjust=0,
-  #'                             gp=gpar(col="red", fontsize=13, fontface="italic")))
-  #' ggplot(moose, aes(x = moose, fill = setup)) +
-  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
-  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #'   labs(fill="") +
-  #'   ggtitle("Relative abundance of moose at Ungulate vs Predator cameras") +
-  #'   annotation_custom(maxmoose)
-  #' 
-  #' livestock <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
-  #'   dplyr::select(c(NewLocationID, livestock)) %>%
-  #'   mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
-  #'          setup = factor(setup, levels = c("U", "P"))) %>%
-  #'   dplyr::select(-NewLocationID)
-  #' table(livestock)
-  #' maxlivestock <- grobTree(textGrob("max count = 284 (U/P)", x=0.60,  y=0.95, hjust=0,
-  #'                                   gp=gpar(col="red", fontsize=13, fontface="italic")))
-  #' ggplot(livestock, aes(x = livestock, fill = setup)) +
-  #'   geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 10) +
-  #'   scale_fill_manual(values=c("#69b3a2", "#404080")) +
-  #'   labs(fill="") +
-  #'   ggtitle("Relative abundance of livestock at Ungulate vs Predator cameras") +
-  #'   annotation_custom(maxlivestock)
-  #' 
+  #####  Is there a difference in relative abund by camera setup?  #####
+  #'  -------------------------------------------------------------
+  bunnies <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    dplyr::select(c(NewLocationID, lagomorphs)) %>%
+    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+           setup = factor(setup, levels = c("U", "P"))) %>%
+    dplyr::select(-NewLocationID)
+  table(bunnies)
+  maxbunnies <- grobTree(textGrob("max count = 71 (U)", x=0.60,  y=0.95, hjust=0,
+                              gp=gpar(col="red", fontsize=13, fontface="italic")))
+  ggplot(bunnies, aes(x = lagomorphs, fill = setup)) +
+    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 1) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    labs(fill="") +
+    ggtitle("Relative abundance of lagomorphs at Ungulate vs Predator cameras") +
+    annotation_custom(maxbunnies)
+
+  #'  Is there a statistically significant difference in detection prob/counts based on setup?
+  bunnies <- mutate(bunnies, det = ifelse(lagomorphs >0, 1, 0))
+  fit_b <- glm(det ~ setup, data = bunnies, family = binomial(link = "logit"))
+  summary(fit_b)
+  library(pscl)
+  fit_zip <- zeroinfl(lagomorphs ~ setup | setup, data = bunnies)
+  summary(fit_zip)
+  
+  
+  ppl <- rbind(eoe_covs_20s, eoe_covs_21s) %>%
+    dplyr::select(c(NewLocationID, human)) %>%
+    mutate(setup = ifelse(grepl("P", NewLocationID), "P", "U"),
+           setup = factor(setup, levels = c("U", "P"))) %>%
+    dplyr::select(-NewLocationID)
+  table(ppl)
+  maxppl <- grobTree(textGrob("max count = 136 (P)", x=0.60,  y=0.95, hjust=0,
+                            gp=gpar(col="red", fontsize=13, fontface="italic")))
+  ggplot(ppl, aes(x = human, fill = setup)) +
+    geom_histogram(color = "#e9ecef", alpha = 0.6, position = "identity", binwidth = 3) +
+    scale_fill_manual(values=c("#69b3a2", "#404080")) +
+    labs(fill="") +
+    ggtitle("Relative abundance of humans at Ungulate vs Predator cameras") +
+    annotation_custom(maxppl)
+  
+  ppl <- mutate(ppl, det = ifelse(human >0, 1, 0))
+  fit_b <- glm(det ~ setup, data = ppl, family = binomial(link = "logit"))
+  summary(fit_b)
+  library(pscl)
+  fit_zip <- zeroinfl(human ~ setup | setup, data = ppl)
+  summary(fit_zip)
+
+  
   #' #'  -------------------------------------
   #' ####  Transform relative abundance data  ####
   #' #'  -------------------------------------
@@ -604,12 +531,12 @@
   
  
   ####  Save  ###
-  write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.csv")
-  save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
+  write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.csv")
+  save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData")
   
-  write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.csv")
-  save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
+  write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.csv")
+  save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.RData")
   
-  write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.csv")
-  save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
+  write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.csv")
+  save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
   
