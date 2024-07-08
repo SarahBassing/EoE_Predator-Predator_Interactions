@@ -65,9 +65,9 @@
   
   
   #'  Load extracted covariate data
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
-  load("./Data/Covariates_extracted/Covariates_EoE_Wtr20.RData")
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
   # source("./Scripts/Data_Formatting/Covariate_Extract.R")
   
   
@@ -96,6 +96,7 @@
                            Height = scale(CameraHeight_M),
                            PercForest = scale(perc_forest), 
                            Elev = scale(Elevation__10m2),
+                           TRI = scale(TRI),
                            Dist2Burbs = scale(Dist2Suburbs),
                            logDist2Burbs = scale(log(Dist2Suburbs+1)),
                            Dist2Rrl = scale(Dist2Rural),
@@ -114,15 +115,15 @@
                            Nwtd = scale(whitetaileddeer_perday),
                            Nungulate = scale(ungulate_perday),
                            Nbig_deer = scale(big_deer_perday),
-                           Nsmall_deer = scale(small_deer_perday),
-                           Bear_mort_n = scale(Bear_mort_n), 
-                           Bear_mort_km2 = scale(Bear_mort_km2),
-                           Bob_mort_n = scale(Bob_mort_n), 
-                           Bob_mort_km2 = scale(Bob_mort_km2),
-                           Lion_mort_n = scale(Lion_mort_n), 
-                           Lion_mort_km2 = scale(Lion_mort_km2),
-                           Wolf_mort_n = scale(Wolf_mort_n), 
-                           Wolf_mort_km2 = scale(Wolf_mort_km2)) 
+                           Nsmall_deer = scale(small_deer_perday)) #,
+                           # Bear_mort_n = scale(Bear_mort_n), 
+                           # Bear_mort_km2 = scale(Bear_mort_km2),
+                           # Bob_mort_n = scale(Bob_mort_n), 
+                           # Bob_mort_km2 = scale(Bob_mort_km2),
+                           # Lion_mort_n = scale(Lion_mort_n), 
+                           # Lion_mort_km2 = scale(Lion_mort_km2),
+                           # Wolf_mort_n = scale(Wolf_mort_n), 
+                           # Wolf_mort_km2 = scale(Wolf_mort_km2)) 
     
     #'  Adjust reference category for CameraFacing factors
     order_camfacing <- c("random", "trail", "road")
@@ -243,6 +244,7 @@
                           Height = CameraHeight_M,
                           PercForest = perc_forest, 
                           Elev = Elevation__10m2,
+                          TRI = TRI, 
                           Dist2Burbs = Dist2Suburbs,
                           logDist2Burbs = log(Dist2Suburbs+1),
                           Dist2Rrl = Dist2Rural,
@@ -261,15 +263,15 @@
                           Nwtd = whitetaileddeer_perday,
                           Nungulate = ungulate_perday,
                           Nbig_deer = big_deer_perday,
-                          Nsmall_deer = small_deer_perday,
-                          Bear_mort_n = Bear_mort_n, 
-                          Bear_mort_km2 = Bear_mort_km2,
-                          Bob_mort_n = Bob_mort_n, 
-                          Bob_mort_km2 = Bob_mort_km2,
-                          Lion_mort_n = Lion_mort_n, 
-                          Lion_mort_km2 = Lion_mort_km2,
-                          Wolf_mort_n = Wolf_mort_n, 
-                          Wolf_mort_km2 = Wolf_mort_km2) %>%
+                          Nsmall_deer = small_deer_perday) %>% #,
+                          # Bear_mort_n = Bear_mort_n, 
+                          # Bear_mort_km2 = Bear_mort_km2,
+                          # Bob_mort_n = Bob_mort_n, 
+                          # Bob_mort_km2 = Bob_mort_km2,
+                          # Lion_mort_n = Lion_mort_n, 
+                          # Lion_mort_km2 = Lion_mort_km2,
+                          # Wolf_mort_n = Wolf_mort_n, 
+                          # Wolf_mort_km2 = Wolf_mort_km2) %>%
       return(cam_covs)
   }
   stations_skinny_eoe20s21s <- unscaled_covs(cams_yr1 = cams_eoe20s, cams_yr2 = cams_eoe21s, 
