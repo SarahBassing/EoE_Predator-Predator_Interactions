@@ -52,32 +52,32 @@
   RA_Wtr20_df <- reformat_relativeN_data(eoe_dethr_list[[2]])
   RA_Smr21_df <- reformat_relativeN_data(eoe_dethr_list[[3]])
   
-  #'  Weight relative abundance indices by sampling effort
-  #'  Divide total number of hours with at least one detection (summed across season) 
-  #'  by the number of days camera was operating, i.e., the average number of hours
-  #'  per day at least one animal was detected
-  weighted_RA <- function(RA, effort) {
-    effort <- dplyr::select(effort, c("NewLocationID", "ndays", "nhrs"))
-    ra_scaled_by_nhrs <- RA %>%
-      full_join(effort, by = "NewLocationID") %>%
-      mutate(elk_perday = round(elk/ndays, 3),
-             human_perday = round(human/ndays, 3),
-             human_perday = round(human_plus/ndays, 3),
-             human_motorized_perday = round(human_motorized/ndays, 3),
-             lagomorphs_perday = round(lagomorphs/ndays, 3),
-             livestock_perday = round(livestock/ndays, 3),
-             moose_perday = round(moose/ndays, 3),
-             muledeer_perday = round(muledeer/ndays, 3),
-             whitetaileddeer_perday = round(whitetaileddeer/ndays, 3),
-             ungulate_perday = round(ungulate/ndays, 3),
-             big_deer_perday = round(big_deer/ndays, 3),
-             small_deer_perday = round(small_deer/ndays, 3)) %>%
-      dplyr::select(-c("ndays", "nhrs"))
-    return(ra_scaled_by_nhrs)
-  }
-  RA_Smr20_df <- weighted_RA(RA_Smr20_df, effort = effort_20s)
-  RA_Wtr20_df <- weighted_RA(RA_Wtr20_df, effort = effort_20w)
-  RA_Smr21_df <- weighted_RA(RA_Smr21_df, effort = effort_21s)
+  #' #'  Weight relative abundance indices by sampling effort
+  #' #'  Divide total number of hours with at least one detection (summed across season) 
+  #' #'  by the number of days camera was operating, i.e., the average number of hours
+  #' #'  per day at least one animal was detected
+  #' weighted_RA <- function(RA, effort) {
+  #'   effort <- dplyr::select(effort, c("NewLocationID", "ndays", "nhrs"))
+  #'   ra_scaled_by_nhrs <- RA %>%
+  #'     full_join(effort, by = "NewLocationID") %>%
+  #'     mutate(elk_perday = round(elk/ndays, 3),
+  #'            human_perday = round(human/ndays, 3),
+  #'            human_perday = round(human_plus/ndays, 3),
+  #'            human_motorized_perday = round(human_motorized/ndays, 3),
+  #'            lagomorphs_perday = round(lagomorphs/ndays, 3),
+  #'            livestock_perday = round(livestock/ndays, 3),
+  #'            moose_perday = round(moose/ndays, 3),
+  #'            muledeer_perday = round(muledeer/ndays, 3),
+  #'            whitetaileddeer_perday = round(whitetaileddeer/ndays, 3),
+  #'            ungulate_perday = round(ungulate/ndays, 3),
+  #'            big_deer_perday = round(big_deer/ndays, 3),
+  #'            small_deer_perday = round(small_deer/ndays, 3)) %>%
+  #'     dplyr::select(-c("ndays", "nhrs"))
+  #'   return(ra_scaled_by_nhrs)
+  #' }
+  #' RA_Smr20_df <- weighted_RA(RA_Smr20_df, effort = effort_20s)
+  #' RA_Wtr20_df <- weighted_RA(RA_Wtr20_df, effort = effort_20w)
+  #' RA_Smr21_df <- weighted_RA(RA_Smr21_df, effort = effort_21s)
   
   
   #'  ---------------------------------------
@@ -103,15 +103,19 @@
     #'  -----------------------------
     #'  Considers species richness and evenness (abundance of each species)
     #'  https://www.programmingr.com/shannon-diversity-index-the-diversity-function-in-r/
-    Shannon <- as.data.frame(RA) %>% 
-      dplyr::select(c("NewLocationID", "elk_perday", "lagomorphs_perday", "livestock_perday", 
-                      "moose_perday", "muledeer_perday", "whitetaileddeer_perday")) %>%
-      filter(!is.na(elk_perday))
-    #' #'  Alternatively, use un-weighted RA index
-    #' #'  FYI: H values are almost identical to those of weighted RA index
-    #' Shannon <- as.data.frame(RA) %>%
-    #'   dplyr::select(c("NewLocationID", "elk", "lagomorphs", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
-    #'   filter(!is.na(elk))
+    # Shannon <- as.data.frame(RA) %>% 
+    #   dplyr::select(c("NewLocationID", "elk_perday", "lagomorphs_perday", "livestock_perday",
+    #                   "moose_perday", "muledeer_perday", "whitetaileddeer_perday")) %>%
+    #   filter(!is.na(elk_perday))
+    #'  Alternatively, use un-weighted RA index
+    #'  FYI: H values are almost identical to those of weighted RA index
+    Shannon <- as.data.frame(RA) %>%
+      dplyr::select(c("NewLocationID", "elk", "lagomorphs", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
+      filter(!is.na(elk))
+    
+    Shannon_noLago <- as.data.frame(RA) %>%
+      dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
+      filter(!is.na(elk))
   
     #'  Loop through each camera site to calculate H
     H <- c(NA)
@@ -129,23 +133,45 @@
     Shannon <- cbind(Shannon, H) %>%
       mutate(H = round(H, 5))
     
+    H_noLago <- c(NA)
+    for(i in 1:nrow(Shannon_noLago)) {
+      #'  Relative abundance of each species
+      n <- c(Shannon_noLago[i,2], Shannon_noLago[i,3], Shannon_noLago[i,4], Shannon_noLago[i,5], Shannon_noLago[i,6]) 
+      #'  Remove species that were not detected (RA = 0)
+      n <- n[n != 0]
+      #'  Calculate proportion of community each species represents
+      N <- sum(n)
+      p <- n/N
+      #'  Calculate Shannon's diversity index (H)
+      H_noLago[i] <- -sum(p * log(p))
+    }
+    Shannon_noLago <- cbind(Shannon_noLago, H_noLago) %>%
+      mutate(H_noLago = round(H_noLago, 5)) 
+    
     #'  List wild ungulate species detected most frequently at each camera
-    dominantSpp <- Shannon %>% dplyr::select(-c(NewLocationID, lagomorphs_perday, livestock_perday, H)) %>%
+    dominantSpp <- Shannon %>% 
+      # dplyr::select(-c(NewLocationID, lagomorphs_perday, livestock_perday, H)) %>%
+      dplyr::select(-c(NewLocationID, lagomorphs, livestock, H)) %>%
       rowwise() %>%
       mutate(dominantprey = names(.)[which.max(c_across(everything()))],
-             dominantprey = ifelse(dominantprey == "moose_perday", "other", dominantprey),
-             dominantprey = ifelse(dominantprey == "muledeer_perday", "other", dominantprey)) %>%
+             # dominantprey = ifelse(dominantprey == "moose_perday", "other", dominantprey),
+             # dominantprey = ifelse(dominantprey == "muledeer_perday", "other", dominantprey)) %>%
+             dominantprey = ifelse(dominantprey == "moose", "other", dominantprey),
+             dominantprey = ifelse(dominantprey == "muledeer", "other", dominantprey)) %>%
       dplyr::select(dominantprey) %>%
-      cbind(Shannon)
+      cbind(Shannon) %>%
+      cbind(Shannon_noLago$H_noLago) %>%
+      rename("H_noLago" = "Shannon_noLago$H_noLago")
     
     #'  Merge SR, H, and most frequently detected wild ungulate species with raw and 
     #'  weighted relative abundance indices
     Spp_diversity <- full_join(SR, dominantSpp, by = c("NewLocationID")) %>%
       relocate(SR, .after = NewLocationID) %>%
       relocate(H, .after = SR) %>%
-      relocate(dominantprey, .after = H) %>%
-      mutate(dominantprey = gsub("_perday", "", dominantprey)) %>%
-      dplyr::select(c(NewLocationID, SR, H, dominantprey)) %>%
+      relocate(H_noLago, .after = H) %>%
+      relocate(dominantprey, .after = H_noLago) %>%
+      # mutate(dominantprey = gsub("_perday", "", dominantprey)) %>%
+      dplyr::select(c(NewLocationID, SR, H, H_noLago, dominantprey)) %>%
       full_join(RA, by = "NewLocationID")
     
     return(Spp_diversity)
