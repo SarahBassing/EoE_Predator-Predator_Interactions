@@ -102,21 +102,22 @@
                            Dist2Rrl = scale(Dist2Rural),
                            NearestRd = scale(dist2rd),
                            logNearestRd = scale(log(dist2rd+1)),
+                           Footprint = scale(footprint),
                            MinGroupSize = scale(avg_min_group_size), 
                            SppRich = scale(SR),
                            SppDiversity = scale(H),
                            SppDiversity_noLago = scale(H_noLago),
-                           Nelk = scale(elk_perday),    
-                           Nhuman = scale(human_perday),
-                           Nmotorized = scale(human_motorized_perday),
-                           Nlagomorph = scale(lagomorphs_perday),
-                           Nlivestock = scale(livestock_perday),
-                           Nmoose = scale(moose_perday),
-                           Nmd = scale(muledeer_perday),
-                           Nwtd = scale(whitetaileddeer_perday),
-                           Nungulate = scale(ungulate_perday),
-                           Nbig_deer = scale(big_deer_perday),
-                           Nsmall_deer = scale(small_deer_perday)) #,
+                           Nelk = scale(elk),    
+                           Nhuman = scale(human),
+                           Nmotorized = scale(human_motorized),
+                           Nlagomorph = scale(lagomorphs),
+                           Nlivestock = scale(livestock),
+                           Nmoose = scale(moose),
+                           Nmd = scale(muledeer),
+                           Nwtd = scale(whitetaileddeer),
+                           Nungulate = scale(ungulate),
+                           Nbig_deer = scale(big_deer),
+                           Nsmall_deer = scale(small_deer)) #,
                            # Bear_mort_n = scale(Bear_mort_n), 
                            # Bear_mort_km2 = scale(Bear_mort_km2),
                            # Bob_mort_n = scale(Bob_mort_n), 
@@ -145,12 +146,12 @@
   rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 147, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
   stations_eoe20s21s <- format_covs(cams_yr1 = cams_eoe20s, cams_yr2 = cams_eoe21s, 
                                     covs_yr1 = eoe_covs_20s, covs_yr2 = eoe_covs_21s, 
-                                    rm_rows_yr1 = rm_rows_eoe20s, rm_rows_yr2 = rm_rows_eoe21s) %>%
-    #'  Force values to 0 (mean when scaled) since scale() doesn't work when no variation in data
-    mutate(Lion_mort_km2 = 0)
+                                    rm_rows_yr1 = rm_rows_eoe20s, rm_rows_yr2 = rm_rows_eoe21s) #%>%
+    #' #'  Force values to 0 (mean when scaled) since scale() doesn't work when no variation in data
+    #' mutate(Lion_mort_km2 = 0)
   
   #'  Save
-  save(stations_eoe20s21s, file = "./Data/Covariates_extracted/stations_eoe20s21s.RData")
+  save(stations_eoe20s21s, file = "./Data/Covariates_extracted/stations_eoe20s21s_updated_070824.RData")
 
   #'  Double check things are ordered correctly
   nrow(stations_eoe20s21s); nrow(dh)
@@ -170,7 +171,7 @@
     print(corr_all)
     return(corr_all)
   }
-  cov_corr_matrix <- corr_matrix(stations_eoe20s21s, firstcol = 9, lastcol = 38)
+  cov_corr_matrix <- corr_matrix(stations_eoe20s21s, firstcol = 9, lastcol = 33)
   
   
   #'  ---------------------------
@@ -251,21 +252,22 @@
                           Dist2Rrl = Dist2Rural,
                           NearestRd = dist2rd,
                           logNearestRd = log(dist2rd+1),
+                          Footprint = footprint,
                           MinGroupSize = avg_min_group_size, 
                           SppRich = SR,
                           SppDiversity = H,
                           SppDiversity_noLago = H_noLago,
-                          Nelk = elk_perday,    
-                          Nhuman = human_perday,
-                          Nmotorized = human_motorized_perday,
-                          Nlagomorph = lagomorphs_perday,
-                          Nlivestock = livestock_perday,
-                          Nmoose = moose_perday,
-                          Nmd = muledeer_perday,
-                          Nwtd = whitetaileddeer_perday,
-                          Nungulate = ungulate_perday,
-                          Nbig_deer = big_deer_perday,
-                          Nsmall_deer = small_deer_perday) %>% #,
+                          Nelk = elk,    
+                          Nhuman = human,
+                          Nmotorized = human_motorized,
+                          Nlagomorph = lagomorphs,
+                          Nlivestock = livestock,
+                          Nmoose = moose,
+                          Nmd = muledeer,
+                          Nwtd = whitetaileddeer,
+                          Nungulate = ungulate,
+                          Nbig_deer = big_deer,
+                          Nsmall_deer = small_deer) %>% #,
                           # Bear_mort_n = Bear_mort_n, 
                           # Bear_mort_km2 = Bear_mort_km2,
                           # Bob_mort_n = Bob_mort_n, 
@@ -290,7 +292,7 @@
   # save(stations_skinny_eoe21s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE21s.RData")
   
   #' #'  Save image of entire environment so it can be used with HPC
-  #' save.image(file = "./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
+  #' save.image(file = "./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img_updated_070824.RData")
   
   #'  Fin!
   #'  This is all sourced by Multi-Spp_OccMod_2spp_JAGS.R
