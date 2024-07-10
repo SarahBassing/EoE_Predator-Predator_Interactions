@@ -36,6 +36,7 @@
   habclass <- rast("./Shapefiles/IDFG spatial data/HabLayer_30m2.tif")
   dist2suburbs <- rast("./Shapefiles/GEE/HumanSettlement/Dist2Suburbs.tif")
   dist2rural <- rast("./Shapefiles/GEE/HumanSettlement/Dist2Rural.tif")
+  ghf <- rast("./Shapefiles/Global_Human_Footprint/hfp_2020_Idaho.tif")
   #'  IDFG Geodatabase with roads
   idfg_gdb <- "./Shapefiles/IDFG spatial data/IDFG Geodatabase.gdb"
   st_layers(idfg_gdb)
@@ -47,6 +48,7 @@
   crs(elev, describe = TRUE, proj = TRUE)
   crs(habclass, describe = TRUE, proj = TRUE)
   crs(dist2suburbs, describe = TRUE, proj = TRUE)
+  crs(ghf, describe = TRUE, proj = TRUE)
   projection(id)
   projection(rds)
   
@@ -55,12 +57,14 @@
   res(elev)
   res(habclass)
   res(dist2suburbs)
+  res(ghf)
   
   #'  Define projections to use when reprojecting camera locations
   wgs84 <- crs("+proj=longlat +datum=WGS84 +no_defs")
   (aea <- crs(nlcd, proj = TRUE))
   (nad83 <- crs(elev, proj = TRUE)) # Idaho Transverse Mercator NAD83
   (hab_crs <- crs(habclass, proj = TRUE))
+  (ghf_crs <- crs(ghf, proj = TRUE))
   
   #'  Reproject shapefiles
   id_aea <- st_transform(id, aea)
@@ -95,6 +99,7 @@
   cams_aea <- lapply(cams_list, spatial_locs, proj = aea)
   cams_nad83 <- lapply(cams_list, spatial_locs, proj = nad83)
   cams_hab_crs <- lapply(cams_list, spatial_locs, proj = hab_crs)
+  cams_ghf <- lapply(cams_list, spatial_locs, proj = ghf_crs)
   
   #'  Double check these are plotting correctly
   plot(pforest, main = "Camera locations over percent forested habitat, 500m radius")
@@ -189,7 +194,7 @@
   #'  ----------------------------------
   ####  COVARIATE EXTRACTION & MERGING  ####
   #'  ----------------------------------
-  cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs, min_group_size, mort, relativeN) { 
+  cov_extract <- function(locs_aea, locs_nad83, locs_hab_crs, locs_ghf, min_group_size, mort, relativeN) { 
     
     #'  Extract covariate data for each camera site from spatial layers
     perc_forest <- terra::extract(pforest_100m, vect(locs_aea)) %>%
@@ -201,6 +206,7 @@
     habitat <- terra::extract(habclass, vect(locs_hab_crs))
     dist2suburbs <- terra::extract(dist2suburbs, vect(locs_nad83))
     dist2rural <- terra::extract(dist2rural, vect(locs_nad83))
+    footprint <- terra::extract(ghf, vect(locs_ghf))
     #'  Find nearest road to each camera
     nearestrd <- st_nearest_feature(locs_nad83, rds)
     #'  Calculate distance to nearest road (in meters)
@@ -216,6 +222,7 @@
       full_join(habitat, by = "ID") %>%
       full_join(dist2suburbs, by = "ID") %>%
       full_join(dist2rural, by = "ID") %>%
+      full_join(footprint, by = "ID") %>%
       cbind(dist2rd) %>%
       #'  Join with additional data sets already formatted for each camera site
       full_join(min_group_size, by = "NewLocationID") %>%
@@ -228,7 +235,10 @@
       replace(is.na(.), 0) %>%
       #'  Dang it, changed some NAs to 0 in dominant prey column - set these to
       #'  "other" since species other than elk/wtd were present
-      mutate(dominantprey = ifelse(dominantprey == 0, "other", dominantprey)) %>%
+      mutate(dominantprey = ifelse(dominantprey == 0, "other", dominantprey),
+             #'  HFP should be on scale 0 - 50
+             hfp_2020_Idaho = hfp_2020_Idaho/1000) %>%
+      rename("footprint" = "hfp_2020_Idaho") %>%
       # full_join(mort, by = "GMU") %>%
       dplyr::select(-c(geometry, ID, Lat, Long)) %>% 
       arrange(NewLocationID)
@@ -236,11 +246,11 @@
      return(covs)
   }
   eoe_covs_20s <- cov_extract(locs_aea = cams_aea[[1]], locs_nad83 = cams_nad83[[1]], locs_hab_crs = cams_hab_crs[[1]], 
-                              min_group_size = min_group_size_eoe20s, relativeN = spp_diversity_Smr20) #, mort = mort_Smr20_df
+                              locs_ghf = cams_ghf[[1]], min_group_size = min_group_size_eoe20s, relativeN = spp_diversity_Smr20) #, mort = mort_Smr20_df
   eoe_covs_20w <- cov_extract(locs_aea = cams_aea[[2]], locs_nad83 = cams_nad83[[2]], locs_hab_crs = cams_hab_crs[[2]], 
-                              min_group_size = min_group_size_eoe20w, mort = mort_Wtr20_df, relativeN = spp_diversity_Wtr20)  
+                              locs_ghf = cams_ghf[[2]], min_group_size = min_group_size_eoe20w, relativeN = spp_diversity_Wtr20) #mort = mort_Wtr20_df,   
   eoe_covs_21s <- cov_extract(locs_aea = cams_aea[[3]], locs_nad83 = cams_nad83[[3]], locs_hab_crs = cams_hab_crs[[3]], 
-                              min_group_size = min_group_size_eoe21s, mort = mort_Smr21_df, relativeN = spp_diversity_Smr21) 
+                              locs_ghf = cams_ghf[[3]], min_group_size = min_group_size_eoe21s, relativeN = spp_diversity_Smr21) #mort = mort_Smr21_df, 
   
   #'  -------------------------
   ####  Covariate exploration  ####
@@ -252,6 +262,7 @@
     hist(covs$perc_forest, breaks =  20, main = paste("Frequency of percent forest at cameras\n", season))
     hist(covs$Dist2Suburbs, breaks =  20, main = paste("Frequency of distance of camera to suburbs\n", season))
     hist(log(covs$dist2rd), breaks =  20, main = paste("Frequency of log distance of camera to nearest road\n", season))
+    hist(covs$footprint, breaks =  20, main = paste("Frequency of human footprint\n", season))
     hist(covs$elk, breaks =  20, main = paste("Frequency of elk activity at cameras\n", season))
     hist(covs$human, breaks =  20, main = paste("Frequency of human activity at cameras\n", season))
     hist(covs$human_motorized, breaks =  30, main = paste("Frequency of motorized vehicles at cameras\n", season))
