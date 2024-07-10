@@ -40,6 +40,13 @@
         tbd_lambda[i] <- 1/tbd_mu[i]
       
         log(tbd_mu[i]) <- alpha0 + beta.sppID[covs[i,2]] + beta.div*covs[i,10] + beta.interaction[covs[i,2]]*covs[i,10]
+        
+        #'  Goodness-of-fit (Chi-squared test statistic)
+        #'  Simulated data from fitted model
+        y.sim[i] ~ dexp(tbd_lambda[i])
+        #'  GOF (X^2 statistic ---> sum ((o-E)^2)/E )
+        fit.obs[i] <- pow((y[i] - tbd_lambda[i]), 2) / tbd_lambda[i]
+        fit.sim[i] <- pow((y.sim[i] - tbd_lambda[i]), 2) / tbd_lambda[i]
       }
       
       #'  Derived parameters
@@ -59,5 +66,9 @@
       #'  Mean TBD
       #'  Note: this overlooks unequal sample sizes contributing to each spp.tbd
       mu.tbd <- mean(spp.tbd[])
+      
+      #'  For GOF (X^2 statistic)
+      chi2.obs <- sum(fit.obs[]) 
+      chi2.sim <- sum(fit.sim[]) 
       
       } ")
