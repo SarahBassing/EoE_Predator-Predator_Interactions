@@ -27,7 +27,7 @@
           mean.psiSpp2[1] ~ dunif(0, 1)
               
           #'  First order occupancy slopes (psi)
-          for(fo_psi in 2:8){                         
+          for(fo_psi in 2:9){                         
             betaSpp1[fo_psi] ~ dnorm(0, 0.1)
             betaSpp2[fo_psi] ~ dnorm(0, 0.1)
           }
@@ -86,20 +86,14 @@
               y.hat[i,j] <- y[i,j]
               # y.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z[i]]) == rdm[i, j, (1:ncat), z[i]]]
               # y.hat[i,j] <- max(rdm[i, j, (1:ncat), z[i]]) # returns only 1s
-              # y.hat[i,j] <- ifelse(max(rdm[i, j, , z[i]]) == 1, 1,
-              #                 ifelse(max(rdm[i, j, , z[i]]) == 2, 2,
-              #                   ifelse(max(rdm[i, j, , z[i]]) == 3, 3, 4)))
-              r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
+              # r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
     
               #'  Simulate replicate data set under fitted model for GoF
               y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z.sim[i]])
               y.sim.hat[i,j] <- y.sim[i,j]
               # y.sim.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z.sim[i]]) == rdm[i, j, (1:ncat), z.sim[i]]]
               # y.sim.hat[i,j] <- max(rdm[i, j, (1:ncat), z.sim[i]]) # returns only 1s
-              # y.sim.hat[i,j] <- ifelse(max(rdm[i, j, , z.sim[i]]) == 1, 1,
-              #                     ifelse(max(rdm[i, j, , z.sim[i]]) == 2, 2,
-              #                       ifelse(max(rdm[i, j, , z.sim[i]]) == 3, 3, 4)))
-              r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
+              # r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
 
         # Error in checkForRemoteErrors(val) : 
         # 3 nodes produced errors; first error: Error in node
@@ -112,9 +106,9 @@
           }
         }
         
-        #'  GOF Chi2 test statistic
-        chi2.obs <- sum(r.obs[,]^2)
-        chi2.sim <- sum(r.sim[,]^2)
+        #' #'  GOF Chi2 test statistic
+        #' chi2.obs <- sum(r.obs[,]^2)
+        #' chi2.sim <- sum(r.sim[,]^2)
             
           #'  2. Define arrays containing cell probabilities for categorical distributions
                 
@@ -163,9 +157,9 @@
             #'  Linear models for the occupancy parameters on the logit scale
                 
             #'  ...for states Spp1, Spp2
-            #'  Covariate order: Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + White-tailed deer[10] + Lagomorph[11] + SppDiversity[6]
-            psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,5] + betaSpp1[4]*psi_cov[i,3] + betaSpp1[5]*psi_cov[i,4] + betaSpp1[6]*psi_cov[i,10] + betaSpp1[7]*psi_cov[i,11] + betaSpp1[8]*psi_cov[i,6]
-            psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,5] + betaSpp2[4]*psi_cov[i,3] + betaSpp2[5]*psi_cov[i,4] + betaSpp2[6]*psi_cov[i,10] + betaSpp2[7]*psi_cov[i,11] + betaSpp2[8]*psi_cov[i,6]
+            #'  Covariate order: Intercept[1] + Setup[2] + Year[5] + TRI[17] + Forest[4] + White-tailed deer[10] + Lagomorph[11] + SppDiversity[6] + Footprint[16] #+ Elevation[3] 
+            psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,5] + betaSpp1[4]*psi_cov[i,17] + betaSpp1[5]*psi_cov[i,4] + betaSpp1[6]*psi_cov[i,10] + betaSpp1[7]*psi_cov[i,11] + betaSpp1[8]*psi_cov[i,6] + betaSpp1[9]*psi_cov[i,16] # + betaSpp1[4]*psi_cov[i,3]
+            psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,5] + betaSpp2[4]*psi_cov[i,17] + betaSpp2[5]*psi_cov[i,4] + betaSpp2[6]*psi_cov[i,10] + betaSpp2[7]*psi_cov[i,11] + betaSpp2[8]*psi_cov[i,6] + betaSpp2[9]*psi_cov[i,16] # + betaSpp2[4]*psi_cov[i,3]
             
             #'  ...for state Spp12
             #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + White-tailed deer[10] + Lagomorph[11] + SppDiversity[6]
