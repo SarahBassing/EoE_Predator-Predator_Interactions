@@ -36,13 +36,16 @@
         #'  Goodness-of-fit (Chi-squared test statistic)
         #'  Simulated data from fitted model
         y.sim[i] ~ dexp(tbd_lambda[i])
-        #'  Expected observation from fitted model
-        y.hat[i] <- tbd_lambda[i]
-        #'  Expected observation from simulated data
-        y.sim.hat[i] <- tbd_lambda[i]  
-        #'  GOF (X^2 statistic ---> sum ((o-E)^2)/E )
-        fit.obs[i] <- pow((y[i]-y.hat[i]),2) / y.hat[i] #(sqrt(y.hat[i])) 
-        fit.sim[i] <- pow((y.sim[i]-y.sim.hat[i]),2) / y.sim.hat[i] #(sqrt(y.sim.hat[i])) 
+        #'  GOF (X^2 statistic ---> sum ((o-E)^2)/E ) where expected value comes from tbd_lambda
+        fit.obs[i] <- pow((y[i] - tbd_lambda[i]), 2) / tbd_lambda[i]
+        fit.sim[i] <- pow((y.sim[i] - tbd_lambda[i]), 2) / tbd_lambda[i]
+        
+        #' Alternative approach to calculating residuals
+        #' #'  Expected observations from fitted model
+        #' y.hat[i] <- tbd_lambda[i]
+        #' y.sim.hat[i] <- tbd_lambda[i]  
+        #' fit.obs[i] <- pow((y[i]-y.hat[i]),2) / y.hat[i]  
+        #' fit.sim[i] <- pow((y.sim[i]-y.sim.hat[i]),2) / y.sim.hat[i]  
         #https://stackoverflow.com/questions/48024836/posterior-predictive-check-in-jags-dimension-mismatch-error has sqrt(y.hat) in denominator
         #https://www.flutterbys.com.au/stats/tut/tut11.2b.html has y.hat in denominator (no sqrt)
         #Anderson-Darling test as an alternative but not sure how to code this: https://www.itl.nist.gov/div898/handbook/eda/section3/eda35e.htm
