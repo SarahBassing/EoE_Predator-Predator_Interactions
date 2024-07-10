@@ -48,9 +48,9 @@
       relocate(small_deer, .after = big_deer)
     return(RelativeN)
   }
-  RA_Smr20_df <- reformat_relativeN_data(eoe_dethr_list[[1]])
-  RA_Wtr20_df <- reformat_relativeN_data(eoe_dethr_list[[2]])
-  RA_Smr21_df <- reformat_relativeN_data(eoe_dethr_list[[3]])
+  RA_Smr20_df <- reformat_relativeN_data(eoe_30min_list[[1]]) #eoe_dethr_list
+  RA_Wtr20_df <- reformat_relativeN_data(eoe_30min_list[[2]])
+  RA_Smr21_df <- reformat_relativeN_data(eoe_30min_list[[3]])
   
   #'  Adjust relative abundance indices by sampling effort to create a DAILY DETECTION RATE
   #'  Divide total number of hours with at least one detection (summed across season)
