@@ -21,8 +21,8 @@
   load("./Data/Time_btwn_Detections/TBD_all_spp-pred_pairs_2023-06-05.RData") #TBD_all_spp-pred_pairs_2023-05-23
   
   #'  Covariates
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr20.RData")
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr21.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData") # with TRI, different PercForest & RAI
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
   eoe_covs_20s$Year <- "Smr20"
   eoe_covs_21s$Year <- "Smr21"
   
@@ -150,14 +150,15 @@
                 TBD_hrs = HoursSinceLastDet,
                 TBD_days = DaysSinceLastDet,
                 Elev = scale(Elevation__10m2), 
+                TRI = scale(TRI),
                 PercForest = scale(perc_forest),
                 SppDiversity = scale(H),
-                Nelk = scale(elk_perday),
-                Nmoose = scale(moose_perday),
-                Nmd = scale(muledeer_perday),
-                Nwtd = scale(whitetaileddeer_perday),
-                Nlagomorph = scale(lagomorphs_perday),
-                Nlivestock = scale(livestock_perday))
+                Nelk = scale(elk),  #elk_perday
+                Nmoose = scale(moose),
+                Nmd = scale(muledeer),
+                Nwtd = scale(whitetaileddeer),
+                Nlagomorph = scale(lagomorphs),
+                Nlivestock = scale(livestock))
     print(summary(tbd_dat))
     print(head(tbd_dat))
     
@@ -165,7 +166,7 @@
     covs <- matrix(NA, ncol = 10, nrow = ntbd)
     covs[,1] <- tbd_dat$GMU
     covs[,2] <- tbd_dat$SpeciesID
-    covs[,3] <- tbd_dat$Elev
+    covs[,3] <- tbd_dat$TRI #Elev
     covs[,4] <- tbd_dat$PercForest
     covs[,5] <- tbd_dat$Nelk
     covs[,6] <- tbd_dat$Nmoose
@@ -401,6 +402,10 @@
                          n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.bob.sppID$summary)
+  
+  (tbd.bob.sppID.pval <- mean(tbd.bob.sppID$sims.list$chi2.sim > tbd.bob.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
+  
+  
   mcmcplot(tbd.bob.sppID$samples)
   save(tbd.bob.sppID, file = "./Outputs/Time_btwn_Detections/tbd.bob_sppID.RData") 
   #'  Keep in mind SpeciesID levels are coyote [1], bear [2], lion [3], wolf [4]
@@ -530,6 +535,7 @@
                          n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.coy.sppID$summary)
+  (tbd.coy.sppID.pval <- mean(tbd.coy.sppID$sims.list$chi2.sim > tbd.coy.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.coy.sppID$samples)
   save(tbd.coy.sppID, file = "./Outputs/Time_btwn_Detections/tbd.coy_sppID.RData") 
   #'  Keep in mind SpeciesID levels are bear [1], bobcat [2], lion [3], wolf [4]
@@ -659,6 +665,7 @@
                           n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.lion.sppID$summary)
+  (tbd.lion.sppID.pval <- mean(tbd.lion.sppID$sims.list$chi2.sim > tbd.lion.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.lion.sppID$samples)
   save(tbd.lion.sppID, file = "./Outputs/Time_btwn_Detections/tbd.lion_sppID.RData") 
   #'  Keep in mind SpeciesID levels are coyote [1], bear [2], bobcat [3], wolf [4]
@@ -788,6 +795,7 @@
                           n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.wolf.sppID$summary)
+  (tbd.wolf.sppID.pval <- mean(tbd.wolf.sppID$sims.list$chi2.sim > tbd.wolf.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.wolf.sppID$samples)
   save(tbd.wolf.sppID, file = "./Outputs/Time_btwn_Detections/tbd.wolf_sppID.RData") 
   #'  Keep in mind SpeciesID levels are coyote [1], bear [2], bobcat [3], lion [4]
@@ -917,6 +925,7 @@
                          n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.nt.bear.sppID$summary)
+  (tbd.nt.bear.sppID.pval <- mean(tbd.nt.bear.sppID$sims.list$chi2.sim > tbd.nt.bear.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.bear.sppID$samples)
   save(tbd.nt.bear.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bear_sppID.RData") 
   #'  Keep in mind SppID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
@@ -992,6 +1001,7 @@
                         n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.nt.bob.sppID$summary)
+  (tbd.nt.bob.sppID.pval <- mean(tbd.nt.bob.sppID$sims.list$chi2.sim > tbd.nt.bob.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.bob.sppID$samples)
   save(tbd.nt.bob.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bob_sppID.RData") 
   #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
@@ -1068,6 +1078,7 @@
                         n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.nt.coy.sppID$summary)
+  (tbd.nt.coy.sppID.pval <- mean(tbd.nt.coy.sppID$sims.list$chi2.sim > tbd.nt.coy.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.coy.sppID$samples)
   save(tbd.nt.coy.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.coy_sppID.RData") 
   #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
@@ -1143,6 +1154,7 @@
                          n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.nt.lion.sppID$summary)
+  (tbd.nt.lion.sppID.pval <- mean(tbd.nt.lion.sppID$sims.list$chi2.sim > tbd.nt.lion.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.lion.sppID$samples)
   save(tbd.nt.lion.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.lion_sppID.RData") 
   #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
@@ -1218,6 +1230,7 @@
                          n.thin = nt, n.adapt = na, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.nt.wolf.sppID$summary)
+  (tbd.nt.wolf.sppID.pval <- mean(tbd.nt.wolf.sppID$sims.list$chi2.sim > tbd.nt.wolf.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.wolf.sppID$samples)
   save(tbd.nt.wolf.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.wolf_sppID.RData") 
   #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
