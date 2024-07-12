@@ -313,13 +313,13 @@
   #'  --------------------
   ######  2020  Analyses  ######
   #'  --------------------
-  source("./Scripts/Side_quests/Painter_Predator_RNmodel/RNmodel_JAGS_code_2020.R")
+  source("./Scripts/Side_quests/Painter_Predator_RNmodel/RNmodel_JAGS_code_2020_WTD_FawnProject.R")
   
   #'  BLACK BEAR JUNE-JULY 2020
   start.time = Sys.time()
   inits_bear20s <- function(){list(N = ninit_20s[[1]])}
   RN_bear_20s <- jags(data_JAGS_bundle_20s[[1]], inits = inits_bear20s, params,
-                      "./Outputs/Painter_RNmodel/JAGS_RNmod_2020.txt",
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2020.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -358,7 +358,7 @@
   start.time = Sys.time()
   inits_lion20s <- function(){list(N = ninit_20s[[4]])}
   RN_lion_20s <- jags(data_JAGS_bundle_20s[[4]], inits = inits_lion20s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt",
+                      "./Outputs/Painter_RNmodel/JAGS_RNmod_2020.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -384,13 +384,13 @@
   #'  ---------------------------
   ######  2021 & 2022  Analyses  ######
   #'  ---------------------------
-  source("./Side_quests/Painter_Predator_RNmodel/RNmodel_JAGS_code_2021&2022.R")
+  source("./Side_quests/Painter_Predator_RNmodel/RNmodel_JAGS_code_2021&2022_WTD_FawnProject.R")
   
   #'  BLACK BEAR JUNE-JULY 2021
   start.time = Sys.time()
   inits_bear21s <- function(){list(N = ninit_21s[[1]])}
   RN_bear_21s <- jags(data_JAGS_bundle_21s[[1]], inits = inits_bear21s, params,
-                      "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -403,7 +403,7 @@
   start.time = Sys.time()
   inits_bear22s <- function(){list(N = ninit_22s[[1]])}
   RN_bear_22s <- jags(data_JAGS_bundle_22s[[1]], inits = inits_bear22s, params,
-                      "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -416,7 +416,7 @@
   start.time = Sys.time()
   inits_bob21s <- function(){list(N = ninit_21s[[2]])}
   RN_bob_21s <- jags(data_JAGS_bundle_21s[[2]], inits = inits_bob21s, params,
-                     "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -429,7 +429,7 @@
   start.time = Sys.time()
   inits_bob22s <- function(){list(N = ninit_22s[[2]])}
   RN_bob_22s <- jags(data_JAGS_bundle_22s[[2]], inits = inits_bob22s, params,
-                     "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -442,7 +442,7 @@
   start.time = Sys.time()
   inits_coy21s <- function(){list(N = ninit_21s[[3]])}
   RN_coy_21s <- jags(data_JAGS_bundle_21s[[3]], inits = inits_coy21s, params,
-                     "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -455,7 +455,7 @@
   start.time = Sys.time()
   inits_coy22s <- function(){list(N = ninit_22s[[3]])}
   RN_coy_22s <- jags(data_JAGS_bundle_22s[[3]], inits = inits_coy22s, params,
-                     "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -468,7 +468,7 @@
   start.time = Sys.time()
   inits_lion21s <- function(){list(N = ninit_21s[[4]])}
   RN_lion_21s <- jags(data_JAGS_bundle_21s[[4]], inits = inits_lion21s, params,
-                      "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -481,7 +481,7 @@
   start.time = Sys.time()
   inits_lion22s <- function(){list(N = ninit_22s[[4]])}
   RN_lion_22s <- jags(data_JAGS_bundle_22s[[4]], inits = inits_lion22s, params,
-                      "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -495,7 +495,7 @@
   start.time = Sys.time()
   inits_wolf21s <- function(){list(N = ninit_21s[[5]])}
   RN_wolf_21s <- jags(data_JAGS_bundle_21s[[5]], inits = inits_wolf21s, params,
-                      "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -509,7 +509,7 @@
   start.time = Sys.time()
   inits_wolf22s <- function(){list(N = ninit_22s[[5]])}
   RN_wolf_22s <- jags(data_JAGS_bundle_22s[[5]], inits = inits_wolf22s, params,
-                      "./Outputs/Painter_RNmodel/JAGS_RNmod.txt",
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
