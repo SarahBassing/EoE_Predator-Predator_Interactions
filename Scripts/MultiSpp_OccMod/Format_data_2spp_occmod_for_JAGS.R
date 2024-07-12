@@ -28,6 +28,19 @@
   #'  Load and bind annual detection histories
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe20s_predators.RData")
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/DH_eoe21s_predators.RData")
+  
+  #'  Remove problematic row in 2020 detection history (GMU6_U_23 only operational for 0.5 days)
+  drop_row <- function(det_hist, rm_rows) {
+    short_dh <- det_hist[[1]]
+    short_effort <- det_hist[[2]]
+    
+    short_dh <- short_dh[-rm_rows,]
+    short_effort <- short_effort[-rm_rows,]
+    
+    dh_list <- list(short_dh, short_effort)
+  }
+  DH_eoe20s_predators <- lapply(DH_eoe20s_predators, drop_row, rm_rows = 393)
+  
   dh1 <- DH_eoe20s_predators[[1]][[1]]
   dh2 <- DH_eoe21s_predators[[1]][[1]]
   newcols <- c("occ1", "occ2", "occ3", "occ4", "occ5", "occ6", "occ7", "occ8", "occ9", "occ10", "occ11")
@@ -66,7 +79,7 @@
   
   #'  Load extracted covariate data
   load("./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData")
-  load("./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.RData")
+  # load("./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.RData")
   load("./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
   # source("./Scripts/Data_Formatting/Covariate_Extract.R")
   
@@ -142,7 +155,7 @@
     
     return(formatted)
   }
-  rm_rows_eoe20s <- c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 334, 346, 361, 371, 379, 380, 385, 433, 437, 439, 458, 493)
+  rm_rows_eoe20s <- c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 334, 346, 361, 371, 379, 380, 385, 419, 433, 437, 439, 458, 493)
   rm_rows_eoe21s <- c(6, 106, 112, 116, 127, 145, 147, 178, 194, 195, 260, 267, 296, 343, 355, 365, 409, 417, 419, 423, 430, 450, 510, 530, 577, 578, 580, 588, 621, 627, 647, 652, 682)
   stations_eoe20s21s <- format_covs(cams_yr1 = cams_eoe20s, cams_yr2 = cams_eoe21s, 
                                     covs_yr1 = eoe_covs_20s, covs_yr2 = eoe_covs_21s, 
@@ -184,6 +197,9 @@
   
   count_eoe20s21s_wolf <- rbind(count_eoe20s_wolf[[1]], count_eoe21s_wolf[[1]])
   count_eoe20s21s_effort <- rbind(count_eoe20s_wolf[[2]], count_eoe21s_wolf[[2]])
+  #'  Remove problematic row in 2020 count/effort data (GMU6_U_23 only operational for 0.5 days)
+  count_eoe20s21s_wolf <- count_eoe20s21s_wolf[-393,]
+  count_eoe20s21s_effort <- count_eoe20s21s_effort[-393,]
   #'  Replace NAs in sampling effort with 0 - these sites truly were not surveyed
   #'  during those sampling occasions so survey really is 0
   count_eoe20s21s_effort <- replace(count_eoe20s21s_effort, is.na(count_eoe20s21s_effort), 0)
