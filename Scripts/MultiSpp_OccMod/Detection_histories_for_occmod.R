@@ -231,7 +231,7 @@
   spp_smr <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf")
   spp_wtr <- list("bobcat", "coyote", "mountain_lion", "wolf")
   
-  rm_rows_eoe20s <- c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 334, 346, 361, 371, 379, 380, 385, 433, 437, 439, 458, 493)
+  rm_rows_eoe20s <- c(61, 79, 82, 98, 125, 157, 171, 177, 178, 181, 186, 192, 200, 214, 228, 235, 236, 259, 311, 334, 346, 361, 371, 379, 380, 385, 419, 433, 437, 439, 458, 493)
   DH_eoe20s_predators <- lapply(spp_smr, DH, dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-07-01", y = "binary", rm_rows = rm_rows_eoe20s, oc = 11) 
     
   rm_rows_eoe20w <- c(7, 16, 32, 43, 123, 138, 195, 215, 227, 242, 252, 268) 
