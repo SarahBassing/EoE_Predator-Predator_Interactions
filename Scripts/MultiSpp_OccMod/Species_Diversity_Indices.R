@@ -15,7 +15,8 @@
   #'  Relative abundance index data for prey species
   #'  Using Hour of Detection as RA index b/c highly correlated with other 
   #'  definitions of independent detection events and consistent with Ausband et al. 2023
-  load("./Data/Relative abundance data/EoE_RelativeN_30minElapsed.RData") #EoE_RelativeN_HrOfDetection.RData
+  load("./Data/Relative abundance data/EoE_RelativeN_30minElapsed.RData") 
+  # load("./Data/Relative abundance data/EoE_RelativeN_HrOfDetection.RData")
   
   #'  Sampling effort data (number of days cameras operation)
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
