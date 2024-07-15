@@ -16,7 +16,11 @@
   #'  Using Hour of Detection as RA index b/c highly correlated with other 
   #'  definitions of independent detection events and consistent with Ausband et al. 2023
   load("./Data/Relative abundance data/EoE_RelativeN_30minElapsed.RData") 
+<<<<<<< HEAD
   load("./Data/Relative abundance data/EoE_RelativeN_HrOfDetection.RData")
+=======
+  # load("./Data/Relative abundance data/EoE_RelativeN_HrOfDetection.RData")
+>>>>>>> b57079bad1a82d594536c0d0fde4d53d910c64dd
   
   #'  Sampling effort data (number of days cameras operation)
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
