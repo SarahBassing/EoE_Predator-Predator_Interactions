@@ -252,6 +252,18 @@
   eoe_covs_21s <- cov_extract(locs_aea = cams_aea[[3]], locs_nad83 = cams_nad83[[3]], locs_hab_crs = cams_hab_crs[[3]], 
                               locs_ghf = cams_ghf[[3]], min_group_size = min_group_size_eoe21s, relativeN = spp_diversity_Smr21) #mort = mort_Smr21_df, 
   
+  
+  ####  Save  ###
+  write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.csv")
+  save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData")
+  
+  write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.csv")
+  save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.RData")
+  
+  write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.csv")
+  save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
+  
+  
   #'  -------------------------
   ####  Covariate exploration  ####
   #'  -------------------------
@@ -545,13 +557,5 @@
   #'   annotation_custom(maxlivestock)
   
  
-  ####  Save  ###
-  write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.csv")
-  save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData")
   
-  write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.csv")
-  save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.RData")
-  
-  write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.csv")
-  save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
   
