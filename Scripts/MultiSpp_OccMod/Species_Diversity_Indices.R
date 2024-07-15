@@ -15,8 +15,8 @@
   #'  Relative abundance index data for prey species
   #'  Using Hour of Detection as RA index b/c highly correlated with other 
   #'  definitions of independent detection events and consistent with Ausband et al. 2023
-  # load("./Data/Relative abundance data/EoE_RelativeN_30minElapsed.RData") 
-  load("./Data/Relative abundance data/EoE_RelativeN_HrOfDetection.RData")
+  load("./Data/Relative abundance data/EoE_RelativeN_30minElapsed.RData") 
+  # load("./Data/Relative abundance data/EoE_RelativeN_HrOfDetection.RData")
 
   #'  Sampling effort data (number of days cameras operation)
   load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
@@ -49,12 +49,12 @@
       relocate(small_deer, .after = big_deer)
     return(RelativeN)
   }
-  # RA_Smr20_df <- reformat_relativeN_data(eoe_30min_list[[1]]) 
-  # RA_Wtr20_df <- reformat_relativeN_data(eoe_30min_list[[2]])
-  # RA_Smr21_df <- reformat_relativeN_data(eoe_30min_list[[3]])
-  RA_Smr20_df <- reformat_relativeN_data(eoe_dethr_list[[1]]) 
-  RA_Wtr20_df <- reformat_relativeN_data(eoe_dethr_list[[2]])
-  RA_Smr21_df <- reformat_relativeN_data(eoe_dethr_list[[3]])
+  RA_Smr20_df <- reformat_relativeN_data(eoe_30min_list[[1]])
+  RA_Wtr20_df <- reformat_relativeN_data(eoe_30min_list[[2]])
+  RA_Smr21_df <- reformat_relativeN_data(eoe_30min_list[[3]])
+  # RA_Smr20_df <- reformat_relativeN_data(eoe_dethr_list[[1]]) 
+  # RA_Wtr20_df <- reformat_relativeN_data(eoe_dethr_list[[2]])
+  # RA_Smr21_df <- reformat_relativeN_data(eoe_dethr_list[[3]])
   
   #'  Adjust relative abundance indices by sampling effort to create a DAILY DETECTION RATE
   #'  Divide total number of hours with at least one detection (summed across season)
@@ -64,30 +64,30 @@
     effort <- dplyr::select(effort, c("NewLocationID", "ndays", "nhrs"))
     ra_scaled_by_nhrs <- RA %>%
       full_join(effort, by = "NewLocationID") %>%
-      # mutate(elk_perday = round(elk/ndays, 3) * 100,
-      #        human_perday = round(human/ndays, 3) * 100,
-      #        human_perday = round(human_plus/ndays, 3) * 100,
-      #        human_motorized_perday = round(human_motorized/ndays, 3) * 100,
-      #        lagomorphs_perday = round(lagomorphs/ndays, 3) * 100,
-      #        livestock_perday = round(livestock/ndays, 3) * 100,
-      #        moose_perday = round(moose/ndays, 3) * 100,
-      #        muledeer_perday = round(muledeer/ndays, 3) * 100,
-      #        whitetaileddeer_perday = round(whitetaileddeer/ndays, 3) * 100,
-      #        ungulate_perday = round(ungulate/ndays, 3) * 100,
-      #        big_deer_perday = round(big_deer/ndays, 3) * 100,
-      #        small_deer_perday = round(small_deer/ndays, 3) * 100) %>%
-      mutate(elk_perday = round(elk/ndays, 3),
-             human_perday = round(human/ndays, 3),
-             human_perday = round(human_plus/ndays, 3),
-             human_motorized_perday = round(human_motorized/ndays, 3),
-             lagomorphs_perday = round(lagomorphs/ndays, 3),
-             livestock_perday = round(livestock/ndays, 3),
-             moose_perday = round(moose/ndays, 3),
-             muledeer_perday = round(muledeer/ndays, 3),
-             whitetaileddeer_perday = round(whitetaileddeer/ndays, 3),
-             ungulate_perday = round(ungulate/ndays, 3),
-             big_deer_perday = round(big_deer/ndays, 3),
-             small_deer_perday = round(small_deer/ndays, 3)) %>%
+      mutate(elk_perday = round(elk/ndays, 3) * 100,
+             human_perday = round(human/ndays, 3) * 100,
+             human_perday = round(human_plus/ndays, 3) * 100,
+             human_motorized_perday = round(human_motorized/ndays, 3) * 100,
+             lagomorphs_perday = round(lagomorphs/ndays, 3) * 100,
+             livestock_perday = round(livestock/ndays, 3) * 100,
+             moose_perday = round(moose/ndays, 3) * 100,
+             muledeer_perday = round(muledeer/ndays, 3) * 100,
+             whitetaileddeer_perday = round(whitetaileddeer/ndays, 3) * 100,
+             ungulate_perday = round(ungulate/ndays, 3) * 100,
+             big_deer_perday = round(big_deer/ndays, 3) * 100,
+             small_deer_perday = round(small_deer/ndays, 3) * 100) %>%
+      # mutate(elk_perday = round(elk/ndays, 3),
+      #        human_perday = round(human/ndays, 3),
+      #        human_perday = round(human_plus/ndays, 3),
+      #        human_motorized_perday = round(human_motorized/ndays, 3),
+      #        lagomorphs_perday = round(lagomorphs/ndays, 3),
+      #        livestock_perday = round(livestock/ndays, 3),
+      #        moose_perday = round(moose/ndays, 3),
+      #        muledeer_perday = round(muledeer/ndays, 3),
+      #        whitetaileddeer_perday = round(whitetaileddeer/ndays, 3),
+      #        ungulate_perday = round(ungulate/ndays, 3),
+      #        big_deer_perday = round(big_deer/ndays, 3),
+      #        small_deer_perday = round(small_deer/ndays, 3)) %>%
       dplyr::select(-c("ndays", "nhrs"))
     return(ra_scaled_by_nhrs)
   }
