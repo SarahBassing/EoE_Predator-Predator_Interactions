@@ -121,6 +121,12 @@
 
   # mismatches <- setdiff(eoe20s_5min_ndets[,1:3], eoe20s_30min_ndets[,1:3])
   
+  eoe20s_60min_ndets <- unique_detections(eoe20s_dets, elapsed_time = 3600) #(60*60 = 3600 seconds)
+  eoe20w_60min_ndets <- unique_detections(eoe20w_dets, elapsed_time = 3600)
+  eoe21s_60min_ndets <- unique_detections(eoe21s_dets, elapsed_time = 3600)
+  eoe_60min_list <- list(eoe20s_60min_ndets, eoe20w_60min_ndets, eoe21s_60min_ndets)
+  
+  
   #'  ---------------------------------
   ####  Hours when detection occurred  ####
   #'  ---------------------------------
@@ -153,16 +159,18 @@
   ####  Correlation test  ####
   #'  --------------------
   #'  Test for correlation between different metrics of relative abundance
-  compare_relative_abund <- function(ndets_5min, ndets_30min, n_dethrs, spp) {
+  compare_relative_abund <- function(ndets_5min, ndets_30min, ndets_60min, n_dethrs, spp) {
     #'  Filter to species of interest
     ndets_5min <- filter(ndets_5min, Species == spp) %>% dplyr::select(n_dets) %>%
       rename(ndets_5min = n_dets)
     ndets_30min <- filter(ndets_30min, Species == spp) %>% dplyr::select(n_dets) %>%
       rename(ndets_30min = n_dets)
+    ndets_60min <- filter(ndets_60min, Species == spp) %>% dplyr::select(n_dets) %>%
+      rename(ndets_60min = n_dets)
     n_dethrs <- filter(n_dethrs, Species == spp) %>% dplyr::select(n_dets) %>%
       rename(dethr = n_dets)
     #'  Combine all datasets
-    ra_metrics <- cbind(ndets_5min, ndets_30min, n_dethrs) 
+    ra_metrics <- cbind(ndets_5min, ndets_30min, ndets_60min, n_dethrs) 
       
     
     #'  Run correlation test using Pearson's correlation
@@ -172,11 +180,11 @@
     print(corr_all)
     return(corr_all)
   }
-  elk_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "elk")
-  moose_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "moose")
-  md_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "muledeer")
-  wtd_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "whitetaileddeer")
-  bunny_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "rabbit_hare")
+  elk_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, ndets_60min = eoe_60min_list, n_dethrs = eoe_dethr_list, spp = "elk")
+  moose_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, ndets_60min = eoe_60min_list, n_dethrs = eoe_dethr_list, spp = "moose")
+  md_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, ndets_60min = eoe_60min_list, n_dethrs = eoe_dethr_list, spp = "muledeer")
+  wtd_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, ndets_60min = eoe_60min_list, n_dethrs = eoe_dethr_list, spp = "whitetaileddeer")
+  bunny_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, ndets_60min = eoe_60min_list, n_dethrs = eoe_dethr_list, spp = "rabbit_hare")
   
   human_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human")
   motorized_corr <- mapply(compare_relative_abund, ndets_5min = eoe_5min_list, ndets_30min = eoe_30min_list, n_dethrs = eoe_dethr_list, spp = "human_motorized")
