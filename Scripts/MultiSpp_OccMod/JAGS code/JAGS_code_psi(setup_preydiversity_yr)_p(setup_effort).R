@@ -28,7 +28,7 @@
         mean.psiSpp2 ~ dunif(0, 1)
             
         #'  First order occupancy slopes (psi)
-        for(fo_psi in 2:6){                         
+        for(fo_psi in 2:7){                         
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
@@ -129,9 +129,9 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Spp1 & Spp2 = Intercept[1] + Setup[2] + Year[5] + Elevation[3] + Forest[4] + SppDiversity[6] 
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,5] + betaSpp1[4]*psi_cov[i,3] + betaSpp1[5]*psi_cov[i,4] + betaSpp1[6]*psi_cov[i,6]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,5] + betaSpp2[4]*psi_cov[i,3] + betaSpp2[5]*psi_cov[i,4] + betaSpp2[6]*psi_cov[i,6]
+          #'  Covariate order: Intercept[1] + Setup[2] + Year[3] + Forest[4] + Elevation[5] + TRI[17] + SppDiversity[6]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,5] + betaSpp1[6]*psi_cov[i,17] + betaSpp1[7]*psi_cov[i,6] 
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] + betaSpp2[6]*psi_cov[i,17] + betaSpp2[7]*psi_cov[i,6] 
         
           #'  ...for state Spp12
           #'  Don't forget - second order parameter set to 0 so no interaction
