@@ -28,7 +28,23 @@
   
   #'  Load covariate and detection history data
   load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img_updated_070824.RData") # NOTE: includes Covariates_EoE_..._updated_070824.RData which includes TRI, updated sppDiversity, and 100m radius PercForest 
-  # load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
+  #' load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
+  #' 
+  #' #'  Remove problematic row in 2020 detection history (GMU6_U_23 only operational for 0.5 days)
+  #' drop_row <- function(det_hist, rm_rows) {
+  #'   short_dh <- det_hist[[1]]
+  #'   short_effort <- det_hist[[2]]
+  #'   
+  #'   short_dh <- short_dh[-rm_rows,]
+  #'   short_effort <- short_effort[-rm_rows,]
+  #'   
+  #'   dh_list <- list(short_dh, short_effort)
+  #' }
+  #' DH_eoe20s_predators <- lapply(DH_eoe20s_predators, drop_row, rm_rows = 393)
+  #' 
+  #' stations_eoe20s21s <- stations_eoe20s21s %>%
+  #'   filter(NewLocationID != "GMU6_U_23" | Season != "Smr20")
+  #' effort_eoe20s21s <- effort_eoe20s21s[-393,]
   
   #'  ----------------------------
   ####  Pair detection histories  ####
@@ -127,9 +143,9 @@
   psi_cov <- matrix(NA, ncol = 17, nrow = nsites)
   psi_cov[,1] <- 1
   psi_cov[,2] <- det_covs$Setup
-  psi_cov[,3] <- stations_eoe20s21s$Elev
+  psi_cov[,3] <- stations_eoe20s21s$Year 
   psi_cov[,4] <- stations_eoe20s21s$PercForest
-  psi_cov[,5] <- stations_eoe20s21s$Year 
+  psi_cov[,5] <- stations_eoe20s21s$Elev
   psi_cov[,6] <- stations_eoe20s21s$SppDiversity
   psi_cov[,7] <- stations_eoe20s21s$Nelk
   psi_cov[,8] <- stations_eoe20s21s$Nmoose
@@ -148,9 +164,9 @@
   psi_inxs_cov <- matrix(NA, ncol = 17, nrow = nsites)
   psi_inxs_cov[,1] <- 1
   psi_inxs_cov[,2] <- det_covs$Setup
-  psi_inxs_cov[,3] <- stations_eoe20s21s$Elev
+  psi_inxs_cov[,3] <- stations_eoe20s21s$Year 
   psi_inxs_cov[,4] <- stations_eoe20s21s$PercForest
-  psi_inxs_cov[,5] <- stations_eoe20s21s$Year 
+  psi_inxs_cov[,5] <- stations_eoe20s21s$Elev
   psi_inxs_cov[,6] <- stations_eoe20s21s$SppDiversity
   psi_inxs_cov[,7] <- stations_eoe20s21s$Nelk
   psi_inxs_cov[,8] <- stations_eoe20s21s$Nmoose
@@ -286,7 +302,7 @@
   save(wolf.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
-  #'  psi = setup, year, tri/elevation, forest, human footprint; p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -300,7 +316,7 @@
   save(wolf.bear.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, elk, moose, wtd; p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri, elk, moose, wtd; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.bear.preyabund <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -314,7 +330,7 @@
   save(wolf.bear.preyabund, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preyabund_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey diversity no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.bear.preydiv <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -328,7 +344,7 @@
   save(wolf.bear.preydiv, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(.); p = setup, effort 
+  #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.bear.habx <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -342,7 +358,7 @@
   save(wolf.bear.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd); p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, moose, wtd); p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.bear.preyabundx <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -356,7 +372,7 @@
   save(wolf.bear.preyabundx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey diversity inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(spp diversity); p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri; psix(spp diversity); p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.bear.preydivx <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -370,7 +386,7 @@
   save(wolf.bear.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Global model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd, spp diversity); p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, moose, wtd, spp diversity); p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.bear.global <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -386,7 +402,7 @@
   #####  Top model w/ intx on detection model v1  #### 
   #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model:  Prey diversity, no intx on psi
-  #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort; px(.) 
+  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort; px(.) 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(.).R")
   start.time = Sys.time()
   wolf.bear.preydiv.px <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -402,7 +418,7 @@
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
   #'  Top model:  Prey diversity, no intx on psi
-  #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort; px(psi) 
+  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort; px(psi) 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi).R")
   start.time = Sys.time()
   wolf.bear.preydiv.px2 <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -438,7 +454,7 @@
   save(wolf.coy.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(yr)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
-  #'  psi = setup, year, elevation, forest; p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri, tri; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.coy.hab <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
@@ -452,7 +468,7 @@
   save(wolf.coy.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, elk, moose, wtd; p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri, elk, moose, wtd; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_wolfcoy.R")
   start.time = Sys.time()
   wolf.coy.preyabund <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
@@ -466,7 +482,7 @@
   save(wolf.coy.preyabund, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preyabund_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey diversity no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.coy.preydiv <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
@@ -480,7 +496,7 @@
   save(wolf.coy.preydiv, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preydiversity_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(.); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.coy.habx <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
@@ -494,7 +510,7 @@
   save(wolf.coy.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd, lagomorph); p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, moose, wtd, lagomorph); p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_wolfcoy.R")
   start.time = Sys.time()
   wolf.coy.preyabundx <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
@@ -508,7 +524,7 @@
   save(wolf.coy.preyabundx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey diversity inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.coy.preydivx <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
@@ -522,7 +538,7 @@
   save(wolf.coy.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
 
   #####  Global model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd, lagomorph, spp diversity); p = setup, effort 
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, moose, wtd, lagomorph, spp diversity); p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_wolfcoy.R")
   start.time = Sys.time()
   wolf.coy.global <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
@@ -538,7 +554,7 @@
   #####  Top model w/ intx on detection model v1  #### 
   #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model:  Habitat, no intx on psi
-  #'  psi = setup, year, elevation, forest; p = setup, effort; px(.) 
+  #'  psi = setup, year, forest, elevation, tri; p = setup, effort; px(.) 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(.).R")
   start.time = Sys.time()
   wolf.coy.hab.px <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
@@ -554,7 +570,7 @@
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
   #'  Top model:  Habitat, no intx on psi
-  #'  psi = setup, year, elevation, forest; p = setup, effort; px(psi) 
+  #'  psi = setup, year, forest, elevation, tri; p = setup, effort; px(psi) 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(psi).R")
   start.time = Sys.time()
   wolf.coy.hab.px2 <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
@@ -592,7 +608,7 @@
   save(wolf.lion.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
-  #'  psi = setup, year, elevation, forest; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.lion.hab <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
@@ -606,7 +622,7 @@
   save(wolf.lion.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, elk, moose, wtd; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri, elk, moose, wtd; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.lion.preyabund <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
@@ -620,7 +636,7 @@
   save(wolf.lion.preyabund, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_preyabund_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey diversity no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.lion.preydiv <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
@@ -634,7 +650,7 @@
   save(wolf.lion.preydiv, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_preydiversity_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(.); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.lion.habx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
@@ -648,7 +664,7 @@
   save(wolf.lion.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, moose, wtd); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.lion.preyabundx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
@@ -662,7 +678,7 @@
   save(wolf.lion.preyabundx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey diversity inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   wolf.lion.preydivx <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
@@ -676,7 +692,7 @@
   save(wolf.lion.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
  
   #####  Global model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, moose, wtd, spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, moose, wtd, spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
   wolf.lion.global <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
@@ -746,7 +762,7 @@
   save(lion.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
-  #'  psi = setup, year, elevation, forest; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bear.hab <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
@@ -760,7 +776,7 @@
   save(lion.bear.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, elk, wtd; p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri, elk, wtd; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_bearlion.R")
   start.time = Sys.time()
   lion.bear.preyabund <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
@@ -774,7 +790,7 @@
   save(lion.bear.preyabund, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_preyabund_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey diversity no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bear.preydiv <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
@@ -788,7 +804,7 @@
   save(lion.bear.preydiv, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_preydiversity_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(.); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bear.habx <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
@@ -802,7 +818,7 @@
   save(lion.bear.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, wtd); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, wtd); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_bearlion.R")
   start.time = Sys.time()
   lion.bear.preyabundx <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
@@ -816,7 +832,7 @@
   save(lion.bear.preyabundx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey diversity inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(spp diversity); p = setup, effort  
+  #'  psi = setup, year, forest, elevation, tri; psix(spp diversity); p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bear.preydivx <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
@@ -830,7 +846,7 @@
   save(lion.bear.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Global model  ####
-  #'  psi = setup, year, elevation, forest; psix(elk, wtd, spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, wtd, spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearlion.R")
   start.time = Sys.time()
   lion.bear.global <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
@@ -915,7 +931,7 @@
   save(lion.bob.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
-  #'  psi = setup, year, elevation, forest; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bob.hab <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
@@ -929,7 +945,7 @@
   save(lion.bob.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, elk, wtd, lagomorphs; p = setup, effort 
+  #'  psi = setup, year, forest, elevation, tri, elk, wtd, lagomorphs; p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_lionbob.R")
   start.time = Sys.time()
   lion.bob.preyabund <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
@@ -957,7 +973,7 @@
   save(lion.bob.preydiv, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_preydiversity_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(.); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bob.habx <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
@@ -971,7 +987,7 @@
   save(lion.bob.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, wtd, lagomorphs); p = setup, effort 
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, wtd, lagomorphs); p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_lionbob.R")
   start.time = Sys.time()
   lion.bob.preyabundx <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
@@ -985,7 +1001,7 @@
   save(lion.bob.preyabundx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey diversity inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   lion.bob.preydivx <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
@@ -999,7 +1015,7 @@
   save(lion.bob.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Global model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, wtd, lagomorphs, spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, wtd, lagomorphs, spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_lionbob.R")
   start.time = Sys.time()
   lion.bob.global <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
@@ -1069,7 +1085,7 @@
   save(coy.bob.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
-  #'  psi = setup, year, elevation, forest; p = setup, effort 
+  #'  psi = setup, year, forest, elevation, tri; p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
@@ -1083,7 +1099,7 @@
   save(coy.bob.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, wtd, lagomorphs; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri, wtd, lagomorphs; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_coybob.R")
   start.time = Sys.time()
   coy.bob.preyabund <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
@@ -1097,7 +1113,7 @@
   save(coy.bob.preyabund, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preyabund_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey diversity no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.preydiv <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
@@ -1111,7 +1127,7 @@
   save(coy.bob.preydiv, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preydiversity_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(.); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.habx <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
@@ -1125,7 +1141,7 @@
   save(coy.bob.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(wtd, lagomorphs); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_coybob.R")
   start.time = Sys.time()
   coy.bob.preyabundx <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
@@ -1139,7 +1155,7 @@
   save(coy.bob.preyabundx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey diversity inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.preydivx <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
@@ -1153,7 +1169,7 @@
   save(coy.bob.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Global model  #### 
-  #'  psi = setup, year, elevation, forest; psix(wtd, lagomorphs, spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs, spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_coybob.R")
   start.time = Sys.time()
   coy.bob.global <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
@@ -1190,7 +1206,7 @@
   #####  Top model w/ intx on detection model v1  #### 
   #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model:  Global
-  #'  psi = setup, year, elevation, forest; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(.)
+  #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(.)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob.R")
   start.time = Sys.time()
   coy.bob.global.px <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
@@ -1206,7 +1222,7 @@
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
   #'  Top model:  Global
-  #'  psi = setup, year, elevation, forest; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(psi)
+  #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(psi)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.R")
   start.time = Sys.time()
   coy.bob.global.px2 <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
@@ -1244,7 +1260,7 @@
   save(bear.coy.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(yr)_p(.)_", Sys.Date(), ".RData"))
   
   #####  Habitat no inxs model  #### 
-  #'  psi = setup, year, elevation, forest; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
   bear.coy.hab <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
@@ -1258,7 +1274,7 @@
   save(bear.coy.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey abundance no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, elk, wtd, lagomorphs; p = setup, effort 
+  #'  psi = setup, year, forest, elevation, tri, elk, wtd, lagomorphs; p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_bearcoy.R")
   start.time = Sys.time()
   bear.coy.preyabund <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
@@ -1272,7 +1288,7 @@
   save(bear.coy.preyabund, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_preyabund_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Prey diversity no inxs model  #### 
-  #'  psi = setup, year, elevation, forest, spp diversity; p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort).R")
   start.time = Sys.time()
   bear.coy.preydiv <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
@@ -1286,7 +1302,7 @@
   save(bear.coy.preydiv, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_preydiversity_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(.); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
   bear.coy.habx <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
@@ -1300,7 +1316,7 @@
   save(bear.coy.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey abundance inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, wtd, lagomorphs); p = setup, effort 
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, wtd, lagomorphs); p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_bearcoy.R")
   start.time = Sys.time()
   bear.coy.preyabundx <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
@@ -1314,7 +1330,7 @@
   save(bear.coy.preyabundx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ prey diversity inx model  #### 
-  #'  psi = setup, year, elevation, forest; psix(spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
   bear.coy.preydivx <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
@@ -1328,7 +1344,7 @@
   save(bear.coy.preydivx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   #####  Global model  #### 
-  #'  psi = setup, year, elevation, forest; psix(elk, wtd, lagomorphs, spp diversity); p = setup, effort
+  #'  psi = setup, year, forest, elevation, tri; psix(elk, wtd, lagomorphs, spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearcoy.R")
   start.time = Sys.time()
   bear.coy.global <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
