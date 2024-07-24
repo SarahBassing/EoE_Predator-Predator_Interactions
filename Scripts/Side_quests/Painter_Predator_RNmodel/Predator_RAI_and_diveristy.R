@@ -309,8 +309,8 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 75000
-  nb <- 10000
+  ni <- 100000
+  nb <- 20000
   nt <- 10
   na <- 5000
   
@@ -373,7 +373,6 @@
   save(RN_lion_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData")) 
   
   #'  WOLF JUNE-JULY 2020
-  # ni_wolf <-  100000 
   start.time = Sys.time()
   inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
   RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
