@@ -36,11 +36,11 @@
           beta1[gmu] ~ dnorm(0, 0.001)
         }
       
-        #'  Categorical effect for camera setup needs multiple beta2 coefficients
-        beta2[1] <- 0
-        for(cam in 2:nsets) {
-          beta2[cam] ~ dnorm(0, 0.001)
-        }
+        #' #'  Categorical effect for camera setup needs multiple beta2 coefficients
+        #' beta2[1] <- 0
+        #' for(cam in 2:nsets) {
+        #'   beta2[cam] ~ dnorm(0, 0.001)
+        #' }
         
         #'  Detection priors
         mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
@@ -58,7 +58,7 @@
         #'  Latent state (abundance)
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + beta1[gmu[i]] + beta2[setup[i]])
+          lambda[i] <- exp(beta0 + beta1[gmu[i]]) # + beta2[setup[i]])
           
           #'  Detection state
           for(j in 1:nsurveys){
@@ -72,7 +72,7 @@
         #'  ------------------
         #'  Mean lambda per GMU at road sites
         for(gmu in 1:ngmu) {
-          lambdaGMU[gmu] <- exp(beta0 + beta1[gmu] + beta2[2])
+          lambdaGMU[gmu] <- exp(beta0 + beta1[gmu]) # + beta2[2])
         }
         
         #'  Mean lambda averaged across GMUs
