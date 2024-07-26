@@ -38,11 +38,6 @@
   load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
   load("./Data/IDFG camera data/Problem cams/eoe22s_problem_cams.RData")
   
-  #'  Load sampling effort data (number of days cameras operation)
-  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe20s.RData")
-  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe21s.RData") 
-  load("./Data/MultiSpp_OccMod_Outputs/Detection_Histories/SamplingEffort_eoe22s.RData") 
-  
   #'  Load basic camera site covariate data
   cams_eoe_long <- read.csv("./Data/side_quests/Painter/cams_eoe_long_Smr2020-2022.csv") %>%
     dplyr::select(c("NewLocationID", "Gmu", "Setup", "Season")) %>%
@@ -137,7 +132,7 @@
 
   #####  4) Create species-specific detection histories  #####
   #'  ---------------------------------------------------
-  #'  FYI: June 1 - July 31 = 61 1-day sampling periods
+  #'  FYI: June 1 - Aug 31 = 92 1-day sampling periods
   DH <- function(dets, cam_probs, spp, start_date, y, oc) {
     det_hist <- detectionHistory(recordTable = dets,
                                  camOp = cam_probs,
@@ -161,11 +156,21 @@
     short_effort <- det_hist[[2]][,1:oc]
     
     #'  Remove rows where camera was inoperable during the entire sampling season
-    short_dh <- as.data.frame(short_dh) #%>%
-     # mutate(NewLocationID = row.names(.)) %>% relocate(NewLocationID, .before = "o1") %>% dplyr::select(-NewLocationID)
-    short_effort <- as.data.frame(short_effort) 
-    short_dh <- filter(short_dh, rowSums(is.na(short_dh)) != ncol(short_dh))
-    short_effort <- filter(short_effort, rowSums(is.na(short_effort)) != ncol(short_effort))
+    short_dh <- as.data.frame(short_dh)
+    short_effort <- as.data.frame(short_effort)  %>%
+      mutate(NewLocationID = row.names(.)) %>% relocate(NewLocationID, .before = "o1")
+    short_dh <- filter(short_dh, rowSums(is.na(short_dh)) != ncol(short_dh)) %>%
+      mutate(NewLocationID = row.names(.)) %>% relocate(NewLocationID, .before = "o1")
+    short_effort <- short_effort[short_effort$NewLocationID %in% short_dh$NewLocationID,]
+    
+    #'  Remove rows where cameras was inoperable for >61 days (we require at least 
+    #'  30 days of active surveying for site to be included, i.e., <62 NAs)
+    short_dh <- filter(short_dh, rowSums(is.na(short_dh)) < 62)
+    short_effort <- short_effort[short_effort$NewLocationID %in% short_dh$NewLocationID,]
+    
+    #'  Drop NewLocationID column
+    short_dh <- dplyr::select(short_dh, -NewLocationID)
+    short_effort <- dplyr::select(short_effort, -NewLocationID)
     
     dh_list <- list(short_dh, short_effort)
     
@@ -173,9 +178,9 @@
   }
   #'  Create season-specific detection histories for species listed below
   spp_smr <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf")
-  DHeff_eoe20s_RNmod <- lapply(spp_smr, DH, dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-06-01", y = "binary", oc = 61) 
-  DHeff_eoe21s_RNmod <- lapply(spp_smr, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-06-01", y = "binary", oc = 61)
-  DHeff_eoe22s_RNmod <- lapply(spp_smr, DH, dets = eoe22s_det_events, cam_probs = eoe22s_probs, start_date = "2022-06-01", y = "binary", oc = 61)
+  DHeff_eoe20s_RNmod <- lapply(spp_smr, DH, dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-06-01", y = "binary", oc = 92) 
+  DHeff_eoe21s_RNmod <- lapply(spp_smr, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-06-01", y = "binary", oc = 92)
+  DHeff_eoe22s_RNmod <- lapply(spp_smr, DH, dets = eoe22s_det_events, cam_probs = eoe22s_probs, start_date = "2022-06-01", y = "binary", oc = 92)
   
   #'  Remove sampling effort from species-specific DH_npp lists
   strip_list <- function(dh) {
@@ -252,26 +257,26 @@
     #'  Convert detection history to matrix
     dh <- as.matrix(dh)
     dimnames(dh) <- NULL
-    #' #'  Count number of sites per GMU
-    #' ncams_perGMU <- cov %>%
-    #'   group_by(GMU) %>%
-    #'   summarise(nsites = n()) %>%
-    #'   ungroup()
+    #'  Count number of sites per GMU
+    ncams_perGMU <- cov %>%
+      group_by(GMU) %>%
+      summarise(nsites = n()) %>%
+      ungroup()
     #'  Bundle data for JAGS
     bundled <- list(y = dh, 
                     nsites = dim(dh)[1], 
-                    # nsurveys = dim(dh)[2], 
-                    # ngmu = max(as.numeric(cov$GMU)),
-                    # nsets = max(as.numeric(cov$Setup)),
+                    nsurveys = dim(dh)[2],
+                    ngmu = max(as.numeric(cov$GMU)),
+                    nsets = max(as.numeric(cov$Setup)),
                     # ncams1 = as.numeric(ncams_perGMU[1,2]), # GMU10A
                     # ncams2 = as.numeric(ncams_perGMU[2,2]), # GMU6
                     # ncams3 = as.numeric(ifelse(is.na(ncams_perGMU[3,2]), 0, ncams_perGMU[3,2])), #GMU1
                     gmu = as.numeric(cov$GMU), 
-                    setup = as.numeric(cov$Setup),
-                    #'  Area of each (km2)
-                    area1 = as.numeric(8527.31),
-                    area2 = as.numeric(5905.44),
-                    area3 = as.numeric(14648.92))
+                    setup = as.numeric(cov$Setup))#,
+                    #' #'  Area of each (km2)
+                    #' area1 = as.numeric(8527.31),
+                    #' area2 = as.numeric(5905.44),
+                    #' area3 = as.numeric(14648.92))
     str(bundled)
     return(bundled)
   }
@@ -293,9 +298,9 @@
   ninit_22s <- lapply(DH_eoe22s_RNmod, initial_n)
   
   #'  Parameters monitored
-  params <- c("beta0", "beta1", "beta2", "beta3", "beta4", 
-              "alpha0", "alpha2", "rSetup", "mu.r", "mean.p", 
-              "mu.lambda", "totalN", "occSites", "mean.psi", "N")
+  params <- c("beta0", "beta1", "beta2", "alpha0", "alpha1", 
+              "rSetup", "mu.r", "mean.p", "mu.lambda", 
+              "totalN", "occSites", "mean.psi", "N")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept, i.e., mean lambda for GMU10A 
   #'  mean.r = the intercept, i.e., per-individual detection probability at random sites
@@ -304,8 +309,8 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 50000
-  nb <- 10000
+  ni <- 100000
+  nb <- 20000
   nt <- 10
   na <- 5000
   
@@ -332,7 +337,7 @@
   start.time = Sys.time()
   inits_bob20s <- function(){list(N = ninit_20s[[2]])}
   RN_bob_20s <- jags(data_JAGS_bundle_20s[[2]], inits = inits_bob20s, params,
-                     "./Outputs/Painter_RNmodel/JAGS_RNmod_2020.txt",
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2020.txt",
                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -345,7 +350,7 @@
   start.time = Sys.time()
   inits_coy20s <- function(){list(N = ninit_20s[[3]])}
   RN_coy_20s <- jags(data_JAGS_bundle_20s[[3]], inits = inits_coy20s, params,
-                     "./Outputs/Painter_RNmodel/JAGS_RNmod_2020.txt",
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2020.txt",
                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -358,7 +363,7 @@
   start.time = Sys.time()
   inits_lion20s <- function(){list(N = ninit_20s[[4]])}
   RN_lion_20s <- jags(data_JAGS_bundle_20s[[4]], inits = inits_lion20s, params,
-                      "./Outputs/Painter_RNmodel/JAGS_RNmod_2020.txt",
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2020.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -368,11 +373,10 @@
   save(RN_lion_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData")) 
   
   #'  WOLF JUNE-JULY 2020
-  # ni_wolf <-  100000 
   start.time = Sys.time()
   inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
   RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
-                      "./Outputs/Painter_RNmodel/JAGS_RNmod_2020.txt",
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2020.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -384,7 +388,7 @@
   #'  ---------------------------
   ######  2021 & 2022  Analyses  ######
   #'  ---------------------------
-  source("./Side_quests/Painter_Predator_RNmodel/RNmodel_JAGS_code_2021&2022_WTD_FawnProject.R")
+  source("./Scripts/Side_quests/Painter_Predator_RNmodel/RNmodel_JAGS_code_2021&2022_WTD_FawnProject.R")
   
   #'  BLACK BEAR JUNE-JULY 2021
   start.time = Sys.time()
