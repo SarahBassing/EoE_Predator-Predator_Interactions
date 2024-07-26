@@ -27,7 +27,7 @@ cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_
             
         #'  First order occupancy slopes (psi)
         #'  NOTE: the covariates assigned to betaSpp1 & betaSpp2 will differ!
-        for(fo_psi in 2:8){                         
+        for(fo_psi in 2:9){                         
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
