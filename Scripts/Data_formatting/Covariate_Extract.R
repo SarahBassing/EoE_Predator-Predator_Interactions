@@ -254,14 +254,14 @@
   
   
   ####  Save  ###
-  write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.csv")
-  save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData")
+  write.csv(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_072924.csv")
+  save(eoe_covs_20s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_072924.RData")
   
-  write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.csv")
-  save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.RData")
+  write.csv(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_072924.csv")
+  save(eoe_covs_20w, file = "./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_072924.RData")
   
-  write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.csv")
-  save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
+  write.csv(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_072924.csv")
+  save(eoe_covs_21s, file = "./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_072924.RData")
   
   
   #'  -------------------------
