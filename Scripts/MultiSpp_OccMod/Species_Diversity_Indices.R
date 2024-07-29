@@ -123,15 +123,19 @@
       dplyr::select(c("NewLocationID", "elk_perday", "lagomorphs_perday", "livestock_perday",
                       "moose_perday", "muledeer_perday", "whitetaileddeer_perday")) %>%
       filter(!is.na(elk_perday))
+    Shannon_noLago <- as.data.frame(RA) %>%
+      dplyr::select(c("NewLocationID", "elk_perday", "livestock_perday", "moose_perday", 
+                      "muledeer_perday", "whitetaileddeer_perday")) %>%
+      filter(!is.na(elk_perday))
+    
     #' #'  Alternatively, use un-weighted RA index
     #' #'  FYI: H values are almost identical to those of weighted RA index
     #' Shannon <- as.data.frame(RA) %>%
     #'   dplyr::select(c("NewLocationID", "elk", "lagomorphs", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
     #'   filter(!is.na(elk))
-    
-    Shannon_noLago <- as.data.frame(RA) %>%
-      dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
-      filter(!is.na(elk))
+    # Shannon_noLago <- as.data.frame(RA) %>%
+    #   dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
+    #   filter(!is.na(elk))
   
     #'  Loop through each camera site to calculate H
     H <- c(NA)
