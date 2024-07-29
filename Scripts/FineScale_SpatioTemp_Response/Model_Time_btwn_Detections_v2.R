@@ -22,8 +22,8 @@
   load("./Data/Time_btwn_Detections/TBD_all_spp-pred_pairs_2023-06-05.RData") #TBD_all_spp-pred_pairs_2023-05-23
   
   #'  Covariates
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData") # with TRI, different PercForest & RAI
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_072924.RData") # updated_070824 with TRI, different PercForest & RAI
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_072924.RData")
   eoe_covs_20s$Year <- "Smr20"
   eoe_covs_21s$Year <- "Smr21"
   
@@ -692,7 +692,7 @@
   print(tbd.coy.global$summary[1:21,]); print(tbd.coy.global$DIC)
   (tbd.coy.global.pval <- mean(tbd.coy.global$sims.list$chi2.sim > tbd.coy.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.coy.global$samples)
-  save(tbd.coy.global, file = "./Outputs/Time_btwn_Detections/tbd.coy_global.RData") 
+  save(tbd.coy.global, file = "./Outputs/Time_btwn_Detections/tbd.coy_global.RData") # chi2.sim has convergence issues
   #'  Keep in mind SpeciesID levels are bear [1], bobcat [2], lion [3], wolf [4]
   
   
