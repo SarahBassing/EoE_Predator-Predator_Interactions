@@ -535,28 +535,6 @@
   
   
   #'  -----------------------------
-  ####  Species diversity metrics  ####
-  #'  -----------------------------
-  #'  Derive variety of species diversity metrics to represent predator diversity 
-  #'  at each camera site per summer
-  
-  #####  Species Richness  #####
-  #'  ---------------------
-  
-  
-  #####  Shannon's Diveristy Index (H)  #####
-  #'  ----------------------------------
-  
-  
-  
-  #'  Note to self... consider doing a species accumulation curve over course of 
-  #'  summer to see how long you need to survey before all predators that you're 
-  #'  going to detect get detected
-  
-  
-  
-  
-  #'  -----------------------------
   ####  Summarize model estimates  ####
   #'  -----------------------------
   #'  Load saved detection histories
@@ -612,6 +590,69 @@
   
   RN_abundance <- list(rn_2020, rn_2021, rn_2022)
   save(RN_abundance, file = "./Outputs/Painter_RNmodel/RN_abundance.RData")
+  
+  #'  -----------------------------
+  ####  Species diversity metrics  ####
+  #'  -----------------------------
+  #'  Function to calculate species richness and Shannon's diversity index based 
+  #'  on species detected at each camera
+  species_diversity <- function(RA, season) {
+    #'  Species Richness (S)
+    #'  --------------------
+    #'  Sum number of unique species detected at each camera
+    SR <- RA %>% 
+      dplyr::select(c(NewLocationID, Setup, Species, RN.n)) %>%
+      mutate(Species_det = ifelse(RN.n < 1, 0, 1)) %>%
+      group_by(NewLocationID, Setup) %>%
+      mutate(SR = sum(Species_det)) %>%
+      dplyr::select(-c(Species, RN.n, Species_det)) %>%
+      slice(1L) %>%
+      ungroup()
+    
+    #'  Shannon's diversity index (H)
+    #'  -----------------------------
+    #'  Considers species richness and evenness (abundance of each species)
+    #'  https://www.programmingr.com/shannon-diversity-index-the-diversity-function-in-r/
+    Shannon <- as.data.frame(RA) %>%
+      dplyr::select(c(NewLocationID, Setup, Species, RN.n)) %>%
+      #'  Force species with extremely low predicted relative abundance to 0 (RN < 1)
+      mutate(RN.n = ifelse(RN.n < 1, 0, RN.n)) %>%
+      pivot_wider(names_from = Species, values_from = RN.n) %>%
+      as.data.frame(.)
+    
+    #'  Loop through each camera site to calculate H
+    H <- c(NA)
+    for(i in 1:nrow(Shannon)) {
+      #'  Relative abundance of each species
+      n <- c(Shannon[i,3], Shannon[i,4], Shannon[i,5], Shannon[i,6], Shannon[i,7]) 
+      #'  Remove species that were not detected (RA = 0)
+      n <- n[n != 0]
+      #'  Calculate proportion of community each species represents
+      N <- sum(n)
+      p <- n/N
+      #'  Calculate Shannon's diversity index (H)
+      H[i] <- -sum(p * log(p))
+    }
+    Shannon <- cbind(Shannon, H) %>%
+      mutate(H = round(H, 5))
+    
+    #'  Merge SR, H, and most frequently detected wild ungulate species with raw and 
+    #'  weighted relative abundance indices
+    Spp_diversity <- full_join(SR, Shannon, by = c("NewLocationID", "Setup")) %>%
+      relocate(SR, .after = Setup) %>%
+      relocate(H, .after = SR) %>%
+      mutate(season = season) %>%
+      relocate(season, .after = Setup)
+    
+    return(Spp_diversity)
+  }
+  spp_diversity_Smr20 <- species_diversity(rn_2020, season = "Smr20") 
+  spp_diversity_Smr21 <- species_diversity(rn_2021, season = "Smr21")
+  spp_diversity_Smr22 <- species_diversity(rn_2022, season = "Smr22")
+  
+  spp_diversity <- rbind(spp_diversity_Smr20, spp_diversity_Smr21, spp_diversity_Smr22)
+  
+  save(spp_diversity, file = "./Outputs/Painter_RNmodel/RN_abundance.RData")
   
   #####  Visualize local abundance data  #####
   #'  -----------------------------------
