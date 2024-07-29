@@ -57,10 +57,10 @@
   load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preydiv.RData")
   load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.coy_global.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_global.RData")            # GoF sims not converging well
   #'  List for model selection
-  coy_tbd_list <- list(tbd.coy.null, tbd.coy.sppID, tbd.coy.div, tbd.coy.preyabund, tbd.coy.sppID.div, tbd.coy.sppIDxdiv, tbd.coy.sppID.preyabund, tbd.coy.sppIDxpreyabund, tbd.coy.global) 
-  coy_tbd_name <- c("tbd.coy.null", "tbd.coy.sppID", "tbd.coy.div", "tbd.coy.preyabund", "tbd.coy.sppID.div", "tbd.coy.sppIDxdiv", "tbd.coy.sppID.preyabund", "tbd.coy.sppIDxpreyabund", "tbd.coy.global") 
+  coy_tbd_list <- list(tbd.coy.null, tbd.coy.sppID, tbd.coy.div, tbd.coy.preyabund, tbd.coy.sppID.div, tbd.coy.sppIDxdiv, tbd.coy.sppID.preyabund, tbd.coy.sppIDxpreyabund)  #, tbd.coy.global
+  coy_tbd_name <- c("tbd.coy.null", "tbd.coy.sppID", "tbd.coy.div", "tbd.coy.preyabund", "tbd.coy.sppID.div", "tbd.coy.sppIDxdiv", "tbd.coy.sppID.preyabund", "tbd.coy.sppIDxpreyabund") #, "tbd.coy.global"
   
   #####  Mountain lion models  ####
   load("./Outputs/Time_btwn_Detections/tbd.lion_intercept_only.RData")
