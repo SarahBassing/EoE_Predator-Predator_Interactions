@@ -99,7 +99,7 @@
   
   #'  Best supported model per species-pair
   (topmodels <- rbind(topmod_beartbd[1,], topmod_bobtbd[2,], topmod_coytbd[1,], topmod_liontbd[1,], topmod_wolftbd[1,])) #topmod_bobtbd[1,], 
-  #'  Note: currently using 2nd most supported model for bobcat since w/in 0.65 deltaDIC of top model 
+  #'  Note: currently using 2nd most supported model for bobcat since w/in 0.90 deltaDIC of top model (preyabund)
   
   
   #'  ------------------------
