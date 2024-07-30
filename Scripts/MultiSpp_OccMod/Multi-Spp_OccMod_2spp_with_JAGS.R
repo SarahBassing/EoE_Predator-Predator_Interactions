@@ -1277,7 +1277,7 @@
   #'  psi = setup, year, forest, elevation, tri, elk, wtd, lagomorphs; p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_bearcoy.R")
   start.time = Sys.time()
-  bear.coy.preyabund <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
+  bear.coy.preyabund <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_bearcoy.txt",
                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1291,7 +1291,7 @@
   #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort).R")
   start.time = Sys.time()
-  bear.coy.preydiv <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
+  bear.coy.preydiv <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort).txt",
                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1305,7 +1305,7 @@
   #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).R")
   start.time = Sys.time()
-  bear.coy.habx <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
+  bear.coy.habx <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).txt",
                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1319,7 +1319,7 @@
   #'  psi = setup, year, forest, elevation, tri; psix(elk, wtd, lagomorphs); p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_bearcoy.R")
   start.time = Sys.time()
-  bear.coy.preyabundx <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
+  bear.coy.preyabundx <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_bearcoy.txt",
                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1333,7 +1333,7 @@
   #'  psi = setup, year, forest, elevation, tri; psix(spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).R")
   start.time = Sys.time()
-  bear.coy.preydivx <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
+  bear.coy.preydivx <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort).txt",
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1347,7 +1347,7 @@
   #'  psi = setup, year, forest, elevation, tri; psix(elk, wtd, lagomorphs, spp diversity); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearcoy.R")
   start.time = Sys.time()
-  bear.coy.global <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
+  bear.coy.global <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_bearcoy.txt",
                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1363,7 +1363,7 @@
   #'  psi = year; p(.); px(.)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.).R")   ### UPDATE THIS
   start.time = Sys.time()
-  bear.coy.null.px <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
+  bear.coy.null.px <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.).txt",    ### UPDATE THIS
                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1379,7 +1379,7 @@
   #'  psi = year; p(.); px(psi)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(psi).R")   ### UPDATE THIS
   start.time = Sys.time()
-  bear.coy.null.px2 <- jags(bundled_pred_list[[7]], inits = inits.lion.bob, params,
+  bear.coy.null.px2 <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(psi).txt",      ### UPDATE THIS
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
