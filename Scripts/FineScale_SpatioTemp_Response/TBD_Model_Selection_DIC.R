@@ -57,10 +57,10 @@
   load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preydiv.RData")
   load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.coy_global.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.coy_global.RData")            # GoF sims not converging well
   #'  List for model selection
-  coy_tbd_list <- list(tbd.coy.null, tbd.coy.sppID, tbd.coy.div, tbd.coy.preyabund, tbd.coy.sppID.div, tbd.coy.sppIDxdiv, tbd.coy.sppID.preyabund, tbd.coy.sppIDxpreyabund, tbd.coy.global) 
-  coy_tbd_name <- c("tbd.coy.null", "tbd.coy.sppID", "tbd.coy.div", "tbd.coy.preyabund", "tbd.coy.sppID.div", "tbd.coy.sppIDxdiv", "tbd.coy.sppID.preyabund", "tbd.coy.sppIDxpreyabund", "tbd.coy.global") 
+  coy_tbd_list <- list(tbd.coy.null, tbd.coy.sppID, tbd.coy.div, tbd.coy.preyabund, tbd.coy.sppID.div, tbd.coy.sppIDxdiv, tbd.coy.sppID.preyabund, tbd.coy.sppIDxpreyabund)  #, tbd.coy.global
+  coy_tbd_name <- c("tbd.coy.null", "tbd.coy.sppID", "tbd.coy.div", "tbd.coy.preyabund", "tbd.coy.sppID.div", "tbd.coy.sppIDxdiv", "tbd.coy.sppID.preyabund", "tbd.coy.sppIDxpreyabund") #, "tbd.coy.global"
   
   #####  Mountain lion models  ####
   load("./Outputs/Time_btwn_Detections/tbd.lion_intercept_only.RData")
@@ -99,7 +99,7 @@
   
   #'  Best supported model per species-pair
   (topmodels <- rbind(topmod_beartbd[1,], topmod_bobtbd[2,], topmod_coytbd[1,], topmod_liontbd[1,], topmod_wolftbd[1,])) #topmod_bobtbd[1,], 
-  #'  Note: currently using 2nd most supported model for bobcat since w/in 0.65 deltaDIC of top model 
+  #'  Note: currently using 2nd most supported model for bobcat since w/in 0.90 deltaDIC of top model (preyabund)
   
   
   #'  ------------------------

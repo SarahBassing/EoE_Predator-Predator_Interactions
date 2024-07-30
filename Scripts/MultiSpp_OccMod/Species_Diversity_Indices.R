@@ -119,19 +119,23 @@
     #'  -----------------------------
     #'  Considers species richness and evenness (abundance of each species)
     #'  https://www.programmingr.com/shannon-diversity-index-the-diversity-function-in-r/
-    # Shannon <- as.data.frame(RA) %>% 
-    #   dplyr::select(c("NewLocationID", "elk_perday", "lagomorphs_perday", "livestock_perday",
-    #                   "moose_perday", "muledeer_perday", "whitetaileddeer_perday")) %>%
-    #   filter(!is.na(elk_perday))
-    #'  Alternatively, use un-weighted RA index
-    #'  FYI: H values are almost identical to those of weighted RA index
     Shannon <- as.data.frame(RA) %>%
-      dplyr::select(c("NewLocationID", "elk", "lagomorphs", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
-      filter(!is.na(elk))
-    
+      dplyr::select(c("NewLocationID", "elk_perday", "lagomorphs_perday", "livestock_perday",
+                      "moose_perday", "muledeer_perday", "whitetaileddeer_perday")) %>%
+      filter(!is.na(elk_perday))
     Shannon_noLago <- as.data.frame(RA) %>%
-      dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
-      filter(!is.na(elk))
+      dplyr::select(c("NewLocationID", "elk_perday", "livestock_perday", "moose_perday", 
+                      "muledeer_perday", "whitetaileddeer_perday")) %>%
+      filter(!is.na(elk_perday))
+    
+    #' #'  Alternatively, use un-weighted RA index
+    #' #'  FYI: H values are almost identical to those of weighted RA index
+    #' Shannon <- as.data.frame(RA) %>%
+    #'   dplyr::select(c("NewLocationID", "elk", "lagomorphs", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
+    #'   filter(!is.na(elk))
+    # Shannon_noLago <- as.data.frame(RA) %>%
+    #   dplyr::select(c("NewLocationID", "elk", "livestock", "moose", "muledeer", "whitetaileddeer")) %>%
+    #   filter(!is.na(elk))
   
     #'  Loop through each camera site to calculate H
     H <- c(NA)
@@ -166,14 +170,14 @@
     
     #'  List wild ungulate species detected most frequently at each camera
     dominantSpp <- Shannon %>% 
-      # dplyr::select(-c(NewLocationID, lagomorphs_perday, livestock_perday, H)) %>%
-      dplyr::select(-c(NewLocationID, lagomorphs, livestock, H)) %>%
+      dplyr::select(-c(NewLocationID, lagomorphs_perday, livestock_perday, H)) %>%
+      # dplyr::select(-c(NewLocationID, lagomorphs, livestock, H)) %>%
       rowwise() %>%
       mutate(dominantprey = names(.)[which.max(c_across(everything()))],
-             # dominantprey = ifelse(dominantprey == "moose_perday", "other", dominantprey),
-             # dominantprey = ifelse(dominantprey == "muledeer_perday", "other", dominantprey)) %>%
-             dominantprey = ifelse(dominantprey == "moose", "other", dominantprey),
-             dominantprey = ifelse(dominantprey == "muledeer", "other", dominantprey)) %>%
+             dominantprey = ifelse(dominantprey == "moose_perday", "other", dominantprey),
+             dominantprey = ifelse(dominantprey == "muledeer_perday", "other", dominantprey)) %>%
+             # dominantprey = ifelse(dominantprey == "moose", "other", dominantprey),
+             # dominantprey = ifelse(dominantprey == "muledeer", "other", dominantprey)) %>%
       dplyr::select(dominantprey) %>%
       cbind(Shannon) %>%
       cbind(Shannon_noLago$H_noLago) %>%

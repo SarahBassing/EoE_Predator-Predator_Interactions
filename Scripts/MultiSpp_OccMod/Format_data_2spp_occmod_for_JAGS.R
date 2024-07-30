@@ -78,9 +78,9 @@
   
   
   #'  Load extracted covariate data
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_072924.RData")
   # load("./Data/Covariates_extracted/Covariates_EoE_Wtr20_updated_070824.RData")
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_072924.RData")
   # source("./Scripts/Data_Formatting/Covariate_Extract.R")
   
   
@@ -306,9 +306,9 @@
   # save(stations_skinny_eoe20s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20s.RData")
   # save(stations_skinny_eoe20w, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20w.RData")
   # save(stations_skinny_eoe21s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE21s.RData")
-  
-  #' #'  Save image of entire environment so it can be used with HPC
-  #' save.image(file = "./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img_updated_070824.RData")
+
+  #'  Save image of entire environment so it can be used with HPC
+  save.image(file = "./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img_updated_072924.RData")
   
   #'  Fin!
   #'  This is all sourced by Multi-Spp_OccMod_2spp_JAGS.R

@@ -16,13 +16,14 @@
   library(mcmcplots)
   library(AICcmodavg)
   library(tidyverse)
+  library(patchwork)
   
   #'  Read in data
   load("./Data/Time_btwn_Detections/TBD_all_spp-pred_pairs_2023-06-05.RData") #TBD_all_spp-pred_pairs_2023-05-23
   
   #'  Covariates
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_070824.RData") # with TRI, different PercForest & RAI
-  load("./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_070824.RData")
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr20_updated_072924.RData") # updated_070824 with TRI, different PercForest & RAI
+  load("./Data/Covariates_extracted/Covariates_EoE_Smr21_updated_072924.RData")
   eoe_covs_20s$Year <- "Smr20"
   eoe_covs_21s$Year <- "Smr21"
   
@@ -66,21 +67,61 @@
     print("Total TBDs for each year")
     print(table(short_tbd$Year))
     
-    #'  Actually just remove any observations over 20 days long since don't expect most 
-    #'  cues from previous predator to still be detectable beyond then
-    short_tbd <- filter(short_tbd, DaysSinceLastDet <= 20)
+    #' #'  Actually just remove any observations over 20 days long since don't expect most 
+    #' #'  cues from previous predator to still be detectable beyond then
+    #' short_tbd <- filter(short_tbd, DaysSinceLastDet <= 20)
+    
+    #'  Actually just remove any observations 7-days or longer since co-occurrence model
+    #'  considered detections at summer and weekly time scales - want something finer
+    #'  than the weekly time scale for this analysis
+    short_tbd <- filter(short_tbd, DaysSinceLastDet < 7)
     
     #'  Return dataset after removing extreme values
     return(short_tbd)
   }
-  bear_short <- tbd_summary(bear, spp = "bear", quant = 0.99) #0.99 for some species if 100% quantile > 20days
+  bear_short <- tbd_summary(bear, spp = "bear", quant = 0.99) #0.99 to exclude extreme values (some past 20-day cutoff)
   bob_short <- tbd_summary(bob, spp = "bob", quant = 0.99)
   coy_short <- tbd_summary(coy, spp = "coy", quant = 0.99)
-  lion_short <- tbd_summary(lion, spp = "lion", quant = 1.0)
-  wolf_short <- tbd_summary(wolf, spp = "wolf", quant = 1.0)
+  lion_short <- tbd_summary(lion, spp = "lion", quant = 0.99)
+  wolf_short <- tbd_summary(wolf, spp = "wolf", quant = 0.99)
   
   #'  List data sets with extreme values removed
   pred_tbd_short_list <- list(bear_short, bob_short, coy_short, lion_short, wolf_short)
+  
+  #'  Plot histograms of raw data
+  pred_tbd_short_df <- rbind(bear_short, bob_short, coy_short, lion_short, wolf_short) %>%
+    mutate(Focal_predator = ifelse(Focal_predator == "bear_black", "Black bear", Focal_predator),
+           Focal_predator = ifelse(Focal_predator == "bobcat", "Bobcat", Focal_predator),
+           Focal_predator = ifelse(Focal_predator == "coyote", "Coyote", Focal_predator),
+           Focal_predator = ifelse(Focal_predator == "mountain_lion", "Mountain lion", Focal_predator),
+           Focal_predator = ifelse(Focal_predator == "wolf", "Wolf", Focal_predator))
+  #'  Function to create plot for each predator species
+  tbd_hist <- function(spp, pred_color) {
+    dat <- filter(pred_tbd_short_df, Focal_predator == spp)
+    plot_hist <- ggplot(dat, aes(x = HoursSinceLastDet)) + 
+      geom_histogram(binwidth = 10, color = "black", fill = pred_color) + 
+      theme_bw() + 
+      xlab("Wait time (hours)") + 
+      ylab("Frequency") +
+      ggtitle(spp)
+    print(plot_hist)
+    return(plot_hist)
+  }
+  #'  List species and color associated with each one
+  spp <- list("Black bear", "Bobcat", "Coyote", "Mountain lion", "Wolf")
+  pred_color <- list("#98CAE1", "#A50026", "#DD3D2D", "#FDB366", "#364B9A")
+  #'  Apply function to dataset
+  histograms <- mapply(tbd_hist, spp, pred_color, SIMPLIFY = FALSE)
+  
+  #'  Create figure for publication
+  tbd_histogram_fig <- histograms[[1]] + histograms[[2]] + theme(axis.title.y = element_blank()) + 
+    histograms[[3]] + theme(axis.title.y = element_blank()) + 
+    histograms[[4]] + histograms[[5]]  + theme(axis.title.y = element_blank()) + 
+    plot_layout(ncol = 3) + plot_annotation(title = "Predator-specific wait times following detection of a different species",
+                                            tag_levels = 'a')
+  #'  Save
+  ggsave("./Outputs/Time_btwn_Detections/Figures/TBD_histograms_rawdata.tiff", tbd_histogram_fig, 
+         units = "in", width = 8, height = 6, dpi = 600, device = 'tiff', compression = 'lzw')
   
   #'  Filter to focal predator species 
   focal_species <- function(tbd_dat) {
@@ -95,7 +136,6 @@
   nontarget_species <- function(tbd_dat) {
     tbd_dat <- tbd_dat %>%
       filter(Previous_Spp == "elk" | Previous_Spp == "moose" | Previous_Spp == "whitetaileddeer" | Previous_Spp == "rabbit_hare") %>% 
-              #Previous_Spp == "human_motorized"Previous_Spp == "squirrel" | Previous_Spp == "turkey" | Previous_Spp == "muledeer" | 
       mutate(Previous_Spp = ifelse(Previous_Spp == "rabbit_hare", "lagomorph", Previous_Spp)) 
     return(tbd_dat)
   }
@@ -153,20 +193,20 @@
                 TRI = scale(TRI),
                 PercForest = scale(perc_forest),
                 SppDiversity = scale(H),
-                Nelk = scale(elk),  #elk_perday
-                Nmoose = scale(moose),
-                Nmd = scale(muledeer),
-                Nwtd = scale(whitetaileddeer),
-                Nlagomorph = scale(lagomorphs),
-                Nlivestock = scale(livestock))
+                Nelk = scale(elk_perday),  
+                Nmoose = scale(moose_perday),
+                Nmd = scale(muledeer_perday),
+                Nwtd = scale(whitetaileddeer_perday),
+                Nlagomorph = scale(lagomorphs_perday),
+                Nlivestock = scale(livestock_perday))
     print(summary(tbd_dat))
     print(head(tbd_dat))
     
     #'  Covariate matrix for JAGS
-    covs <- matrix(NA, ncol = 10, nrow = ntbd)
+    covs <- matrix(NA, ncol = 11, nrow = ntbd)
     covs[,1] <- tbd_dat$GMU
     covs[,2] <- tbd_dat$SpeciesID
-    covs[,3] <- tbd_dat$TRI #Elev
+    covs[,3] <- tbd_dat$Elev
     covs[,4] <- tbd_dat$PercForest
     covs[,5] <- tbd_dat$Nelk
     covs[,6] <- tbd_dat$Nmoose
@@ -174,6 +214,7 @@
     covs[,8] <- tbd_dat$Nwtd
     covs[,9] <- tbd_dat$Nlagomorph
     covs[,10] <- tbd_dat$SppDiversity
+    covs[,11] <- tbd_dat$TRI
     
     #'  Generate range of covariate values to predict across
     newElk <- seq(from = min(tbd_dat$Nelk), to = max(tbd_dat$Nelk), length.out = 100)
@@ -204,11 +245,12 @@
   lion_bundled <- bundle_dat_data(pred_tbd_short[[4]], npreyspp = 2, species_order = c("coyote", "bear_black", "bobcat", "wolf"))
   wolf_bundled <- bundle_dat_data(pred_tbd_short[[5]], npreyspp = 3, species_order = c("coyote", "bear_black", "bobcat", "mountain_lion"))
   
-  bear_bundled_nontarget <- bundle_dat_data(pred_tbd_short[[1]], npreyspp = 2, species_order = c("lagomorph", "elk", "moose", "whitetaileddeer")) 
-  bob_bundled_nontarget <- bundle_dat_data(pred_tbd_short[[2]], npreyspp = 2, species_order = c("lagomorph", "elk", "moose", "whitetaileddeer"))
-  coy_bundled_nontarget <- bundle_dat_data(pred_tbd_short[[3]], npreyspp = 2, species_order = c("lagomorph", "elk", "moose", "whitetaileddeer"))
-  lion_bundled_nontarget <- bundle_dat_data(pred_tbd_short[[4]], npreyspp = 2, species_order = c("lagomorph", "elk", "moose", "whitetaileddeer"))
-  wolf_bundled_nontarget <- bundle_dat_data(pred_tbd_short[[5]], npreyspp = 3, species_order = c("lagomorph", "elk", "moose", "whitetaileddeer"))
+  #'  Filter to only focal prey species for nontarget analysis
+  bear_bundled_nontarget <- bundle_dat_data(prey_pred_tbd_short[[1]][prey_pred_tbd_short[[1]]$Previous_Spp == "elk" | prey_pred_tbd_short[[1]]$Previous_Spp == "whitetaileddeer",], npreyspp = 2, species_order = c("elk", "whitetaileddeer")) 
+  bob_bundled_nontarget <- bundle_dat_data(prey_pred_tbd_short[[2]][prey_pred_tbd_short[[2]]$Previous_Spp == "lagomorph" | prey_pred_tbd_short[[2]]$Previous_Spp == "whitetaileddeer",], npreyspp = 2, species_order = c("lagomorph", "whitetaileddeer"))
+  coy_bundled_nontarget <- bundle_dat_data(prey_pred_tbd_short[[3]][prey_pred_tbd_short[[3]]$Previous_Spp == "lagomorph" | prey_pred_tbd_short[[3]]$Previous_Spp == "whitetaileddeer",], npreyspp = 2, species_order = c("lagomorph", "whitetaileddeer"))
+  lion_bundled_nontarget <- bundle_dat_data(prey_pred_tbd_short[[4]][prey_pred_tbd_short[[4]]$Previous_Spp == "elk" | prey_pred_tbd_short[[4]]$Previous_Spp == "whitetaileddeer",], npreyspp = 2, species_order = c("elk", "whitetaileddeer"))
+  wolf_bundled_nontarget <- bundle_dat_data(prey_pred_tbd_short[[5]][prey_pred_tbd_short[[5]]$Previous_Spp != "lagomorph",], npreyspp = 3, species_order = c("elk", "moose", "whitetaileddeer"))
   
   #' #'  Save for making figures later
   #' save(bear_bundled, file = "./Data/Time_btwn_Detections/bear_bundled.RData")
@@ -231,10 +273,11 @@
   na <- 1000
   
   #'  Parameters to monitor
-  params <- c("chi2.obs", "chi2.sim", "alpha0", "beta.sppID", "beta.prey", "beta.div", "beta.interaction", 
+  params <- c("alpha0", "beta.sppID", "beta.prey", "beta.div", "beta.interaction", 
               "beta.interaction.elk", "beta.interaction.wtd", "beta.interaction.moose",
               "beta.interaction.lago", "mu.tbd", "spp.tbd", "spp.tbd.elk", 
-              "spp.tbd.moose", "spp.tbd.wtd", "spp.tbd.lago", "spp.tbd.div") #"sigma", 
+              "spp.tbd.moose", "spp.tbd.wtd", "spp.tbd.lago", "spp.tbd.div",
+              "chi2.obs", "chi2.sim") #"sigma", 
   
   
   #'  Call Tyra, we need our Next Top Model!
@@ -634,7 +677,7 @@
   print(tbd.coy.sppIDxpreyabund$summary[1:21,]); print(tbd.coy.sppIDxpreyabund$DIC)
   (tbd.coy.sppIDxpreyabund.pval <- mean(tbd.coy.sppIDxpreyabund$sims.list$chi2.sim > tbd.coy.sppIDxpreyabund$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.coy.sppIDxpreyabund$samples)
-  save(tbd.coy.sppIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preyRAI.RData")
+  save(tbd.coy.sppIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preyRAI.RData")  # chi2.sim has convergence issues
   #'  Keep in mind SpeciesID levels are bear [1], bobcat [2], lion [3], wolf [4]
   
   #####  Global model  ####
@@ -649,7 +692,7 @@
   print(tbd.coy.global$summary[1:21,]); print(tbd.coy.global$DIC)
   (tbd.coy.global.pval <- mean(tbd.coy.global$sims.list$chi2.sim > tbd.coy.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.coy.global$samples)
-  save(tbd.coy.global, file = "./Outputs/Time_btwn_Detections/tbd.coy_global.RData") 
+  save(tbd.coy.global, file = "./Outputs/Time_btwn_Detections/tbd.coy_global.RData") # chi2.sim has convergence issues
   #'  Keep in mind SpeciesID levels are bear [1], bobcat [2], lion [3], wolf [4]
   
   
@@ -686,7 +729,7 @@
   print(tbd.lion.sppID$summary); print(tbd.lion.sppID$DIC)
   (tbd.lion.sppID.pval <- mean(tbd.lion.sppID$sims.list$chi2.sim > tbd.lion.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.lion.sppID$samples)
-  save(tbd.lion.sppID, file = "./Outputs/Time_btwn_Detections/tbd.lion_sppID.RData") 
+  save(tbd.lion.sppID, file = "./Outputs/Time_btwn_Detections/tbd.lion_sppID.RData") # Chi2.sim having issues converging but seems to settle on a value
   #'  Keep in mind SpeciesID levels are coyote [1], bear [2], bobcat [3], wolf [4]
   
   #####  Prey diversity model  ####
@@ -757,7 +800,7 @@
   print(tbd.lion.sppID.preyabund$summary[1:15,]); print(tbd.lion.sppID.preyabund$DIC)
   (tbd.lion.sppID.preyabund.pval <- mean(tbd.lion.sppID.preyabund$sims.list$chi2.sim > tbd.lion.sppID.preyabund$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.lion.sppID.preyabund$samples)
-  save(tbd.lion.sppID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.lion_sppID_preyRAI.RData")
+  save(tbd.lion.sppID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.lion_sppID_preyRAI.RData")  # Chi2.sim having issues converging
   #'  Keep in mind SpeciesID levels are coyote [1], bear [2], bobcat [3], wolf [4]
 
   #####  Species ID * prey relative abundance model  ####
@@ -771,7 +814,7 @@
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(tbd.lion.sppIDxpreyabund$summary[1:21,]); print(tbd.lion.sppIDxpreyabund$DIC)
   (tbd.lion.sppIDxpreyabund.pval <- mean(tbd.lion.sppIDxpreyabund$sims.list$chi2.sim > tbd.lion.sppIDxpreyabund$sims.list$chi2.obs)) # Bayesian p-value GOF
-  mcmcplot(tbd.lion.sppID.preyabund$samples)
+  mcmcplot(tbd.lion.sppIDxpreyabund$samples)
   save(tbd.lion.sppIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.lion_sppID_X_preyRAI.RData")     # Not converging well: likely over-parameterized
   #'  Keep in mind SpeciesID levels are coyote [1], bear [2], bobcat [3], wolf [4]
   
@@ -824,7 +867,7 @@
   print(tbd.wolf.sppID$summary); print(tbd.wolf.sppID$DIC)
   (tbd.wolf.sppID.pval <- mean(tbd.wolf.sppID$sims.list$chi2.sim > tbd.wolf.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.wolf.sppID$samples)
-  save(tbd.wolf.sppID, file = "./Outputs/Time_btwn_Detections/tbd.wolf_sppID.RData") 
+  save(tbd.wolf.sppID, file = "./Outputs/Time_btwn_Detections/tbd.wolf_sppID.RData") # Chi2.sim a little wonky
   #'  Keep in mind SpeciesID levels are coyote [1], bear [2], bobcat [3], lion [4]
   
   #####  Prey diversity model  ####
@@ -881,7 +924,7 @@
   print(tbd.wolf.sppIDxdiv$summary[1:15,]); print(tbd.wolf.sppIDxdiv$DIC)
   (tbd.wolf.sppIDxdiv.pval <- mean(tbd.wolf.sppIDxdiv$sims.list$chi2.sim > tbd.wolf.sppIDxdiv$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.wolf.sppIDxdiv$samples)
-  save(tbd.wolf.sppIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.wolf_sppID_X_preydiv.RData")
+  save(tbd.wolf.sppIDxdiv, file = "./Outputs/Time_btwn_Detections/tbd.wolf_sppID_X_preydiv.RData")    # Chi2.sim not converging well
 
   #####  Competitor + prey relative abundance model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_sppID_elk_moose_wtd_abundance_noRE.R")
@@ -895,7 +938,7 @@
   print(tbd.wolf.sppID.preyabund$summary[1:25,]); print(tbd.wolf.sppID.preyabund$DIC)
   (tbd.wolf.sppID.preyabund.pval <- mean(tbd.wolf.sppID.preyabund$sims.list$chi2.sim > tbd.wolf.sppID.preyabund$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.wolf.sppID.preyabund$samples)
-  save(tbd.wolf.sppID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.wolf_sppID_preyRAI.RData")
+  save(tbd.wolf.sppID.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.wolf_sppID_preyRAI.RData")   # Chi2.sim not converging well
   #'  Keep in mind SpeciesID levels are coyote [1], bear [2], bobcat [3], lion [4]
 
   #####  Competitor * prey relative abundance model  ####
@@ -963,7 +1006,7 @@
   (tbd.nt.bear.sppID.pval <- mean(tbd.nt.bear.sppID$sims.list$chi2.sim > tbd.nt.bear.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.bear.sppID$samples)
   save(tbd.nt.bear.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bear_sppID.RData") 
-  #'  Keep in mind SppID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SppID levels are elk[1], white-tailed deer[2]
   
   #####  Prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
@@ -1006,7 +1049,7 @@
   (tbd.nt.bear.global.pval <- mean(tbd.nt.bear.global$sims.list$chi2.sim > tbd.nt.bear.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.bear.global$samples)
   save(tbd.nt.bear.global, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bear_global.RData") 
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SpeciesID levels are elk[1], white-tailed deer[2]
   
   
   #'  --------------------------------
@@ -1043,7 +1086,7 @@
   (tbd.nt.bob.sppID.pval <- mean(tbd.nt.bob.sppID$sims.list$chi2.sim > tbd.nt.bob.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.bob.sppID$samples)
   save(tbd.nt.bob.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bob_sppID.RData") 
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SpeciesID levels are lagomorph[1], white-tailed deer[2]
   
   #####  Prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
@@ -1072,7 +1115,6 @@
   (tbd.nt.bob.preyabund.pval <- mean(tbd.nt.bob.preyabund$sims.list$chi2.sim > tbd.nt.bob.preyabund$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.bob.preyabund$samples)
   save(tbd.nt.bob.preyabund, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bob_preyRAI.RData")
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
   
   #####  Global model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_global_wtd_lago_abundance_noRE.R")
@@ -1087,7 +1129,7 @@
   (tbd.nt.bob.global.pval <- mean(tbd.nt.bob.global$sims.list$chi2.sim > tbd.nt.bob.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.bob.global$samples)
   save(tbd.nt.bob.global, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bob_global.RData") 
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SpeciesID levels are lagomorph[1], white-tailed deer[2]
   
   
   #'  --------------------------------
@@ -1124,7 +1166,7 @@
   (tbd.nt.coy.sppID.pval <- mean(tbd.nt.coy.sppID$sims.list$chi2.sim > tbd.nt.coy.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.coy.sppID$samples)
   save(tbd.nt.coy.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.coy_sppID.RData") 
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SpeciesID levels are lagomorph[1], white-tailed deer[2]
   
   #####  Prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
@@ -1167,7 +1209,7 @@
   (tbd.nt.coy.global.pval <- mean(tbd.nt.coy.global$sims.list$chi2.sim > tbd.nt.coy.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.coy.global$samples)
   save(tbd.nt.coy.global, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.coy_global.RData") 
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SpeciesID levels are lagomorph[1], white-tailed deer[2]
   
   
   #'  ---------------------------------------
@@ -1204,7 +1246,7 @@
   (tbd.nt.lion.sppID.pval <- mean(tbd.nt.lion.sppID$sims.list$chi2.sim > tbd.nt.lion.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.lion.sppID$samples)
   save(tbd.nt.lion.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.lion_sppID.RData") 
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SpeciesID levels are elk[1], white-tailed deer[2]
   
   #####  Prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
@@ -1247,7 +1289,7 @@
   (tbd.nt.lion.global.pval <- mean(tbd.nt.lion.global$sims.list$chi2.sim > tbd.nt.lion.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.lion.global$samples)
   save(tbd.nt.lion.global, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.lion_global.RData") 
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SpeciesID levels are elk[1], white-tailed deer[2]
   
   
   #'  ------------------------------
@@ -1284,7 +1326,7 @@
   (tbd.nt.wolf.sppID.pval <- mean(tbd.nt.wolf.sppID$sims.list$chi2.sim > tbd.nt.wolf.sppID$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.wolf.sppID$samples)
   save(tbd.nt.wolf.sppID, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.wolf_sppID.RData") 
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SpeciesID levels are elk[1], moose[2], white-tailed deer[3]
   
   #####  Prey diversity model  ####
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_preydiversity_noRE.R")
@@ -1327,7 +1369,7 @@
   (tbd.nt.wolf.global.pval <- mean(tbd.nt.wolf.global$sims.list$chi2.sim > tbd.nt.wolf.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.wolf.global$samples)
   save(tbd.nt.wolf.global, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.wolf_global.RData") 
-  #'  Keep in mind SpeciesID levels are lagomorph[1], elk[2], moose[3], white-tailed deer[4]
+  #'  Keep in mind SpeciesID levels are elk[1], moose[2], white-tailed deer[3]
 
   
   #'  Fin
