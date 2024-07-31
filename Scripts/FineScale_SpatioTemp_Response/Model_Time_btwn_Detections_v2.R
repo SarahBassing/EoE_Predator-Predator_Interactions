@@ -677,7 +677,7 @@
   print(tbd.coy.sppIDxpreyabund$summary[1:21,]); print(tbd.coy.sppIDxpreyabund$DIC)
   (tbd.coy.sppIDxpreyabund.pval <- mean(tbd.coy.sppIDxpreyabund$sims.list$chi2.sim > tbd.coy.sppIDxpreyabund$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.coy.sppIDxpreyabund$samples)
-  save(tbd.coy.sppIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preyRAI.RData")  # chi2.sim has convergence issues
+  save(tbd.coy.sppIDxpreyabund, file = "./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preyRAI.RData")  # chi2.sim struggles to converge some times
   #'  Keep in mind SpeciesID levels are bear [1], bobcat [2], lion [3], wolf [4]
   
   #####  Global model  ####
@@ -1128,7 +1128,7 @@
   print(tbd.nt.bob.global$summary[1:21,]); print(tbd.nt.bob.global$DIC)
   (tbd.nt.bob.global.pval <- mean(tbd.nt.bob.global$sims.list$chi2.sim > tbd.nt.bob.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.bob.global$samples)
-  save(tbd.nt.bob.global, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bob_global.RData")  # GoF chi1.sim not converging well
+  save(tbd.nt.bob.global, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bob_global.RData")  
   #'  Keep in mind SpeciesID levels are lagomorph[1], white-tailed deer[2]
   
   
