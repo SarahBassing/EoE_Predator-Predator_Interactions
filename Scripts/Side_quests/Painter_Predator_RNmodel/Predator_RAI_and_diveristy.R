@@ -650,7 +650,9 @@
   spp_diversity_Smr21 <- species_diversity(rn_2021, season = "Smr21")
   spp_diversity_Smr22 <- species_diversity(rn_2022, season = "Smr22")
   
-  spp_diversity <- rbind(spp_diversity_Smr20, spp_diversity_Smr21, spp_diversity_Smr22)
+  spp_diversity <- rbind(spp_diversity_Smr20, spp_diversity_Smr21, spp_diversity_Smr22) %>%
+    dplyr::select(c(NewLocationID, Setup, season, SR, H))
+  spp_diversity_list <- list(spp_diversity_Smr20, spp_diversity_Smr21, spp_diversity_Smr22)
   
   save(spp_diversity, file = "./Outputs/Painter_RNmodel/RN_abundance.RData")
   
@@ -694,8 +696,23 @@
   spatial_rn_lion <- mapply(rn = rn_lion_out, spatial_rn, spp = "mountain_lion", cams = cam_list, SIMPLIFY = FALSE)
   spatial_rn_wolf <- mapply(rn = rn_wolf_out, spatial_rn, spp = "wolf", cams = cam_list, SIMPLIFY = FALSE)
   
+  spatial_diversity <- function(div, spp, cams) {
+    spatial_div <- div %>%
+      #'  Rename camera location column to match spatial data
+      rename("NwLctID" = "NewLocationID") 
+    
+    #'  Join spatial data with diversity data
+    H_shp <- full_join(cams, spatial_div, by = "NwLctID") %>%
+      filter(!is.na(H)) %>%
+      #'  Change camera location column back to something less awkward
+      rename("NewLocationID" = "NwLctID")
+    
+    return(H_shp)
+  }
+  spatial_spp_diversity <- mapply(div = spp_diversity_list, spatial_diversity, spp = "species_diversity", cams = cam_list, SIMPLIFY = FALSE)
+  
   #'  List spatial RN abundance data and save
-  spatial_Painter_RNmodel_list <- list(spatial_rn_bear, spatial_rn_bob, spatial_rn_coy, spatial_rn_lion, spatial_rn_wolf)
+  spatial_Painter_RNmodel_list <- list(spatial_rn_bear, spatial_rn_bob, spatial_rn_coy, spatial_rn_lion, spatial_rn_wolf, spatial_spp_diversity)
   save(spatial_Painter_RNmodel_list, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_Painter_RNmodel_list.RData")
   
   year_list <- list("2020", "2021", "2022")
@@ -710,10 +727,11 @@
   rn_coy_all <- mapply(add_yr, dat = spatial_rn_coy, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   rn_lion_all <- mapply(add_yr, dat = spatial_rn_lion, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   rn_wolf_all <- mapply(add_yr, dat = spatial_rn_wolf, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  spp_div_all <- mapply(add_yr, dat = spatial_spp_diversity, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   
   #'  Make one giant faceted plot where rows represent GMU and columns represent years 
   #'  to ensure that the dot sizes are all consistent for at least a single species
-  map_rn_v2 <- function(sf_rn, spp) {
+  map_rn <- function(sf_rn, spp) {
     #'  Define size of circles
     size_breaks <- c(0, 1, 2, 3, 5, 7, 9, 12)
     
@@ -739,11 +757,11 @@
     
     return(spp_rn)
   }
-  rn_maps_bear <- map_rn_v2(rn_bear_all, spp = "black bear")
-  rn_maps_bob <- map_rn_v2(rn_bob_all, spp = "bobcat")
-  rn_maps_coy <- map_rn_v2(rn_coy_all, spp = "coyote")
-  rn_maps_lion <- map_rn_v2(rn_lion_all, spp = "mountain lion")
-  rn_maps_wolf <- map_rn_v2(rn_wolf_all, spp = "wolf")
+  rn_maps_bear <- map_rn(rn_bear_all, spp = "black bear")
+  rn_maps_bob <- map_rn(rn_bob_all, spp = "bobcat")
+  rn_maps_coy <- map_rn(rn_coy_all, spp = "coyote")
+  rn_maps_lion <- map_rn(rn_lion_all, spp = "mountain lion")
+  rn_maps_wolf <- map_rn(rn_wolf_all, spp = "wolf")
   
   ggsave("./Outputs/Painter_RNmodel/Figures/RN_map_blackbear.tiff", rn_maps_bear,
          units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
@@ -754,5 +772,40 @@
   ggsave("./Outputs/Painter_RNmodel/Figures/RN_map_lion.tiff", rn_maps_lion,
          units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Painter_RNmodel/Figures/RN_map_wolf.tiff", rn_maps_wolf,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  
+  map_diversity <- function(sf_div, div_metric, div_type, size_breaks) {
+    sf_div <- sf_div %>%
+      separate(NewLocationID, c("GMU", "Setup", "site"), sep = "_") %>% 
+      mutate(GMU = factor(GMU, levels = c("GMU1", "GMU6", "GMU10A"))) %>%
+      dplyr::select(-c(Setup, site))
+    pal <- c("darkcyan", "lightcoral", "darkgoldenrod3")
+    
+    #'  Create figure
+    spp_div <- ggplot() +
+      geom_sf(data = eoe_gmu_wgs84, fill = NA) + 
+      geom_sf(data = sf_div, aes(size = div_metric, colour = GMU, fill = GMU), shape = 21, alpha = 3/10) +
+      scale_size_continuous(breaks = size_breaks, range = c(0,5)) +
+      scale_color_manual(values = pal) +
+      scale_fill_manual(values = pal) +
+      labs(size = "Predator diversity", x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            text = element_text(size = 18)) +
+      facet_wrap(~Year) + 
+      labs(title = paste0("Predator diversity (", div_type, ")"))
+    
+    #'  Plot each map
+    print(spp_div)
+    
+    return(spp_div)
+  }
+  diversity_maps_H <- map_diversity(spp_div_all, div_metric = spp_div_all$H, div_type = "Shannon's H", size_breaks = c(0, 0.25, 0.5, 0.75, 1, 1.25, 1.5))
+  diversity_maps_SR <- map_diversity(spp_div_all, div_metric = spp_div_all$SR, div_type = "Species Richness", size_breaks = c(0, 1, 2, 3, 4, 5))
+  
+  
+  ggsave("./Outputs/Painter_RNmodel/Figures/Diversity_map_ShannonsH.tiff", diversity_maps_H,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Painter_RNmodel/Figures/Diversity_map_SpeciesRichness.tiff", diversity_maps_SR,
          units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
   
