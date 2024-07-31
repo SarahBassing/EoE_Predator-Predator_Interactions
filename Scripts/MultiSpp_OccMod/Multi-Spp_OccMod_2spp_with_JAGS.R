@@ -218,7 +218,7 @@
                     nsecond_order_psi = ncol(psi_2order), 
                     nfirst_order_rho = dim(rho_1order)[3], 
                     nsecond_order_rho = dim(rho_2order)[3], ncat = ncats, 
-                    nspec = nspecies, nyear = nyears, #Indx = c(1, 2, 3, 4),
+                    nspec = nspecies, nyear = nyears, Indx = c(1, 2, 3, 4),
                     uniquesites = as.numeric(factor(uniquesites), levels = uniquesites)) 
     #'  Summarize to make sure it looks right
     str(bundled)
@@ -258,7 +258,7 @@
   
   #####  Parameters monitored  ####
   #'  -------------------------
-  params <- c("y.hat", "y.sim.hat", "chi2.obs", "chi2.sim", "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
+  params <- c("y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
               "mean.pSpp1", "mean.pSpp2", "z") #"z.sim", 
   
@@ -1086,7 +1086,7 @@
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, year, forest, elevation, tri; p = setup, effort 
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_GoF.R")
   start.time = Sys.time()
   coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
