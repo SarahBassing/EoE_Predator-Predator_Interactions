@@ -307,7 +307,7 @@
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, year, forest, elevation, tri; p = setup, effort  
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_GoF.R")
   start.time = Sys.time()
   wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
@@ -316,6 +316,8 @@
   print(wolf.bear.hab$summary)
   print(wolf.bear.hab$DIC)
   which(wolf.bear.hab$summary[,"Rhat"] > 1.1)
+  (wolf.bear.hab_pB.coy <- mean(wolf.bear.hab$sims.list$chi2.sim_A > wolf.bear.hab$sims.list$chi2.obs_A)) # Bayesian p-value GOF
+  (wolf.bear.hab_pB.bob <- mean(wolf.bear.hab$sims.list$chi2.sim_B > wolf.bear.hab$sims.list$chi2.obs_B)) # Bayesian p-value GOF
   mcmcplot(wolf.bear.hab$samples)
   save(wolf.bear.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
