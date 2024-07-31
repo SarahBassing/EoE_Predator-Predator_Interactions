@@ -1128,7 +1128,7 @@
   print(tbd.nt.bob.global$summary[1:21,]); print(tbd.nt.bob.global$DIC)
   (tbd.nt.bob.global.pval <- mean(tbd.nt.bob.global$sims.list$chi2.sim > tbd.nt.bob.global$sims.list$chi2.obs)) # Bayesian p-value GOF
   mcmcplot(tbd.nt.bob.global$samples)
-  save(tbd.nt.bob.global, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bob_global.RData") 
+  save(tbd.nt.bob.global, file = "./Outputs/Time_btwn_Detections/tbd.nontarget.bob_global.RData")  # GoF chi1.sim not converging well
   #'  Keep in mind SpeciesID levels are lagomorph[1], white-tailed deer[2]
   
   
