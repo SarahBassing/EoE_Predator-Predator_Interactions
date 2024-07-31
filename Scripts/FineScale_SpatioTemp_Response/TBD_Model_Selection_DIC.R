@@ -69,7 +69,7 @@
   load("./Outputs/Time_btwn_Detections/tbd.lion_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_preydiv.RData")
   load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_X_preydiv.RData") # Converged poorly; over-parameterized
-  load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_preyRAI.RData")   
+  load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_preyRAI.RData")   # GoF sims not converging well
   load("./Outputs/Time_btwn_Detections/tbd.lion_sppID_X_preyRAI.RData") # Converged poorly; over-parameterized
   load("./Outputs/Time_btwn_Detections/tbd.lion_global.RData")          # Converged poorly; over-parameterized
   #'  List for model selection
@@ -83,7 +83,7 @@
   load("./Outputs/Time_btwn_Detections/tbd.wolf_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID_preydiv.RData")
   load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID_X_preydiv.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID_preyRAI.RData")   # Chi2.sim not converging well
   load("./Outputs/Time_btwn_Detections/tbd.wolf_sppID_X_preyRAI.RData") # Converged poorly; over-parameterized
   load("./Outputs/Time_btwn_Detections/tbd.wolf_global.RData")          # Converged poorly; over-parameterized
   #'  List for model selection
@@ -122,7 +122,7 @@
   load("./Outputs/Time_btwn_Detections/tbd.nontarget.bob_sppID.RData")
   load("./Outputs/Time_btwn_Detections/tbd.nontarget.bob_preydiversity.RData")
   load("./Outputs/Time_btwn_Detections/tbd.nontarget.bob_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.nontarget.bob_global.RData")           
+  load("./Outputs/Time_btwn_Detections/tbd.nontarget.bob_global.RData")      
   #'  List for model selection
   bob_nt_tbd_list <- list(tbd.nt.bob.null, tbd.nt.bob.sppID, tbd.nt.bob.div, tbd.nt.bob.preyabund, tbd.nt.bob.global)  
   bob_nt_tbd_name <- c("tbd.nt.bob.null", "tbd.nt.bob.sppID", "tbd.nt.bob.div", "tbd.nt.bob.preyabund", "tbd.nt.bob.global")  
