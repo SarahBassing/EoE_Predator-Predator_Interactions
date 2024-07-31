@@ -258,7 +258,11 @@
   
   #####  Parameters monitored  ####
   #'  -------------------------
-  params <- c("y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
+  params <- c("y", "y2", "y.sim", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B", 
+              "detfreq_A", "detfreq_B", "detfreqrep_A", "detfreqrep_B", "tmp_A", "tmp_B", "E_A", "E_B",
+              "x2_A", "x2_B", "x2rep_A", "x2rep_B", "chi2.obs_A", "chi2.obs_B", "chi2.sim_A", "chi2.sim_B", 
+              # "y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", 
+              "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
               "mean.pSpp1", "mean.pSpp2", "z") #"z.sim", 
   
@@ -1095,6 +1099,8 @@
   print(coy.bob.hab$summary)
   print(coy.bob.hab$DIC)
   which(coy.bob.hab$summary[,"Rhat"] > 1.1)
+  (coy.bob.hab_pB.coy <- mean(coy.bob.hab$sims.list$chi2.sim_A > coy.bob.hab$sims.list$chi2.obs_A)) # Bayesian p-value GOF
+  (coy.bob.hab_pB.bob <- mean(coy.bob.hab$sims.list$chi2.sim_B > coy.bob.hab$sims.list$chi2.obs_B)) # Bayesian p-value GOF
   mcmcplot(coy.bob.hab$samples)
   save(coy.bob.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
