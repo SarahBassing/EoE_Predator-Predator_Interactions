@@ -22,6 +22,7 @@
   library(jagsUI)
   library(chron)
   library(tidyverse)
+  library(mcmcplots)
   
   #'  Load detection data
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20s_allM_NewLocationID_2023-09-26.RData") 
@@ -41,8 +42,6 @@
   #'  Load basic camera site covariate data
   cams_eoe_long <- read.csv("./Data/side_quests/Painter/cams_eoe_long_Smr2020-2022.csv") %>%
     dplyr::select(c("NewLocationID", "Gmu", "Setup", "Season")) %>%
-    # filter(NewLocationID != "GMU6_U_160" | CameraHeight_M != 1.2) %>%
-    # filter(NewLocationID != "GMU1_P_27" | CameraFacing != "atv") %>%
     distinct()
   
   #'  --------------------------
@@ -73,9 +72,9 @@
     
     return(clean_dets)
   }
-  df_all_20s <- thin_detections(eoe20s_allM, seqprobs = eoe_seqprob_20s, start_date = "2020-06-01", end_date = "2020-07-31") 
-  df_all_21s <- thin_detections(eoe21s_allM, seqprobs = eoe_seqprob_21s, start_date = "2021-06-01", end_date = "2021-07-31")
-  df_all_22s <- thin_detections(eoe22s_allM, seqprobs = eoe_seqprob_22s, start_date = "2022-06-01", end_date = "2022-07-31") 
+  df_all_20s <- thin_detections(eoe20s_allM, seqprobs = eoe_seqprob_20s, start_date = "2020-06-01", end_date = "2020-08-31") 
+  df_all_21s <- thin_detections(eoe21s_allM, seqprobs = eoe_seqprob_21s, start_date = "2021-06-01", end_date = "2021-08-31")
+  df_all_22s <- thin_detections(eoe22s_allM, seqprobs = eoe_seqprob_22s, start_date = "2022-06-01", end_date = "2022-08-31") 
   
   #####  2) Generate independent detection events  #####
   #'  ---------------------------------------------
@@ -147,7 +146,6 @@
                                  output = y,
                                  includeEffort = TRUE,
                                  scaleEffort = FALSE,
-                                 # writecsv = TRUE,
                                  outDir = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories")
     
     #'  Reduce detection histories to sampling occasions of interest (drop extra
@@ -219,8 +217,7 @@
                 Setup = as.factor(Setup)) %>%
       #'  Arrange by camera location -- NECESSARY TO MATCH DH's CAMERA LOCATION ORDER
       arrange(factor(NewLocationID, levels = camsites))
-      # arrange(NewLocationID) 
-    
+      
     return(formatted)
   }
   stations_eoe20s <- format_covs(covs_20s, dets = DH_eoe20s_RNmod[[1]]) 
@@ -268,15 +265,8 @@
                     nsurveys = dim(dh)[2],
                     ngmu = max(as.numeric(cov$GMU)),
                     nsets = max(as.numeric(cov$Setup)),
-                    # ncams1 = as.numeric(ncams_perGMU[1,2]), # GMU10A
-                    # ncams2 = as.numeric(ncams_perGMU[2,2]), # GMU6
-                    # ncams3 = as.numeric(ifelse(is.na(ncams_perGMU[3,2]), 0, ncams_perGMU[3,2])), #GMU1
                     gmu = as.numeric(cov$GMU), 
-                    setup = as.numeric(cov$Setup))#,
-                    #' #'  Area of each (km2)
-                    #' area1 = as.numeric(8527.31),
-                    #' area2 = as.numeric(5905.44),
-                    #' area3 = as.numeric(14648.92))
+                    setup = as.numeric(cov$Setup))
     str(bundled)
     return(bundled)
   }
@@ -302,8 +292,8 @@
               "rSetup", "mu.r", "mean.p", "mu.lambda", 
               "totalN", "occSites", "mean.psi", "N")
   #'  NOTE about mean vs mu lambda and r: 
-  #'  mean.lambda = the intercept, i.e., mean lambda for GMU10A 
-  #'  mean.r = the intercept, i.e., per-individual detection probability at random sites
+  #'  mean.lambda = the intercept based on reference category, i.e., mean lambda for GMU10A 
+  #'  mean.r = the intercept based on reference category, i.e., per-individual detection probability at random sites
   #'  mu.lambda = lambda averaged across all GMUs
   #'  mu.r = per-individual detection probability averaged across all sites 
   
@@ -320,7 +310,7 @@
   #'  --------------------
   source("./Scripts/Side_quests/Painter_Predator_RNmodel/RNmodel_JAGS_code_2020_WTD_FawnProject.R")
   
-  #'  BLACK BEAR JUNE-JULY 2020
+  #'  BLACK BEAR JUNE-AUG 2020
   start.time = Sys.time()
   inits_bear20s <- function(){list(N = ninit_20s[[1]])}
   RN_bear_20s <- jags(data_JAGS_bundle_20s[[1]], inits = inits_bear20s, params,
@@ -333,7 +323,7 @@
   mcmcplot(RN_bear_20s$samples)
   save(RN_bear_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_bear_20s_", Sys.Date(), ".RData"))
   
-  #'  BOBCAT JUNE-JULY 2020
+  #'  BOBCAT JUNE-AUG  2020
   start.time = Sys.time()
   inits_bob20s <- function(){list(N = ninit_20s[[2]])}
   RN_bob_20s <- jags(data_JAGS_bundle_20s[[2]], inits = inits_bob20s, params,
@@ -346,7 +336,7 @@
   mcmcplot(RN_bob_20s$samples)
   save(RN_bob_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_bob_20s_", Sys.Date(), ".RData")) 
   
-  #'  COYOTE JUNE-JULY 2020
+  #'  COYOTE JUNE-AUG 2020
   start.time = Sys.time()
   inits_coy20s <- function(){list(N = ninit_20s[[3]])}
   RN_coy_20s <- jags(data_JAGS_bundle_20s[[3]], inits = inits_coy20s, params,
@@ -359,7 +349,7 @@
   mcmcplot(RN_coy_20s$samples)
   save(RN_coy_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_coy_20s_", Sys.Date(), ".RData"))
   
-  #'  MOUNTAIN LION JUNE-JULY 2020
+  #'  MOUNTAIN LION JUNE-AUG 2020
   start.time = Sys.time()
   inits_lion20s <- function(){list(N = ninit_20s[[4]])}
   RN_lion_20s <- jags(data_JAGS_bundle_20s[[4]], inits = inits_lion20s, params,
@@ -372,7 +362,7 @@
   mcmcplot(RN_lion_20s$samples)
   save(RN_lion_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_lion_20s_", Sys.Date(), ".RData")) 
   
-  #'  WOLF JUNE-JULY 2020
+  #'  WOLF JUNE-AUG 2020
   start.time = Sys.time()
   inits_wolf20s <- function(){list(N = ninit_20s[[5]])}
   RN_wolf_20s <- jags(data_JAGS_bundle_20s[[5]], inits = inits_wolf20s, params,
@@ -390,7 +380,7 @@
   #'  ---------------------------
   source("./Scripts/Side_quests/Painter_Predator_RNmodel/RNmodel_JAGS_code_2021&2022_WTD_FawnProject.R")
   
-  #'  BLACK BEAR JUNE-JULY 2021
+  #'  BLACK BEAR JUNE-AUG 2021
   start.time = Sys.time()
   inits_bear21s <- function(){list(N = ninit_21s[[1]])}
   RN_bear_21s <- jags(data_JAGS_bundle_21s[[1]], inits = inits_bear21s, params,
@@ -403,7 +393,7 @@
   mcmcplot(RN_bear_21s$samples)
   save(RN_bear_21s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_bear_21s_", Sys.Date(), ".RData"))
   
-  #'  BLACK BEAR JUNE-JULY 2022
+  #'  BLACK BEAR JUNE-AUG 2022
   start.time = Sys.time()
   inits_bear22s <- function(){list(N = ninit_22s[[1]])}
   RN_bear_22s <- jags(data_JAGS_bundle_22s[[1]], inits = inits_bear22s, params,
@@ -416,7 +406,7 @@
   mcmcplot(RN_bear_22s$samples)
   save(RN_bear_22s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_bear_22s_", Sys.Date(), ".RData"))
   
-  #'  BOBCAT JUNE-JULY 2021
+  #'  BOBCAT JUNE-AUG 2021
   start.time = Sys.time()
   inits_bob21s <- function(){list(N = ninit_21s[[2]])}
   RN_bob_21s <- jags(data_JAGS_bundle_21s[[2]], inits = inits_bob21s, params,
@@ -429,7 +419,7 @@
   mcmcplot(RN_bob_21s$samples)
   save(RN_bob_21s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_bob_21s_", Sys.Date(), ".RData"))
   
-  #'  BOBCAT JUNE-JULY 2022
+  #'  BOBCAT JUNE-AUG 2022
   start.time = Sys.time()
   inits_bob22s <- function(){list(N = ninit_22s[[2]])}
   RN_bob_22s <- jags(data_JAGS_bundle_22s[[2]], inits = inits_bob22s, params,
@@ -442,7 +432,7 @@
   mcmcplot(RN_bob_22s$samples)
   save(RN_bob_22s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_bob_22s_", Sys.Date(), ".RData"))
   
-  #'  COYOTE JUNE-JULY 2021
+  #'  COYOTE JUNE-AUG 2021
   start.time = Sys.time()
   inits_coy21s <- function(){list(N = ninit_21s[[3]])}
   RN_coy_21s <- jags(data_JAGS_bundle_21s[[3]], inits = inits_coy21s, params,
@@ -455,7 +445,7 @@
   mcmcplot(RN_coy_21s$samples)
   save(RN_coy_21s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_coy_21s_", Sys.Date(), ".RData"))
   
-  #'  COYOTE JUNE-JULY 2022
+  #'  COYOTE JUNE-AUG 2022
   start.time = Sys.time()
   inits_coy22s <- function(){list(N = ninit_22s[[3]])}
   RN_coy_22s <- jags(data_JAGS_bundle_22s[[3]], inits = inits_coy22s, params,
@@ -468,7 +458,7 @@
   mcmcplot(RN_coy_22s$samples)
   save(RN_coy_22s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_coy_22s_", Sys.Date(), ".RData"))
   
-  #'  MOUNTAIN LION JUNE-JULY 2021
+  #'  MOUNTAIN LION JUNE-AUG 2021
   start.time = Sys.time()
   inits_lion21s <- function(){list(N = ninit_21s[[4]])}
   RN_lion_21s <- jags(data_JAGS_bundle_21s[[4]], inits = inits_lion21s, params,
@@ -481,7 +471,7 @@
   mcmcplot(RN_lion_21s$samples)
   save(RN_lion_21s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_lion_21s_", Sys.Date(), ".RData"))
   
-  #'  MOUNTAIN LION JUNE-JULY 2022
+  #'  MOUNTAIN LION JUNE-AUG 2022
   start.time = Sys.time()
   inits_lion22s <- function(){list(N = ninit_22s[[4]])}
   RN_lion_22s <- jags(data_JAGS_bundle_22s[[4]], inits = inits_lion22s, params,
@@ -494,7 +484,7 @@
   mcmcplot(RN_lion_22s$samples)
   save(RN_lion_22s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_lion_22s_", Sys.Date(), ".RData"))
   
-  #'  WOLF JUNE-JULY 2021
+  #'  WOLF JUNE-AUG 2021
   # ni_wolf <- 100000 
   start.time = Sys.time()
   inits_wolf21s <- function(){list(N = ninit_21s[[5]])}
@@ -508,7 +498,7 @@
   mcmcplot(RN_wolf_21s$samples)
   save(RN_wolf_21s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_wolf_21s_", Sys.Date(), ".RData"))
   
-  #'  WOLF JUNE-JULY 2022
+  #'  WOLF JUNE-AUG 2022
   # ni_wolf <- 100000 
   start.time = Sys.time()
   inits_wolf22s <- function(){list(N = ninit_22s[[5]])}
@@ -589,7 +579,10 @@
     relocate(season, .after = Setup)
   
   RN_abundance <- list(rn_2020, rn_2021, rn_2022)
+  RN_abundance_df <- rbind(rn_2020, rn_2021, rn_2022)
+  
   save(RN_abundance, file = "./Outputs/Painter_RNmodel/RN_abundance.RData")
+  write_csv(RN_abundance_df, file = "./Outputs/Painter_RNmodel/RN_abundance.csv")
   
   #'  -----------------------------
   ####  Species diversity metrics  ####
@@ -654,7 +647,8 @@
     dplyr::select(c(NewLocationID, Setup, season, SR, H))
   spp_diversity_list <- list(spp_diversity_Smr20, spp_diversity_Smr21, spp_diversity_Smr22)
   
-  save(spp_diversity, file = "./Outputs/Painter_RNmodel/RN_abundance.RData")
+  save(spp_diversity, file = "./Outputs/Painter_RNmodel/spp_diversity.RData")
+  write_csv(spp_diversity, file = "./Outputs/Painter_RNmodel/spp_diversity.csv")
   
   #####  Visualize local abundance data  #####
   #'  -----------------------------------
