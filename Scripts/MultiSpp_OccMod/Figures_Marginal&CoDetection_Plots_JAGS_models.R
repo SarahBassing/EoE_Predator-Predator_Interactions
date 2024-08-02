@@ -20,8 +20,8 @@
   library(tidyverse)
   
   #'  Load covariate data
-  load("./Data/Covariates_extracted/Covariate_skinny_EoE20s21s.RData")
-  load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
+  # load("./Data/Covariates_extracted/Covariate_skinny_EoE20s21s.RData")
+  load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img_updated_072924.RData")
   
   #'  -------------------------------------------------
   ####  Predict Pr(detection) across covariate values  ####
@@ -204,6 +204,12 @@
                                         focal_cov = effort_eoe20s21s,
                                         rho_cov = c(1, 1, 0), rho_cov_index = 0,
                                         rho_inxs_cov = c(1), rho_inxs_cov_index = 0)
+  
+  #####  Black bear-Coyote predictions  ####
+  load()
+  
+  
+  
   
   save.image(file = paste0("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_rho-cov_relationships_", Sys.Date(), ".RData"))
   
