@@ -258,7 +258,11 @@
   
   #####  Parameters monitored  ####
   #'  -------------------------
-  params <- c("y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
+  params <- c("y", "y2", "y.sim", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B", 
+              "detfreq_A", "detfreq_B", "detfreqrep_A", "detfreqrep_B", "tmp_A", "tmp_B", "E_A", "E_B",
+              "x2_A", "x2_B", "x2rep_A", "x2rep_B", "chi2.obs_A", "chi2.obs_B", "chi2.sim_A", "chi2.sim_B", 
+              # "y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", 
+              "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
               "mean.pSpp1", "mean.pSpp2", "z") #"z.sim", 
   
@@ -303,7 +307,7 @@
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, year, forest, elevation, tri; p = setup, effort  
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_GoF.R")
   start.time = Sys.time()
   wolf.bear.hab <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
@@ -312,6 +316,8 @@
   print(wolf.bear.hab$summary)
   print(wolf.bear.hab$DIC)
   which(wolf.bear.hab$summary[,"Rhat"] > 1.1)
+  (wolf.bear.hab_pB.coy <- mean(wolf.bear.hab$sims.list$chi2.sim_A > wolf.bear.hab$sims.list$chi2.obs_A)) # Bayesian p-value GOF
+  (wolf.bear.hab_pB.bob <- mean(wolf.bear.hab$sims.list$chi2.sim_B > wolf.bear.hab$sims.list$chi2.obs_B)) # Bayesian p-value GOF
   mcmcplot(wolf.bear.hab$samples)
   save(wolf.bear.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
@@ -1095,6 +1101,8 @@
   print(coy.bob.hab$summary)
   print(coy.bob.hab$DIC)
   which(coy.bob.hab$summary[,"Rhat"] > 1.1)
+  (coy.bob.hab_pB.coy <- mean(coy.bob.hab$sims.list$chi2.sim_A > coy.bob.hab$sims.list$chi2.obs_A)) # Bayesian p-value GOF
+  (coy.bob.hab_pB.bob <- mean(coy.bob.hab$sims.list$chi2.sim_B > coy.bob.hab$sims.list$chi2.obs_B)) # Bayesian p-value GOF
   mcmcplot(coy.bob.hab$samples)
   save(coy.bob.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
