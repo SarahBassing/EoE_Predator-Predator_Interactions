@@ -578,11 +578,22 @@
     mutate(season = "Smr22") %>%
     relocate(season, .after = Setup)
   
+  #'  Bind into list and data frame formats
   RN_abundance <- list(rn_2020, rn_2021, rn_2022)
   RN_abundance_df <- rbind(rn_2020, rn_2021, rn_2022)
   
+  #'  Save final estimates
   save(RN_abundance, file = "./Outputs/Painter_RNmodel/RN_abundance.RData")
   write_csv(RN_abundance_df, file = "./Outputs/Painter_RNmodel/RN_abundance.csv")
+  
+  #'  Explore local abundance estimates real quick
+  summary(RN_abundance_df)
+  hist(RN_abundance_df$RN.n)
+  #'  Review the highest value... is it an outlier?
+  max(RN_abundance_df$RN.n)
+  RN_abundance_df %>% filter(RN_abundance_df$RN.n == max(RN_abundance_df$RN.n))
+  #'  Review sites with estimates at or above the 99 quantile of the data
+  RN_abundance_df %>% filter(RN_abundance_df$RN.n >= quantile(RN_abundance_df$RN.n, .99))
   
   #'  -----------------------------
   ####  Species diversity metrics  ####
@@ -796,7 +807,6 @@
   }
   diversity_maps_H <- map_diversity(spp_div_all, div_metric = spp_div_all$H, div_type = "Shannon's H", size_breaks = c(0, 0.25, 0.5, 0.75, 1, 1.25, 1.5))
   diversity_maps_SR <- map_diversity(spp_div_all, div_metric = spp_div_all$SR, div_type = "Species Richness", size_breaks = c(0, 1, 2, 3, 4, 5))
-  
   
   ggsave("./Outputs/Painter_RNmodel/Figures/Diversity_map_ShannonsH.tiff", diversity_maps_H,
          units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
