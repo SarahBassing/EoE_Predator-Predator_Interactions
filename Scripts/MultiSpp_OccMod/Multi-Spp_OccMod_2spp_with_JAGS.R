@@ -27,7 +27,7 @@
   library(tidyverse)
   
   #'  Load covariate and detection history data
-  load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img_updated_070824.RData") # NOTE: includes Covariates_EoE_..._updated_070824.RData which includes TRI, updated sppDiversity, and 100m radius PercForest 
+  load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img_updated_072924.RData") # NOTE: includes Covariates_EoE_..._updated_070824.RData which includes TRI, updated sppDiversity, and 100m radius PercForest 
   #' load("./Data/MultiSpp_OccMod_Outputs/Format_data_2spp_occmod_for_JAGS_img.RData")
   #' 
   #' #'  Remove problematic row in 2020 detection history (GMU6_U_23 only operational for 0.5 days)
@@ -261,6 +261,7 @@
   params <- c("y", "y2", "y.sim", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B", 
               "detfreq_A", "detfreq_B", "detfreqrep_A", "detfreqrep_B", "tmp_A", "tmp_B", "E_A", "E_B",
               "x2_A", "x2_B", "x2rep_A", "x2rep_B", "chi2.obs_A", "chi2.obs_B", "chi2.sim_A", "chi2.sim_B", 
+              "ft.obs_A", "ft.obs_B", "ft.sim_A", "ft.sim_B",
               # "y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", 
               "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
