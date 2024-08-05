@@ -1328,7 +1328,7 @@
   
   #####  Habitat w/ habitat inx model  #### 
   #'  psi = setup, year, forest, elevation, tri; psix(forest, elevation, tri); p = setup, effort
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(habitat)_p(setup_effort)_bearcoy.R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(habitat)_p(setup_effort).R")
   start.time = Sys.time()
   bear.coy.hab2x <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(habitat)_p(setup_effort).txt",
