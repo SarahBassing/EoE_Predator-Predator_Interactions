@@ -192,20 +192,40 @@
             rdm[i, j, 3, 1] <- 0 # ------------------------------------ OS = Spp2 present
             rdm[i, j, 4, 1] <- 0 # ------------------------------------ OS = Spp12 present
             #'  True state = Spp1 present (z = 2 --> 10)
-            rdm[i, j, 1, 2] <- 1 - exp(rhoSpp1[i, j]) # ------------------------------------ OS = unoccupied
+            rdm[i, j, 1, 2] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 2] <- exp(rhoSpp1[i, j]) # ------------------- OS = Spp1 present
             rdm[i, j, 3, 2] <- 0 # ------------------------------------ OS = Spp2 present
             rdm[i, j, 4, 2] <- 0 # ------------------------------------ OS = Spp12 present
             #'  True state = Spp2 present (z = 3 --> 01)
-            rdm[i, j, 1, 3] <- 1 - exp(rhoSpp2[i, j]) # ------------------------------------ OS = unoccupied
+            rdm[i, j, 1, 3] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 3] <- 0 # ------------------------------------ OS = Spp1 present
             rdm[i, j, 3, 3] <- exp(rhoSpp2[i, j]) # ------------------- OS = Spp2 present
             rdm[i, j, 4, 3] <- 0 # ------------------------------------ OS = Spp12 present
             #'  True state = Spp1 & Spp2 present (z = 4 --> 11)
-            rdm[i, j, 1, 4] <- 1 - exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # ------------------------------------ OS = unoccupied
-            rdm[i, j, 2, 4] <- exp(rhoSpp12[i, j]) # ------------------ OS = Spp1 present
-            rdm[i, j, 3, 4] <- exp(rhoSpp21[i, j]) # ------------------ OS = Spp2 present
+            rdm[i, j, 1, 4] <- 1 # ------------------------------------ OS = unoccupied
+            rdm[i, j, 2, 4] <- exp(rhoSpp1[i, j])  # ------------------ OS = Spp1 present
+            rdm[i, j, 3, 4] <- exp(rhoSpp2[i, j])  # ------------------ OS = Spp2 present
             rdm[i, j, 4, 4] <- exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # - OS = Spp12 present
+            #' #'  True state = unoccupied (z = 1 --> 00)
+            #' rdm[i, j, 1, 1] <- 1 # ------------------------------------ OS = unoccupied
+            #' rdm[i, j, 2, 1] <- 0 # ------------------------------------ OS = Spp1 present
+            #' rdm[i, j, 3, 1] <- 0 # ------------------------------------ OS = Spp2 present
+            #' rdm[i, j, 4, 1] <- 0 # ------------------------------------ OS = Spp12 present
+            #' #'  True state = Spp1 present (z = 2 --> 10)
+            #' rdm[i, j, 1, 2] <- 1 - exp(rhoSpp1[i, j]) # --------------- OS = unoccupied
+            #' rdm[i, j, 2, 2] <- exp(rhoSpp1[i, j]) # ------------------- OS = Spp1 present
+            #' rdm[i, j, 3, 2] <- 0 # ------------------------------------ OS = Spp2 present
+            #' rdm[i, j, 4, 2] <- 0 # ------------------------------------ OS = Spp12 present
+            #' #'  True state = Spp2 present (z = 3 --> 01)
+            #' rdm[i, j, 1, 3] <- 1 - exp(rhoSpp2[i, j]) # --------------- OS = unoccupied
+            #' rdm[i, j, 2, 3] <- 0 # ------------------------------------ OS = Spp1 present
+            #' rdm[i, j, 3, 3] <- exp(rhoSpp2[i, j]) # ------------------- OS = Spp2 present
+            #' rdm[i, j, 4, 3] <- 0 # ------------------------------------ OS = Spp12 present
+            #' #'  True state = Spp1 & Spp2 present (z = 4 --> 11)
+            #' rdm[i, j, 1, 4] <- 1 - exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # - OS = unoccupied
+            #' rdm[i, j, 2, 4] <- exp(rhoSpp12[i, j]) # ------------------ OS = Spp1 present
+            #' rdm[i, j, 3, 4] <- exp(rhoSpp21[i, j]) # ------------------ OS = Spp2 present
+            #' rdm[i, j, 4, 4] <- exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # - OS = Spp12 present
           }
               
           #'  3. Define linear models for each fundamental parameter that governs the cell probs
