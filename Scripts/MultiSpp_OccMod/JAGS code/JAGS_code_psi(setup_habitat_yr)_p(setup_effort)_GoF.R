@@ -79,7 +79,7 @@
             y[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])
             
             #'  Draw a replicate data set under fitted model
-            y.sim[i,j] ~ dcat(rdm[i, j, , z[i]]) #(1:ncat)
+            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]]) #(1:ncat)
             
             #' #'  Derived parameters for GoF check
             #' y.hat[i,j] <- y[i,j]
@@ -144,14 +144,19 @@
         E_B[i] <- sum(tmp_B[i,])     # Expected number of detections for B
       
         # Chi-square and Freeman-Tukey discrepancy measures
-        # ..... for actual data setblock_id3[i]
+        # ..... for actual data 
         x2_A[i] <- pow((detfreq_A[i] - E_A[i]), 2) / (E_A[i] + 0.0001)
         x2_B[i] <- pow((detfreq_B[i] - E_B[i]), 2) / (E_B[i] + 0.0001)
         
+        ft_A[i] <- pow((sqrt(detfreq_A[i]) - sqrt(E_A[i])), 2) 
+        ft_B[i] <- pow((sqrt(detfreq_B[i]) - sqrt(E_B[i])), 2)
         
         # ..... for replicated data set
         x2rep_A[i] <- pow((detfreqrep_A[i] - E_A[i]), 2) / (E_A[i] + 0.0001)
         x2rep_B[i] <- pow((detfreqrep_B[i] - E_B[i]), 2) / (E_B[i] + 0.0001)
+        
+        ftrep_A[i] <- pow((detfreqrep_A[i]) - sqrt(E_A[i]), 2)
+        ftrep_B[i] <- pow((detfreqrep_B[i]) - sqrt(E_B[i]), 2)
 
         } 
         
@@ -159,8 +164,14 @@
         chi2.obs_A <- sum(x2_A[])
         chi2.obs_B <- sum(x2_B[])
         
+        ft.obs_A <- sum(ft_A[])
+        ft.obs_B <- sum(ft_B[])
+        
         chi2.sim_A <- sum(x2rep_A[])
         chi2.sim_B <- sum(x2rep_B[])
+        
+        ft.sim_A <- ftrep_A[]
+        ft.sim_B <- ftrep_B[]
         
         #' #'  GOF Chi2 test statistic
         #' chi2.obs <- sum(r.obs[,]^2)
