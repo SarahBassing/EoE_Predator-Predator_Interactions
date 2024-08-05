@@ -4,12 +4,12 @@
 #'  Sarah Bassing
 #'  March 2023
 #'  ------------------------------------
-#'  Model to test whether predator occurrence is influenced by basic habitat 
-#'  features and if co-occurrence is influenced by prey availability.
+#'  Model to test whether predator occurrence and co-occurrence are influenced by 
+#'  basic habitat features and prey availability.
 #'  Prey species included: elk, lagomorphs, wtd
 #'  ------------------------------------
 
-cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(preyabund_habitat)_p(setup_effort)_bearcoy.txt', "
+cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(habitat_preyabund)_p(setup_effort)_bearcoy.txt', "
       model{
           
         #### Define Priors  ####
@@ -133,8 +133,8 @@ cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_ha
           psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] + betaSpp2[6]*psi_cov[i,17] + betaSpp2[7]*psi_cov[i,10] + betaSpp2[8]*psi_cov[i,11] 
           
           #'  ...for state Spp12
-          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Elk[7] + White-tailed deer[10] + Lagomorph[11] 
-          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_inxs_cov[i,7] + betaSpp12[4]*psi_inxs_cov[i,10] + betaSpp12[5]*psi_inxs_cov[i,11] + betaSpp12[6]*psi_cov[i,4] + betaSpp12[7]*psi_cov[i,5] + betaSpp12[8]*psi_cov[i,17]
+          #'  Covariate order: Spp12 = Intercept[1] + Setup[2] + Forest[4] + Elevation[5] + TRI[17] + Elk[7] + White-tailed deer[10] + Lagomorph[11] 
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] + betaSpp12[2]*psi_inxs_cov[i,2] + betaSpp12[3]*psi_cov[i,4] + betaSpp12[4]*psi_cov[i,5] + betaSpp12[5]*psi_cov[i,17] + betaSpp12[6]*psi_inxs_cov[i,7] + betaSpp12[7]*psi_inxs_cov[i,10] + betaSpp12[8]*psi_inxs_cov[i,11]
             
           #'  Baseline linear predictors for detection
           #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
