@@ -22,82 +22,82 @@
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_newDIV_2024-07-30.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-19.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_2024-07-20.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_2024-07-20.RData") 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(global)_psix(global)_p(setup_effort)_2024-07-20.RData")  
-  wolfbear_list <- list(wolf.bear.null, wolf.bear.hab, wolf.bear.preyabund, wolf.bear.preydiv, wolf.bear.habx, wolf.bear.preyabundx, wolf.bear.preydivx, wolf.bear.global) 
-  wolfbear_name <- c("wolf.bear.null", "wolf.bear.hab", "wolf.bear.preyabund", "wolf.bear.preydiv", "wolf.bear.habx", "wolf.bear.preyabundx", "wolf.bear.preydivx", "wolf.bear.global") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_newDiv_2024-07-31.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(global)_psix(global)_p(setup_effort)_newDiv_2024-08-01.RData")   
+  wolfbear_list <- list(wolf.bear.null, wolf.bear.hab, wolf.bear.preyabund, wolf.bear.habx, wolf.bear.preyabundx) #wolf.bear.preydiv, , wolf.bear.preydivx, wolf.bear.global
+  wolfbear_name <- c("wolf.bear.null", "wolf.bear.hab", "wolf.bear.preyabund", "wolf.bear.habx", "wolf.bear.preyabundx") #"wolf.bear.preydiv", "wolf.bear.preydivx", "wolf.bear.global"
   
   #'  Wolf-Coyote                     
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(yr)_p(.)_2024-07-20.RData")  
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2024-07-21.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-21.RData") 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preydiversity_yr)_p(setup_effort)_2024-07-21.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-07-31.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-22.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_2024-07-22.RData") 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_2024-07-23.RData") 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(global)_psix(global)_p(setup_effort)_2024-07-23.RData")  
-  wolfcoy_list <- list(wolf.coy.null, wolf.coy.hab, wolf.coy.preyabund, wolf.coy.preydiv, wolf.coy.habx, wolf.coy.preyabundx, wolf.coy.preydivx, wolf.coy.global) 
-  wolfcoy_name <- c("wolf.coy.null", "wolf.coy.hab", "wolf.coy.preyabund", "wolf.coy.preydiv", "wolf.coy.habx", "wolf.coy.preyabundx", "wolf.coy.preydivx", "wolf.coy.global")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_newDiv_2024-08-01.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(global)_psix(global)_p(setup_effort)_newDiv_2024-08-01.RData")  
+  wolfcoy_list <- list(wolf.coy.null, wolf.coy.hab, wolf.coy.preyabund, wolf.coy.habx, wolf.coy.preyabundx) #wolf.coy.preydiv, wolf.coy.preydivx, wolf.coy.global 
+  wolfcoy_name <- c("wolf.coy.null", "wolf.coy.hab", "wolf.coy.preyabund", "wolf.coy.habx", "wolf.coy.preyabundx") #"wolf.coy.preydiv", "wolf.coy.preydivx", "wolf.coy.global"
   
   #'  Wolf-Lion                           
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-07-23.RData")  
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_p(setup_effort)_2024-07-24.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-24.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_preydiversity_yr)_p(setup_effort)_2024-07-25.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-07-31.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-25.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_2024-07-26.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_2024-07-26.RData") 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(global)_psix(global)_p(setup_effort)_2024-07-27.RData") 
-  wolflion_list <- list(wolf.lion.null, wolf.lion.hab, wolf.lion.preyabund, wolf.lion.preydiv, wolf.lion.habx, wolf.lion.preyabundx, wolf.lion.preydivx, wolf.lion.global) 
-  wolflion_name <- c("wolf.lion.null", "wolf.lion.hab", "wolf.lion.preyabund", "wolf.lion.preydiv", "wolf.lion.habx", "wolf.lion.preyabundx", "wolf.lion.preydivx", "wolf.lion.global") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_newDiv_2024-08-01.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(global)_psix(global)_p(setup_effort)_newDiv_2024-08-02.RData") 
+  wolflion_list <- list(wolf.lion.null, wolf.lion.hab, wolf.lion.preyabund, wolf.lion.habx, wolf.lion.preyabundx) #wolf.lion.preydiv, wolf.lion.preydivx, wolf.lion.global 
+  wolflion_name <- c("wolf.lion.null", "wolf.lion.hab", "wolf.lion.preyabund", "wolf.lion.habx", "wolf.lion.preyabundx") #"wolf.lion.preydiv", "wolf.lion.preydivx", "wolf.lion.global"
   
   #'  Lion-Bear                           
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2024-07-28.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_p(setup_effort)_2024-07-28.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-28.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_preydiversity_yr)_p(setup_effort)_2024-07-29.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-08-01.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-29.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_2024-07-30.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_2024-07-30.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(global)_psix(global)_p(setup_effort)_2024-07-31.RData") 
-  lionbear_list <- list(lion.bear.null, lion.bear.hab, lion.bear.preyabund, lion.bear.preydiv, lion.bear.habx, lion.bear.preyabundx, lion.bear.preydivx, lion.bear.global)
-  lionbear_name <- c("lion.bear.null", "lion.bear.hab", "lion.bear.preyabund", "lion.bear.preydiv", "lion.bear.habx", "lion.bear.preyabundx", "lion.bear.preydivx", "lion.bear.global")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_newDiv_2024-08-02.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(global)_psix(global)_p(setup_effort)_newDiv_2024-08-02.RData") 
+  lionbear_list <- list(lion.bear.null, lion.bear.hab, lion.bear.preyabund, lion.bear.habx, lion.bear.preyabundx) #lion.bear.preydiv, lion.bear.preydivx, lion.bear.global 
+  lionbear_name <- c("lion.bear.null", "lion.bear.hab", "lion.bear.preyabund", "lion.bear.habx", "lion.bear.preyabundx") #"lion.bear.preydiv", "lion.bear.preydivx", "lion.bear.global" 
   
   #'  Lion-Bobcat                         
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2024-07-26.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_p(setup_effort)_2024-07-27.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-27.RData") 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_preydiversity_yr)_p(setup_effort)_2024-07-28.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-08-02.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-28.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_2024-07-28.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_2024-07-29.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(global)_psix(global)_p(setup_effort)_2024-07-29.RData") 
-  lionbob_list <- list(lion.bob.null, lion.bob.hab, lion.bob.preyabund, lion.bob.preydiv, lion.bob.habx, lion.bob.preyabundx, lion.bob.preydivx, lion.bob.global)
-  lionbob_name <- c("lion.bob.null", "lion.bob.hab", "lion.bob.preyabund", "lion.bob.preydiv", "lion.bob.habx", "lion.bob.preyabundx", "lion.bob.preydivx", "lion.bob.global")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_newDiv_2024-08-03.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(global)_psix(global)_p(setup_effort)_newDiv_2024-08-03.RData") 
+  lionbob_list <- list(lion.bob.null, lion.bob.hab, lion.bob.preyabund, lion.bob.habx, lion.bob.preyabundx) #lion.bob.preydiv, lion.bob.preydivx, lion.bob.global 
+  lionbob_name <- c("lion.bob.null", "lion.bob.hab", "lion.bob.preyabund", "lion.bob.habx", "lion.bob.preyabundx") #"lion.bob.preydiv", "lion.bob.preydivx", "lion.bob.global"
   
-  #'  Coyote-Bobcat                # April 10-11 runs ni = 100000, nt = 10; April 4 runs ni = 50000, nt = 10 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2024-07-22.RData")  #2023-04-10
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_p(setup_effort)_2024-07-23.RData") #2023-04-11
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-23.RData") #2023-04-11
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preydiversity_yr)_p(setup_effort)_2024-07-24.RData")  #2023-04-11
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-24.RData") #2023-04-11
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_2024-07-25.RData") #2023-04-11
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_2024-07-26.RData") #2023-04-11
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_2024-07-26.RData") #2023-04-11
-  coybob_list <- list(coy.bob.null, coy.bob.hab, coy.bob.preyabund, coy.bob.preydiv, coy.bob.habx, coy.bob.preyabundx, coy.bob.preydivx, coy.bob.global) 
-  coybob_name <- c("coy.bob.null", "coy.bob.hab", "coy.bob.preyabund", "coy.bob.preydiv", "coy.bob.habx", "coy.bob.preyabundx", "coy.bob.preydivx", "coy.bob.global")
+  #'  Coyote-Bobcat               
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2024-07-22.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_p(setup_effort)_2024-07-23.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-23.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-08-02.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-24.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_2024-07-25.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_newDiv_2024-08-03.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_newDiv_2024-08-04.RData") 
+  coybob_list <- list(coy.bob.null, coy.bob.hab, coy.bob.preyabund, coy.bob.habx, coy.bob.preyabundx) #coy.bob.preydiv, coy.bob.preydivx, coy.bob.global 
+  coybob_name <- c("coy.bob.null", "coy.bob.hab", "coy.bob.preyabund", "coy.bob.habx", "coy.bob.preyabundx") #"coy.bob.preydiv", "coy.bob.preydivx", "coy.bob.global" 
   
-  #'  Wolf-Bear                       
+  #'  Bear-Coyote                       
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(yr)_p(.)_2024-07-22.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_p(setup_effort)_2024-07-23.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-23.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_preydiversity_yr)_p(setup_effort)_2024-07-24.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-08-03.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-24.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(preyabund)_p(setup_effort)_2024-07-25.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_2024-07-25.RData") 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(global)_psix(global)_p(setup_effort)_2024-07-26.RData")  
-  bearcoy_list <- list(bear.coy.null, bear.coy.hab, bear.coy.preyabund, bear.coy.preydiv, bear.coy.habx, bear.coy.preyabundx, bear.coy.preydivx, bear.coy.global) 
-  bearcoy_name <- c("bear.coy.null", "bear.coy.hab", "bear.coy.preyabund", "bear.coy.preydiv", "bear.coy.habx", "bear.coy.preyabundx", "bear.coy.preydivx", "bear.coy.global") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(preydiversity)_p(setup_effort)_newDiv_2024-08-04.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(global)_psix(global)_p(setup_effort)_newDiv_2024-08-04.RData")  
+  bearcoy_list <- list(bear.coy.null, bear.coy.hab, bear.coy.preyabund, bear.coy.habx, bear.coy.preyabundx) #bear.coy.preydiv, bear.coy.preydivx, bear.coy.global 
+  bearcoy_name <- c("bear.coy.null", "bear.coy.hab", "bear.coy.preyabund", "bear.coy.habx", "bear.coy.preyabundx") #"bear.coy.preydiv", "bear.coy.preydivx", "bear.coy.global" 
   
   
   ####  Create model selection table using DIC, deltaDIC, and model weights  ####
