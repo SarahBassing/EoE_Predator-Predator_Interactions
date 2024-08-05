@@ -368,7 +368,7 @@
   #'  psi = setup, year, forest, elevation, tri; psix(forest, elevation, tri); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(habitat)_p(setup_effort).R")
   start.time = Sys.time()
-  wolf.bear.hab2x <- jags(bundled_pred_list[[7]], inits = inits.wolf.bear, params,
+  wolf.bear.hab2x <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(habitat)_p(setup_effort).txt",
                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -396,7 +396,7 @@
   #'  psi = setup, year, forest, elevation, tri; psix(elk, wtd, lagomorphs, forest, elevation, tri); p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(habitat_preyabund)_p(setup_effort)_wolfbearlion.R")
   start.time = Sys.time()
-  wolf.bear.hab.preyabundx <- jags(bundled_pred_list[[7]], inits = inits.wolf.bear, params,
+  wolf.bear.hab.preyabundx <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
                                  "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(habitat_preyabund)_p(setup_effort)_wolfbearlion.txt",
                                  n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1184,7 +1184,7 @@
   #'  psi = setup, year, forest, elevation, tri; psix(forest, elevation, tri); p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(habitat)_p(setup_effort).R")
   start.time = Sys.time()
-  coy.bob.hab2x <- jags(bundled_pred_list[[7]], inits = inits.coy.bob, params,
+  coy.bob.hab2x <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(habitat)_p(setup_effort).txt",
                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1212,7 +1212,7 @@
   #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs, forest, elevation, tri); p = setup, effort 
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(habitat_preyabund)_p(setup_effort)_coybob.R")
   start.time = Sys.time()
-  coy.bob.hab.preyabundx <- jags(bundled_pred_list[[7]], inits = inits.coy.bob, params,
+  coy.bob.hab.preyabundx <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                                  "./Outputs/MultiSpp_OccMod_Outputs/JAGS_code_psi(setup_habitat_yr)_psix(habitat_preyabund)_p(setup_effort)_coybob.txt",
                                  n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
