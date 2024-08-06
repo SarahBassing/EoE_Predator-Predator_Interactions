@@ -258,14 +258,13 @@
   
   #####  Parameters monitored  ####
   #'  -------------------------
-  params <- c("y", "y2", "y.sim", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B", 
+  params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
+              "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
+              "mean.pSpp1", "mean.pSpp2", "z", "y", "y2", "y.sim", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B", 
               "detfreq_A", "detfreq_B", "detfreqrep_A", "detfreqrep_B", "tmp_A", "tmp_B", "E_A", "E_B",
               "x2_A", "x2_B", "x2rep_A", "x2rep_B", "chi2.obs_A", "chi2.obs_B", "chi2.sim_A", "chi2.sim_B", 
-              "ft.obs_A", "ft.obs_B", "ft.sim_A", "ft.sim_B",
-              # "y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", 
-              "betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
-              "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
-              "mean.pSpp1", "mean.pSpp2", "z") #"z.sim", 
+              "ft.obs_A", "ft.obs_B", "ft.sim_A", "ft.sim_B")
+              # "y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", ) #"z.sim", 
   
   #####  MCMC settings  ####
   #'  ------------------
