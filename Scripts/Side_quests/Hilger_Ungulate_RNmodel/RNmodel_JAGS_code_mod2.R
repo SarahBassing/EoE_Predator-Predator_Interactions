@@ -35,12 +35,10 @@
         for(gmu in 2:ngmu) {
           beta1[gmu] ~ dnorm(0, 0.001)
         }
-          
+        
         #'  Continuous effects for elevation and forest cover
         beta2 ~ dnorm(0, 0.001)
         beta3 ~ dnorm(0, 0.001)
-        # beta4 ~ dnorm(0, 0.001)
-        # beta5 ~ dnorm(0, 0.001)
           
         #'  Detection priors
         mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
@@ -70,12 +68,12 @@
           
         #'  Derived parameters
         #'  ------------------
-        #'  Mean lambda per GMU at road sites
+        #'  Mean lambda per GMU 
         for(gmu in 1:ngmu) {
           lambdaGMU[gmu] <- exp(beta0 + beta1[gmu])
         }
-  
-        #'  Mean lambda averaged across GMUs
+        
+        #'  Mean lambda averaged across GMUs 
         mu.lambda <- mean(lambdaGMU[])
           
         #'  Total abundance across camera sites
