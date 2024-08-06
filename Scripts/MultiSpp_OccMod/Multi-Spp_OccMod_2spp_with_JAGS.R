@@ -1336,33 +1336,33 @@
   #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model: Habitat, with interaction
   #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort; px(.)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob.R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.).R")
   start.time = Sys.time()
   coy.bob.global.px <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob.txt",
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.).txt",
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.global.px$summary)
   print(coy.bob.global.px$DIC)
   which(coy.bob.global.px$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.global.px$samples)
-  save(coy.bob.global.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob_", Sys.Date(), ".RData"))
+  save(coy.bob.global.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
   
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
   #'  Top model:  Global
   #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(psi)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi).R")
   start.time = Sys.time()
   coy.bob.global.px2 <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.txt",
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi).txt",
                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.global.px2$summary)
   print(coy.bob.global.px2$DIC)
   which(coy.bob.global.px2$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.global.px2$samples)
-  save(coy.bob.global.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob_", Sys.Date(), ".RData"))
+  save(coy.bob.global.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData"))
   
   
   
@@ -1522,32 +1522,32 @@
   #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model:  null
   #'  psi = year; p(.); px(.)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.).R")   ### UPDATE THIS
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.).R")   
   start.time = Sys.time()
   bear.coy.null.px <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
-                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.).txt",    ### UPDATE THIS
+                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.).txt",    
                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(bear.coy.null.px$summary)
   print(bear.coy.null.px$DIC)
   which(bear.coy.null.px$summary[,"Rhat"] > 1.1)
   mcmcplot(bear.coy.null.px$samples)
-  save(bear.coy.null.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(yr)_p(.)_px(.)_", Sys.Date(), ".RData"))   ### UPDATE THIS
+  save(bear.coy.null.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_", Sys.Date(), ".RData")) 
   
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
   #'  Top model:  Habitat, no intx on psi
   #'  psi = year; p(.); px(psi)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(psi).R")   ### UPDATE THIS
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi).R")   
   start.time = Sys.time()
   bear.coy.null.px2 <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
-                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(psi).txt",      ### UPDATE THIS
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi).txt",
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(bear.coy.null.px2$summary)
   print(bear.coy.null.px2$DIC)
   which(bear.coy.null.px2$summary[,"Rhat"] > 1.1)
   mcmcplot(bear.coy.null.px2$samples)
-  save(bear.coy.null.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(yr)_p(.)_px(psi)_", Sys.Date(), ".RData"))   ### UPDATE THIS
+  save(bear.coy.null.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData")) 
   
   
