@@ -1176,6 +1176,10 @@
   print(coy.bob.habx$summary)
   print(coy.bob.habx$DIC)
   which(coy.bob.habx$summary[,"Rhat"] > 1.1)
+  (coy.bob.habx_X2pB.coy <- mean(coy.bob.habx$sims.list$chi2.sim_A > coy.bob.habx$sims.list$chi2.obs_A)) # Bayesian p-value GOF
+  (coy.bob.habx_X2pB.bob <- mean(coy.bob.habx$sims.list$chi2.sim_B > coy.bob.habx$sims.list$chi2.obs_B)) # Bayesian p-value GOF
+  (coy.bob.habx_FTpB.coy <- mean(coy.bob.habx$sims.list$ft.sim_A > coy.bob.habx$sims.list$ft.obs_A)) # Bayesian p-value GOF
+  (coy.bob.habx_FTpB.bob <- mean(coy.bob.habx$sims.list$tf.sim_B > coy.bob.habx$sims.list$ft.obs_B)) # Bayesian p-value GOF
   mcmcplot(coy.bob.habx$samples)
   save(coy.bob.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
