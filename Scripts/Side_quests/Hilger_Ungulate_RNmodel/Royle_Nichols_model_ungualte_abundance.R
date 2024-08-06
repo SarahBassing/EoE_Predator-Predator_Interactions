@@ -349,8 +349,8 @@
                     gmu = as.numeric(cov$GMU), 
                     setup = as.numeric(cov$Setup),
                     year = as.numeric(cov$Season, levels = c("Smr20", "Smr21", "Smr22")),
-                    elev = as.numeric(cov$elev),
-                    forest = as.numeric(cov$perc_forest))
+                    elev = as.numeric(scale(cov$elev)),
+                    forest = as.numeric(scale(cov$perc_forest)))
     str(bundled)
     return(bundled)
   }
