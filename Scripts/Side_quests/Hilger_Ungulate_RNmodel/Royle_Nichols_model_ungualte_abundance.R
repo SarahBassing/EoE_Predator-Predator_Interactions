@@ -343,6 +343,7 @@
     bundled <- list(y = dh, 
                     nsites = dim(dh)[1], 
                     nsurveys = dim(dh)[2],
+                    nyear = max(as.numeric(cov$Season)),
                     ngmu = max(as.numeric(cov$GMU)),
                     nsets = max(as.numeric(cov$Setup)),
                     gmu = as.numeric(cov$GMU), 
@@ -386,9 +387,9 @@
   na <- 5000
   
   #'  Load competing models
-  #'  mod1: null (with GMU effect)
-  #'  mod2: basic landscape characteristics
-  #'  mod3: landscape characteristics plus forage availability
+  #'  mod1: null (with year effect)
+  #'  mod2: GMU and basic landscape characteristics
+  #'  mod3: GMU, landscape characteristics, and forage availability
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod1.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod2.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod3.R")
