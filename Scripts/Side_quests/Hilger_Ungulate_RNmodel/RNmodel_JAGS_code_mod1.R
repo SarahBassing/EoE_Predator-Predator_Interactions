@@ -21,7 +21,7 @@
   #'  site i during occasion j, and the number of individuals at site i, N[i].
   #'  -------------------------------
   
-  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod2.txt', "
+  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod1.txt', "
       model{
           
         #'  Define priors
@@ -36,12 +36,6 @@
           beta1[gmu] ~ dnorm(0, 0.001)
         }
           
-        #'  Continuous effects for elevation and forest cover
-        beta2 ~ dnorm(0, 0.001)
-        beta3 ~ dnorm(0, 0.001)
-        # beta4 ~ dnorm(0, 0.001)
-        # beta5 ~ dnorm(0, 0.001)
-          
         #'  Detection priors
         mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
         alpha0 <- logit(mean.r)     # Detection intercept (on logit scale)
@@ -52,13 +46,13 @@
           alpha1[cam] ~ dnorm(0, 0.001)
         }
           
-          
+
         #'  Define likelihood
         #'  -----------------
         #'  Latent state (abundance)
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + beta1[gmu[i]] + beta2*elev[i] + beta3*forest[i])
+          lambda[i] <- exp(beta0 + beta1[gmu[i]]) 
             
           #'  Detection state
           for(j in 1:nsurveys){
@@ -103,5 +97,5 @@
         }
         mean.p <- mean(p.occasion[])
           
-        }
-        ")
+      }
+      ")
