@@ -434,38 +434,68 @@
   #' mcmcplot(wolf.bear.global$samples)
   #' save(wolf.bear.global, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(global)_psix(global)_p(setup_effort)_", Sys.Date(), ".RData"))
   
+  #' #####  Top model w/ intx on detection model v1  #### 
+  #' #'  Parameterization tests whether detection of one predator affects detection of the other
+  #' #'  Top model:  Prey diversity, no intx on psi
+  #' #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort; px(.)
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(.).R")
+  #' start.time = Sys.time()
+  #' wolf.bear.preydiv.px <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #'                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(.).txt",
+  #'                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.bear.preydiv.px$summary)
+  #' print(wolf.bear.preydiv.px$DIC)
+  #' which(wolf.bear.preydiv.px$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.bear.preydiv.px$samples)
+  #' save(wolf.bear.preydiv.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
+  #' 
+  #' #####  Top model w/ intx on detection model v2  #### 
+  #' #'  Parameterization tests whether presence of one predator affects detection of the other
+  #' #'  Top model:  Prey diversity, no intx on psi
+  #' #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort; px(psi) 
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi).R")
+  #' start.time = Sys.time()
+  #' wolf.bear.preydiv.px2 <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+  #'                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi).txt",
+  #'                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(wolf.bear.preydiv.px2$summary)
+  #' print(wolf.bear.preydiv.px2$DIC)
+  #' which(wolf.bear.preydiv.px2$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(wolf.bear.preydiv.px2$samples)
+  #' save(wolf.bear.preydiv.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData"))
+  
   #####  Top model w/ intx on detection model v1  #### 
-  #'  Parameterization tests whether detection of one predator affects detection of the other
-  #'  Top model:  Prey diversity, no intx on psi
-  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort; px(.) 
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(.).R")
+  #'  Top model: null
+  #'  psi = year; p(.); px(.)
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.).R")
   start.time = Sys.time()
-  wolf.bear.preydiv.px <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(.).txt",
-                          n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  wolf.bear.null.px <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.).txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.bear.preydiv.px$summary)
-  print(wolf.bear.preydiv.px$DIC)
-  which(wolf.bear.preydiv.px$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.bear.preydiv.px$samples)
-  save(wolf.bear.preydiv.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
+  print(wolf.bear.null.px$summary)
+  print(wolf.bear.null.px$DIC)
+  which(wolf.bear.null.px$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.bear.null.px$samples)
+  save(wolf.bear.null.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_px(.)_", Sys.Date(), ".RData"))
   
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
-  #'  Top model:  Prey diversity, no intx on psi
-  #'  psi = setup, year, forest, elevation, tri, spp diversity; p = setup, effort; px(psi) 
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi).R")
+  #'  Top model: null
+  #'  psi = year; p(.); px(psi)
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(psi).R")
   start.time = Sys.time()
-  wolf.bear.preydiv.px2 <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                               "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi).txt",
-                               n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  wolf.bear.null.px2 <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(psi).txt",
+                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.bear.preydiv.px2$summary)
-  print(wolf.bear.preydiv.px2$DIC)
-  which(wolf.bear.preydiv.px2$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.bear.preydiv.px2$samples)
-  save(wolf.bear.preydiv.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData"))
-  
+  print(wolf.bear.null.px2$summary)
+  print(wolf.bear.null.px2$DIC)
+  which(wolf.bear.null.px2$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.bear.null.px2$samples)
+  save(wolf.bear.null.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_px(psi)_", Sys.Date(), ".RData"))
   
   
   #'  ----------------------
@@ -1270,20 +1300,47 @@
   #' save(coy.bob.global, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_", Sys.Date(), ".RData"))
   
   
-  
-  
-  
-  
+  #' #####  Top model w/ intx on detection model v1  #### 
+  #' #'  Parameterization tests whether detection of one predator affects detection of the other
+  #' #'  Top model:  Global
+  #' #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(.)
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob.R")
+  #' start.time = Sys.time()
+  #' coy.bob.global.px <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  #'                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob.txt",
+  #'                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(coy.bob.global.px$summary)
+  #' print(coy.bob.global.px$DIC)
+  #' which(coy.bob.global.px$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(coy.bob.global.px$samples)
+  #' save(coy.bob.global.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob_", Sys.Date(), ".RData"))
+  #' 
+  #' #####  Top model w/ intx on detection model v2  #### 
+  #' #'  Parameterization tests whether presence of one predator affects detection of the other
+  #' #'  Top model:  Global
+  #' #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(psi)
+  #' source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.R")
+  #' start.time = Sys.time()
+  #' coy.bob.global.px2 <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  #'                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.txt",
+  #'                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(coy.bob.global.px2$summary)
+  #' print(coy.bob.global.px2$DIC)
+  #' which(coy.bob.global.px2$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(coy.bob.global.px2$samples)
+  #' save(coy.bob.global.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob_", Sys.Date(), ".RData"))
   
   #####  Top model w/ intx on detection model v1  #### 
   #'  Parameterization tests whether detection of one predator affects detection of the other
-  #'  Top model:  Global
-  #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(.)
+  #'  Top model: Habitat, with interaction
+  #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort; px(.)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob.R")
   start.time = Sys.time()
   coy.bob.global.px <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob.txt",
-                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(.)_coybob.txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.global.px$summary)
   print(coy.bob.global.px$DIC)
@@ -1298,8 +1355,8 @@
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.R")
   start.time = Sys.time()
   coy.bob.global.px2 <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.txt",
-                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(global)_psix(global)_p(setup_effort)_px(psi)_coybob.txt",
+                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.global.px2$summary)
   print(coy.bob.global.px2$DIC)
