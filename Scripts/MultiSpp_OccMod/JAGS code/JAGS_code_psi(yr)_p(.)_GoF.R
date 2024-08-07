@@ -1,54 +1,49 @@
-  #'  ------------------------------------
-  #'  Habitat model, with species interactions
+  #'  ---------------------------------
+  #'  Null model 1: No interactions
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
-  #'  March 2023
-  #'  ------------------------------------
-  #'  Model to test whether predator occurrence is influenced by basic habitat 
-  #'  features. Allows species co-occurrence to be non-independent.
-  #'  ------------------------------------
+  #'  February 2023
+  #'  ---------------------------------
+  #'  Included year effects to account for temporal correlation in occurrence 
+  #'  related to re-sampling same site each year but otherwise unrelated to 
+  #'  environmental/ biotic variables of interest.
+  #'  ---------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort).txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_GoF.txt', "
       model{
           
         #### Define Priors  ####
         #'  ================
         #'  Priors for parameters of interest 
         #'  Intercepts and slopes for linear models associated with each natural parameter
-        
+          
         #'  First order occupancy intercerpts (psi) 
-        betaSpp1[1] <- logit(mean.psiSpp1)           
+        betaSpp1[1] <- logit(mean.psiSpp1)          
         betaSpp2[1] <- logit(mean.psiSpp2)
         mean.psiSpp1 ~ dunif(0, 1)               
         mean.psiSpp2 ~ dunif(0, 1)
-            
+      
         #'  First order occupancy slopes (psi)
-        for(fo_psi in 2:6){                         
+        for(fo_psi in 2:2){                         
           betaSpp1[fo_psi] ~ dnorm(0, 0.1)
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
       
-        #'  Second order occupancy intercept (psix)
-        betaSpp12[1] ~ dnorm(0, 0.1)
-        
-        #'  First order detection intercepts (rho)
+        #'  Second order occupancy intercerpt (psi)
+        #'  Fix second-order interaction to 0
+        betaSpp12 <- 0
+            
+        #'  First order detection priors (rho)
         alphaSpp1[1] <- logit(mean.pSpp1)           
         alphaSpp2[1] <- logit(mean.pSpp2)
         mean.pSpp1 ~ dunif(0, 1)                    
         mean.pSpp2 ~ dunif(0, 1)
-         
-        #'  First order detection slopes (rho)   
-        for(fo_rho in 2:3){                         
-          alphaSpp1[fo_rho] ~ dnorm(0, 0.1)  
-          alphaSpp2[fo_rho] ~ dnorm(0, 0.1)
-        }
       
         #'  Second order detection priors (rho)
         #'  Assumes no second-order interactions by setting these to 0
         alphaSpp12 <- 0
         alphaSpp21 <- 0
-        
-            
+          
         ####  Define Likelihood  ####
         #'  =====================
         
@@ -60,7 +55,7 @@
         #'  ------------------
         #'  For each site, true occupancy (z) is drawn from a categorical distribution
         #'  with 4 mututally exclusive occupancy probabilities
-            
+          
         for(i in 1:nsites) {
           z[i] ~ dcat(lsv[i, (1:ncat)])
         }
@@ -68,13 +63,83 @@
         #'  Observation model
         #'  -----------------
         #'  For each site and survey occasion, the deteciton data are drawn from a
-        #'  categorical distribution with 4 latent states (z)
+        #'  categorical distribution with 8 latent states (z)
           
         for(i in 1:nsites) {
           for(j in 1:nsurveys) {
             y[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])
+            
+            #'  Draw a replicate data set under fitted model
+            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]]) 
+            
+            #'  Derived parameters for Goodness-of-Fit check
+            y2[i,j] <- y[i,j]
+            yrep2[i,j] <- y.sim[i,j]
+            
+            #' Seperate out by species
+            y_A[i,j] <- ifelse(y2[i,j]==2 || y2[i,j]==4, 1, 0)
+            y_B[i,j] <- ifelse(y2[i,j]==3 || y2[i,j]==4, 1, 0)
+
+            yrep_A[i,j] <- ifelse(yrep2[i,j]==2 || yrep2[i,j]==4, 1, 0)
+            yrep_B[i,j] <- ifelse(yrep2[i,j]==3 || yrep2[i,j]==4, 1, 0)
           }
         }
+        
+        #'  Compute observed z matrix for observed and replicated data
+        for(i in 1:nsites) {
+          zobs_A[i] <- max(y_A[i, ]) 
+          zobsrep_A[i] <- max(yrep_A[i, ]) # For replicated data
+       
+          zobs_B[i] <- max(y_B[i,])       # For observed data
+          zobsrep_B[i] <- max(yrep_B[i,]) # For replicated data
+    
+          z_A[i] <- ifelse(z[i]==2 || z[i]==4, 1, 0)
+          z_B[i] <- ifelse(z[i]==3 || z[i]==4, 1, 0)
+          
+          #'  Det. frequencies for observed and replicated data
+          detfreq_A[i] <- sum(y_A[i,])
+          detfreqrep_A[i] <- sum(yrep_A[i,])
+
+          detfreq_B[i] <- sum(y_B[i,])
+          detfreqrep_B[i] <- sum(yrep_B[i,])
+
+          #'  Expected detection frequencies under the model
+          for (j in 1:nsurveys){
+            tmp_A[i,j] <- z_A[i] * rdm[i, j, 2, 2]
+            tmp_B[i,j] <- z_B[i] * rdm[i, j, 3, 3]
+          } 
+      
+          E_A[i] <- sum(tmp_A[i,])     # Expected number of detections for A
+          E_B[i] <- sum(tmp_B[i,])     # Expected number of detections for B
+      
+          #'  Chi-square and Freeman-Tukey discrepancy measures
+          #'  ..... for actual data 
+          x2_A[i] <- pow((detfreq_A[i] - E_A[i]), 2) / (E_A[i] + 0.0001)
+          x2_B[i] <- pow((detfreq_B[i] - E_B[i]), 2) / (E_B[i] + 0.0001)
+        
+          ft_A[i] <- pow((sqrt(detfreq_A[i]) - sqrt(E_A[i])), 2) 
+          ft_B[i] <- pow((sqrt(detfreq_B[i]) - sqrt(E_B[i])), 2)
+        
+          #'  ..... for replicated data set
+          x2rep_A[i] <- pow((detfreqrep_A[i] - E_A[i]), 2) / (E_A[i] + 0.0001)
+          x2rep_B[i] <- pow((detfreqrep_B[i] - E_B[i]), 2) / (E_B[i] + 0.0001)
+        
+          ftrep_A[i] <- pow((detfreqrep_A[i]) - sqrt(E_A[i]), 2)
+          ftrep_B[i] <- pow((detfreqrep_B[i]) - sqrt(E_B[i]), 2)
+        } 
+        
+        #'  Add up overall test statistic and compute fit stat ratio
+        chi2.obs_A <- sum(x2_A[])
+        chi2.obs_B <- sum(x2_B[])
+        
+        ft.obs_A <- sum(ft_A[])
+        ft.obs_B <- sum(ft_B[])
+        
+        chi2.sim_A <- sum(x2rep_A[])
+        chi2.sim_B <- sum(x2rep_B[])
+        
+        ft.sim_A <- ftrep_A[]
+        ft.sim_B <- ftrep_B[]
           
         #'  2. Define arrays containing cell probabilities for categorical distributions
               
@@ -95,7 +160,7 @@
             #'  Example 1: when only Spp1 is observed and only Spp1 is truly 
             #'  present, the detection probability is rhoSpp1.
             #'  Example 2: when only Spp1 is observed by in reality Spp1 & Spp2
-            #'  are truly present, the detection probability is rhoSpp12
+            #'  are truly present, the detection probability is rhoSpp12.
             #'  True state = unoccupied (z = 1 --> 00)
             rdm[i, j, 1, 1] <- 1 # ------------------------------------ OS = unoccupied
             rdm[i, j, 2, 1] <- 0 # ------------------------------------ OS = Spp1 present
@@ -123,20 +188,20 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept[1] + Setup[2] + Year[3] + Forest[4] + Elevation[5] + TRI[17]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,5] + betaSpp1[6]*psi_cov[i,17] 
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] + betaSpp2[6]*psi_cov[i,17] 
+          #'  Covariate order: Intercept[1] + Year[5]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,5] 
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,5] 
           
           #'  ...for state Spp12
-          #'  Covariate order: Intercept[1] 
-          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] 
+          #'  Don't forget - second order parameter set to 0 so no interaction
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12*psi_inxs_cov[i,1]
           
-          #'  Baseline linear predictors for detection
-          #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
+          #'  Linear models for the detection parameters on the logit scale
           for(j in 1:nsurveys) {
-            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5] 
-            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5] 
-      
+            #'  Intercept 
+            rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] 
+            rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] 
+          
             #'  Asymetric interactions between both species
             #'  Fixing to be same as species-sepcific detection probability
             rhoSpp12[i, j] <- rhoSpp1[i, j] 
@@ -144,4 +209,4 @@
           }
         }
       }
-      ", fill=TRUE)
+      ")

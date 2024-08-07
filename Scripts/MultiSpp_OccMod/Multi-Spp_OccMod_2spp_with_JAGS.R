@@ -305,6 +305,23 @@
   mcmcplot(wolf.bear.null$samples)
   save(wolf.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_", Sys.Date(), ".RData"))
   
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_GoF.R")
+  start.time = Sys.time()
+  wolf.bear.null <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_GoF.txt",
+                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.bear.null$summary)
+  print(wolf.bear.null$DIC)
+  which(wolf.bear.null$summary[,"Rhat"] > 1.1)
+  (wolf.bear.null_X2pB.coy <- mean(wolf.bear.null$sims.list$chi2.sim_A > wolf.bear.null$sims.list$chi2.obs_A)) # Bayesian p-value GOF
+  (wolf.bear.null_X2pB.bob <- mean(wolf.bear.null$sims.list$chi2.sim_B > wolf.bear.null$sims.list$chi2.obs_B)) # Bayesian p-value GOF
+  (wolf.bear.null_FTpB.coy <- mean(wolf.bear.null$sims.list$ft.sim_A > wolf.bear.null$sims.list$ft.obs_A)) # Bayesian p-value GOF
+  (wolf.bear.null_FTpB.bob <- mean(wolf.bear.null$sims.list$tf.sim_B > wolf.bear.null$sims.list$ft.obs_B)) # Bayesian p-value GOF
+  mcmcplot(wolf.bear.null$samples)
+  save(wolf.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_GoF_", Sys.Date(), ".RData"))
+  
+  
   #####  Habitat no inxs model  #### 
   #'  psi = setup, year, forest, elevation, tri; p = setup, effort  
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_GoF.R")
