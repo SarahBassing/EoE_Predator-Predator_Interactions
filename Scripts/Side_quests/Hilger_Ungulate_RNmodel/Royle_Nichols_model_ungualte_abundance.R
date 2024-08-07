@@ -452,7 +452,7 @@
   mcmcplot(RN_elk_aug_mod2$samples)
   save(RN_elk_aug_mod2, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_mod2_", Sys.Date(), ".RData"))
   
-  2#'  -----------------------
+  #'  -----------------------
   #####  WTD July RN models  #####
   #'  -----------------------
   ######  Model 1  ######
