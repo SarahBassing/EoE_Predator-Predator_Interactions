@@ -1,14 +1,14 @@
   #'  ------------------------------------
-  #'  Habitat model, no species interactions
+  #'  Habitat model, with species interactions
   #'  ID CRU - Predator Interactions
   #'  Sarah Bassing
   #'  March 2023
   #'  ------------------------------------
   #'  Model to test whether predator occurrence is influenced by basic habitat 
-  #'  features. Assumes species occur and are detected independently of one another.
+  #'  features. Allows species co-occurrence to be non-independent.
   #'  ------------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_GoF.txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF.txt', "
       model{
           
         #### Define Priors  ####
@@ -28,9 +28,8 @@
           betaSpp2[fo_psi] ~ dnorm(0, 0.1)
         }
       
-        #'  Second order occupancy intercerpt (psi) 
-        #'  Fix second-order interaction to 0
-        betaSpp12 <- 0
+        #'  Second order occupancy intercept (psix)
+        betaSpp12[1] ~ dnorm(0, 0.1)
         
         #'  First order detection intercepts (rho)
         alphaSpp1[1] <- logit(mean.pSpp1)           
@@ -48,7 +47,7 @@
         #'  Assumes no second-order interactions by setting these to 0
         alphaSpp12 <- 0
         alphaSpp21 <- 0
-                
+        
             
         ####  Define Likelihood  ####
         #'  =====================
@@ -64,54 +63,31 @@
             
         for(i in 1:nsites) {
           z[i] ~ dcat(lsv[i, (1:ncat)])
-          # z.sim[i] ~ dcat(lsv[i,(1:ncat)]) # simulated data for GoF, latent state
+          z.sim[i] ~ dcat(lsv[i, (1:ncat)])
         }
           
         #'  Observation model
         #'  -----------------
         #'  For each site and survey occasion, the deteciton data are drawn from a
         #'  categorical distribution with 4 latent states (z)
-        
-        #Indx <- c(1,2,3,4)
           
         for(i in 1:nsites) {
           for(j in 1:nsurveys) {
             y[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])
             
             #'  Draw a replicate data set under fitted model
-            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]]) #(1:ncat)
+            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z.sim[i]]) 
             
-            #' #'  Derived parameters for GoF check
-            #' y.hat[i,j] <- y[i,j]
-            #' y.sim.hat[i,j] <- max(rdm[i, j, , z[i]])
-            
-            # r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
-            # r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
-            
-            #' #'  Grab expected value based on model
-            #' # y.hat[i,j] <- Indx[rdm[i, j, , z[i]] == max(rdm[i, j, , z[i]])]
-            #' # y.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z[i]]) == rdm[i, j, (1:ncat), z[i]]]
-            #' y.hat[i,j] <- max(rdm[i, j, (1:ncat), z[i]]) # returns only 1s
-            #' # r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
-            #' 
-            #' #'  Simulate replicate data set under fitted model for GoF
-            #' y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z.sim[i]])
-            #' # y.sim.hat[i,j] <- Indx[max(rdm[i, j, , z.sim[i]])] 
-            #' # # y.sim.hat[i,j] <- Indx[max(rdm[i, j, (1:ncat), z.sim[i]]) == rdm[i, j, (1:ncat), z.sim[i]]] 
-            #' # #y.sim.hat[i,j] <- max(rdm[i, j, (1:ncat), z.sim[i]]) # returns only 1s
-            #' # r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
-            
-            #derived parameters for Goodness-of-Fit check
+            #'  Derived parameters for Goodness-of-Fit check
             y2[i,j] <- y[i,j]
             yrep2[i,j] <- y.sim[i,j]
             
-            # seperate species
+            #' Seperate out by species
             y_A[i,j] <- ifelse(y2[i,j]==2 || y2[i,j]==4, 1, 0)
             y_B[i,j] <- ifelse(y2[i,j]==3 || y2[i,j]==4, 1, 0)
 
             yrep_A[i,j] <- ifelse(yrep2[i,j]==2 || yrep2[i,j]==4, 1, 0)
             yrep_B[i,j] <- ifelse(yrep2[i,j]==3 || yrep2[i,j]==4, 1, 0)
-            
           }
         }
         
@@ -173,9 +149,6 @@
         ftratio_A <- ft.obs_A/ft.sim_B
         ftratio_B <- ft.obs_A/ft.sim_B
         
-        #' #'  GOF Chi2 test statistic
-        #' chi2.obs <- sum(r.obs[,]^2)
-        #' chi2.sim <- sum(r.sim[,]^2)
           
         #'  2. Define arrays containing cell probabilities for categorical distributions
               
@@ -214,29 +187,9 @@
             rdm[i, j, 4, 3] <- 0 # ------------------------------------ OS = Spp12 present
             #'  True state = Spp1 & Spp2 present (z = 4 --> 11)
             rdm[i, j, 1, 4] <- 1 # ------------------------------------ OS = unoccupied
-            rdm[i, j, 2, 4] <- exp(rhoSpp1[i, j])  # ------------------ OS = Spp1 present
-            rdm[i, j, 3, 4] <- exp(rhoSpp2[i, j])  # ------------------ OS = Spp2 present
+            rdm[i, j, 2, 4] <- exp(rhoSpp12[i, j]) # ------------------ OS = Spp1 present
+            rdm[i, j, 3, 4] <- exp(rhoSpp21[i, j]) # ------------------ OS = Spp2 present
             rdm[i, j, 4, 4] <- exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # - OS = Spp12 present
-            #' #'  True state = unoccupied (z = 1 --> 00)
-            #' rdm[i, j, 1, 1] <- 1 # ------------------------------------ OS = unoccupied
-            #' rdm[i, j, 2, 1] <- 0 # ------------------------------------ OS = Spp1 present
-            #' rdm[i, j, 3, 1] <- 0 # ------------------------------------ OS = Spp2 present
-            #' rdm[i, j, 4, 1] <- 0 # ------------------------------------ OS = Spp12 present
-            #' #'  True state = Spp1 present (z = 2 --> 10)
-            #' rdm[i, j, 1, 2] <- 1 - exp(rhoSpp1[i, j]) # --------------- OS = unoccupied
-            #' rdm[i, j, 2, 2] <- exp(rhoSpp1[i, j]) # ------------------- OS = Spp1 present
-            #' rdm[i, j, 3, 2] <- 0 # ------------------------------------ OS = Spp2 present
-            #' rdm[i, j, 4, 2] <- 0 # ------------------------------------ OS = Spp12 present
-            #' #'  True state = Spp2 present (z = 3 --> 01)
-            #' rdm[i, j, 1, 3] <- 1 - exp(rhoSpp2[i, j]) # --------------- OS = unoccupied
-            #' rdm[i, j, 2, 3] <- 0 # ------------------------------------ OS = Spp1 present
-            #' rdm[i, j, 3, 3] <- exp(rhoSpp2[i, j]) # ------------------- OS = Spp2 present
-            #' rdm[i, j, 4, 3] <- 0 # ------------------------------------ OS = Spp12 present
-            #' #'  True state = Spp1 & Spp2 present (z = 4 --> 11)
-            #' rdm[i, j, 1, 4] <- 1 - exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # - OS = unoccupied
-            #' rdm[i, j, 2, 4] <- exp(rhoSpp12[i, j]) # ------------------ OS = Spp1 present
-            #' rdm[i, j, 3, 4] <- exp(rhoSpp21[i, j]) # ------------------ OS = Spp2 present
-            #' rdm[i, j, 4, 4] <- exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # - OS = Spp12 present
           }
               
           #'  3. Define linear models for each fundamental parameter that governs the cell probs
@@ -244,24 +197,24 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept[1] + Setup[2] + Year[3] + Forest[4] + Elevation[5] + TRI[17]# + HumanDet[14] + Footprint[16] 
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,5] + betaSpp1[6]*psi_cov[i,17] # + betaSpp1[7]*psi_cov[i,14] + betaSpp1[6]*psi_cov[i,16]
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] + betaSpp2[6]*psi_cov[i,17] # + betaSpp2[7]*psi_cov[i,14] + betaSpp2[6]*psi_cov[i,16]
+          #'  Covariate order: Intercept[1] + Setup[2] + Year[3] + Forest[4] + Elevation[5] + TRI[17]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,2] + betaSpp1[3]*psi_cov[i,3] + betaSpp1[4]*psi_cov[i,4] + betaSpp1[5]*psi_cov[i,5] + betaSpp1[6]*psi_cov[i,17] 
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,2] + betaSpp2[3]*psi_cov[i,3] + betaSpp2[4]*psi_cov[i,4] + betaSpp2[5]*psi_cov[i,5] + betaSpp2[6]*psi_cov[i,17] 
           
           #'  ...for state Spp12
-          #'  Don't forget - second order parameter set to 0 so no interaction
-          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12*psi_inxs_cov[i,1]
+          #'  Covariate order: Intercept[1] 
+          psiSpp12[i] <- psiSpp1[i] + psiSpp2[i] + betaSpp12[1]*psi_inxs_cov[i,1] 
           
           #'  Baseline linear predictors for detection
           #'  Covariate order: Intercept[1] + Setup[3] + Sampling Effort[5]
           for(j in 1:nsurveys) {
             rhoSpp1[i, j] <- alphaSpp1[1]*rho_cov[i,j,1] + alphaSpp1[2]*rho_cov[i,j,3] + alphaSpp1[3]*rho_cov[i,j,5] 
             rhoSpp2[i, j] <- alphaSpp2[1]*rho_cov[i,j,1] + alphaSpp2[2]*rho_cov[i,j,3] + alphaSpp2[3]*rho_cov[i,j,5] 
-          
+      
             #'  Asymetric interactions between both species
-            #'  Don't forget - second order parameters set to 0 so no interactions
-            rhoSpp12[i, j] <- rhoSpp1[i, j] + alphaSpp12*rho_inxs_cov[i,j,1] 
-            rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21*rho_inxs_cov[i,j,1] 
+            #'  Fixing to be same as species-sepcific detection probability
+            rhoSpp12[i, j] <- rhoSpp1[i, j] 
+            rhoSpp21[i, j] <- rhoSpp2[i, j] 
           }
         }
       }

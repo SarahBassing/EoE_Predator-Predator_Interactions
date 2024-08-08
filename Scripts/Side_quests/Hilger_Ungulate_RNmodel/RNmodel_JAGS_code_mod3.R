@@ -1,12 +1,12 @@
-  #'  -------------------------------
-  #'  Royle-Nichols abundance model
-  #'  ID CRU - Predator Interactions
-  #'  Sarah B. Bassing
-  #'  August 2024
-  #'  -------------------------------
-  #'  RN model to estimate relative abundance from binary detection/non-detection,
-  #'  assuming heterogeneous abundance affects detection probability.
-  #'  
+#'  -------------------------------
+#'  Royle-Nichols abundance model
+#'  ID CRU - Predator Interactions
+#'  Sarah B. Bassing
+#'  August 2024
+#'  -------------------------------
+#'  RN model to estimate relative abundance from binary detection/non-detection,
+#'  assuming heterogeneous abundance affects detection probability.
+#'  
   #'  Relevant parameters and data:
   #'  lambda: The number of animals available for detection at site i, N[i], is a 
   #'  Poisson-distributed random variable with mean lambda[i]. N is latent.
@@ -20,8 +20,8 @@
   #'  a binomial sampling probability that a particular individual is detected at 
   #'  site i during occasion j, and the number of individuals at site i, N[i].
   #'  -------------------------------
-  
-  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod2.txt', "
+
+  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod3.txt', "
       model{
           
         #'  Define priors
@@ -35,10 +35,12 @@
         for(gmu in 2:ngmu) {
           beta1[gmu] ~ dnorm(0, 0.001)
         }
-        
-        #'  Continuous effects for elevation and forest cover
+          
+        #'  Continuous effects for elevation, forest cover, high qualigy biomass, and total biomass
         beta2 ~ dnorm(0, 0.001)
         beta3 ~ dnorm(0, 0.001)
+        beta4 ~ dnorm(0, 0.001)
+        beta5 ~ dnorm(0, 0.001)
           
         #'  Detection priors
         mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
@@ -56,7 +58,7 @@
         #'  Latent state (abundance)
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + beta1[gmu[i]] + beta2*elev[i] + beta3*forest[i])
+          lambda[i] <- exp(beta0 + beta1[gmu[i]] + beta2*elev[i] + beta3*forest[i] + beta4*qualitybiomass[i] + beta5*totalbiomass[i])
             
           #'  Detection state
           for(j in 1:nsurveys){
@@ -68,12 +70,12 @@
           
         #'  Derived parameters
         #'  ------------------
-        #'  Mean lambda per GMU 
+        #'  Mean lambda per GMU at road sites
         for(gmu in 1:ngmu) {
           lambdaGMU[gmu] <- exp(beta0 + beta1[gmu])
         }
-        
-        #'  Mean lambda averaged across GMUs 
+  
+        #'  Mean lambda averaged across GMUs
         mu.lambda <- mean(lambdaGMU[])
           
         #'  Total abundance across camera sites

@@ -21,7 +21,7 @@
   #'  site i during occasion j, and the number of individuals at site i, N[i].
   #'  -------------------------------
   
-  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod2.txt', "
+  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod1.txt', "
       model{
           
         #'  Define priors
@@ -30,15 +30,11 @@
         beta0 ~ dunif(-10, 10)      # Abundance intercept
         mean.lambda <- exp(beta0)   # Mean lambda for GMU10A
           
-        #'  Categorical effect for GMU needs multiple beta1 coefficients
+        #'  Categorical effect for year needs multiple beta1 coefficients
         beta1[1] <- 0
-        for(gmu in 2:ngmu) {
-          beta1[gmu] ~ dnorm(0, 0.001)
+        for(yr in 2:nyear) {
+          beta1[yr] ~ dnorm(0, 0.001)
         }
-        
-        #'  Continuous effects for elevation and forest cover
-        beta2 ~ dnorm(0, 0.001)
-        beta3 ~ dnorm(0, 0.001)
           
         #'  Detection priors
         mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
@@ -50,13 +46,13 @@
           alpha1[cam] ~ dnorm(0, 0.001)
         }
           
-          
+
         #'  Define likelihood
         #'  -----------------
         #'  Latent state (abundance)
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + beta1[gmu[i]] + beta2*elev[i] + beta3*forest[i])
+          lambda[i] <- exp(beta0 + beta1[year[i]]) 
             
           #'  Detection state
           for(j in 1:nsurveys){
@@ -68,13 +64,13 @@
           
         #'  Derived parameters
         #'  ------------------
-        #'  Mean lambda per GMU 
-        for(gmu in 1:ngmu) {
-          lambdaGMU[gmu] <- exp(beta0 + beta1[gmu])
+        #'  Mean lambda per year at road sites
+        for(yr in 1:nyear) {
+          lambdaYr[yr] <- exp(beta0 + beta1[yr])
         }
-        
-        #'  Mean lambda averaged across GMUs 
-        mu.lambda <- mean(lambdaGMU[])
+  
+        #'  Mean lambda averaged across years
+        mu.lambda <- mean(lambdaYr[])
           
         #'  Total abundance across camera sites
         totalN <- sum(N[])
@@ -101,5 +97,5 @@
         }
         mean.p <- mean(p.occasion[])
           
-        }
-        ")
+      }
+      ")

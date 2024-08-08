@@ -297,7 +297,7 @@
   stations_skinny_eoe20s21s <- unscaled_covs(cams_yr1 = cams_eoe20s, cams_yr2 = cams_eoe21s, 
                                              covs_yr1 = eoe_covs_20s, covs_yr2 = eoe_covs_21s, 
                                              rm_rows_yr1 = rm_rows_eoe20s, rm_rows_yr2 = rm_rows_eoe21s)
-  # save(stations_skinny_eoe20s21s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20s21s.RData")
+  # save(stations_skinny_eoe20s21s, file = "./Data/Covariates_extracted/Covariate_skinny_EoE20s21s_updated_070824.RData")
   
   # stations_skinny_eoe20s <- unscaled_covs(cams_eoe20s, covs = eoe_covs_20s, rm_rows = rm_rows_eoe20s) 
   # stations_skinny_eoe20w <- unscaled_covs(cams_eoe20w, covs = eoe_covs_20w, rm_rows = rm_rows_eoe20w) 
