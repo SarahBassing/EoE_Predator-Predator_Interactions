@@ -170,8 +170,8 @@
         ft.sim_A <- sum(ftrep_A[])
         ft.sim_B <- sum(ftrep_B[])
         
-        ftratio_A <- ft.obs_A/ft.sim_B
-        ftratio_B <- ft.obs_A/ft.sim_B
+        ftratio_A <- ft.obs_A/ft.sim_A
+        ftratio_B <- ft.obs_B/ft.sim_B
         
         #' #'  GOF Chi2 test statistic
         #' chi2.obs <- sum(r.obs[,]^2)

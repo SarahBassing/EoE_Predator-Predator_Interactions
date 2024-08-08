@@ -140,8 +140,8 @@
         ft.sim_A <- sum(ftrep_A[])
         ft.sim_B <- sum(ftrep_B[])
         
-        ftratio_A <- ft.obs_A/ft.sim_B
-        ftratio_B <- ft.obs_A/ft.sim_B
+        ftratio_A <- ft.obs_A/ft.sim_A
+        ftratio_B <- ft.obs_B/ft.sim_B
           
         #'  2. Define arrays containing cell probabilities for categorical distributions
               
