@@ -63,6 +63,7 @@
             
         for(i in 1:nsites) {
           z[i] ~ dcat(lsv[i, (1:ncat)])
+          z.sim[i] ~ dcat(lsv[i, (1:ncat)])
         }
           
         #'  Observation model
@@ -75,7 +76,7 @@
             y[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])
             
             #'  Draw a replicate data set under fitted model
-            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]]) 
+            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z.sim[i]]) 
             
             #'  Derived parameters for Goodness-of-Fit check
             y2[i,j] <- y[i,j]
@@ -90,16 +91,8 @@
           }
         }
         
-        #'  Compute observed z matrix for observed and replicated data
+        #'  Calcualte observed, replicate, expected detection frequencies
         for(i in 1:nsites) {
-          zobs_A[i] <- max(y_A[i, ]) 
-          zobsrep_A[i] <- max(yrep_A[i, ]) # For replicated data
-       
-          zobs_B[i] <- max(y_B[i,])       # For observed data
-          zobsrep_B[i] <- max(yrep_B[i,]) # For replicated data
-    
-          z_A[i] <- ifelse(z[i]==2 || z[i]==4, 1, 0)
-          z_B[i] <- ifelse(z[i]==3 || z[i]==4, 1, 0)
           
           #'  Det. frequencies for observed and replicated data
           detfreq_A[i] <- sum(y_A[i,])
@@ -108,6 +101,9 @@
           detfreq_B[i] <- sum(y_B[i,])
           detfreqrep_B[i] <- sum(yrep_B[i,])
 
+          #'  Separate z by species
+          z_A[i] <- ifelse(z[i]==2 || z[i]==4, 1, 0)
+          z_B[i] <- ifelse(z[i]==3 || z[i]==4, 1, 0)
 
           #'  Expected detection frequencies under the model
           for (j in 1:nsurveys){
@@ -130,22 +126,29 @@
           x2rep_A[i] <- pow((detfreqrep_A[i] - E_A[i]), 2) / (E_A[i] + 0.0001)
           x2rep_B[i] <- pow((detfreqrep_B[i] - E_B[i]), 2) / (E_B[i] + 0.0001)
         
-          ftrep_A[i] <- pow((detfreqrep_A[i]) - sqrt(E_A[i]), 2)
-          ftrep_B[i] <- pow((detfreqrep_B[i]) - sqrt(E_B[i]), 2)
+          ftrep_A[i] <- pow((sqrt(detfreqrep_A[i]) - sqrt(E_A[i])), 2)
+          ftrep_B[i] <- pow((sqrt(detfreqrep_B[i]) - sqrt(E_B[i])), 2)
         } 
         
         #'  Add up overall test statistic and compute fit stat ratio
         chi2.obs_A <- sum(x2_A[])
         chi2.obs_B <- sum(x2_B[])
         
-        ft.obs_A <- sum(ft_A[])
-        ft.obs_B <- sum(ft_B[])
-        
         chi2.sim_A <- sum(x2rep_A[])
         chi2.sim_B <- sum(x2rep_B[])
         
-        ft.sim_A <- ftrep_A[]
-        ft.sim_B <- ftrep_B[]
+        chi2ratio_A <- chi2.obs_A/chi2.sim_A
+        chi2ratio_B <- chi2.obs_B/chi2.sim_B
+        
+        ft.obs_A <- sum(ft_A[])
+        ft.obs_B <- sum(ft_B[])
+        
+        ft.sim_A <- sum(ftrep_A[])
+        ft.sim_B <- sum(ftrep_B[])
+        
+        ftratio_A <- ft.obs_A/ft.sim_B
+        ftratio_B <- ft.obs_A/ft.sim_B
+        
           
         #'  2. Define arrays containing cell probabilities for categorical distributions
               
