@@ -8,7 +8,7 @@
   #'  features. Assumes species occur and are detected independently of one another.
   #'  ------------------------------------
   
-  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt', "
+  cat(file = './Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_GoF.txt', "
       model{
           
         #### Define Priors  ####
