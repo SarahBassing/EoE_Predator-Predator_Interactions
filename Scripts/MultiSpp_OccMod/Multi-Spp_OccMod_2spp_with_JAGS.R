@@ -688,7 +688,20 @@
   which(wolf.lion.null$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.lion.null$samples)
   save(wolf.lion.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_", Sys.Date(), ".RData"))
+
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_GoF.R")
+  start.time = Sys.time()
+  wolf.lion.null <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_GoF.txt",
+                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(wolf.lion.null$summary)
+  print(wolf.lion.null$DIC)
+  which(wolf.lion.null$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.lion.null$samples)
+  save(wolf.lion.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_GoF_", Sys.Date(), ".RData"))
   
+    
   #####  Habitat no inxs model  #### 
   #'  psi = setup, year, forest, elevation, tri; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
@@ -842,6 +855,19 @@
   which(lion.bear.null$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bear.null$samples)
   save(lion.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_", Sys.Date(), ".RData"))
+  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_GoF.R")
+  start.time = Sys.time()
+  lion.bear.null <- jags(bundled_pred_list[[4]], inits = inits.lion.bear, params,
+                         "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_GoF.txt",
+                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(lion.bear.null$summary)
+  print(lion.bear.null$DIC)
+  which(lion.bear.null$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bear.null$samples)
+  save(lion.bear.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_GoF_", Sys.Date(), ".RData"))
+  
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, year, forest, elevation, tri; p = setup, effort
@@ -1011,7 +1037,20 @@
   which(lion.bob.null$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bob.null$samples)
   save(lion.bob.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_", Sys.Date(), ".RData"))
+
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_GoF.R")
+  start.time = Sys.time()
+  lion.bob.null <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_GoF.txt",
+                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(lion.bob.null$summary)
+  print(lion.bob.null$DIC)
+  which(lion.bob.null$summary[,"Rhat"] > 1.1)
+  mcmcplot(lion.bob.null$samples)
+  save(lion.bob.null, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_GoF_", Sys.Date(), ".RData"))
   
+    
   #####  Habitat no inxs model  #### 
   #'  psi = setup, year, forest, elevation, tri; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
