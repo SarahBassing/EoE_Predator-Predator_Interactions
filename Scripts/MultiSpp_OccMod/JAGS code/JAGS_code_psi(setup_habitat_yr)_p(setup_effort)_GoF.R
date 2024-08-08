@@ -115,63 +115,63 @@
           }
         }
         
-        # Compute observed z matrix for observed and replicated data
+        #'  Calcualte observed, replicate, expected detection frequencies
         for(i in 1:nsites) {
-          zobs_A[i] <- max(y_A[i, ]) 
-          zobsrep_A[i] <- max(yrep_A[i, ]) # For replicated data
-       
-          zobs_B[i] <- max(y_B[i,])       # For observed data
-          zobsrep_B[i] <- max(yrep_B[i,]) # For replicated data
-    
+          
+          #'  Det. frequencies for observed and replicated data
+          detfreq_A[i] <- sum(y_A[i,])
+          detfreqrep_A[i] <- sum(yrep_A[i,])
+
+          detfreq_B[i] <- sum(y_B[i,])
+          detfreqrep_B[i] <- sum(yrep_B[i,])
+
+          #'  Separate z by species
           z_A[i] <- ifelse(z[i]==2 || z[i]==4, 1, 0)
           z_B[i] <- ifelse(z[i]==3 || z[i]==4, 1, 0)
-          
-        # Det. frequencies for observed and replicated data
-        detfreq_A[i] <- sum(y_A[i,])
-        detfreqrep_A[i] <- sum(yrep_A[i,])
 
-        detfreq_B[i] <- sum(y_B[i,])
-        detfreqrep_B[i] <- sum(yrep_B[i,])
-
-
-        # Expected detection frequencies under the model
-        for (j in 1:nsurveys){
-          tmp_A[i,j] <- z_A[i] * rdm[i, j, 2, 2]
-          tmp_B[i,j] <- z_B[i] * rdm[i, j, 3, 3]
-        } 
+          #'  Expected detection frequencies under the model
+          for (j in 1:nsurveys){
+            tmp_A[i,j] <- z_A[i] * rdm[i, j, 2, 2]
+            tmp_B[i,j] <- z_B[i] * rdm[i, j, 3, 3]
+          } 
       
-        E_A[i] <- sum(tmp_A[i,])     # Expected number of detections for A
-        E_B[i] <- sum(tmp_B[i,])     # Expected number of detections for B
+          E_A[i] <- sum(tmp_A[i,])     # Expected number of detections for A
+          E_B[i] <- sum(tmp_B[i,])     # Expected number of detections for B
       
-        # Chi-square and Freeman-Tukey discrepancy measures
-        # ..... for actual data 
-        x2_A[i] <- pow((detfreq_A[i] - E_A[i]), 2) / (E_A[i] + 0.0001)
-        x2_B[i] <- pow((detfreq_B[i] - E_B[i]), 2) / (E_B[i] + 0.0001)
+          #'  Chi-square and Freeman-Tukey discrepancy measures
+          #'  ..... for actual data 
+          x2_A[i] <- pow((detfreq_A[i] - E_A[i]), 2) / (E_A[i] + 0.0001)
+          x2_B[i] <- pow((detfreq_B[i] - E_B[i]), 2) / (E_B[i] + 0.0001)
         
-        ft_A[i] <- pow((sqrt(detfreq_A[i]) - sqrt(E_A[i])), 2) 
-        ft_B[i] <- pow((sqrt(detfreq_B[i]) - sqrt(E_B[i])), 2)
+          ft_A[i] <- pow((sqrt(detfreq_A[i]) - sqrt(E_A[i])), 2) 
+          ft_B[i] <- pow((sqrt(detfreq_B[i]) - sqrt(E_B[i])), 2)
         
-        # ..... for replicated data set
-        x2rep_A[i] <- pow((detfreqrep_A[i] - E_A[i]), 2) / (E_A[i] + 0.0001)
-        x2rep_B[i] <- pow((detfreqrep_B[i] - E_B[i]), 2) / (E_B[i] + 0.0001)
+          #'  ..... for replicated data set
+          x2rep_A[i] <- pow((detfreqrep_A[i] - E_A[i]), 2) / (E_A[i] + 0.0001)
+          x2rep_B[i] <- pow((detfreqrep_B[i] - E_B[i]), 2) / (E_B[i] + 0.0001)
         
-        ftrep_A[i] <- pow((detfreqrep_A[i]) - sqrt(E_A[i]), 2)
-        ftrep_B[i] <- pow((detfreqrep_B[i]) - sqrt(E_B[i]), 2)
-
+          ftrep_A[i] <- pow((sqrt(detfreqrep_A[i]) - sqrt(E_A[i])), 2)
+          ftrep_B[i] <- pow((sqrt(detfreqrep_B[i]) - sqrt(E_B[i])), 2)
         } 
         
-        #' Add up overall test statistic and compute fit stat ratio
+        #'  Add up overall test statistic and compute fit stat ratio
         chi2.obs_A <- sum(x2_A[])
         chi2.obs_B <- sum(x2_B[])
-        
-        ft.obs_A <- sum(ft_A[])
-        ft.obs_B <- sum(ft_B[])
         
         chi2.sim_A <- sum(x2rep_A[])
         chi2.sim_B <- sum(x2rep_B[])
         
-        ft.sim_A <- ftrep_A[]
-        ft.sim_B <- ftrep_B[]
+        chi2ratio_A <- chi2.obs_A/chi2.sim_A
+        chi2ratio_B <- chi2.obs_B/chi2.sim_B
+        
+        ft.obs_A <- sum(ft_A[])
+        ft.obs_B <- sum(ft_B[])
+        
+        ft.sim_A <- sum(ftrep_A[])
+        ft.sim_B <- sum(ftrep_B[])
+        
+        ftratio_A <- ft.obs_A/ft.sim_B
+        ftratio_B <- ft.obs_A/ft.sim_B
         
         #' #'  GOF Chi2 test statistic
         #' chi2.obs <- sum(r.obs[,]^2)
