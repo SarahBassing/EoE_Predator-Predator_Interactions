@@ -53,7 +53,7 @@
   x2rep_A <- mod$sims.list$x2rep_A; x2rep_A[1:10, 1:10]; hist(x2rep_A); max(x2rep_A)
   x2rep_B <- mod$sims.list$x2rep_B; x2rep_B[1:10, 1:10]; hist(x2rep_B); max(x2rep_B)
   
-  #'  Overall Chi2 test statistic for observed data (sum x2 meaures across sites per iteraction)
+  #'  Overall Chi2 test statistic for observed data (sum x2 measures across sites per interaction)
   chi2.obs_A <- mod$sims.list$chi2.obs_A; chi2.obs_A[1:10]; hist(chi2.obs_A); summary(chi2.obs_A)
   chi2.obs_B <- mod$sims.list$chi2.obs_B; chi2.obs_B[1:10]; hist(chi2.obs_B); summary(chi2.obs_B)
   
