@@ -63,7 +63,7 @@
             
         for(i in 1:nsites) {
           z[i] ~ dcat(lsv[i, (1:ncat)])
-          z.sim[i] ~ dcat(lsv[i, (1:ncat)])
+          #z.sim[i] ~ dcat(lsv[i, (1:ncat)])
         }
           
         #'  Observation model
@@ -76,7 +76,7 @@
             y[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])
             
             #'  Draw a replicate data set under fitted model
-            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z.sim[i]]) 
+            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])  #z.sim
             
             #'  Derived parameters for Goodness-of-Fit check
             y2[i,j] <- y[i,j]
