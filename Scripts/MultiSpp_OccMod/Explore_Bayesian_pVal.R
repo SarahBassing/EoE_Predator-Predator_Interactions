@@ -1,19 +1,19 @@
   #'  Review GoF outputs ---- do these models really suck that bad???
   
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_2024-08-06.RData")
-  mod <- coy.bob.habx
-  
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_2024-08-06.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_zsim_2024-08-08.RData") # need to rerun without z.sim
   mod <- bear.coy.habx
   
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_GoF_2024-08-08.RData")
   mod <- wolf.coy.hab
   
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_GoF_2024-08-07.RData")
-  mod <- wolf.bear.null
+  # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_GoF_2024-08-07.RData")
+  # mod <- wolf.bear.null
   
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_GoF_2024-08-08.RData")
   mod <- wolf.lion.null
+  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_2024-08-06.RData") # need to run without z.sim & fixed FT
+  mod <- coy.bob.habx
   
   mod$summary
   
@@ -100,19 +100,19 @@
   abline(0,1, lwd = 2)
   text(quantile(pl, 0.1), max(pl), paste('Bpv = ', round(mean(chi2.sim_B > chi2.obs_B), 2)), cex = 1.5)
   
-  # #'  Plot Freeman-Tukey discrepancy measures for observed and simulated data for SppA
-  # pl <- range(c(ft.obs_A, ft.sim_A))
-  # plot(ft.obs_A, ft.sim_A, xlab = "FT observed data", ylab = "FT expected data",
-  #      main = "FT discrepency ratio for Species A", xlim = pl, ylim = pl, frame.plot = FALSE)
-  # abline(0,1, lwd = 2)
-  # text(quantile(pl, 0.1), max(pl), paste('Bpv = ', round(mean(ft.sim_A > ft.obs_A), 2)), cex = 1.5)
-  # 
-  # #'  and SppB
-  # pl <- range(c(ft.obs_B, ft.sim_B))
-  # plot(ft.obs_B, ft.sim_B, xlab = "FT observed data", ylab = "FT expected data",
-  #      main = "FT discrepancy ratio for Species B", xlim = pl, ylim = pl, frame.plot = FALSE)
-  # abline(0,1, lwd = 2)
-  # text(quantile(pl, 0.1), max(pl), paste('Bpv = ', round(mean(ft.sim_B > ft.obs_B), 2)), cex = 1.5)
-  
+  #'  Plot Freeman-Tukey discrepancy measures for observed and simulated data for SppA
+  pl <- range(c(ft.obs_A, ft.sim_A))
+  plot(ft.obs_A, ft.sim_A, xlab = "FT observed data", ylab = "FT expected data",
+       main = "FT discrepency ratio for Species A", xlim = pl, ylim = pl, frame.plot = FALSE)
+  abline(0,1, lwd = 2)
+  text(quantile(pl, 0.1), max(pl), paste('Bpv = ', round(mean(ft.sim_A > ft.obs_A), 2)), cex = 1.5)
+
+  #'  and SppB
+  pl <- range(c(ft.obs_B, ft.sim_B))
+  plot(ft.obs_B, ft.sim_B, xlab = "FT observed data", ylab = "FT expected data",
+       main = "FT discrepancy ratio for Species B", xlim = pl, ylim = pl, frame.plot = FALSE)
+  abline(0,1, lwd = 2)
+  text(quantile(pl, 0.1), max(pl), paste('Bpv = ', round(mean(ft.sim_B > ft.obs_B), 2)), cex = 1.5)
+
   
   
