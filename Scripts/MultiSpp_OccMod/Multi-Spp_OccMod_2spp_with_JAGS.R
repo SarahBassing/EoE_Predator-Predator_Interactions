@@ -1578,7 +1578,7 @@
   (bear.coy.habx_FTpB.coy <- mean(bear.coy.habx$sims.list$ft.sim_B > bear.coy.habx$sims.list$ft.obs_B)) # Bayesian p-value GOF
   mean(bear.coy.habx$sims.list$chi2ratio_A); mean(bear.coy.habx$sims.list$chi2ratio_B); mean(bear.coy.habx$sims.list$ftratio_A); mean(bear.coy.habx$sims.list$ftratio_B)
   # mcmcplot(bear.coy.habx$samples)
-  save(bear.coy.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_zsim_", Sys.Date(), ".RData"))
+  save(bear.coy.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ habitat inx model  #### 
   #'  psi = setup, year, forest, elevation, tri; psix(forest, elevation, tri); p = setup, effort
