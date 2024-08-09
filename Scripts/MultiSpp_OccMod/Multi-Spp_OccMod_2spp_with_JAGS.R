@@ -263,7 +263,7 @@
               "mean.pSpp1", "mean.pSpp2", "z", 
               "y2", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B", 
               "detfreq_A", "detfreq_B", "detfreqrep_A", "detfreqrep_B", 
-              "rdm", "tmp_A", "tmp_B", "E_A", "E_B",
+              "tmp_A", "tmp_B", "E_A", "E_B",
               "x2_A", "x2_B", "x2rep_A", "x2rep_B", 
               "chi2.obs_A", "chi2.obs_B", "chi2.sim_A", "chi2.sim_B", 
               "ft_A", "ft_B", "ftrep_A", "ftrep_B", "ft.obs_A", "ft.obs_B", "ft.sim_A", "ft.sim_B",
