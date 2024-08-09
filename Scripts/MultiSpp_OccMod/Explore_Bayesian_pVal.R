@@ -6,8 +6,14 @@
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_2024-08-06.RData")
   mod <- bear.coy.habx
   
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_GoF_2024-08-08.RData")
+  mod <- wolf.coy.hab
+  
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_GoF_2024-08-07.RData")
   mod <- wolf.bear.null
+  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_GoF_2024-08-08.RData")
+  mod <- wolf.lion.null
   
   mod$summary
   
