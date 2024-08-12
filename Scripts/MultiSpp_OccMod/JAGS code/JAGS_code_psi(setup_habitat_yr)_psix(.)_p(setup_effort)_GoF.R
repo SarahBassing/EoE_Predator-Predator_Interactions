@@ -105,10 +105,12 @@
           z_A[i] <- ifelse(z[i]==2 || z[i]==4, 1, 0)
           z_B[i] <- ifelse(z[i]==3 || z[i]==4, 1, 0)
 
-          #'  Expected detection frequencies under the model
+          #'  Expected detection relative frequencies under the model
           for (j in 1:nsurveys){
-            tmp_A[i,j] <- z_A[i] * rdm[i, j, 2, 2]
-            tmp_B[i,j] <- z_B[i] * rdm[i, j, 3, 3]
+            pA[i,j] <- rdm[i, j, 2, 2]/(1 + rdm[i, j, 2, 2]) # normalize rmd
+            pB[i,j] <- rdm[i, j, 3, 3]/(1 + rdm[i, j, 3, 3]) # nromalize rmd
+            tmp_A[i,j] <- z_A[i] * pA[i,j]
+            tmp_B[i,j] <- z_B[i] * pB[i,j]
           } 
       
           E_A[i] <- sum(tmp_A[i,])     # Expected number of detections for A
