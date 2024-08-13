@@ -155,8 +155,8 @@
         chi2.sim_A <- sum(x2rep_A[])
         chi2.sim_B <- sum(x2rep_B[])
 
-        ft.sim_A <- ftrep_A[]
-        ft.sim_B <- ftrep_B[]
+        ft.sim_A <- sum(ftrep_A[])
+        ft.sim_B <- sum(ftrep_B[])
           
         #'  2. Define arrays containing cell probabilities for categorical distributions
               
