@@ -261,16 +261,18 @@
   params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
               "mean.pSpp1", "mean.pSpp2", "z", 
-              "y2", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B", 
-              "detfreq_A", "detfreq_B", "detfreqrep_A", "detfreqrep_B", 
-              "tmp_A", "tmp_B", "E_A", "E_B",
-              "x2_A", "x2_B", "x2rep_A", "x2rep_B", 
-              "chi2.obs_A", "chi2.obs_B", "chi2.sim_A", "chi2.sim_B", 
-              "ft_A", "ft_B", "ftrep_A", "ftrep_B", "ft.obs_A", "ft.obs_B", "ft.sim_A", "ft.sim_B",
-              "d_A", "d_B", "d2_A", "d2_B", "dnew_A", "dnew_B", "dnew2_A", "dnew2_B", 
-              "dsum_A", "dsum_B", "dnewsum_A", "dnewsum_B",
-              "chi2ratio_A", "chi2ratio_B", "ftratio_A", "ftratio_B")
-              # "y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", ) #"z.sim", 
+              "y.hat", "y.hat.index", "y.hat.maxindex", "x2", "x2.sim", "chi2.obs", "chi2.sim")
+              # "y2", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B",
+              # "pA", "pB", "pAB", "pSpp1", "pSpp2",
+              # "detfreq_A", "detfreq_B", "detfreqrep_A", "detfreqrep_B",
+              # "tmp_A", "tmp_B", "E_A", "E_B",
+              # "x2_A", "x2_B", "x2rep_A", "x2rep_B",
+              # "chi2.obs_A", "chi2.obs_B", "chi2.sim_A", "chi2.sim_B",
+              # "ft_A", "ft_B", "ftrep_A", "ftrep_B", "ft.obs_A", "ft.obs_B", "ft.sim_A", "ft.sim_B",
+              # # "d_A", "d_B", "d2_A", "d2_B", "dnew_A", "dnew_B", "dnew2_A", "dnew2_B",
+              # # "dsum_A", "dsum_B", "dnewsum_A", "dnewsum_B",
+              # "chi2ratio_A", "chi2ratio_B", "ftratio_A", "ftratio_B")
+              # # "y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", ) #"z.sim",
   
   #####  MCMC settings  ####
   #'  ------------------
@@ -571,10 +573,10 @@
   mcmcplot(wolf.coy.hab$samples)
   save(wolf.coy.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_GoF.R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_altGoF.R")
   start.time = Sys.time()
   wolf.coy.hab <- jags(bundled_pred_list[[2]], inits = inits.wolf.coy, params,
-                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_GoF.txt",
+                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_altGoF.txt",
                        n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.coy.hab$summary)
@@ -1329,8 +1331,8 @@
   (coy.bob.habx_X2pB.bob <- mean(coy.bob.habx$sims.list$chi2.sim_B > coy.bob.habx$sims.list$chi2.obs_B)) # Bayesian p-value GOF
   (coy.bob.habx_FTpB.coy <- mean(coy.bob.habx$sims.list$ft.sim_A > coy.bob.habx$sims.list$ft.obs_A)) # Bayesian p-value GOF
   (coy.bob.habx_FTpB.bob <- mean(coy.bob.habx$sims.list$ft.sim_B > coy.bob.habx$sims.list$ft.obs_B)) # Bayesian p-value GOF
-  (coy.bob.habx_PpB.coy <- mean(coy.bob.habx$sims.list$dnewsum_A > coy.bob.habx$sims.list$dsum_A)) # Bayesian p-value GOF
-  (coy.bob.habx_PpB.bob <- mean(coy.bob.habx$sims.list$dnewsum_B > coy.bob.habx$sims.list$dsum_B)) # Bayesian p-value GOF
+  # (coy.bob.habx_PpB.coy <- mean(coy.bob.habx$sims.list$dnewsum_A > coy.bob.habx$sims.list$dsum_A)) # Bayesian p-value GOF
+  # (coy.bob.habx_PpB.bob <- mean(coy.bob.habx$sims.list$dnewsum_B > coy.bob.habx$sims.list$dsum_B)) # Bayesian p-value GOF
   mean(coy.bob.habx$sims.list$chi2ratio_A); mean(coy.bob.habx$sims.list$chi2ratio_B); mean(coy.bob.habx$sims.list$ftratio_A); mean(coy.bob.habx$sims.list$ftratio_B)
   # mcmcplot(coy.bob.habx$samples)
   save(coy.bob.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_", Sys.Date(), ".RData"))
