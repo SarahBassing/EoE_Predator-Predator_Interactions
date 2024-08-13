@@ -267,6 +267,8 @@
               "x2_A", "x2_B", "x2rep_A", "x2rep_B", 
               "chi2.obs_A", "chi2.obs_B", "chi2.sim_A", "chi2.sim_B", 
               "ft_A", "ft_B", "ftrep_A", "ftrep_B", "ft.obs_A", "ft.obs_B", "ft.sim_A", "ft.sim_B",
+              "d_A", "d_B", "d2_A", "d2_B", "dnew_A", "dnew_B", "dnew2_A", "dnew2_B", 
+              "dsum_A", "dsum_B", "dnewsum_A", "dnewsum_B",
               "chi2ratio_A", "chi2ratio_B", "ftratio_A", "ftratio_B")
               # "y.hat", "y.sim", "y.sim.hat", "chi2.obs", "chi2.sim", ) #"z.sim", 
   
@@ -1327,6 +1329,8 @@
   (coy.bob.habx_X2pB.bob <- mean(coy.bob.habx$sims.list$chi2.sim_B > coy.bob.habx$sims.list$chi2.obs_B)) # Bayesian p-value GOF
   (coy.bob.habx_FTpB.coy <- mean(coy.bob.habx$sims.list$ft.sim_A > coy.bob.habx$sims.list$ft.obs_A)) # Bayesian p-value GOF
   (coy.bob.habx_FTpB.bob <- mean(coy.bob.habx$sims.list$ft.sim_B > coy.bob.habx$sims.list$ft.obs_B)) # Bayesian p-value GOF
+  (coy.bob.habx_PpB.coy <- mean(coy.bob.habx$sims.list$dnewsum_A > coy.bob.habx$sims.list$dsum_A)) # Bayesian p-value GOF
+  (coy.bob.habx_PpB.bob <- mean(coy.bob.habx$sims.list$dnewsum_B > coy.bob.habx$sims.list$dsum_B)) # Bayesian p-value GOF
   mean(coy.bob.habx$sims.list$chi2ratio_A); mean(coy.bob.habx$sims.list$chi2ratio_B); mean(coy.bob.habx$sims.list$ftratio_A); mean(coy.bob.habx$sims.list$ftratio_B)
   # mcmcplot(coy.bob.habx$samples)
   save(coy.bob.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_", Sys.Date(), ".RData"))
@@ -1457,15 +1461,31 @@
   #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort; px(.)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.).R")
   start.time = Sys.time()
-  coy.bob.global.px <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  coy.bob.habx.px <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.).txt",
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(coy.bob.global.px$summary)
-  print(coy.bob.global.px$DIC)
-  which(coy.bob.global.px$summary[,"Rhat"] > 1.1)
-  mcmcplot(coy.bob.global.px$samples)
-  save(coy.bob.global.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
+  print(coy.bob.habx.px$summary)
+  print(coy.bob.habx.px$DIC)
+  which(coy.bob.habx.px$summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.habx.px$samples)
+  save(coy.bob.habx.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
+  
+  
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_GoF.R")
+  start.time = Sys.time()
+  coy.bob.habx.px <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_GoF.txt",
+                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(coy.bob.habx.px$summary)
+  (coy.bob.habx.px_X2pB.coy <- mean(coy.bob.habx.px$sims.list$chi2.sim_A > coy.bob.habx.px$sims.list$chi2.obs_A)) # Bayesian p-value GOF
+  (coy.bob.habx.px_X2pB.bob <- mean(coy.bob.habx.px$sims.list$chi2.sim_B > coy.bob.habx.px$sims.list$chi2.obs_B)) # Bayesian p-value GOF
+  (coy.bob.habx.px_FTpB.coy <- mean(coy.bob.habx.px$sims.list$ft.sim_A > coy.bob.habx.px$sims.list$ft.obs_A)) # Bayesian p-value GOF
+  (coy.bob.habx.px_FTpB.bob <- mean(coy.bob.habx.px$sims.list$ft.sim_B > coy.bob.habx.px$sims.list$ft.obs_B)) # Bayesian p-value GOF
+  mean(coy.bob.habx.px$sims.list$chi2ratio_A); mean(coy.bob.habx.px$sims.list$chi2ratio_B); mean(coy.bob.habx.px$sims.list$ftratio_A); mean(coy.bob.habx.px$sims.list$ftratio_B)
+  
+  
   
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
@@ -1473,15 +1493,15 @@
   #'  psi = setup, year, forest, elevation, tri; psix(wtd, lagomorphs, spp diversity); p = setup, effort; px(psi)
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi).R")
   start.time = Sys.time()
-  coy.bob.global.px2 <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+  coy.bob.habx.px2 <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                              "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi).txt",
                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(coy.bob.global.px2$summary)
-  print(coy.bob.global.px2$DIC)
-  which(coy.bob.global.px2$summary[,"Rhat"] > 1.1)
-  mcmcplot(coy.bob.global.px2$samples)
-  save(coy.bob.global.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData"))
+  print(coy.bob.habx.px2$summary)
+  print(coy.bob.habx.px2$DIC)
+  which(coy.bob.habx.px2$summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.habx.px2$samples)
+  save(coy.bob.habx.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData"))
   
   
   
