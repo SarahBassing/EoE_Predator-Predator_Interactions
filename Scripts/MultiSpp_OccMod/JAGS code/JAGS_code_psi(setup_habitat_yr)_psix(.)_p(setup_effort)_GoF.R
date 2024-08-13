@@ -130,6 +130,19 @@
         
           ftrep_A[i] <- pow((sqrt(detfreqrep_A[i]) - sqrt(E_A[i])), 2)
           ftrep_B[i] <- pow((sqrt(detfreqrep_B[i]) - sqrt(E_B[i])), 2)
+          
+      
+          #'  Pearson's residuals
+          d_A[i]<-  abs(detfreq_A[i] - E_A[i])
+          dnew_A[i]<- abs(detfreqrep_A[i]- E_A[i])
+          d2_A[i]<- pow(d_A[i],2)
+          dnew2_A[i]<- pow(dnew_A[i],2)
+          
+          d_B[i]<-  abs(detfreq_B[i] - E_B[i])
+          dnew_B[i]<- abs(detfreqrep_B[i]- E_B[i])
+          d2_B[i]<- pow(d_B[i],2)
+          dnew2_B[i]<- pow(dnew_B[i],2)
+
         } 
         
         #'  Add up overall test statistic and compute fit stat ratio
@@ -150,8 +163,13 @@
         
         ftratio_A <- ft.obs_A/ft.sim_A
         ftratio_B <- ft.obs_B/ft.sim_B
+      
+        dsum_A <- sum(d2_A[]) 
+        dnewsum_A <- sum(dnew2_A[])
+        dsum_B <- sum(d2_B[]) 
+        dnewsum_B <- sum(dnew2_B[])
+    
         
-          
         #'  2. Define arrays containing cell probabilities for categorical distributions
               
         for(i in 1:nsites) {
