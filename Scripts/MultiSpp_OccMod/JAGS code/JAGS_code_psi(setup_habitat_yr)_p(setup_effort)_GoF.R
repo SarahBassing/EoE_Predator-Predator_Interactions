@@ -81,9 +81,9 @@
             #'  Draw a replicate data set under fitted model
             y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]]) #(1:ncat)
             
-            #' #'  Derived parameters for GoF check
-            #' y.hat[i,j] <- y[i,j]
-            #' y.sim.hat[i,j] <- max(rdm[i, j, , z[i]])
+            #'  Derived parameters for GoF check
+            # y.hat[i,j] <- y[i,j]
+            # y.sim.hat[i,j] <- max(rdm[i, j, , z[i]])
             
             # r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
             # r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
