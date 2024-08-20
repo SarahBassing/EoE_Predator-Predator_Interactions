@@ -77,7 +77,7 @@
             y[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]])
             
             #'  Draw a replicate data set under fitted model
-            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]]) #(1:ncat)
+            # y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]]) #(1:ncat)
             
             #'  Derived parameters for GoF check
             # y.hat[i,j] <- y[i,j]
@@ -86,15 +86,23 @@
             # r.obs[i,j] <- (y[i,j]-y.hat[i,j])/sqrt(y.hat[i,j]*(1-y.hat[i,j]))
             # r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
             
-            #' #'  Grab expected value based on model
-            p[i,j,1] <- rdm[i, j, 1, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 3, 4] + rdm[i, j, 4, 4]) # normalize rmd
-            p[i,j,2] <- rdm[i, j, 2, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 3, 4] + rdm[i, j, 4, 4]) # nromalize rmd
-            p[i,j,3] <- rdm[i, j, 3, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 3, 4] + rdm[i, j, 4, 4]) # normalize rmd
-            p[i,j,4] <- rdm[i, j, 4, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 3, 4] + rdm[i, j, 4, 4]) # nromalize rmd
-            y.hat[i,j] <- max(p[i, j, ])
-            y.hat.index[i,j,1:4] <- rank(p[i,j,1:4])
-            y.hat.maxindex[i,j] <- y.hat.index[i,j,1]
-      
+            #'  Detection probability based each underlying occurrence state
+            #'  Need to normalized rdms because dcat can take values that sum to >1
+            #'  rdm is a vector of unnormalized non-negative probability *weights* of length N
+            #'  dcat pmf --> P(Y = y) = pi[y]/sum[pi[y, 1:N]] (pg. 50 JAGS manual)
+            # p[i,j,1] <- rdm[i, j, 1, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 3, 4] + rdm[i, j, 4, 4]) # normalize rmd
+            # p[i,j,2] <- rdm[i, j, 2, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 3, 4] + rdm[i, j, 4, 4]) # nromalize rmd
+            # p[i,j,3] <- rdm[i, j, 3, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 3, 4] + rdm[i, j, 4, 4]) # normalize rmd
+            # p[i,j,4] <- rdm[i, j, 4, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 3, 4] + rdm[i, j, 4, 4]) # nromalize rmd
+            # p[i,j,1] <- rdm[i, j, 1, 1]/sum(rdm[i, j, 1:4, 1]) + rdm[i, j, 1, 2]/sum(rdm[i, j, 1:4, 2]) + rdm[i, j, 1, 3]/sum(rdm[i, j, 1:4, 3]) + rdm[i, j, 1, 4]/sum(rdm[i, j, 1:4, 4])
+            # p[i,j,2] <- rdm[i, j, 2, 2]/sum(rdm[i, j, 1:4, 2]) + rdm[i, j, 2, 4]/sum(rdm[i, j, 1:4, 4])
+            # p[i,j,3] <- rdm[i, j, 3, 3]/sum(rdm[i, j, 1:4, 3]) + rdm[i, j, 3, 4]/sum(rdm[i, j, 1:4, 4])
+            # p[i,j,4] <- rdm[i, j, 4, 4]/sum(rdm[i, j, 1:4, 4])
+            # 
+            # y.hat[i,j] <- max(p[i, j, ])
+            # y.hat.index[i,j,1:4] <- rank(p[i,j,1:4])
+            # y.hat.maxindex[i,j] <- y.hat.index[i,j,1]
+            # 
             # x2[i,j] <- pow((y[i,j] - y.hat.maxindex[i,j]), 2) / (y.hat.maxindex[i,j] + 0.0001)
             # x2.sim[i,j] <- pow((y.sim[i,j] - y.hat.maxindex[i,j]), 2) / (y.hat.maxindex[i,j] + 0.0001)
             
@@ -112,11 +120,11 @@
             #' # r.sim[i,j] <- (y.sim[i,j]-y.sim.hat[i,j])/sqrt(y.sim.hat[i,j]*(1-y.sim.hat[i,j]))
           }
         # x2.obs[i] <- sum(x2[i,])
-        # x2.sim[i] <- sum(x2.sim[i,])
+        # x2.sims[i] <- sum(x2.sim[i,])
         }
       
         # chi2.obs <- sum(x2.obs[])
-        # chi2.sim <- sum(x2.sim[])
+        # chi2.sim <- sum(x2.sims[])
         
         #' #'  GOF Chi2 test statistic
         #' chi2.obs <- sum(r.obs[,]^2)
@@ -162,26 +170,6 @@
             rdm[i, j, 2, 4] <- exp(rhoSpp1[i, j])  # ------------------ OS = Spp1 present
             rdm[i, j, 3, 4] <- exp(rhoSpp2[i, j])  # ------------------ OS = Spp2 present
             rdm[i, j, 4, 4] <- exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # - OS = Spp12 present
-            #' #'  True state = unoccupied (z = 1 --> 00)
-            #' rdm[i, j, 1, 1] <- 1 # ------------------------------------ OS = unoccupied
-            #' rdm[i, j, 2, 1] <- 0 # ------------------------------------ OS = Spp1 present
-            #' rdm[i, j, 3, 1] <- 0 # ------------------------------------ OS = Spp2 present
-            #' rdm[i, j, 4, 1] <- 0 # ------------------------------------ OS = Spp12 present
-            #' #'  True state = Spp1 present (z = 2 --> 10)
-            #' rdm[i, j, 1, 2] <- 1 - exp(rhoSpp1[i, j]) # --------------- OS = unoccupied
-            #' rdm[i, j, 2, 2] <- exp(rhoSpp1[i, j]) # ------------------- OS = Spp1 present
-            #' rdm[i, j, 3, 2] <- 0 # ------------------------------------ OS = Spp2 present
-            #' rdm[i, j, 4, 2] <- 0 # ------------------------------------ OS = Spp12 present
-            #' #'  True state = Spp2 present (z = 3 --> 01)
-            #' rdm[i, j, 1, 3] <- 1 - exp(rhoSpp2[i, j]) # --------------- OS = unoccupied
-            #' rdm[i, j, 2, 3] <- 0 # ------------------------------------ OS = Spp1 present
-            #' rdm[i, j, 3, 3] <- exp(rhoSpp2[i, j]) # ------------------- OS = Spp2 present
-            #' rdm[i, j, 4, 3] <- 0 # ------------------------------------ OS = Spp12 present
-            #' #'  True state = Spp1 & Spp2 present (z = 4 --> 11)
-            #' rdm[i, j, 1, 4] <- 1 - exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # - OS = unoccupied
-            #' rdm[i, j, 2, 4] <- exp(rhoSpp12[i, j]) # ------------------ OS = Spp1 present
-            #' rdm[i, j, 3, 4] <- exp(rhoSpp21[i, j]) # ------------------ OS = Spp2 present
-            #' rdm[i, j, 4, 4] <- exp(rhoSpp12[i, j] + rhoSpp21[i, j]) # - OS = Spp12 present
           }
               
           #'  3. Define linear models for each fundamental parameter that governs the cell probs
@@ -209,5 +197,59 @@
             rhoSpp21[i, j] <- rhoSpp2[i, j] + alphaSpp21*rho_inxs_cov[i,j,1] 
           }
         }
+      
+        #'  For Goodness-of-Fit test
+        for(i in 1:nsites) {
+          for(j in 1:nsurveys) {
+            #'  Draw a replicate data set under fitted model
+            y.sim[i,j] ~ dcat(rdm[i, j, (1:ncat), z[i]]) 
+            
+            #'  Expected detection probability based each underlying occurrence state
+            #'  Need to normalized rdms because dcat can take values that sum to >1
+            #'  rdm is a vector of unnormalized non-negative probability *weights* of length N
+            #'  dcat pmf --> P(Y = y) = pi[y]/sum[pi[i, 1:N]] (pg. 50 JAGS manual)
+            #'  True state = unoccupied (z = 1 --> 00)
+            p[i, j, 1, 1] <- rdm[i, j, 1, 1]/sum(rdm[i, j, 1:4, 1]) # -- Pr(unoccupied)
+            p[i, j, 2, 1] <- rdm[i, j, 2, 1]/sum(rdm[i, j, 1:4, 1]) # -- Pr(Spp1 detected)
+            p[i, j, 3, 1] <- rdm[i, j, 3, 1]/sum(rdm[i, j, 1:4, 1]) # -- Pr(Spp2 detected)
+            p[i, j, 4, 1] <- rdm[i, j, 4, 1]/sum(rdm[i, j, 1:4, 1]) # -- Pr(Spp12 detected)
+            #'  True state = Spp1 present (z = 2 --> 10)
+            p[i, j, 1, 2] <- rdm[i, j, 1, 2]/sum(rdm[i, j, 1:4, 2]) # -- Pr(unoccupied)
+            p[i, j, 2, 2] <- rdm[i, j, 2, 2]/sum(rdm[i, j, 1:4, 2]) # -- Pr(Spp1 detected)
+            p[i, j, 3, 2] <- rdm[i, j, 3, 2]/sum(rdm[i, j, 1:4, 2]) # -- Pr(Spp2 detected)
+            p[i, j, 4, 2] <- rdm[i, j, 4, 2]/sum(rdm[i, j, 1:4, 2]) # -- Pr(Spp12 detected)
+            #'  True state = Spp2 present (z = 3 --> 01)
+            p[i, j, 1, 3] <- rdm[i, j, 1, 3]/sum(rdm[i, j, 1:4, 3]) # -- Pr(unoccupied)
+            p[i, j, 2, 3] <- rdm[i, j, 2, 3]/sum(rdm[i, j, 1:4, 3]) # -- Pr(Spp1 detected)
+            p[i, j, 3, 3] <- rdm[i, j, 3, 3]/sum(rdm[i, j, 1:4, 3]) # -- Pr(Spp2 detected)
+            p[i, j, 4, 3] <- rdm[i, j, 4, 3]/sum(rdm[i, j, 1:4, 3]) # -- Pr(Spp12 detected)
+            #'  True state = Spp1 & Spp2 present (z = 4 --> 11)
+            p[i, j, 1, 4] <- rdm[i, j, 1, 4]/sum(rdm[i, j, 1:4, 4]) # -- Pr(unoccupied)
+            p[i, j, 2, 4] <- rdm[i, j, 2, 4]/sum(rdm[i, j, 1:4, 4]) # -- Pr(Spp1 detected)
+            p[i, j, 3, 4] <- rdm[i, j, 3, 4]/sum(rdm[i, j, 1:4, 4]) # -- Pr(Spp2 detected)
+            p[i, j, 4, 4] <- rdm[i, j, 4, 4]/sum(rdm[i, j, 1:4, 4]) # -- Pr(Spp12 detected)
+      
+            y.hat.max[i,j] <- max(p[i, j, , z[i]])
+            #'  Rank index position of p in descending order (i.e., identify index position of largest to smallest value of p) 
+            #'  Then order data by rank (i.e, order index position based on ranking from highest to lowest value of p)
+            y.hat.index[i, j, 1:4] <- order(-rank(p[i, j, 1:4, z[i]]))
+            #'  Retain index position of the highest value of p
+            y.hat.maxindex[i, j] <- y.hat.index[i, j, 1]
+
+            #'  Calculate Chi-squared test statistic for observed & simulated data sets
+            x2[i,j] <- pow((y[i,j] - y.hat.maxindex[i,j]), 2) / (y.hat.maxindex[i,j] + 0.0001)
+            x2.sim[i,j] <- pow((y.sim[i,j] - y.hat.maxindex[i,j]), 2) / (y.hat.maxindex[i,j] + 0.0001)
+          }
+      
+        #'  Sum across surveys
+        x2.obs[i] <- sum(x2[i,])
+        x2.sims[i] <- sum(x2.sim[i,])
+  
+        }
+      
+        #'  Sum across sites for final Chi-squared test statistics
+        chi2.obs <- sum(x2.obs[])
+        chi2.sim <- sum(x2.sims[])
+      
       }
       ", fill=TRUE)
