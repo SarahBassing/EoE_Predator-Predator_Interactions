@@ -261,7 +261,8 @@
   params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
               "mean.pSpp1", "mean.pSpp2", "z", 
-              "y.hat", "y.hat.index", "y.hat.maxindex", "x2", "x2.sim", "chi2.obs", "chi2.sim")
+              "y.hat", "y.hat.index", "y.hat.maxindex", "x2", "x2.sim", "chi2.obs", "chi2.sim",
+              "ft", "ft.sim", "ft.obs", "ft.sims", "FT.obs", "FT.sims")
               # "y2", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B",
               # "pA", "pB", "pAB", "pSpp1", "pSpp2",
               # "detfreq_A", "detfreq_B", "detfreqrep_A", "detfreqrep_B",
@@ -583,6 +584,7 @@
   print(wolf.coy.hab$DIC)
   which(wolf.coy.hab$summary[,"Rhat"] > 1.1)
   (wolf.coy.hab_X2 <- mean(wolf.coy.hab$sims.list$chi2.sim > wolf.coy.hab$sims.list$chi2.obs)) # Bayesian p-value GOF
+  (wolf.coy.hab_FT <- mean(wolf.coy.hab$sims.list$FT.sims > wolf.coy.hab$sims.list$FT.obs)) # Bayesian p-value GOF
   # (wolf.coy.hab_X2pB.wolf <- mean(wolf.coy.hab$sims.list$chi2.sim_A > wolf.coy.hab$sims.list$chi2.obs_A)) # Bayesian p-value GOF
   # (wolf.coy.hab_X2pB.coy <- mean(wolf.coy.hab$sims.list$chi2.sim_B > wolf.coy.hab$sims.list$chi2.obs_B)) # Bayesian p-value GOF
   # (wolf.coy.hab_FTpB.wolf <- mean(wolf.coy.hab$sims.list$ft.sim_A > wolf.coy.hab$sims.list$ft.obs_A)) # Bayesian p-value GOF
@@ -1329,6 +1331,7 @@
   print(coy.bob.habx$DIC)
   which(coy.bob.habx$summary[,"Rhat"] > 1.1)
   (coy.bob.habx_X2 <- mean(coy.bob.habx$sims.list$chi2.sim > coy.bob.habx$sims.list$chi2.obs)) # Bayesian p-value GOF
+  (coy.bob.habx_FT <- mean(coy.bob.habx$sims.list$FT.sims > coy.bob.habx$sims.list$FT.obs)) # Bayesian p-value GOF
   # (coy.bob.habx_X2pB.coy <- mean(coy.bob.habx$sims.list$chi2.sim_A > coy.bob.habx$sims.list$chi2.obs_A)) # Bayesian p-value GOF
   # (coy.bob.habx_X2pB.bob <- mean(coy.bob.habx$sims.list$chi2.sim_B > coy.bob.habx$sims.list$chi2.obs_B)) # Bayesian p-value GOF
   # (coy.bob.habx_FTpB.coy <- mean(coy.bob.habx$sims.list$ft.sim_A > coy.bob.habx$sims.list$ft.obs_A)) # Bayesian p-value GOF
@@ -1587,22 +1590,24 @@
   mcmcplot(bear.coy.habx$samples)
   save(bear.coy.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_", Sys.Date(), ".RData"))
   
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF.R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_altGoF.R")
   start.time = Sys.time()
   bear.coy.habx <- jags(bundled_pred_list[[7]], inits = inits.bear.coy, params,
-                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF.txt",
+                        "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_altGoF.txt",
                         n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(bear.coy.habx$summary)
   print(bear.coy.habx$DIC)
   which(bear.coy.habx$summary[,"Rhat"] > 1.1)
-  (bear.coy.habx_X2pB.bear <- mean(bear.coy.habx$sims.list$chi2.sim_A > bear.coy.habx$sims.list$chi2.obs_A)) # Bayesian p-value GOF
-  (bear.coy.habx_X2pB.coy <- mean(bear.coy.habx$sims.list$chi2.sim_B > bear.coy.habx$sims.list$chi2.obs_B)) # Bayesian p-value GOF
-  (bear.coy.habx_FTpB.bear <- mean(bear.coy.habx$sims.list$ft.sim_A > bear.coy.habx$sims.list$ft.obs_A)) # Bayesian p-value GOF
-  (bear.coy.habx_FTpB.coy <- mean(bear.coy.habx$sims.list$ft.sim_B > bear.coy.habx$sims.list$ft.obs_B)) # Bayesian p-value GOF
-  mean(bear.coy.habx$sims.list$chi2ratio_A); mean(bear.coy.habx$sims.list$chi2ratio_B); mean(bear.coy.habx$sims.list$ftratio_A); mean(bear.coy.habx$sims.list$ftratio_B)
+  (bear.coy.habx_X2 <- mean(bear.coy.habx$sims.list$chi2.sim > bear.coy.habx$sims.list$chi2.obs)) # Bayesian p-value GOF
+  (bear.coy.habx_FT <- mean(bear.coy.habx$sims.list$FT.sims > bear.coy.habx$sims.list$FT.obs)) # Bayesian p-value GOF
+  # (bear.coy.habx_X2pB.bear <- mean(bear.coy.habx$sims.list$chi2.sim_A > bear.coy.habx$sims.list$chi2.obs_A)) # Bayesian p-value GOF
+  # (bear.coy.habx_X2pB.coy <- mean(bear.coy.habx$sims.list$chi2.sim_B > bear.coy.habx$sims.list$chi2.obs_B)) # Bayesian p-value GOF
+  # (bear.coy.habx_FTpB.bear <- mean(bear.coy.habx$sims.list$ft.sim_A > bear.coy.habx$sims.list$ft.obs_A)) # Bayesian p-value GOF
+  # (bear.coy.habx_FTpB.coy <- mean(bear.coy.habx$sims.list$ft.sim_B > bear.coy.habx$sims.list$ft.obs_B)) # Bayesian p-value GOF
+  # mean(bear.coy.habx$sims.list$chi2ratio_A); mean(bear.coy.habx$sims.list$chi2ratio_B); mean(bear.coy.habx$sims.list$ftratio_A); mean(bear.coy.habx$sims.list$ftratio_B)
   # mcmcplot(bear.coy.habx$samples)
-  save(bear.coy.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_", Sys.Date(), ".RData"))
+  save(bear.coy.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_altGoF_", Sys.Date(), ".RData"))
   
   #####  Habitat w/ habitat inx model  #### 
   #'  psi = setup, year, forest, elevation, tri; psix(forest, elevation, tri); p = setup, effort
