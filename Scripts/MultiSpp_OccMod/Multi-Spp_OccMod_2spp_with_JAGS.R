@@ -1337,7 +1337,7 @@
   # # (coy.bob.habx_PpB.bob <- mean(coy.bob.habx$sims.list$dnewsum_B > coy.bob.habx$sims.list$dsum_B)) # Bayesian p-value GOF
   # mean(coy.bob.habx$sims.list$chi2ratio_A); mean(coy.bob.habx$sims.list$chi2ratio_B); mean(coy.bob.habx$sims.list$ftratio_A); mean(coy.bob.habx$sims.list$ftratio_B)
   # mcmcplot(coy.bob.habx$samples)
-  save(coy.bob.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_GoF_", Sys.Date(), ".RData"))
+  save(coy.bob.habx, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_altGoF_", Sys.Date(), ".RData"))
 
   
   #####  Habitat w/ habitat inx model  #### 
