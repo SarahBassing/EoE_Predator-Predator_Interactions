@@ -229,7 +229,7 @@
             p[i, j, 3, 4] <- rdm[i, j, 3, 4]/sum(rdm[i, j, 1:4, 4]) # -- Pr(Spp2 detected)
             p[i, j, 4, 4] <- rdm[i, j, 4, 4]/sum(rdm[i, j, 1:4, 4]) # -- Pr(Spp12 detected)
       
-            y.hat.max[i,j] <- max(p[i, j, , z[i]])
+            y.hat[i,j,1:4] <- p[i, j, 1:4, z[i]]
             #'  Rank index position of p in descending order (i.e., identify index position of largest to smallest value of p) 
             #'  Then order data by rank (i.e, order index position based on ranking from highest to lowest value of p)
             y.hat.index[i, j, 1:4] <- order(-rank(p[i, j, 1:4, z[i]]))
@@ -239,17 +239,27 @@
             #'  Calculate Chi-squared test statistic for observed & simulated data sets
             x2[i,j] <- pow((y[i,j] - y.hat.maxindex[i,j]), 2) / (y.hat.maxindex[i,j] + 0.0001)
             x2.sim[i,j] <- pow((y.sim[i,j] - y.hat.maxindex[i,j]), 2) / (y.hat.maxindex[i,j] + 0.0001)
+            
+            #'  Calculate Freeman-Tukey test statistic for observed & simulated data sets
+            ft[i,j] <- pow((sqrt(y[i,j]) - sqrt(y.hat.maxindex[i,j])), 2) 
+            ft.sim[i,j] <- pow((sqrt(y.sim[i,j]) - sqrt(y.hat.maxindex[i,j])), 2)
           }
       
         #'  Sum across surveys
         x2.obs[i] <- sum(x2[i,])
         x2.sims[i] <- sum(x2.sim[i,])
+        
+        ft.obs[i] <- sum(ft[i,])
+        ft.sims[i] <- sum(ft.sim[i,])
   
         }
       
-        #'  Sum across sites for final Chi-squared test statistics
+        #'  Sum across sites for final Chi-squared & Freeman-Tukey test statistics
         chi2.obs <- sum(x2.obs[])
         chi2.sim <- sum(x2.sims[])
+        
+        FT.obs <- sum(ft.obs[])
+        FT.sims <- sum(ft.sims[])
       
       }
       ", fill=TRUE)
