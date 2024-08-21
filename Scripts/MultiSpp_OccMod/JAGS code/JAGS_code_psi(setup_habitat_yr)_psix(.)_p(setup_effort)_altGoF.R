@@ -176,7 +176,7 @@
             p[i, j, 3, 4] <- rdm[i, j, 3, 4]/sum(rdm[i, j, 1:4, 4]) # -- Pr(Spp2 detected)
             p[i, j, 4, 4] <- rdm[i, j, 4, 4]/sum(rdm[i, j, 1:4, 4]) # -- Pr(Spp12 detected)
       
-            y.hat.max[i,j] <- max(p[i, j, , z[i]])
+            y.hat[i,j,1:4] <- p[i, j, 1:4, z[i]]
             #'  Rank index position of p in descending order (i.e., identify index position of largest to smallest value of p) 
             #'  Then order data by rank (i.e, order index position based on ranking from highest to lowest value of p)
             y.hat.index[i, j, 1:4] <- order(-rank(p[i, j, 1:4, z[i]]))
