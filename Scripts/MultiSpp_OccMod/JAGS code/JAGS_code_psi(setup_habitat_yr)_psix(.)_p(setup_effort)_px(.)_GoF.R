@@ -110,20 +110,12 @@
           #'  Expected detection frequencies under the model
           for (j in 1:nsurveys){
             #'  Normalized detection probability for Spp1
-            pA[i,j] <- rdm[i, j, 2, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 4, 4]) # normalize rmd
-            #'  Normalized deteciton probability for Spp2
-            pB[i,j] <- rdm[i, j, 3, 4]/(1 + rdm[i, j, 3, 4] + rdm[i, j, 4, 4]) # nromalize rmd
-            #'  Normalized detection probability for Spp1 AND Spp2 (accounts for co-detection)
-            pAB[i,j] <- rdm[i, j, 4, 4]/(1 + rdm[i, j, 2, 4] + rdm[i, j, 3, 4] + rdm[i, j, 4, 4])
-            #'  Normalized detection probability for Spp1 OR Spp1 with Spp2 
-            pSpp1[i,j] <- pA[i,j] + pAB[i,j]
-            #'  Normalized deteciton probability for Spp2 OR Spp2 with Spp1
-            pSpp2[i,j] <- pB[i,j] + pAB[i,j]
+            pA[i,j] <- rdm[i, j, 2, 2]/(sum(rdm[i, j, 1:4, 2]) + rdm[i, j, 2, 4]/(sum(rdm[i, j, 1:4, 4]) + rdm[i, j, 4, 4]/(sum(rdm[i, j, 1:4, 4])
+            pB[i,j] <- rdm[i, j, 3, 3]/(sum(rdm[i, j, 1:4, 3]) + rdm[i, j, 3, 4]/(sum(rdm[i, j, 1:4, 4]) + rdm[i, j, 4, 4]/(sum(rdm[i, j, 1:4, 4])
+        
             #'  Expected detections given Z and normalized detection probabilities
-            tmp_A[i,j] <- z_A[i] * pSpp1[i,j]
-            tmp_B[i,j] <- z_B[i] * pSpp2[i,j]
-            # tmp_A[i,j] <- z_A[i] * rdm[i, j, 2, 2]
-            # tmp_B[i,j] <- z_B[i] * rdm[i, j, 3, 3]
+            tmp_A[i,j] <- z_A[i] * pA[i,j]
+            tmp_B[i,j] <- z_B[i] * pB[i,j]
           }
 
           E_A[i] <- sum(tmp_A[i,])     # Expected number of detections for A
