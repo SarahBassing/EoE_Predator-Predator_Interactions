@@ -186,17 +186,27 @@
             #'  Calculate Chi-squared test statistic for observed & simulated data sets
             x2[i,j] <- pow((y[i,j] - y.hat.maxindex[i,j]), 2) / (y.hat.maxindex[i,j] + 0.0001)
             x2.sim[i,j] <- pow((y.sim[i,j] - y.hat.maxindex[i,j]), 2) / (y.hat.maxindex[i,j] + 0.0001)
+            
+            #'  Calculate Freeman-Tukey test statistic for observed & simulated data sets
+            ft[i,j] <- pow((sqrt(y[i,j]) - sqrt(y.hat.maxindex[i,j])), 2) 
+            ft.sim[i,j] <- pow((sqrt(y.sim[i,j]) - sqrt(y.hat.maxindex[i,j])), 2)
           }
       
         #'  Sum across surveys
         x2.obs[i] <- sum(x2[i,])
         x2.sims[i] <- sum(x2.sim[i,])
+        
+        ft.obs[i] <- sum(ft[i,])
+        ft.sims[i] <- sum(ft.sim[i,])
   
         }
       
-        #'  Sum across sites for final Chi-squared test statistics
+        #'  Sum across sites for final Chi-squared & Freeman-Tukey test statistics
         chi2.obs <- sum(x2.obs[])
         chi2.sim <- sum(x2.sims[])
+        
+        FT.obs <- sum(ft.obs[])
+        FT.sims <- sum(ft.sims[])
     
       }
       ", fill=TRUE)
