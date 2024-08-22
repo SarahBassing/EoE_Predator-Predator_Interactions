@@ -591,7 +591,7 @@
   # (wolf.coy.hab_FTpB.coy <- mean(wolf.coy.hab$sims.list$ft.sim_B > wolf.coy.hab$sims.list$ft.obs_B)) # Bayesian p-value GOF
   # mean(wolf.coy.hab$sims.list$chi2ratio_A); mean(wolf.coy.hab$sims.list$chi2ratio_B); mean(wolf.coy.hab$sims.list$ftratio_A); mean(wolf.coy.hab$sims.list$ftratio_B)
   # mcmcplot(wolf.coy.hab$samples)
-  save(wolf.coy.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_GoF_", Sys.Date(), ".RData"))
+  save(wolf.coy.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_altGoF_", Sys.Date(), ".RData"))
   
   
   #####  Prey abundance no inxs model  #### 
