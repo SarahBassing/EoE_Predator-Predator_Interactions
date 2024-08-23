@@ -1487,21 +1487,18 @@
   save(coy.bob.habx.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
   
   
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_GoF.R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF.R")
   start.time = Sys.time()
   coy.bob.habx.px <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_GoF.txt",
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF.txt",
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.habx.px$summary)
-  (coy.bob.habx.px_X2pB.coy <- mean(coy.bob.habx.px$sims.list$chi2.sim_A > coy.bob.habx.px$sims.list$chi2.obs_A)) # Bayesian p-value GOF
-  (coy.bob.habx.px_X2pB.bob <- mean(coy.bob.habx.px$sims.list$chi2.sim_B > coy.bob.habx.px$sims.list$chi2.obs_B)) # Bayesian p-value GOF
-  (coy.bob.habx.px_FTpB.coy <- mean(coy.bob.habx.px$sims.list$ft.sim_A > coy.bob.habx.px$sims.list$ft.obs_A)) # Bayesian p-value GOF
-  (coy.bob.habx.px_FTpB.bob <- mean(coy.bob.habx.px$sims.list$ft.sim_B > coy.bob.habx.px$sims.list$ft.obs_B)) # Bayesian p-value GOF
-  mean(coy.bob.habx.px$sims.list$chi2ratio_A); mean(coy.bob.habx.px$sims.list$chi2ratio_B); mean(coy.bob.habx.px$sims.list$ftratio_A); mean(coy.bob.habx.px$sims.list$ftratio_B)
+  (coy.bob.habx.px_X2 <- mean(coy.bob.habx.px$sims.list$chi2.sim > coy.bob.habx.px$sims.list$chi2.obs)) # Bayesian p-value GOF
+  (coy.bob.habx.px_FT <- mean(coy.bob.habx.px$sims.list$ft.sim > coy.bob.habx.px$sims.list$ft.obs)) # Bayesian p-value GOF
+  save(coy.bob.habx.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF_", Sys.Date(), ".RData"))
   
-  
-  
+
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
   #'  Top model:  Global
