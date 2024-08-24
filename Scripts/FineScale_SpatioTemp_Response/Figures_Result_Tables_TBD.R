@@ -425,9 +425,11 @@
   # any.wolf.bear.lion.coy.bob_colors <- c("black", "#364B9A", "#98CAE1", "#DD3D2D", "#FDB366", "#A50026")
   any.bear.bob.coy.lion.wolf_colors <- c("black", "#98CAE1", "#A50026", "#DD3D2D", "#FDB366", "#364B9A")
   bear.bob.coy.lion.wolf_colors <- c("#98CAE1", "#A50026", "#DD3D2D", "#FDB366", "#364B9A")
+  bear.bob.lion.wolf_colors <- c("#98CAE1", "#A50026", "#FDB366", "#364B9A")
   bear.coy.lion.wolf_colors <- c("#98CAE1", "#DD3D2D", "#FDB366", "#364B9A")
   any.bear.coy.lion_colors <- c("black", "#98CAE1", "#DD3D2D", "#FDB366")
   any.bear.coy_colors <- c("black", "#98CAE1", "#DD3D2D")
+  bear.bob.wolf_colors <- c("#98CAE1", "#A50026", "#364B9A")
   bear.wolf <- c("#98CAE1", "#364B9A")
   
   #####  Competitor ID effect  ####
@@ -518,64 +520,77 @@
     # theme_bw() +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black")) + 
-    theme(axis.title.y = element_blank()) +
-          # axis.text.y = element_blank(),
-          # axis.ticks.y = element_blank()) +
+    # theme(axis.title.y = element_blank()) +
+    #       # axis.text.y = element_blank(),
+    #       # axis.ticks.y = element_blank()) +
     xlab("White-tailed deer relative abundance (scaled)") +
-    #ylab("Mean number of hours between detections") +
+    ylab("Mean number of hours between detections") +
     #ggtitle("Effect of recent competitor detection and white-tailed deer abundance on latency of site use") +
     guides(color = guide_legend(title = "Previously detected\ncompetitor"),
            fill = guide_legend(title = "Previously detected\ncompetitor")) +
+    theme(legend.position = "left") +
     facet_wrap(~Species, scale = "free_y") + 
-    inset_element(p = wtdimgGB1, left = 0.30, bottom = 0.88, right = 0.45, top = 0.98) + 
-    inset_element(p = wtdimgGB1, left = 0.30, bottom = 0.35, right = 0.45, top = 0.45) + 
-    inset_element(p = wtdimgGB1, left = 0.80, bottom = 0.88, right = 0.95, top = 0.98) + 
-    theme(rect = element_rect(fill = "transparent", linetype = "blank")) + 
-    inset_element(p = wtdimgGB1, left = 0.80, bottom = 0.35, right = 0.95, top = 0.45) 
+    inset_element(p = bobimg, left = 0.30, bottom = 0.88, right = 0.45, top = 0.98) +
+    inset_element(p = cougimgGB, left = 0.28, bottom = 0.30, right = 0.48, top = 0.45) +
+    inset_element(p = coyimgGB, left = 0.82, bottom = 0.88, right = 0.97, top = 0.98) +
+    theme(rect = element_rect(fill = "transparent", linetype = "blank")) +
+    inset_element(p = wolfimg, left = 0.80, bottom = 0.32, right = 0.97, top = 0.45)
     # add_phylopic(uuid = "8569838c-c725-4772-b0a3-b5eb04baaada",
     #              x = 5, y = 90, ysize = 25, alpha = 0.5) 
     tbd_wtdRAI_plot
   
   tbd_lagoRAI_plot <- filter(tbd_prey_prediction, Prey_RAI == "lago") %>%
+    filter(Species == "Coyote") %>%
     ggplot(aes(x = cov, y = (Estimate), group = Competitor_ID)) +
     geom_line(aes(color = Competitor_ID), lwd = 1.25) + 
-    scale_color_manual(values = bear.bob.coy.lion.wolf_colors) +
+    scale_color_manual(values = bear.bob.wolf_colors) +
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = (lci), ymax = (uci), fill = Competitor_ID), alpha = 0.3) +
-    scale_fill_manual(values = bear.bob.coy.lion.wolf_colors) + 
+    scale_fill_manual(values = bear.bob.wolf_colors) + 
     # theme_bw() +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black")) +
-    theme(legend.position = "none") +
+    theme(legend.position = "left") +
+    # theme(axis.title.y = element_blank()) +
     xlab("Lagomorph relative abundance (scaled)") +
     ylab("Mean number of hours between detections") +
+    guides(color = guide_legend(title = "Previously detected\ncompetitor"),
+           fill = guide_legend(title = "Previously detected\ncompetitor")) +
     facet_wrap(~Species, ncol = 1, scale = "free_y") +
-    inset_element(p = bunnyimg, left = 0.80, bottom = 0.88, right = 0.95, top = 0.98) +
-    theme(rect = element_rect(fill = "transparent", linetype = "blank")) + 
-    inset_element(p = bunnyimg, left = 0.80, bottom = 0.35, right = 0.95, top = 0.45) +
-    theme(rect = element_rect(fill = "transparent", linetype = "blank")) 
+    inset_element(p = coyimgGB, left = 0.77, bottom = 0.80, right = 0.97, top = 0.98) +
+    theme(rect = element_rect(fill = "transparent", linetype = "blank")) #+ 
+    # inset_element(p = bunnyimg, left = 0.80, bottom = 0.35, right = 0.95, top = 0.45) +
+    # theme(rect = element_rect(fill = "transparent", linetype = "blank")) 
   tbd_lagoRAI_plot
   
   tbd_elkRAI_plot <- filter(tbd_prey_prediction, Prey_RAI == "elk") %>%
+    filter(Species == "Mountain lion") %>%
     ggplot(aes(x = cov, y = (Estimate), group = Competitor_ID)) +
     geom_line(aes(color = Competitor_ID), lwd = 1.25) + 
     scale_color_manual(values = any.bear.coy.lion_colors) +
     #'  Add confidence intervals
     geom_ribbon(aes(ymin = (lci), ymax = (uci), fill = Competitor_ID), alpha = 0.3) +
     scale_fill_manual(values = any.bear.coy.lion_colors) + 
-    theme_bw() +
-    theme(legend.position = "bottom") +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), axis.line = element_line(colour = "black")) +
+    theme(legend.position = "right") +
+    theme(axis.title.y = element_blank()) +
     xlab("Relative abundance of elk (scaled)") +
-    ylab("Mean number of hours between detections") +
-    ggtitle("Effect of elk abundance on wait time until site use") +
-    guides(color = guide_legend(title = "Previously detected competitor"),
-           fill = guide_legend(title = "Previously detected competitor")) +
-    facet_wrap(~Species, ncol = 1, scale = "free_x")
+    # ylab("Mean number of hours between detections") +
+    # ggtitle("Effect of elk abundance on wait time until site use") +
+    # guides(color = guide_legend(title = "Previously detected competitor"),
+    #        fill = guide_legend(title = "Previously detected competitor")) +
+    theme(legend.title=element_blank()) +
+    facet_wrap(~Species, ncol = 1, scale = "free_x") +
+    inset_element(p = cougimgGB, left = 0.65, bottom = 0.78, right = 0.98, top = 1) +
+    theme(rect = element_rect(fill = "transparent", linetype = "blank"))
   tbd_elkRAI_plot
 
-  #'  Combine lagomorph and white-taild deer effects into a single plot for publication
-  (tbd_lagoRAI_wtdRAI_patchwork <- tbd_lagoRAI_plot + tbd_wtdRAI_plot + 
-    plot_layout(widths = c(1,2)))
+  #'  Combine lagomorph and white-tailed deer effects into a single plot for publication
+  (tbd_lagoRAI_elkRAI_wtdRAI_patchwork <- tbd_wtdRAI_plot + (tbd_lagoRAI_plot / tbd_elkRAI_plot)  + 
+    plot_layout(widths = c(2,1)))
+  
+  (tbd_lagoRAI_elkRAI_patchwork <- tbd_lagoRAI_plot + tbd_elkRAI_plot + plot_layout(guides = 'collect'))
   
   
   
@@ -589,14 +604,16 @@
          units = "in", width = 8, height = 8, dpi = 600, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/Time_btwn_Detections/Figures/Mean_TBD_by_preyID_competitorID.tiff", competitorID_and_preyID_plot, 
          units = "in", width = 8, height = 8, dpi = 600, device = 'tiff', compression = 'lzw')
-  # ggsave("./Outputs/Time_btwn_Detections/Figures/Predicted_TBD_by_wtdRAI.tiff", tbd_wtdRAI_plot, 
-  #        units = "in", width = 8, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Time_btwn_Detections/Figures/Predicted_TBD_by_wtdRAI.tiff", tbd_wtdRAI_plot,
+         units = "in", width = 8, height = 8, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Time_btwn_Detections/Figures/Predicted_TBD_by_lagoRAI_&_elkRAI.tiff", tbd_lagoRAI_elkRAI_patchwork,
+         units = "in", width = 8, height = 4, dpi = 600, device = 'tiff', compression = 'lzw')
   # ggsave("./Outputs/Time_btwn_Detections/Figures/Predicted_TBD_by_lagomorphRAI.tiff", tbd_lagoRAI_plot, 
   #        units = "in", width = 8, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/Time_btwn_Detections/Figures/Predicted_TBD_by_elkRAI.tiff", tbd_elkRAI_plot, 
-         units = "in", width = 8, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/Time_btwn_Detections/Figures/Predicted_TBD_by_lagoRAI_&_wtdRAI.tiff", tbd_lagoRAI_wtdRAI_patchwork, 
-         units = "in", width = 10.5, height = 7.5, dpi = 600, device = 'tiff', compression = 'lzw')
+  # ggsave("./Outputs/Time_btwn_Detections/Figures/Predicted_TBD_by_elkRAI.tiff", tbd_elkRAI_plot, 
+  #        units = "in", width = 8, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+  # ggsave("./Outputs/Time_btwn_Detections/Figures/Predicted_TBD_by_lagoRAI_&_wtdRAI.tiff", tbd_lagoRAI_wtdRAI_patchwork, 
+  #        units = "in", width = 10.5, height = 7.5, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
   #'  -----------------------------------
