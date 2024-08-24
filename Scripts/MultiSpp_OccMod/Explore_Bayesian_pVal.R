@@ -46,7 +46,7 @@
   ni <- 18000
   obsVSsim <- list()
   confusionM <- 0
-  for(i in 1:1) {
+  for(i in 1:ni) {
     obsVSsim <- table(y[,], y.sim[i,,])
     confusionM <- confusionM + obsVSsim
   }
