@@ -260,7 +260,7 @@
   #'  -------------------------
   params <- c("betaSpp1", "betaSpp2", "alphaSpp1", "alphaSpp2", "betaSpp12", 
               "alphaSpp12", "alphaSpp21", "mean.psiSpp1", "mean.psiSpp2", 
-              "mean.pSpp1", "mean.pSpp2", "z", 
+              "mean.pSpp1", "mean.pSpp2", "z", "y.sim",
               "y.hat", "y.hat.index", "y.hat.maxindex", "x2", "x2.sim", "chi2.obs", "chi2.sim",
               "ft", "ft.sim", "ft.obs", "ft.sims", "FT.obs", "FT.sims")
               # "y2", "y_A", "y_B", "yrep2", "yrep_A", "yrep_B",
