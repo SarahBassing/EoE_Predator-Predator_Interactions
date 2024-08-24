@@ -1,22 +1,29 @@
   #'  Review GoF outputs ---- do these models really suck that bad???
-  
+  load("./Data/MultiSpp_OccMod_Outputs/bundled_predator_data_list.RData")  
+
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_altGoF_2024-08-21.RData") 
   mod <- bear.coy.habx
+  y <- bundled_pred_list[[7]][[1]]
   
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_altGoF_2024-08-21.RData")
   mod <- wolf.coy.hab
+  y <- bundled_pred_list[[2]][[1]]
   
   # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_GoF_2024-08-07.RData")
   # mod <- wolf.bear.null
+  # y <- bundled_pred_list[[1]][[1]]
   # 
   # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_GoF_2024-08-07.RData")
   # mod <- wolf.bear.hab
+  # y <- bundled_pred_list[[1]][[1]]
   # 
   # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_GoF_2024-08-08.RData")
   # mod <- wolf.lion.null
+  # y <- bundled_pred_list[[1]][[3]]
   
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_altGoF_2024-08-23.RData") # need to run without z.sim & fixed FT
   mod <- coy.bob.habx
+  y <- bundled_pred_list[[6]][[1]]
   
   mod$summary
   
@@ -33,6 +40,20 @@
        main = "Chi2 discrepency ratio", xlim = pl, ylim = pl, frame.plot = FALSE)
   abline(0,1, lwd = 2) #1:1 ratio would be perfect fit
   text(quantile(pl, 0.1), max(pl), paste('Bpv = ', round(mean(chi2.sim > chi2.obs), 2)), cex = 1.5)
+  
+  #'  Extract y and y.sim
+  y.sim <- mod$sims.list$y.sim
+  ni <- 18000
+  obsVSsim <- list()
+  confusionM <- 0
+  for(i in 1:1) {
+    obsVSsim <- table(y[,], y.sim[i,,])
+    confusionM <- confusionM + obsVSsim
+  }
+  (confusionM <- data.frame(rbind(confusionM)))
+  colnames(confusionM) <- c("Sim_1", "Sim_2", "Sim_3", "Sim_4")
+  rownames(confusionM) <- c("Obs_1", "Obs_2", "Obs_3", "Obs_4")
+  print(confusionM)
   
   #' y <- mod$sims.list$y; y[1, 1:10, ]; hist(y[1,,])
   #' y.sim <- mod$sims.list$y.sim; y.sim[1, 1:10, ]; hist(y.sim[1,,])
