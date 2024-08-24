@@ -24,7 +24,7 @@
   library(rphylopic)
   
   #'  Load top models
-  load("./Outputs/Time_btwn_Detections/tbd.bear_intercept_only.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.bear_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.bob_sppID_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.coy_sppID_X_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.lion_preyRAI.RData")
@@ -39,8 +39,8 @@
   
   #'  Load prey - predator top models
   load("./Outputs/Time_btwn_Detections/tbd.nontarget.bear_preyRAI.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.nontarget.bob_global.RData")
-  load("./Outputs/Time_btwn_Detections/tbd.nontarget.coy_global.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.nontarget.bob_preyRAI.RData")
+  load("./Outputs/Time_btwn_Detections/tbd.nontarget.coy_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.nontarget.lion_preyRAI.RData")
   load("./Outputs/Time_btwn_Detections/tbd.nontarget.wolf_preyRAI.RData")
   
@@ -114,12 +114,12 @@
     Estimate <- round(unlist(mod_out$mean), 2)
     lci <- round(unlist(mod_out$q2.5), 2)
     uci <- round(unlist(mod_out$q97.5), 2)
-    CI <- paste(" ", lci, "-", uci) # need that extra space in front b/c excel thinks this is an equation otherwise
+    # CI <- paste(" ", lci, "-", uci) # need that extra space in front b/c excel thinks this is an equation otherwise
     overlap0 <- unlist(mod_out$overlap0)
-    out <- as.data.frame(cbind(Species, Estimate, CI, lci, uci, overlap0))
+    out <- as.data.frame(cbind(Species, Estimate, lci, uci, overlap0))
     out <- tibble::rownames_to_column(out, "row_names") %>%
       relocate(row_names, .after = Species)
-    colnames(out) <- c("Species", "Parameter", "Estimate", "95% CI", "lci", "uci", "overlap0")
+    colnames(out) <- c("Species", "Parameter", "Estimate", "lci", "uci", "overlap0")
     renamed_out <- out %>%
       mutate(Parameter = ifelse(Parameter == "alpha0", "Intercept", Parameter),
              Parameter = ifelse(Parameter == "beta.prey1", paste("Prey RAI:", prey1), Parameter),
@@ -153,7 +153,7 @@
              uci = as.numeric(uci))
     return(renamed_out)
   }
-  tbd.bear.out <- coefs(tbd.bear.null, spp = "Black bear", prey1 = "Elk", prey2 = "White-tailed deer")
+  tbd.bear.out <- coefs(tbd.bear.preyabund, spp = "Black bear", prey1 = "Elk", prey2 = "White-tailed deer")
   tbd.bob.out <- coefs(tbd.bob.sppID.preyabund, spp = "Bobcat", prey1 = "White-tailed deer", prey2 = "Lagomorph", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Mountain lion", comp4 = "Wolf")
   tbd.coy.out <- coefs(tbd.coy.sppIDxpreyabund, spp = "Coyote", prey1 = "White-tailed deer", prey2 = "Lagomorph", comp1 = "Black bear", comp2 = "Bobcat", comp3 = "Mountain lion", comp4 = "Wolf")
   tbd.lion.out <- coefs(tbd.lion.preyabund, spp = "Mountain lion", prey1 = "Elk", prey2 = "White-tailed deer", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Bobcat", comp4 = "Wolf")
@@ -166,10 +166,8 @@
   tbd.wolf.comp <- coefs(tbd.wolf.sppID, spp = "Wolf", comp1 = "Coyote", comp2 = "Black bear", comp3 = "Bobcat", comp4 = "Mountain lion")
   
   tbd.bear.prey <- coefs(tbd.nt.bear.preyabund, spp = "Black bear", prey1 = "Elk", prey2 = "White-tailed deer") 
-  tbd.bob.prey <- coefs(tbd.nt.bob.global, spp = "Bobcat", prey1 = "White-tailed deer", prey2 = "Lagomorph", comp1 = "White-tailed deer", comp2 = "Lagomorph") %>%
-    mutate(Parameter = gsub("Competitor", "Non-target", Parameter))
-  tbd.coy.prey <- coefs(tbd.nt.coy.global, spp = "Coyote", prey1 = "White-tailed deer", prey2 = "Lagomorph", comp1 = "White-tailed deer", comp2 = "Lagomorph") %>%
-    mutate(Parameter = gsub("Competitor", "Non-target", Parameter))
+  tbd.bob.prey <- coefs(tbd.nt.bob.preyabund, spp = "Bobcat", prey1 = "White-tailed deer", prey2 = "Lagomorph") 
+  tbd.coy.prey <- coefs(tbd.nt.coy.preyabund, spp = "Coyote", prey1 = "White-tailed deer", prey2 = "Lagomorph") 
   tbd.lion.prey <- coefs(tbd.nt.lion.preyabund, spp = "Mountain lion", prey1 = "Elk", prey2 = "White-tailed deer") 
   tbd.wolf.prey <- coefs(tbd.nt.wolf.preyabund, spp = "Wolf", prey1 = "Elk", prey2 = "Moose", prey3 = "White-tailed deer") 
   
@@ -185,14 +183,14 @@
     mutate(Parameter = gsub("Competitor", "Non-target", Parameter))
   
   #'  Pull out just coefficient estimates
-  bear.coefs <- tbd.bear.out[1,]
+  bear.coefs <- tbd.bear.out[1:3,]
   bob.coefs <- tbd.bob.out[1:6,]
   coy.coefs <- tbd.coy.out[1:12,]
   lion.coefs <- tbd.lion.out[1:3,]
   wolf.coefs <- tbd.wolf.out[1:4,]
   
   #'  Pull out mean TBD estimates
-  bear.mean.tbd <- tbd.bear.out[2,1:6]
+  bear.mean.tbd <- tbd.bear.out[4,1:6]
   bob.mean.tbd <- tbd.bob.out[7:11,1:6]
   coy.mean.tbd <- tbd.coy.out[13:17,1:6]
   lion.mean.tbd <- tbd.lion.out[4,1:6]
@@ -207,7 +205,7 @@
   wolf.comp.tbd <- tbd.wolf.comp[5:9,1:6]
   
   #'  Pull out predicted TBD values
-  # bear.tbd.predictions <- tbd.bear.out[5:204,1:6]
+  bear.tbd.predictions <- tbd.bear.out[5:204,1:6]
   bob.tbd.predictions <- tbd.bob.out[12:811,1:6]
   coy.tbd.predictions <- tbd.coy.out[18:817,1:6]
   lion.tbd.predictions <- tbd.lion.out[5:204,1:6]
@@ -232,14 +230,37 @@
   ####  Result tables  ####
   #'  -----------------
   tbd.coefs <- rbind(bear.coefs, bob.coefs, coy.coefs, lion.coefs, wolf.coefs)
-  mean.tbd <- rbind(bear.mean.tbd, bob.mean.tbd, coy.mean.tbd, lion.mean.tbd, wolf.mean.tbd)
-  competitor.tbd <- rbind(bear.comp.tbd, bob.comp.tbd, coy.comp.tbd, lion.comp.tbd, wolf.comp.tbd)
+  mean.tbd <- rbind(bear.mean.tbd, bob.mean.tbd, coy.mean.tbd, lion.mean.tbd, wolf.mean.tbd) %>%
+    mutate(Estimate = round(Estimate/60, 2),
+           lci = round(lci/60, 2),
+           uci = round(uci/60, 2),
+           `95% CI` = paste(" ", lci, "-", uci)) %>%
+    relocate(`95% CI`, .after = "Estimate")
+  competitor.tbd <- rbind(bear.comp.tbd, bob.comp.tbd, coy.comp.tbd, lion.comp.tbd, wolf.comp.tbd) %>%
+    mutate(Estimate = round(Estimate/60, 2),
+           lci = round(lci/60, 2),
+           uci = round(uci/60, 2),
+           `95% CI` = paste(" ", lci, "-", uci)) %>%
+    relocate(`95% CI`, .after = "Estimate")
   nt.tbd <- rbind(bear.nt.mean.tbd, bob.nt.mean.tbd, coy.nt.mean.tbd, lion.nt.mean.tbd, wolf.nt.mean.tbd) %>%
-    mutate(Parameter = "Mean TBD: Primary prey")
-  prey.tbd <- rbind(bear.nt.prey.tbd, bob.nt.prey.tbd, coy.nt.prey.tbd, lion.nt.prey.tbd, wolf.nt.prey.tbd)
-  predicted.tbd <- rbind(bob.tbd.predictions, coy.tbd.predictions, lion.tbd.predictions, wolf.tbd.predictions) %>% #bear.tbd.predictions, 
+    mutate(Parameter = "Mean TBD: Primary prey") %>%
+    mutate(Estimate = round(Estimate/60, 2),
+           lci = round(lci/60, 2),
+           uci = round(uci/60, 2),
+           `95% CI` = paste(" ", lci, "-", uci)) %>%
+    relocate(`95% CI`, .after = "Estimate")
+  prey.tbd <- rbind(bear.nt.prey.tbd, bob.nt.prey.tbd, coy.nt.prey.tbd, lion.nt.prey.tbd, wolf.nt.prey.tbd) %>%
+    mutate(Estimate = round(Estimate/60, 2),
+           lci = round(lci/60, 2),
+           uci = round(uci/60, 2),
+           `95% CI` = paste(" ", lci, "-", uci)) %>%
+    relocate(`95% CI`, .after = "Estimate")
+  predicted.tbd <- rbind(bear.tbd.predictions, bob.tbd.predictions, coy.tbd.predictions, lion.tbd.predictions, wolf.tbd.predictions) %>% 
     #'  Split out predictions based on categorical variable (mostly important for bobcat & coyote results)
-    mutate(Prey_species = str_replace(Parameter, "tbd ", ""),
+    mutate(Estimate = round(Estimate/60, 2),
+           lci = round(lci/60, 2),
+           uci = round(uci/60, 2),
+           `95% CI` = paste(" ", lci, "-", uci), Prey_species = str_replace(Parameter, "tbd ", ""),
            Prey_species = str_extract(Prey_species, "[aA-zZ]+"),
            Obs_nmbr = as.numeric(str_extract(Parameter, "[0-9]+")),
            #'  If competitor ID had no effect, use reference category (coyote)
@@ -256,7 +277,8 @@
            Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr <101, "Black bear", Competitor_ID),
            Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr >100, "Bobcat", Competitor_ID),
            Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr >200, "Mountain lion", Competitor_ID), 
-           Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr >300, "Wolf", Competitor_ID))
+           Competitor_ID = ifelse(Species == "Coyote" & Obs_nmbr >300, "Wolf", Competitor_ID)) %>%
+    relocate(`95% CI`, .after = "Estimate")
   
   #'  Save
   write.csv(tbd.coefs, "./Outputs/Tables/TBD_coefficient_estimates_allSpp.csv")
@@ -275,6 +297,7 @@
     as.data.frame() %>%
     mutate(prey_spp = rep(c("elk", "wtd"), each = 100)) %>%
     rename("cov" = ".")
+  #'  Need to repeat each prey covariate multiple times if sppID also in the model (predict effect of each prey across the effect of each competitor on bobcat TBD)
   bob.covs <- c(bob_bundled$newcovs[,3], bob_bundled$newcovs[,3], bob_bundled$newcovs[,3], bob_bundled$newcovs[,3], bob_bundled$newcovs[,4], bob_bundled$newcovs[,4], bob_bundled$newcovs[,4], bob_bundled$newcovs[,4]) %>%
     as.data.frame() %>%
     mutate(prey_spp = rep(c("wtd", "lago"), each = 400)) %>%
@@ -283,9 +306,9 @@
     as.data.frame() %>%
     mutate(prey_spp = rep(c("wtd", "lago"), each = 400)) %>%
     rename("cov" = ".")
-  lion.covs <- c(lion_bundled$newcovs[,1], lion_bundled$newcovs[,1], lion_bundled$newcovs[,1], lion_bundled$newcovs[,1], lion_bundled$newcovs[,3], lion_bundled$newcovs[,3], lion_bundled$newcovs[,3], lion_bundled$newcovs[,3]) %>%
+  lion.covs <- c(lion_bundled$newcovs[,1], lion_bundled$newcovs[,3]) %>% #lion_bundled$newcovs[,1], lion_bundled$newcovs[,1], lion_bundled$newcovs[,1], lion_bundled$newcovs[,3], lion_bundled$newcovs[,3], lion_bundled$newcovs[,3]) %>%
     as.data.frame() %>%
-    mutate(prey_spp = rep(c("elk", "wtd"), each = 400)) %>%
+    mutate(prey_spp = rep(c("elk", "wtd"), each = 100)) %>%
     rename("cov" = ".")
   wolf.covs <- c(wolf_bundled$newcovs[,1], wolf_bundled$newcovs[,2], wolf_bundled$newcovs[,3]) %>%
     as.data.frame() %>%
@@ -296,8 +319,8 @@
   #'  responses to prey RAI based on these relationships
   print(bear.coefs) # Prey RAI: Elk
   print(bob.coefs) # Prey RAI: White-tailed deer
-  print(coy.coefs) # Competitor:Prey (Bobcat x White-tailed deer), (Mountain lion x White-tailed deer), (Wolf x White-tailed deer), (Wolf x Lagomorph)
-  print(lion.coefs) # Prey RAI: Elk, Prey RAI: White-tailed deer
+  print(coy.coefs) # Competitor:Prey (Wolf x White-tailed deer), (Wolf x Lagomorph)
+  print(lion.coefs) # Prey RAI: Elk, White-tailed deer
   print(wolf.coefs) # Prey RAI: White-tailed deer
   
   #'  Combine predictions and covariate data for plotting
@@ -310,27 +333,22 @@
     mutate(Competitor_ID = "Any predator")
   bob.predicted <- filter(predicted.tbd, Species == "Bobcat") %>%    
     bind_cols(bob.covs) %>%
-    dplyr::select(-prey_spp) %>%
-    #'  Remove bear & wolf * wtd & lago predictions b/c not significantly different from baseline (coyote) and make plots confusing
-    filter(Prey_species != "lago" | Competitor_ID != "Black bear") %>%
-    filter(Prey_species != "lago" | Competitor_ID != "Wolf") %>%
-    filter(Prey_species != "wtd" | Competitor_ID != "Black bear") %>%
-    filter(Prey_species != "wtd" | Competitor_ID != "Wolf")
+    dplyr::select(-prey_spp) #%>%
+    #' #'  Remove bear & wolf * wtd & lago predictions b/c not significantly different from baseline (coyote) and make plots confusing
+    #' filter(Prey_species != "lago" | Competitor_ID != "Black bear") %>%
+    #' filter(Prey_species != "lago" | Competitor_ID != "Wolf") %>%
+    #' filter(Prey_species != "wtd" | Competitor_ID != "Black bear") %>%
+    #' filter(Prey_species != "wtd" | Competitor_ID != "Wolf")
   coy.predicted <- filter(predicted.tbd, Species == "Coyote") %>%    
     bind_cols(coy.covs) %>%
     dplyr::select(-prey_spp) %>%
-    #'  Remove bobcat & lion * lago predictions b/c not significantly different from baseline (bear) and make plots confusing
-    filter(Prey_species != "lago" | Competitor_ID != "Bobcat") %>%
-    filter(Prey_species != "lago" | Competitor_ID != "Mountain lion")
+    #' #'  Remove bobcat & lion * lago predictions b/c not significantly different from baseline (bear) and make plots confusing
+    #' filter(Prey_species != "lago" | Competitor_ID != "Bobcat") %>%
+    filter(Prey_species != "lago" | Competitor_ID != "Mountain lion")  # excluding non-significan lion effect because predictions are on entirely different scale from others which makes plotting very misleading
   lion.predicted <- filter(predicted.tbd, Species == "Mountain lion") %>%   
     bind_cols(lion.covs) %>%
     dplyr::select(-prey_spp) %>%
-    #'  Currently including elk b/c upper CRI is exactly 0
-    #'  Remove bobcat & wolf * elk & wtd predictions b/c not significantly different from baseline (coyote) and make plots confusing
-    filter(Prey_species != "elk" | Competitor_ID != "Bobcat") %>%
-    filter(Prey_species != "elk" | Competitor_ID != "Wolf")  %>%
-    filter(Prey_species != "wtd" | Competitor_ID != "Bobcat") %>%
-    filter(Prey_species != "wtd" | Competitor_ID != "Wolf")
+    mutate(Competitor_ID = "Any predator")
   wolf.predicted <- filter(predicted.tbd, Species == "Wolf") %>%
     bind_cols(wolf.covs) %>%
     dplyr::select(-prey_spp) %>%
@@ -371,7 +389,7 @@
     arrange(Species, Estimate) %>%
     mutate(Species = factor(Species, levels = c("Black bear", "Bobcat", "Coyote", "Mountain lion", "Wolf")),
            Previous_Species = str_replace(Parameter, "Mean TBD: ", ""),
-           Previous_Species = factor(Previous_Species, levels = c("Any prey", "Black bear", "Bobcat", "Coyote", "Mountain lion", "Wolf")), 
+           Previous_Species = factor(Previous_Species, levels = c("Primary prey", "Black bear", "Bobcat", "Coyote", "Mountain lion", "Wolf")), 
            Estimate = as.numeric(Estimate),
            lci = as.numeric(lci),
            uci = as.numeric(uci)) %>%
@@ -406,32 +424,34 @@
   colour("sunset")(11)
   # any.wolf.bear.lion.coy.bob_colors <- c("black", "#364B9A", "#98CAE1", "#DD3D2D", "#FDB366", "#A50026")
   any.bear.bob.coy.lion.wolf_colors <- c("black", "#98CAE1", "#A50026", "#DD3D2D", "#FDB366", "#364B9A")
+  bear.bob.coy.lion.wolf_colors <- c("#98CAE1", "#A50026", "#DD3D2D", "#FDB366", "#364B9A")
   bear.coy.lion.wolf_colors <- c("#98CAE1", "#DD3D2D", "#FDB366", "#364B9A")
+  any.bear.coy.lion_colors <- c("black", "#98CAE1", "#DD3D2D", "#FDB366")
   any.bear.coy_colors <- c("black", "#98CAE1", "#DD3D2D")
   bear.wolf <- c("#98CAE1", "#364B9A")
   
   #####  Competitor ID effect  ####
   #'  Effect of previous competitor detection on latency of site use
-  competitorID_plot <- ggplot(tbd_by_competitorID, aes(x = Previous_Species, y = (Estimate/60), group = Species)) +
-    geom_errorbar(aes(ymin = (lci/60), ymax = (uci/60), color = Previous_Species), width = 0, position = position_dodge(width = 0.4)) +
+  competitorID_plot <- ggplot(tbd_by_competitorID, aes(x = Previous_Species, y = (Estimate), group = Species)) +
+    geom_errorbar(aes(ymin = (lci), ymax = (uci), color = Previous_Species), width = 0, position = position_dodge(width = 0.4)) +
     geom_point(stat = "identity", aes(col = Previous_Species), size = 2.5, position = position_dodge(width = 0.4)) +
     theme_bw() +
     guides(color = guide_legend(title = "Previously detected species")) +
     facet_wrap(~Species, scales = "free_y") + #, scales = "free_y"
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-    theme(legend.position = c(1, 0), legend.justification = c(1, 0)) +
+    theme(legend.position.inside = c(1, 0), legend.justification = c(1, 0)) +
     xlab("Previously detected species") +
     ylab("Mean number of hours between detections") +
     ggtitle("Effect of recent competitor detection on wait time until site use")
   competitorID_plot
   
-  wolf_coy_signif <- data.frame(Species = "Coyote", Previous_Species = "Wolf", Estimate = 2400, lab = "*")
-  lion_bob_signif <- data.frame(Species = "Bobcat", Previous_Species = "Mountain lion", Estimate = 6000, lab = "*")
-  bear_lion_signif <- data.frame(Species = "Mountain lion", Previous_Species = "Black bear", Estimate = 12000, lab = "*")
+  wolf_coy_signif <- data.frame(Species = "Coyote", Previous_Species = "Wolf", Estimate = 2400/60, lab = "*")
+  lion_bob_signif <- data.frame(Species = "Bobcat", Previous_Species = "Mountain lion", Estimate = 6000/60, lab = "*")
+  bear_lion_signif <- data.frame(Species = "Mountain lion", Previous_Species = "Black bear", Estimate = 12000/60, lab = "*")
   tbd_signif <- rbind(wolf_coy_signif, lion_bob_signif, bear_lion_signif)
   
-  competitorID_and_meanprey_plot <- ggplot(tbd_meanPrey_and_competitorID, aes(x = Previous_Species, y = (Estimate/60), group = Species)) +
-    geom_errorbar(aes(ymin = (lci/60), ymax = (uci/60), color = Previous_Species), width = 0, position = position_dodge(width = 0.4)) +
+  competitorID_and_meanprey_plot <- ggplot(tbd_meanPrey_and_competitorID, aes(x = Previous_Species, y = (Estimate), group = Species)) +
+    geom_errorbar(aes(ymin = (lci), ymax = (uci), color = Previous_Species), width = 0, position = position_dodge(width = 0.4)) +
     geom_point(stat = "identity", aes(col = Previous_Species), size = 2.5, position = position_dodge(width = 0.4)) +
     theme_bw() +
     scale_color_manual(values = any.bear.bob.coy.lion.wolf_colors) +
@@ -441,12 +461,12 @@
     theme(legend.position = c(1, 0), legend.justification = c(1, 0)) +
     xlab("Previously detected species") +
     ylab("Mean number of hours between detections") +
-    ggtitle("Effect of recent competitor or average prey detection on wait time until site use") +
-    geom_text(data = tbd_signif, label = "*", size = 12)
+    ggtitle("Effect of recent competitor or primary prey detection on wait time until site use") #+
+    #geom_text(data = tbd_signif, label = "*", size = 12)
   competitorID_and_meanprey_plot
   
-  competitorID_and_preyID_plot <- ggplot(tbd_by_PreyID_and_competitorID, aes(x = Previous_Species, y = (Estimate/60), group = Species)) +
-    geom_errorbar(aes(ymin = (lci/60), ymax = (uci/60), color = Previous_Species), width = 0, position = position_dodge(width = 0.4)) +
+  competitorID_and_preyID_plot <- ggplot(tbd_by_PreyID_and_competitorID, aes(x = Previous_Species, y = (Estimate), group = Species)) +
+    geom_errorbar(aes(ymin = (lci), ymax = (uci), color = Previous_Species), width = 0, position = position_dodge(width = 0.4)) +
     geom_point(stat = "identity", aes(col = Previous_Species), size = 2.5, position = position_dodge(width = 0.4)) +
     theme_bw() +
     # scale_color_manual(values = any.bear.bob.coy.lion.wolf_colors) +
@@ -459,8 +479,8 @@
     ggtitle("Effect of recent prey or competitor detection on wait time until site use")
   competitorID_and_preyID_plot
   
-  preyID_plot <- ggplot(tbd_by_preyID, aes(x = Previous_Species, y = (Estimate/60), group = Species)) +
-    geom_errorbar(aes(ymin = (lci/60), ymax = (uci/60), color = Previous_Species), width = 0, position = position_dodge(width = 0.4)) +
+  preyID_plot <- ggplot(tbd_by_preyID, aes(x = Previous_Species, y = (Estimate), group = Species)) +
+    geom_errorbar(aes(ymin = (lci), ymax = (uci), color = Previous_Species), width = 0, position = position_dodge(width = 0.4)) +
     geom_point(stat = "identity", aes(col = Previous_Species), size = 2.5, position = position_dodge(width = 0.4)) +
     theme_bw() +
     guides(color = guide_legend(title = "Previously detected species")) +
@@ -489,11 +509,11 @@
   
   #####  Prey relative abundance effects  ####
   tbd_wtdRAI_plot <- filter(tbd_prey_prediction, Prey_RAI == "wtd") %>%
-    ggplot(aes(x = cov, y = (Estimate/60), group = Competitor_ID)) +
+    ggplot(aes(x = cov, y = (Estimate), group = Competitor_ID)) +
     geom_line(aes(color = Competitor_ID), lwd = 1.25) + 
     scale_color_manual(values = any.bear.bob.coy.lion.wolf_colors) +
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = (lci/60), ymax = (uci/60), fill = Competitor_ID), alpha = 0.3) +
+    geom_ribbon(aes(ymin = (lci), ymax = (uci), fill = Competitor_ID), alpha = 0.3) +
     scale_fill_manual(values = any.bear.bob.coy.lion.wolf_colors) + 
     # theme_bw() +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -517,12 +537,12 @@
     tbd_wtdRAI_plot
   
   tbd_lagoRAI_plot <- filter(tbd_prey_prediction, Prey_RAI == "lago") %>%
-    ggplot(aes(x = cov, y = (Estimate/60), group = Competitor_ID)) +
+    ggplot(aes(x = cov, y = (Estimate), group = Competitor_ID)) +
     geom_line(aes(color = Competitor_ID), lwd = 1.25) + 
-    scale_color_manual(values = bear.coy.lion.wolf_colors) +
+    scale_color_manual(values = bear.bob.coy.lion.wolf_colors) +
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = (lci/60), ymax = (uci/60), fill = Competitor_ID), alpha = 0.3) +
-    scale_fill_manual(values = bear.coy.lion.wolf_colors) + 
+    geom_ribbon(aes(ymin = (lci), ymax = (uci), fill = Competitor_ID), alpha = 0.3) +
+    scale_fill_manual(values = bear.bob.coy.lion.wolf_colors) + 
     # theme_bw() +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
           panel.background = element_blank(), axis.line = element_line(colour = "black")) +
@@ -537,23 +557,24 @@
   tbd_lagoRAI_plot
   
   tbd_elkRAI_plot <- filter(tbd_prey_prediction, Prey_RAI == "elk") %>%
-    ggplot(aes(x = cov, y = (Estimate/60), group = Competitor_ID)) +
+    ggplot(aes(x = cov, y = (Estimate), group = Competitor_ID)) +
     geom_line(aes(color = Competitor_ID), lwd = 1.25) + 
-    scale_color_manual(values = any.bear.coy_colors) +
+    scale_color_manual(values = any.bear.coy.lion_colors) +
     #'  Add confidence intervals
-    geom_ribbon(aes(ymin = (lci/60), ymax = (uci/60), fill = Competitor_ID), alpha = 0.3) +
-    scale_fill_manual(values = any.bear.coy_colors) + 
+    geom_ribbon(aes(ymin = (lci), ymax = (uci), fill = Competitor_ID), alpha = 0.3) +
+    scale_fill_manual(values = any.bear.coy.lion_colors) + 
     theme_bw() +
+    theme(legend.position = "bottom") +
     xlab("Relative abundance of elk (scaled)") +
     ylab("Mean number of hours between detections") +
-    ggtitle("Effect of recent competitor detection and elk abundance on wait time until site use") +
-    guides(color = guide_legend(title = "Previously detected\ncompetitor"),
-           fill = guide_legend(title = "Previously detected\ncompetitor")) +
-    facet_wrap(~Species, scale = "free_x")
+    ggtitle("Effect of elk abundance on wait time until site use") +
+    guides(color = guide_legend(title = "Previously detected competitor"),
+           fill = guide_legend(title = "Previously detected competitor")) +
+    facet_wrap(~Species, ncol = 1, scale = "free_x")
   tbd_elkRAI_plot
 
   #'  Combine lagomorph and white-taild deer effects into a single plot for publication
-  (tbd_lagoRAI_wtdRAI_patchwork <- tbd_lagoRAI_plot + tbd_wtdRAI_plot +
+  (tbd_lagoRAI_wtdRAI_patchwork <- tbd_lagoRAI_plot + tbd_wtdRAI_plot + 
     plot_layout(widths = c(1,2)))
   
   
