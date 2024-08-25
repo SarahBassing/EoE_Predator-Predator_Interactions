@@ -324,7 +324,7 @@
   print(wolf.bear.null$DIC)
   which(wolf.bear.null$summary[,"Rhat"] > 1.1)
   (wolf.bear.null_X2 <- mean(wolf.bear.null$sims.list$chi2.sim > wolf.bear.null$sims.list$chi2.obs)) # Bayesian p-value GOF
-  (wolf.bear.null_FT <- mean(wolf.bear.null$sims.list$ft.sim > wolf.bear.null$sims.list$ft.obs)) # Bayesian p-value GOF
+  (wolf.bear.null_FT <- mean(wolf.bear.null$sims.list$ft.sims > wolf.bear.null$sims.list$ft.obs)) # Bayesian p-value GOF
   # (wolf.bear.null_X2pB.wolf <- mean(wolf.bear.null$sims.list$chi2.sim_A > wolf.bear.null$sims.list$chi2.obs_A)) # Bayesian p-value GOF
   # (wolf.bear.null_X2pB.bear <- mean(wolf.bear.null$sims.list$chi2.sim_B > wolf.bear.null$sims.list$chi2.obs_B)) # Bayesian p-value GOF
   # (wolf.bear.null_FTpB.wolf <- mean(wolf.bear.null$sims.list$ft.sim_A > wolf.bear.null$sims.list$ft.obs_A)) # Bayesian p-value GOF
