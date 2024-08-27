@@ -643,8 +643,8 @@
     inset_element(p = bobimg, left = 0.3, bottom = 0.91, right = 0.5, top = 1.17, ignore_tag = TRUE) +
     theme(rect = element_rect(fill = "transparent", linetype = "blank")) +
     inset_element(p = coyimgGB, left = 0.75, bottom = 0.9, right = 1.09, top = 1.18, ignore_tag = TRUE) +
-    theme(rect = element_rect(fill = "transparent", linetype = "blank")) + 
-    coy.bob.condish.elev.pred + coy.bob.condish.tri.pred + 
+    theme(rect = element_rect(fill = "transparent", linetype = "blank")) + #coy.bob.condish.elev.pred + 
+    coy.bob.condish.tri.pred + 
     plot_layout(nrow = 3) + plot_annotation(tag_levels = 'a',
                                             title = "Habitat effects on co-occurrence probabilities") +
     plot_layout(guides = "collect") & theme(legend.position = "bottom") 
@@ -654,8 +654,8 @@
     inset_element(p = bobimg, left = 0.3, bottom = 0.91, right = 0.5, top = 1.17, ignore_tag = TRUE) +
     theme(rect = element_rect(fill = "transparent", linetype = "blank")) +
     inset_element(p = coyimgGB, left = 0.75, bottom = 0.9, right = 1.09, top = 1.18, ignore_tag = TRUE) +
-    theme(rect = element_rect(fill = "transparent", linetype = "blank")) + 
-    coy.bob.condish.elev.ung + coy.bob.condish.tri.ung + 
+    theme(rect = element_rect(fill = "transparent", linetype = "blank")) + #coy.bob.condish.elev.ung + 
+    coy.bob.condish.tri.ung + 
     plot_layout(nrow = 3) + plot_annotation(tag_levels = 'a',
                                             title = "Habitat effects on co-occurrence probabilities") +
     plot_layout(guides = "collect") & theme(legend.position = "bottom") 
