@@ -859,17 +859,17 @@
   #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model:  null
   #'  psi = year; p(.); px(.)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.)_altGoF.R")
   start.time = Sys.time()
   wolf.lion.null.px <- jags(bundled_pred_list[[3]], inits = inits.wolf.lion, params,
-                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.).txt",
+                          "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.)_altGoF.txt",
                           n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(wolf.lion.null.px$summary)
   print(wolf.lion.null.px$DIC)
   which(wolf.lion.null.px$summary[,"Rhat"] > 1.1)
   mcmcplot(wolf.lion.null.px$samples)
-  save(wolf.lion.null.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_px(.)_", Sys.Date(), ".RData"))
+  save(wolf.lion.null.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_px(.)_altGoF_", Sys.Date(), ".RData"))
   
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
@@ -1220,17 +1220,17 @@
   #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model:  null
   #'  psi = year; p(.); px(.)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.)_altGoF.R")
   start.time = Sys.time()
   lion.bob.null.px <- jags(bundled_pred_list[[5]], inits = inits.lion.bob, params,
-                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.).txt",
+                           "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.)_altGoF.txt",
                            n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(lion.bob.null.px$summary)
   print(lion.bob.null.px$DIC)
   which(lion.bob.null.px$summary[,"Rhat"] > 1.1)
   mcmcplot(lion.bob.null.px$samples)
-  save(lion.bob.null.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_px(.)_", Sys.Date(), ".RData"))
+  save(lion.bob.null.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_px(.)_altGoF_", Sys.Date(), ".RData"))
   
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
