@@ -119,9 +119,9 @@
           #'  Linear models for the occupancy parameters on the logit scale
               
           #'  ...for states Spp1, Spp2
-          #'  Covariate order: Intercept[1] + Year[5]
-          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,5] 
-          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,5] 
+          #'  Covariate order: Intercept[1] + Year[3]
+          psiSpp1[i] <- betaSpp1[1]*psi_cov[i,1] + betaSpp1[2]*psi_cov[i,3] 
+          psiSpp2[i] <- betaSpp2[1]*psi_cov[i,1] + betaSpp2[2]*psi_cov[i,3] 
           
           #'  ...for state Spp12
           #'  Don't forget - second order parameter set to 0 so no interaction
