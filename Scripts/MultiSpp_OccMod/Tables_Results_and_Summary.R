@@ -539,7 +539,7 @@
   mean_bear.coy <- rename_mean_psi_p(out_bear.coy_null[[3]])
   
   #'  Merge all results  
-  mean_occ_det <- rbind(mean_wolf.coy, mean_bear.coy, mean_coy.bob, mean_wolf.bear, mean_wolf.lion, mean_lion.bear, mean_lion.bob)
+  mean_occ_det <- rbind(mean_wolf.bear, mean_wolf.lion, mean_wolf.coy, mean_lion.bear, mean_lion.bob, mean_bear.coy, mean_coy.bob)
   #'  Split by occupancy vs detection probability
   mean_occ <- filter(mean_occ_det, Parameter == "Mean occupancy") %>%
     rename("Mean Occupancy (95% CRI)" = "Mean") %>%
