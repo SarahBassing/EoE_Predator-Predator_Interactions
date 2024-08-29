@@ -16,7 +16,7 @@
   
   #'  Load model outputs and list
   #'  Wolf-Bear                       
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2024-07-16.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2024-08-27.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2024-07-17.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-19.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_newDIV_2024-07-30.RData")
@@ -28,7 +28,7 @@
   wolfbear_name <- c("wolf.bear.null", "wolf.bear.hab", "wolf.bear.preyabund", "wolf.bear.habx", "wolf.bear.preyabundx")#, "wolf.bear.preydiv", "wolf.bear.preydivx", "wolf.bear.global")
   
   #'  Wolf-Coyote                     
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(yr)_p(.)_2024-07-20.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(yr)_p(.)_2024-08-27.RData")  
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2024-07-21.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-21.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-07-31.RData") 
@@ -40,7 +40,7 @@
   wolfcoy_name <- c("wolf.coy.null", "wolf.coy.hab", "wolf.coy.preyabund", "wolf.coy.habx", "wolf.coy.preyabundx")#, "wolf.coy.preydiv", "wolf.coy.preydivx", "wolf.coy.global")
   
   #'  Wolf-Lion                           
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-07-23.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_habitat_yr)_p(setup_effort)_2024-07-24.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-24.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-07-31.RData")
@@ -52,7 +52,7 @@
   wolflion_name <- c("wolf.lion.null", "wolf.lion.hab", "wolf.lion.preyabund", "wolf.lion.habx", "wolf.lion.preyabundx")#, "wolf.lion.preydiv", "wolf.lion.preydivx", "wolf.lion.global")
   
   #'  Lion-Bear                           
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2024-07-28.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_habitat_yr)_p(setup_effort)_2024-07-28.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-28.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-08-01.RData") 
@@ -64,7 +64,7 @@
   lionbear_name <- c("lion.bear.null", "lion.bear.hab", "lion.bear.preyabund", "lion.bear.habx", "lion.bear.preyabundx")#, "lion.bear.preydiv", "lion.bear.preydivx", "lion.bear.global") 
   
   #'  Lion-Bobcat                         
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2024-07-26.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_habitat_yr)_p(setup_effort)_2024-07-27.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-27.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-08-02.RData") 
@@ -76,7 +76,7 @@
   lionbob_name <- c("lion.bob.null", "lion.bob.hab", "lion.bob.preyabund", "lion.bob.habx", "lion.bob.preyabundx")#, "lion.bob.preydiv", "lion.bob.preydivx", "lion.bob.global")
   
   #'  Coyote-Bobcat               
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2024-07-22.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2024-08-27.RData")  
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_p(setup_effort)_2024-07-23.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-23.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-08-02.RData")  
@@ -88,7 +88,7 @@
   coybob_name <- c("coy.bob.null", "coy.bob.hab", "coy.bob.preyabund", "coy.bob.habx", "coy.bob.preyabundx")#, "coy.bob.preydiv", "coy.bob.preydivx", "coy.bob.global") 
   
   #'  Bear-Coyote                       
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(yr)_p(.)_2024-07-22.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(yr)_p(.)_2024-08-27.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_p(setup_effort)_2024-07-23.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_preyabund_yr)_p(setup_effort)_2024-07-23.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_preydiversity_yr)_p(setup_effort)_newDiv_2024-08-03.RData")
@@ -111,10 +111,10 @@
   
   
   #'  Best supported model per species-pair
-  (topmodels <- rbind(topmod_wolfbear[1,], topmod_wolfcoy[1,], topmod_wolflion[1,], topmod_lionbear[1,], topmod_lionbob[1,], topmod_coybob[1,], topmod_bearcoy[1,]))
+  (topmodels <- rbind(topmod_wolfbear[2,], topmod_wolfcoy[1,], topmod_wolflion[1,], topmod_lionbear[1,], topmod_lionbob[1,], topmod_coybob[1,], topmod_bearcoy[1,]))
   
   #'  Full table of models ranked by DIC for all species-pairs
-  model_list_DIC <- rbind(topmod_wolfcoy, topmod_bearcoy, topmod_coybob, topmod_wolfbear, topmod_wolflion, topmod_lionbear, topmod_lionbob) %>%
+  model_list_DIC <- rbind(topmod_wolfbear, topmod_wolflion, topmod_wolfcoy, topmod_lionbear, topmod_lionbob, topmod_bearcoy, topmod_coybob) %>%
     mutate_if(is.numeric, round, digits = 2) %>%
     dplyr::select(c(Modnames, DIC, Delta_DIC, DICWt)) %>%
     #'  Rename model and species pairing
