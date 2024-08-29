@@ -477,27 +477,27 @@
     return(marg_occ_plot)
   }
   marginal_for_pred_plot <- plot_margingal_occ_by_cov(marginal_for[marginal_for$Setup == "Trail sites",], x = "Percent forest cover", ylab = "", plottitle = "", ncolor = bear.bob.coy.wolf_colors)
-  marginal_elev_pred_plot <- plot_margingal_occ_by_cov(marginal_elev[marginal_elev$Setup == "Trail sites",], x = "Elevation (m)", ylab = "Marginal occupancy probability", plottitle = "", ncolor = bear.wolf_colors) + theme(legend.title = element_blank())
-  marginal_tri_pred_plot <- plot_margingal_occ_by_cov(marginal_tri[marginal_tri$Setup == "Trail sites",], x = "Terrain ruggedness index", ylab = "", plottitle = "", ncolor = bear.bob.coy.wolf_colors)
+  marginal_elev_pred_plot <- plot_margingal_occ_by_cov(marginal_elev[marginal_elev$Setup == "Trail sites",], x = "Elevation (m)", ylab = "Marginal occupancy probability", plottitle = "", ncolor = bear.wolf_colors) 
+  marginal_tri_pred_plot <- plot_margingal_occ_by_cov(marginal_tri[marginal_tri$Setup == "Trail sites",], x = "Terrain ruggedness index", ylab = "", plottitle = "", ncolor = bear.bob.coy.wolf_colors) 
   
   marginal_for_ung_plot <- plot_margingal_occ_by_cov(marginal_for[marginal_for$Setup == "Random sites",], x = "Percent forest cover", ylab = "", plottitle = "", ncolor = bear.bob.coy.wolf_colors)
-  marginal_elev_ung_plot <- plot_margingal_occ_by_cov(marginal_elev[marginal_elev$Setup == "Random sites",], x = "Elevation (m)", ylab = "Marginal occupancy probability", plottitle = "", ncolor = bear.wolf_colors) + theme(legend.title = element_blank())
-  marginal_tri_ung_plot <- plot_margingal_occ_by_cov(marginal_tri[marginal_tri$Setup == "Random sites",], x = "Terrain ruggedness index", ylab = "", plottitle = "", ncolor = bear.bob.coy.wolf_colors)
+  marginal_elev_ung_plot <- plot_margingal_occ_by_cov(marginal_elev[marginal_elev$Setup == "Random sites",], x = "Elevation (m)", ylab = "Marginal occupancy probability", plottitle = "", ncolor = bear.wolf_colors) 
+  marginal_tri_ung_plot <- plot_margingal_occ_by_cov(marginal_tri[marginal_tri$Setup == "Random sites",], x = "Terrain ruggedness index", ylab = "", plottitle = "", ncolor = bear.bob.coy.wolf_colors) 
   
   
-  #'  remove legend from elev and tri plots
-  elev_pred_guide <- marginal_elev_pred_plot + guides(colour = "none", fill = "none") 
-  elev_ung_guide <- marginal_elev_ung_plot + guides(colour = "none", fill = "none") 
-  tri_pred_guide <- marginal_tri_pred_plot + guides(colour = "none", fill = "none")
-  tri_ung_guide <- marginal_tri_ung_plot + guides(colour = "none", fill = "none")
-  for_pred_guide <- marginal_for_pred_plot + guides(title = "none")
-  for_ung_guide <- marginal_for_ung_plot + guides(title = "none")
+  #'  Remove legend from elev and tri plots
+  elev_pred_guide <- marginal_elev_pred_plot + theme(legend.title = element_blank()) + guides(colour = "none", fill = "none") 
+  elev_ung_guide <- marginal_elev_ung_plot + theme(legend.title = element_blank()) + guides(colour = "none", fill = "none") 
+  tri_pred_guide <- marginal_tri_pred_plot + theme(legend.title = element_blank()) + guides(colour = "none", fill = "none")
+  tri_ung_guide <- marginal_tri_ung_plot + theme(legend.title = element_blank()) + guides(colour = "none", fill = "none")
+  # for_pred_guide <- marginal_for_pred_plot + guides(title = "none")
+  # for_ung_guide <- marginal_for_ung_plot + guides(title = "none")
   
-  marginal_pred_patchwork <- marginal_for_pred_plot + marginal_elev_pred_plot + tri_pred_guide + 
+  marginal_pred_patchwork <- marginal_for_pred_plot + elev_pred_guide + tri_pred_guide + 
     plot_annotation(title = "Species-specific marginal occupancy across percent forest cover, elevation, and terrain ruggedness gradients") +
     plot_annotation(tag_levels = 'a') + 
     plot_layout(guides = "collect") & theme(legend.position = "bottom")
-  marginal_ung_patchwork <- marginal_for_ung_plot + marginal_elev_ung_plot + tri_ung_guide + 
+  marginal_ung_patchwork <- marginal_for_ung_plot + elev_ung_guide + tri_ung_guide + 
     plot_annotation(title = "Species-specific marginal occupancy across percent forest cover, elevation, and terrain ruggedness gradients") +
     plot_annotation(tag_levels = 'a') + 
     plot_layout(guides = "collect") & theme(legend.position = "bottom")
@@ -966,8 +966,8 @@
   psimean_bear.coy.yr2 <- mean_occ_prob(bear.coy.mean.yr2, spp1 = "Black bear", spp2 = "Coyote", yr = "2021")
   
   #'  Bind all species and years together
-  mean_annual_psi <- rbind(psimean_wolf.bear.yr1, psimean_wolf.bear.yr2, psimean_wolf.coy.yr1, 
-                           psimean_wolf.coy.yr2, psimean_wolf.lion.yr1, psimean_wolf.lion.yr2, 
+  mean_annual_psi <- rbind(psimean_wolf.bear.yr1, psimean_wolf.bear.yr2, psimean_wolf.lion.yr1, 
+                           psimean_wolf.lion.yr2, psimean_wolf.coy.yr1, psimean_wolf.coy.yr2, 
                            psimean_lion.bear.yr1, psimean_lion.bear.yr2, psimean_lion.bob.yr1,
                            psimean_lion.bob.yr2, psimean_coy.bob.yr1, psimean_coy.bob.yr2,
                            psimean_bear.coy.yr1, psimean_bear.coy.yr2) %>%
