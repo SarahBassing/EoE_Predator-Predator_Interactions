@@ -514,33 +514,33 @@
   #####  Top model w/ intx on detection model v1  #### 
   #'  Top model: null
   #'  psi = year; p(.); px(.)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(.)_altGoF.R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(.)_altGoF.R")
   start.time = Sys.time()
-  wolf.bear.null.px <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(.)_altGoF.txt",
+  wolf.bear.hab.px <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(.)_altGoF.txt",
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.bear.null.px$summary)
-  print(wolf.bear.null.px$DIC)
-  which(wolf.bear.null.px$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.bear.null.px$samples)
-  save(wolf.bear.null.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_px(.)_altGoF", Sys.Date(), ".RData"))
+  print(wolf.bear.hab.px$summary)
+  print(wolf.bear.hab.px$DIC)
+  which(wolf.bear.hab.px$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.bear.hab.px$samples)
+  save(wolf.bear.hab.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_px(.)_altGoF_", Sys.Date(), ".RData"))
   
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
   #'  Top model: null
   #'  psi = year; p(.); px(psi)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(yr)_p(.)_px(psi).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(psi).R")
   start.time = Sys.time()
-  wolf.bear.null.px2 <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
-                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(yr)_p(.)_px(psi).txt",
+  wolf.bear.hab.px2 <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
+                             "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(psi).txt",
                              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(wolf.bear.null.px2$summary)
-  print(wolf.bear.null.px2$DIC)
-  which(wolf.bear.null.px2$summary[,"Rhat"] > 1.1)
-  mcmcplot(wolf.bear.null.px2$samples)
-  save(wolf.bear.null.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_px(psi)_", Sys.Date(), ".RData"))
+  print(wolf.bear.hab.px2$summary)
+  print(wolf.bear.hab.px2$DIC)
+  which(wolf.bear.hab.px2$summary[,"Rhat"] > 1.1)
+  mcmcplot(wolf.bear.hab.px2$samples)
+  save(wolf.bear.hab.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData"))
   
   
   #'  ----------------------
