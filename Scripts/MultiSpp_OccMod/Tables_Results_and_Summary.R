@@ -164,18 +164,19 @@
   print(topmodels)
   
   #'  Load top models              #######  MAKE SURE THESE ARE UP-TO-DATE!!!  #######
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2024-07-16.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2024-07-21.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-07-23.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2024-07-28.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2024-07-26.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-24.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-24.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2024-07-17.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2024-07-21.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2024-08-29.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2024-08-29.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-24.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-24.RData") 
   
   #'  Additional null models to snag mean psi and p from
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(yr)_p(.)_2024-07-20.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2024-07-22.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(yr)_p(.)_2024-07-22.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2024-08-27.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(yr)_p(.)_2024-08-27.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(yr)_p(.)_2024-08-27.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2024-08-27.RData")  
   
   #'  Co-detecition model based on each top model
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_px(.)_2024-08-06.RData")
@@ -226,7 +227,7 @@
     
     return(split_out)
   }
-  out_wolf.bear <- mod_out(wolf.bear.null, "Wolf", "Black bear")
+  out_wolf.bear <- mod_out(wolf.bear.hab, "Wolf", "Black bear")
   out_wolf.coy <- mod_out(wolf.coy.hab, "Wolf", "Coyote")
   out_wolf.lion <- mod_out(wolf.lion.null, "Wolf", "Mountain lion")
   out_lion.bear <- mod_out(lion.bear.null, "Mountain lion", "Black bear")
@@ -234,6 +235,7 @@
   out_coy.bob <- mod_out(coy.bob.habx, "Coyote", "Bobcat")
   out_bear.coy <- mod_out(bear.coy.habx, "Black bear", "Coyote")
   
+  out_wolf.bear_null <- mod_out(wolf.bear.null, "Wolf", "Black bear")
   out_wolf.coy_null <- mod_out(wolf.coy.null, "Wolf", "Coyote")
   out_coy.bob_null <- mod_out(coy.bob.null, "Coyote", "Bobcat")
   out_bear.coy_null <- mod_out(bear.coy.null, "Black bear", "Coyote")
@@ -272,9 +274,8 @@
     return(renamed_out)
   }
   occ_wolf.bear <- rename_occ_params(out_wolf.bear[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
-                                     cov2 = "Trail setup", cov3 = "Year 2", cov4 = NA, cov5 = NA, cov6 = NA) %>%
-    mutate(Parameter = ifelse(Parameter == "Interaction", paste0(Parameter, ": Intercept"), Parameter),
-           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+                                     cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Forest cover", cov5 = "Elevation",  cov6 = "TRI") %>%
+    mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Black bear", "Species 2"))
   occ_wolf.coy <- rename_occ_params(out_wolf.coy[[1]], intx3 = NA, intx4 = NA, intx5 = NA, 
                                     cov2 = "Trail setup", cov3 = "Year 2", cov4 = "Forest cover", cov5 = "Elevation",  cov6 = "TRI") %>%
@@ -303,9 +304,9 @@
            Parameter = str_replace(Parameter, "Coyote", "Species 2"))
   
   #'  Combine all occupancy results (long table)
-  top_null_results <- rbind(occ_wolf.bear, occ_wolf.lion, occ_lion.bear, occ_lion.bob)
-  top_non_null_results <- rbind(occ_wolf.coy, occ_bear.coy, occ_coy.bob) 
-  top_occmod_table_long <- rbind(occ_wolf.bear, occ_wolf.coy, occ_wolf.lion, occ_lion.bear, occ_lion.bob, occ_bear.coy, occ_coy.bob) 
+  top_null_results <- rbind(occ_wolf.lion, occ_lion.bear, occ_lion.bob)
+  top_non_null_results <- rbind(occ_wolf.bear, occ_wolf.coy, occ_bear.coy, occ_coy.bob) 
+  top_occmod_table_long <- rbind(occ_wolf.bear, occ_wolf.lion, occ_wolf.coy, occ_lion.bear, occ_lion.bob, occ_bear.coy, occ_coy.bob) 
   
   #'  Reformat into a wide table
   top_occmod_table_wide <- top_occmod_table_long %>%
@@ -396,7 +397,8 @@
   }
   #'  Top model detection results
   det_wolf.bear <- rename_det_params(out_wolf.bear[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
-    mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
+    mutate(#Parameter = paste0(Parameter, ": Intercept"),
+           Parameter = str_replace(Parameter, "Wolf", "Species 1"),
            Parameter = str_replace(Parameter, "Black bear", "Species 2"))
   det_wolf.coy <- rename_det_params(out_wolf.coy[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = str_replace(Parameter, "Wolf", "Species 1"),
@@ -416,8 +418,12 @@
   det_coy.bob <- rename_det_params(out_coy.bob[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = str_replace(Parameter, "Coyote", "Species 1"),
            Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
+  det_bear.coy <- rename_det_params(out_bear.coy[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = str_replace(Parameter, "Black bear", "Species 1"),
+           Parameter = str_replace(Parameter, "Coyote", "Species 2"))
   
-  top_detmod_table_long <- rbind(det_wolf.bear, det_wolf.coy, det_wolf.lion, det_lion.bear, det_lion.bob, det_coy.bob) 
+  
+  top_detmod_table_long <- rbind(det_wolf.bear, det_wolf.coy, det_wolf.lion, det_lion.bear, det_lion.bob, det_bear.coy, det_coy.bob) 
   
   #'  Reformat into a wide table
   top_detmod_table_wide <- top_detmod_table_long %>%
@@ -459,6 +465,9 @@
   det_coy.bob.px <- rename_det_params(out_coy.bob.px[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
     mutate(Parameter = str_replace(Parameter, "Coyote", "Species 1"),
            Parameter = str_replace(Parameter, "Bobcat", "Species 2"))
+  det_bear.coy.px <- rename_det_params(out_bear.coy.px[[2]], cov2 = "Trail setup", cov3 = "Sampling effort") %>%
+    mutate(Parameter = str_replace(Parameter, "Black bear", "Species 1"),
+           Parameter = str_replace(Parameter, "Coyote", "Species 2"))
   
   co_detmod_table_long <- rbind(det_wolf.bear.px, det_wolf.coy.px, det_wolf.lion.px, det_lion.bear.px, det_lion.bob.px, det_coy.bob.px) %>%
     mutate(Parameter = ifelse(Parameter == "Interaction Spp12", "Interaction: Intercept", Parameter),
@@ -519,11 +528,12 @@
   # mean_wolf.coy <- rename_mean_psi_p(out_wolf.coy[[3]])
   # mean_coy.bob <- rename_mean_psi_p(out_coy.bob[[3]])
   # mean_bear.coy <- rename_mean_psi_p(out_bear.coy[[3]])
-  mean_wolf.bear <- rename_mean_psi_p(out_wolf.bear[[3]])
+  # mean_wolf.bear <- rename_mean_psi_p(out_wolf.bear[[3]])
   mean_wolf.lion <- rename_mean_psi_p(out_wolf.lion[[3]])
   mean_lion.bear <- rename_mean_psi_p(out_lion.bear[[3]])
   mean_lion.bob <- rename_mean_psi_p(out_lion.bob[[3]])
-    
+  
+  mean_wolf.bear <- rename_mean_psi_p(out_wolf.bear_null[[3]])
   mean_wolf.coy <- rename_mean_psi_p(out_wolf.coy_null[[3]])
   mean_coy.bob <- rename_mean_psi_p(out_coy.bob_null[[3]])
   mean_bear.coy <- rename_mean_psi_p(out_bear.coy_null[[3]])
