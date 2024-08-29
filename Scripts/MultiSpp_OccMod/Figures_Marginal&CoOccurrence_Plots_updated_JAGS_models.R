@@ -146,9 +146,9 @@
   }
   #####  Wolf-Black bear predictions  ####
   #'  Top model
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2024-07-16.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2024-08-27.RData") 
   
-  #'  Second most supported model (even though ~37DIC away from top)
+  #'  Second most supported model (1.17 deltaDIC away from top)
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2024-07-17.RData")
   wolf.bear.for.ung.yr2 <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
                                              focal_cov = stations_skinny_eoe20s21s$PercForest,
@@ -174,6 +174,10 @@
                                               focal_cov = stations_skinny_eoe20s21s$TRI,
                                               psi_cov = c(1, 1, 1, 0, 0, 0), psi_cov_index = 6,
                                               psi_inxs_cov = c(0), psi_inxs_cov_index = 0)
+  
+  #####  Wolf-Lion predictions  ####
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
+  
   
   #####  Wolf-Coyote predictions  ####
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2024-07-21.RData") 
@@ -203,16 +207,12 @@
                                               psi_cov = c(1, 1, 1, 0, 0, 0), psi_cov_index = 6,
                                               psi_inxs_cov = 0, psi_inxs_cov_index = 0)
   
-  #####  Wolf-Lion predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-07-23.RData")
-  
-  
   #####  Lion-Bear predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2024-07-28.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
   
   
   #####  Lion-Bobcat predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2024-07-26.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
   
   
   #####  Coyote-Bobcat predictions  ####
