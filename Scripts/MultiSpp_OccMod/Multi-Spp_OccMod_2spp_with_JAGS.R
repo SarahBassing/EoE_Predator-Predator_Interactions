@@ -1698,8 +1698,8 @@
   which(bear.coy.habx.px$summary[,"Rhat"] > 1.1)
   mcmcplot(bear.coy.habx.px$samples)
   (bear.coy.habx.px_X2 <- mean(bear.coy.habx.px$sims.list$chi2.sim > bear.coy.habx.px$sims.list$chi2.obs)) # Bayesian p-value GOF
-  (bear.coy.habx.px_FT <- mean(bear.coy.habx.px$sims.list$ft.sim > bear.coy.habx.px$sims.list$ft.obs)) # Bayesian p-value GOF
-  save(bear.coy.habx.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF", Sys.Date(), ".RData")) 
+  (bear.coy.habx.px_FT <- mean(bear.coy.habx.px$sims.list$ft.sims > bear.coy.habx.px$sims.list$ft.obs)) # Bayesian p-value GOF
+  save(bear.coy.habx.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF_", Sys.Date(), ".RData")) 
   
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
