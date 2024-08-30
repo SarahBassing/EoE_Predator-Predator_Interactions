@@ -148,7 +148,7 @@
   #'  Top model
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_2024-08-27.RData") 
   
-  #'  Second most supported model (1.17 deltaDIC away from top)
+  #'  Second most supported model (1.71 deltaDIC away from top)
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2024-07-17.RData")
   wolf.bear.for.ung.yr2 <- predict_occupancy(mod = wolf.bear.hab, ncat = 4, npoints = 500,
                                              focal_cov = stations_skinny_eoe20s21s$PercForest,
@@ -208,11 +208,11 @@
                                               psi_inxs_cov = 0, psi_inxs_cov_index = 0)
   
   #####  Lion-Bear predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2024-08-29.RData")  
   
   
   #####  Lion-Bobcat predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2024-08-29.RData")  
   
   
   #####  Coyote-Bobcat predictions  ####
