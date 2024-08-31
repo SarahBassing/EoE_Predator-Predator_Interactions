@@ -1,8 +1,8 @@
   #'  Review GoF outputs ---- do these models really suck that bad???
   load("./Data/MultiSpp_OccMod_Outputs/bundled_predator_data_list.RData")  
 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_altGoF_2024-08-21.RData") 
-  mod <- bear.coy.habx
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF_2024-08-26.RData") 
+  mod <- bear.coy.habx.px
   y <- bundled_pred_list[[7]][[1]]
   
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_altGoF_2024-08-21.RData")
@@ -21,8 +21,8 @@
   # mod <- wolf.lion.null
   # y <- bundled_pred_list[[1]][[3]]
   
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_altGoF_2024-08-23.RData") # need to run without z.sim & fixed FT
-  mod <- coy.bob.habx
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF_2024-08-28.RData") 
+  mod <- coy.bob.habx.px
   y <- bundled_pred_list[[6]][[1]]
   
   mod$summary
@@ -44,6 +44,7 @@
   #'  Extract y and y.sim
   y.sim <- mod$sims.list$y.sim
   ni <- 18000
+  ni <- 25500
   obsVSsim <- list()
   confusionM <- 0
   for(i in 1:ni) {
@@ -81,54 +82,54 @@
   #' #'  Expected detection frequency per species (sum expected number of dets per site and iteration)
   #' E_A <- mod$sims.list$E_A; E_A[1:10, 1:10]; hist(E_A)
   #' E_B <- mod$sims.list$E_B; E_B[1:10, 1:10]; hist(E_B)
-  
-  #'  Chi2 discrepancy measure between observed and expected 
-  x2_A <- mod$sims.list$x2_A; x2_A[1:10, 1:10]; hist(x2_A); max(x2_A)
-  x2_B <- mod$sims.list$x2_B; x2_B[1:10, 1:10]; hist(x2_B); max(x2_B)
-  
-  #'  Chi2 discrepency measure between simulated and expected
-  x2rep_A <- mod$sims.list$x2rep_A; x2rep_A[1:10, 1:10]; hist(x2rep_A); max(x2rep_A)
-  x2rep_B <- mod$sims.list$x2rep_B; x2rep_B[1:10, 1:10]; hist(x2rep_B); max(x2rep_B)
+  #' 
+  #' #'  Chi2 discrepancy measure between observed and expected 
+  #' x2_A <- mod$sims.list$x2_A; x2_A[1:10, 1:10]; hist(x2_A); max(x2_A)
+  #' x2_B <- mod$sims.list$x2_B; x2_B[1:10, 1:10]; hist(x2_B); max(x2_B)
+  #' 
+  #' #'  Chi2 discrepency measure between simulated and expected
+  #' x2rep_A <- mod$sims.list$x2rep_A; x2rep_A[1:10, 1:10]; hist(x2rep_A); max(x2rep_A)
+  #' x2rep_B <- mod$sims.list$x2rep_B; x2rep_B[1:10, 1:10]; hist(x2rep_B); max(x2rep_B)
   
   #'  Overall Chi2 test statistic for observed data (sum x2 measures across sites per interaction)
-  chi2.obs_A <- mod$sims.list$chi2.obs_A; chi2.obs_A[1:10]; hist(chi2.obs_A); summary(chi2.obs_A)
-  chi2.obs_B <- mod$sims.list$chi2.obs_B; chi2.obs_B[1:10]; hist(chi2.obs_B); summary(chi2.obs_B)
+  chi2.obs <- mod$sims.list$chi2.obs; chi2.obs[1:10]; hist(chi2.obs); summary(chi2.obs)
+  # chi2.obs_B <- mod$sims.list$chi2.obs_B; chi2.obs_B[1:10]; hist(chi2.obs_B); summary(chi2.obs_B)
   
   #'  Overall Chi2 test statistic for simulated data
-  chi2.sim_A <- mod$sims.list$chi2.sim_A; chi2.sim_A[1:10]; hist(chi2.sim_A); summary(chi2.sim_A)
-  chi2.sim_B <- mod$sims.list$chi2.sim_B; chi2.sim_B[1:10]; hist(chi2.sim_B); summary(chi2.sim_B)
+  chi2.sim <- mod$sims.list$chi2.sim; chi2.sim[1:10]; hist(chi2.sim); summary(chi2.sim)
+  # chi2.sim_B <- mod$sims.list$chi2.sim_B; chi2.sim_B[1:10]; hist(chi2.sim_B); summary(chi2.sim_B)
   
   #'  Chi2 Bayesian p-value for each species
-  (mean(chi2.sim_A > chi2.obs_A))
-  (mean(chi2.sim_B > chi2.obs_B))
+  (mean(chi2.sim > chi2.obs))
+  # (mean(chi2.sim_B > chi2.obs_B))
   
   #'  Chi2 fit statistic ratio
-  (mean(chi2.obs_A/chi2.sim_A))
-  (mean(chi2.obs_B/chi2.sim_B))
+  (mean(chi2.obs/chi2.sim))
+  # (mean(chi2.obs_B/chi2.sim_B))
   
-  #'  Overall Freeman-Tukey test statistic for observed data
-  ft.obs_A <- mod$sims.list$ft.obs_A; ft.obs_A[1:10]; hist(ft.obs_A); summary(ft.obs_A)
-  ft.obs_B <- mod$sims.list$ft.obs_B; ft.obs_B[1:10]; hist(ft.obs_B); summary(ft.obs_B)
-  
-  #'  Overall Freeman-Tukey test statistic for simulated data
-  ft.sim_A <- mod$sims.list$ft.sim_A; ft.sim_A[1:10]; hist(ft.sim_A); summary(ft.sim_A)
-  ft.sim_B <- mod$sims.list$ft.sim_B; ft.sim_B[1:10]; hist(ft.sim_B); summary(ft.sim_B)
-  
-  #'  FT Bayesian p-value
-  (mean(ft.sim_A > ft.obs_A))
-  (mean(ft.sim_B > ft.obs_B))
-  
-  #'  FT fit statistic ratio
-  (mean(ft.obs_A/ft.sim_A))
-  (mean(ft.obs_B/ft.sim_B))
+  #' #'  Overall Freeman-Tukey test statistic for observed data
+  #' ft.obs_A <- mod$sims.list$ft.obs_A; ft.obs_A[1:10]; hist(ft.obs_A); summary(ft.obs_A)
+  #' ft.obs_B <- mod$sims.list$ft.obs_B; ft.obs_B[1:10]; hist(ft.obs_B); summary(ft.obs_B)
+  #' 
+  #' #'  Overall Freeman-Tukey test statistic for simulated data
+  #' ft.sim_A <- mod$sims.list$ft.sim_A; ft.sim_A[1:10]; hist(ft.sim_A); summary(ft.sim_A)
+  #' ft.sim_B <- mod$sims.list$ft.sim_B; ft.sim_B[1:10]; hist(ft.sim_B); summary(ft.sim_B)
+  #' 
+  #' #'  FT Bayesian p-value
+  #' (mean(ft.sim_A > ft.obs_A))
+  #' (mean(ft.sim_B > ft.obs_B))
+  #' 
+  #' #'  FT fit statistic ratio
+  #' (mean(ft.obs_A/ft.sim_A))
+  #' (mean(ft.obs_B/ft.sim_B))
   
   
   #'  Plot Chi2 discrepancy measures for observed and simulated data for SppA
-  pl <- range(c(chi2.obs_A, chi2.sim_A))
-  plot(chi2.obs_A, chi2.sim_A, xlab = "Chi2 observed data", ylab = "Chi2 expected data",
-       main = "Chi2 discrepency ratio for Species A", xlim = pl, ylim = pl, frame.plot = FALSE)
+  pl <- range(c(chi2.obs, chi2.sim))
+  plot(chi2.obs, chi2.sim, xlab = "Chi2 observed data", ylab = "Chi2 expected data",
+       main = "Chi2 discrepency ratio", xlim = pl, ylim = pl, frame.plot = FALSE)
   abline(0,1, lwd = 2) #1:1 ratio would be perfect fit
-  text(quantile(pl, 0.1), max(pl), paste('Bpv = ', round(mean(chi2.sim_A > chi2.obs_A), 2)), cex = 1.5)
+  text(quantile(pl, 0.1), max(pl), paste('Bpv = ', round(mean(chi2.sim > chi2.obs), 2)), cex = 1.5)
   
   #'  And SppB
   pl <- range(c(chi2.obs_B, chi2.sim_B))
