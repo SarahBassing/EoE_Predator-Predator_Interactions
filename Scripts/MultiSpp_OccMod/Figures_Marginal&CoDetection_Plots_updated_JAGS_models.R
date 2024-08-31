@@ -651,7 +651,7 @@
                                           rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
   wolf.bear.mean.yr2 <- predict_detection(mod = wolf.bear.hab, ncat = 4, npoints = 500,
                                           focal_cov = stations_skinny_eoe20s21s$Year,
-                                          rho_cov = c(1, 0, 1), rho_cov_index = 0,
+                                          rho_cov = c(1, 0, 0), rho_cov_index = 0,
                                           rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
   wolf.coy.mean.yr1 <- predict_detection(mod = wolf.coy.hab, ncat = 4, npoints = 500,
                                          focal_cov = stations_skinny_eoe20s21s$Year,
@@ -659,11 +659,11 @@
                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
   wolf.coy.mean.yr2 <- predict_detection(mod = wolf.coy.hab, ncat = 4, npoints = 500,
                                          focal_cov = stations_skinny_eoe20s21s$Year,
-                                         rho_cov = c(1, 0, 1), rho_cov_index = 0,
+                                         rho_cov = c(1, 0, 0), rho_cov_index = 0,
                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
   wolf.lion.mean.yr1 <- predict_detection(mod = wolf.lion.null, ncat = 4, npoints = 500,
                                           focal_cov = stations_skinny_eoe20s21s$Year,
-                                          rho_cov = c(1, 0, 0), rho_cov_index = 0,
+                                          rho_cov = c(1), rho_cov_index = 0,
                                           rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
   wolf.lion.mean.yr2 <- predict_detection(mod = wolf.lion.null, ncat = 4, npoints = 500,
                                           focal_cov = stations_skinny_eoe20s21s$Year,
@@ -691,7 +691,7 @@
                                         rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
   coy.bob.mean.yr2 <- predict_detection(mod = coy.bob.habx, ncat = 4, npoints = 500,
                                         focal_cov = stations_skinny_eoe20s21s$Year,
-                                        rho_cov = c(1, 0, 1), rho_cov_index = 0,
+                                        rho_cov = c(1, 0, 0), rho_cov_index = 0,
                                         rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
   bear.coy.mean.yr1 <- predict_detection(mod = bear.coy.habx, ncat = 4, npoints = 500,
                                          focal_cov = stations_skinny_eoe20s21s$Year,
@@ -699,7 +699,7 @@
                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
   bear.coy.mean.yr2 <- predict_detection(mod = bear.coy.habx, ncat = 4, npoints = 500,
                                          focal_cov = stations_skinny_eoe20s21s$Year,
-                                         rho_cov = c(1, 0, 1), rho_cov_index = 0,
+                                         rho_cov = c(1, 0, 0), rho_cov_index = 0,
                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
   
   #'  Extract mean and 95% CRI for each observation (should be identical) and thin
@@ -721,7 +721,7 @@
       arrange(Species)
     #'  Create single data frame
     predicted.marginal.det <- cbind(marg.det, lower.marg[,2], upper.marg[,2])
-    names(predicted.marginal.det) <- c("Species", "marginal_occ", "lowerCRI", "upperCRI")
+    names(predicted.marginal.det) <- c("Species", "marginal_det", "lowerCRI", "upperCRI")
     #'  Drop extra observations and round
     predicted.marginal.det <- as.data.frame(predicted.marginal.det) %>%
       group_by(Species) %>%
