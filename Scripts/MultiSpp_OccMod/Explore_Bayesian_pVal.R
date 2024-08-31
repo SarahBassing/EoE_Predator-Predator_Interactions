@@ -1,36 +1,40 @@
   #'  Review GoF outputs ---- do these models really suck that bad???
   load("./Data/MultiSpp_OccMod_Outputs/bundled_predator_data_list.RData")  
 
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF_2024-08-26.RData") 
-  mod <- bear.coy.habx.px
-  y <- bundled_pred_list[[7]][[1]]
-  
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_altGoF_2024-08-21.RData")
-  mod <- wolf.coy.hab
-  y <- bundled_pred_list[[2]][[1]]
-  
-  # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_GoF_2024-08-07.RData")
-  # mod <- wolf.bear.null
-  # y <- bundled_pred_list[[1]][[1]]
-  # 
   # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(yr)_p(.)_GoF_2024-08-07.RData")
   # mod <- wolf.bear.hab
   # y <- bundled_pred_list[[1]][[1]]
-  # 
-  # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_GoF_2024-08-08.RData")
-  # mod <- wolf.lion.null
-  # y <- bundled_pred_list[[1]][[3]]
+  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_px(.)_altGoF_2024-08-29.RData")
+  mod <- wolf.coy.hab.px
+  y <- bundled_pred_list[[2]][[1]]
+  
+  # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_px(.)_GoF_2024-08-08.RData")
+  # mod <- wolf.lion.null.px
+  # y <- bundled_pred_list[[3]][[1]]
+  
+  # load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_px(.)_GoF_2024-08-08.RData")
+  # mod <- lion.bear.null.px
+  # y <- bundled_pred_list[[4]][[1]]
+  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_px(.)_altGoF_2024-08-28.RData")
+  mod <- lion.bob.null.px
+  y <- bundled_pred_list[[5]][[1]]
   
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF_2024-08-28.RData") 
   mod <- coy.bob.habx.px
   y <- bundled_pred_list[[6]][[1]]
   
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF_2024-08-26.RData") 
+  mod <- bear.coy.habx.px
+  y <- bundled_pred_list[[7]][[1]]
+  
   mod$summary
   
   #'  Observed and simulated data
-  y.hat <- mod$sims.list$y.hat; y.hat[15000,1,,]; hist(y.hat[1,1:1138,,])
-  y.hat.index <- mod$sims.list$y.hat.index; y.hat.index[15000,1,,]; hist(y.hat[1,1:1138,,])
-  y.hat.maxindex <- mod$sims.list$y.hat.maxindex; y.hat.maxindex[100,1:100,]; hist(y.hat.maxindex[1,1:1138,])
+  # y.hat <- mod$sims.list$y.hat; y.hat[18000,1,,]; hist(y.hat[1,1:1138,,])
+  # y.hat.index <- mod$sims.list$y.hat.index; y.hat.index[15000,1,,]; hist(y.hat[1,1:1138,,])
+  # y.hat.maxindex <- mod$sims.list$y.hat.maxindex; y.hat.maxindex[100,1:100,]; hist(y.hat.maxindex[1,1:1138,])
   chi2.obs <- mod$sims.list$chi2.obs; chi2.obs[1:10]; hist(chi2.obs); summary(chi2.obs)
   chi2.sim <- mod$sims.list$chi2.sim; chi2.sim[1:10]; hist(chi2.sim); summary(chi2.sim)
   (mean(chi2.sim > chi2.obs))
