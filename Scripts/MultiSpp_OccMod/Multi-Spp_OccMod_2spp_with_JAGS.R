@@ -1473,17 +1473,19 @@
   #'  Parameterization tests whether detection of one predator affects detection of the other
   #'  Top model: Habitat, with interaction
   #'  psi = setup, year, forest, elevation, tri; psix(.); p = setup, effort; px(.)
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.).R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_GoF.R")
   start.time = Sys.time()
   coy.bob.habx.px <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
-                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.).txt",
+                            "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_GoF.txt",
                             n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(coy.bob.habx.px$summary)
   print(coy.bob.habx.px$DIC)
   which(coy.bob.habx.px$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.habx.px$samples)
-  save(coy.bob.habx.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_", Sys.Date(), ".RData"))
+  (coy.bob.habx.px_X2 <- mean(coy.bob.habx.px$sims.list$chi2.sim > coy.bob.habx.px$sims.list$chi2.obs)) # Bayesian p-value GOF
+  (coy.bob.habx.px_FT <- mean(coy.bob.habx.px$sims.list$FT.sims > coy.bob.habx.px$sims.list$FT.obs)) # Bayesian p-value GOF
+  save(coy.bob.habx.px, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_GoF_", Sys.Date(), ".RData"))
   
   
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF.R")
