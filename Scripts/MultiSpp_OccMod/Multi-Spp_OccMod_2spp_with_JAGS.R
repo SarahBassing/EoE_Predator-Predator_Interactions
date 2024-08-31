@@ -1274,7 +1274,7 @@
   
   #####  Habitat no inxs model  #### 
   #'  psi = setup, year, forest, elevation, tri; p = setup, effort 
-  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_GoF.R")
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).R")
   start.time = Sys.time()
   coy.bob.hab <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
                       "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_yr)_p(setup_effort).txt",
@@ -1285,7 +1285,22 @@
   which(coy.bob.hab$summary[,"Rhat"] > 1.1)
   mcmcplot(coy.bob.hab$samples)
   save(coy.bob.hab, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
+
+  #####  Habitat + Humans no inxs model  #### 
+  #'  psi = setup, year, forest, elevation, tri, human, footprint; p = setup, effort 
+  source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_human_yr)_p(setup_effort).R")
+  start.time = Sys.time()
+  coy.bob.hum <- jags(bundled_pred_list[[6]], inits = inits.coy.bob, params,
+                      "./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/JAGS_code_psi(setup_habitat_human_yr)_p(setup_effort).txt",
+                      n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, DIC = TRUE, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(coy.bob.hum$summary)
+  print(coy.bob.hum$DIC)
+  which(coy.bob.hum$summary[,"Rhat"] > 1.1)
+  mcmcplot(coy.bob.hum$samples)
+  save(coy.bob.hum, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_human_yr)_p(setup_effort)_", Sys.Date(), ".RData"))
   
+    
   #####  Prey abundance no inxs model  #### 
   #'  psi = setup, year, forest, elevation, tri, wtd, lagomorphs; p = setup, effort
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_preyabund_yr)_p(setup_effort)_coybob.R")
