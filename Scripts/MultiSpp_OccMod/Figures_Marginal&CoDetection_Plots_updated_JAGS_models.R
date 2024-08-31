@@ -491,13 +491,14 @@
   coy.bob.condish.pred_new <- add_info(coy.bob.condish.pred$data, spp_pair = "Coyote - Bobcat", cam_setup = "Trail sites")
   
   conditional_det <- rbind(wolf.coy.condish.pred_new, lion.bob.condish.pred_new, coy.bob.condish.pred_new) 
-  wolf.lion.coy.bob_colors <- c("#364B9A", "#98CAE1", "#FDB366", "#A50026")
+  bob.coy.lion.wolf_colors <- c("#A50026", "#98CAE1", "#FDB366", "#364B9A")
   
   #'  Plot all conditional detection probabilities covariate together
   plot_all_condish_det <- function(predicted, x, ncolor) {
+    predicted <- mutate(predicted, Species = factor(Species, levels = c("Bobcat", "Coyote", "Mountain lion", "Wolf")))
     cond_det_plot <- ggplot(predicted, aes(x = Detection, y = conditional_det, group = Species)) + 
       geom_errorbar(aes(ymin = lowerCRI, ymax = upperCRI, color = Species), width = 0, position = position_dodge(width = 0.4)) +
-      scale_color_manual(values = four_colors) + 
+      scale_color_manual(values = ncolor) + 
       geom_point(stat = 'identity', aes(col = Species), size = 2.5, position = position_dodge(width = 0.4)) +   
       #'  Get rid of lines and gray background
       theme_bw() +
@@ -507,9 +508,9 @@
       ylim(0,1.0) +
       #'  Use list name as X-axis title
       xlab(x) +
-      ylab("Conditional detection probability (trail sites)") +
+      ylab("Conditional detection probability") +
       labs(title = "Co-detection probabilities for predator dyads", 
-           fill = "Focal species in predator dyad", color = "Focal species in predator dyad") +
+           fill = "Focal species", color = "Focal species") +
       facet_wrap(~Species_pair, scales = "free_y") +
       coord_cartesian(ylim = c(0, 0.70)) +
       theme(legend.position="bottom")
@@ -519,12 +520,12 @@
     return(cond_det_plot)
   }
   condish_plot <- plot_all_condish_det(predicted = conditional_det, x = "Whether competitor was detected at same site", 
-                                       ncolor = wolf.lion.coy.bob_colors)
+                                       ncolor = bob.coy.lion.wolf_colors)
   
   #'  Plot each species separately while keeping pairings together
   cond_coybob_plot <- ggplot(conditional_det[conditional_det$Species_pair == "Coyote - Bobcat",], aes(x = Detection, y = conditional_det, group = Species)) + 
     geom_errorbar(aes(ymin = lowerCRI, ymax = upperCRI, color = Species), width = 0, position = position_dodge(width = 0.4)) +
-    scale_color_manual(values = wolf.lion.coy.bob_colors) + 
+    scale_color_manual(values = bob.coy.lion.wolf_colors) + 
     geom_point(stat = 'identity', aes(col = Species), size = 2.5, position = position_dodge(width = 0.4)) +   
     #'  Get rid of lines and gray background
     theme_bw() +
@@ -543,7 +544,7 @@
   
   cond_apexmeso_plot <- ggplot(conditional_det[conditional_det$Species_pair != "Coyote - Bobcat",], aes(x = Detection, y = conditional_det, group = Species)) + 
     geom_errorbar(aes(ymin = lowerCRI, ymax = upperCRI, color = Species), width = 0, position = position_dodge(width = 0.4)) +
-    scale_color_manual(values = four_colors) + 
+    scale_color_manual(values = bob.coy.lion.wolf_colors) + 
     geom_point(stat = 'identity', aes(col = Species), size = 2.5, position = position_dodge(width = 0.4)) +   
     #'  Get rid of lines and gray background
     theme_bw() +
@@ -626,5 +627,145 @@
          units = "in", width = 8, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
+  
+  #'  ----------------------------------------
+  ####  Predict mean detection for Yr1 & Yr2  ####
+  #'  ----------------------------------------
+  #'  Load top models
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_2024-07-17.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_2024-08-29.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_2024-07-21.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2024-08-29.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2024-08-29.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-24.RData") 
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_2024-07-24.RData") 
+  
+  #'  Add binary Year variable to covariate data frame
+  stations_skinny_eoe20s21s <- mutate(stations_skinny_eoe20s21s, 
+                                      Year = ifelse(Season == "Smr20", 0, 1))
+  
+  #'  Predict mean detection for Yr1 and Yr2
+  wolf.bear.mean.yr1 <- predict_detection(mod = wolf.bear.hab, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          rho_cov = c(1, 0, 0), rho_cov_index = 0,
+                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  wolf.bear.mean.yr2 <- predict_detection(mod = wolf.bear.hab, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          rho_cov = c(1, 0, 1), rho_cov_index = 0,
+                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  wolf.coy.mean.yr1 <- predict_detection(mod = wolf.coy.hab, ncat = 4, npoints = 500,
+                                         focal_cov = stations_skinny_eoe20s21s$Year,
+                                         rho_cov = c(1, 0, 0), rho_cov_index = 0,
+                                         rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  wolf.coy.mean.yr2 <- predict_detection(mod = wolf.coy.hab, ncat = 4, npoints = 500,
+                                         focal_cov = stations_skinny_eoe20s21s$Year,
+                                         rho_cov = c(1, 0, 1), rho_cov_index = 0,
+                                         rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  wolf.lion.mean.yr1 <- predict_detection(mod = wolf.lion.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          rho_cov = c(1, 0, 0), rho_cov_index = 0,
+                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  wolf.lion.mean.yr2 <- predict_detection(mod = wolf.lion.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          rho_cov = c(1), rho_cov_index = 0,
+                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  lion.bear.mean.yr1 <- predict_detection(mod = lion.bear.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          rho_cov = c(1), rho_cov_index = 0,
+                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  lion.bear.mean.yr2 <- predict_detection(mod = lion.bear.null, ncat = 4, npoints = 500,
+                                          focal_cov = stations_skinny_eoe20s21s$Year,
+                                          rho_cov = c(1), rho_cov_index = 0,
+                                          rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  lion.bob.mean.yr1 <- predict_detection(mod = lion.bob.null, ncat = 4, npoints = 500,
+                                         focal_cov = stations_skinny_eoe20s21s$Year,
+                                         rho_cov = c(1), rho_cov_index = 0,
+                                         rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  lion.bob.mean.yr2 <- predict_detection(mod = lion.bob.null, ncat = 4, npoints = 500,
+                                         focal_cov = stations_skinny_eoe20s21s$Year,
+                                         rho_cov = c(1), rho_cov_index = 0,
+                                         rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  coy.bob.mean.yr1 <- predict_detection(mod = coy.bob.habx, ncat = 4, npoints = 500,
+                                        focal_cov = stations_skinny_eoe20s21s$Year,
+                                        rho_cov = c(1, 0, 0), rho_cov_index = 0,
+                                        rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  coy.bob.mean.yr2 <- predict_detection(mod = coy.bob.habx, ncat = 4, npoints = 500,
+                                        focal_cov = stations_skinny_eoe20s21s$Year,
+                                        rho_cov = c(1, 0, 1), rho_cov_index = 0,
+                                        rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  bear.coy.mean.yr1 <- predict_detection(mod = bear.coy.habx, ncat = 4, npoints = 500,
+                                         focal_cov = stations_skinny_eoe20s21s$Year,
+                                         rho_cov = c(1, 0, 0), rho_cov_index = 0,
+                                         rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  bear.coy.mean.yr2 <- predict_detection(mod = bear.coy.habx, ncat = 4, npoints = 500,
+                                         focal_cov = stations_skinny_eoe20s21s$Year,
+                                         rho_cov = c(1, 0, 1), rho_cov_index = 0,
+                                         rho_inxs_cov = c(0), rho_inxs_cov_index = 0)
+  
+  #'  Extract mean and 95% CRI for each observation (should be identical) and thin
+  #'  to one value per species
+  mean_det_prob <- function(predicted, spp1, spp2, yr) {
+    #'  Snag mean
+    marg.det <- as.data.frame(predicted[[1]][,,"mean"]) %>%
+      pivot_longer(cols = c(Spp1, Spp2), names_to = "Species") %>%
+      arrange(Species) %>%
+      mutate(Species = ifelse(Species == "Spp1", spp1, spp2),
+             Species = factor(Species, levels = c(spp1, spp2)))
+    #'  Snag lower 95% credible interval
+    lower.marg <- as.data.frame(predicted[[1]][,,"lower"]) %>%
+      pivot_longer(cols = c(Spp1, Spp2), names_to = "Species") %>%
+      arrange(Species)
+    #'  Snag upper 95% credible interval 
+    upper.marg <- as.data.frame(predicted[[1]][,,"upper"]) %>%
+      pivot_longer(cols = c(Spp1, Spp2), names_to = "Species") %>%
+      arrange(Species)
+    #'  Create single data frame
+    predicted.marginal.det <- cbind(marg.det, lower.marg[,2], upper.marg[,2])
+    names(predicted.marginal.det) <- c("Species", "marginal_occ", "lowerCRI", "upperCRI")
+    #'  Drop extra observations and round
+    predicted.marginal.det <- as.data.frame(predicted.marginal.det) %>%
+      group_by(Species) %>%
+      slice(1L) %>%
+      ungroup() %>%
+      mutate(marginal_det = round(marginal_det, 2),
+             lowerCRI = round(lowerCRI, 2),
+             upperCRI = round(upperCRI, 2),
+             Year = yr)
+    return(predicted.marginal.det)
+  }
+  pmean_wolf.bear.yr1 <- mean_det_prob(wolf.bear.mean.yr1, spp1 = "Wolf", spp2 = "Black bear", yr = "2020")
+  pmean_wolf.bear.yr2 <- mean_det_prob(wolf.bear.mean.yr2, spp1 = "Wolf", spp2 = "Black bear", yr = "2021")
+  pmean_wolf.coy.yr1 <- mean_det_prob(wolf.coy.mean.yr1, spp1 = "Wolf", spp2 = "Coyote", yr = "2020")
+  pmean_wolf.coy.yr2 <- mean_det_prob(wolf.coy.mean.yr2, spp1 = "Wolf", spp2 = "Coyote", yr = "2021")
+  pmean_wolf.lion.yr1 <- mean_det_prob(wolf.lion.mean.yr1, spp1 = "Wolf", spp2 = "Mountain lion", yr = "2020")
+  pmean_wolf.lion.yr2 <- mean_det_prob(wolf.lion.mean.yr2, spp1 = "Wolf", spp2 = "Mountain lion", yr = "2021")
+  pmean_lion.bear.yr1 <- mean_det_prob(lion.bear.mean.yr1, spp1 = "Mountain lion", spp2 = "Black bear", yr = "2020")
+  pmean_lion.bear.yr2 <- mean_det_prob(lion.bear.mean.yr2, spp1 = "Mountain lion", spp2 = "Black bear", yr = "2021")
+  pmean_lion.bob.yr1 <- mean_det_prob(lion.bob.mean.yr1, spp1 = "Mountain lion", spp2 = "Bobcat", yr = "2020")
+  pmean_lion.bob.yr2 <- mean_det_prob(lion.bob.mean.yr2, spp1 = "Mountain lion", spp2 = "Bobcat", yr = "2021")
+  pmean_coy.bob.yr1 <- mean_det_prob(coy.bob.mean.yr1, spp1 = "Coyote", spp2 = "Bobcat", yr = "2020")
+  pmean_coy.bob.yr2 <- mean_det_prob(coy.bob.mean.yr2, spp1 = "Coyote", spp2 = "Bobcat", yr = "2021")
+  pmean_bear.coy.yr1 <- mean_det_prob(bear.coy.mean.yr1, spp1 = "Black bear", spp2 = "Coyote", yr = "2020")
+  pmean_bear.coy.yr2 <- mean_det_prob(bear.coy.mean.yr2, spp1 = "Black bear", spp2 = "Coyote", yr = "2021")
+  
+  #'  Bind all species and years together
+  mean_annual_p <- rbind(pmean_wolf.bear.yr1, pmean_wolf.bear.yr2, pmean_wolf.lion.yr1, 
+                           pmean_wolf.lion.yr2, pmean_wolf.coy.yr1, pmean_wolf.coy.yr2, 
+                           pmean_lion.bear.yr1, pmean_lion.bear.yr2, pmean_lion.bob.yr1,
+                           pmean_lion.bob.yr2, pmean_coy.bob.yr1, pmean_coy.bob.yr2,
+                           pmean_bear.coy.yr1, pmean_bear.coy.yr2) %>%
+    #'  Reduce to one observation per species
+    group_by(Species, Year) %>%
+    slice(1L) %>%
+    ungroup() %>%
+    #'  Combine mean & CRI into single column
+    mutate(CRI = paste0("(", lowerCRI, ", ", upperCRI, ")"),
+           Mean = paste(marginal_det, CRI)) %>%
+    dplyr::select(Species, Year, Mean) %>%
+    spread(Year, Mean) %>%
+    rename("Mean_CRI_2020" = "2020", "Mean_CRI_2021" = "2021")
+  
+  #'  Save!
+  write.csv(mean_annual_p, "./Outputs/Tables/Summary_mean_p_yr1v2.csv")
   
   
