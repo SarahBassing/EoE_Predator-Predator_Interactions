@@ -178,14 +178,14 @@
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(yr)_p(.)_2024-08-27.RData") 
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(yr)_p(.)_2024-08-27.RData")  
   
-  #'  Co-detecition model based on each top model
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_px(.)_2024-08-29")
+  #'  Co-detection model based on each top model
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_px(.)_2024-08-29.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfcoy_psi(setup_habitat_yr)_p(setup_effort)_px(.)_2024-08-29.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_px(.)_2024-08-07.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_px(.)_2024-08-07.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_px(.)_2024-08-07.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolflion_psi(yr)_p(.)_px(.)_2024-08-30.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_px(.)_2024-08-30.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_px(.)_2024-08-30.RData")
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/coybob_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_2024-08-30.RData")
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_altGoF_2024-08-26.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_2024-08-30.RData")
   
   
   #'  Save model outputs in table format 
@@ -240,7 +240,7 @@
   out_coy.bob_null <- mod_out(coy.bob.null, "Coyote", "Bobcat")
   out_bear.coy_null <- mod_out(bear.coy.null, "Black bear", "Coyote")
   
-  out_wolf.bear.px <- mod_out(wolf.bear.null.px, "Wolf", "Black bear")
+  out_wolf.bear.px <- mod_out(wolf.bear.hab.px, "Wolf", "Black bear")
   out_wolf.coy.px <- mod_out(wolf.coy.hab.px, "Wolf", "Coyote")
   out_wolf.lion.px <- mod_out(wolf.lion.null.px, "Wolf", "Mountain lion")
   out_lion.bear.px <- mod_out(lion.bear.null.px, "Mountain lion", "Black bear")
