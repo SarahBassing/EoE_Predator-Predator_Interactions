@@ -146,11 +146,11 @@
   #####  Wolf-Black bear predictions  ####
   #'  Second most supported model (1.71 deltaDIC away from top)
   load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_habitat_yr)_p(setup_effort)_px(.)_2024-08-29.RData")
-  wolf.bear.eff.ung.yr1 <- predict_detection(mod = wolf.bear.hab, ncat = 4, npoints = 500,
+  wolf.bear.eff.ung.yr1 <- predict_detection(mod = wolf.bear.hab.px, ncat = 4, npoints = 500,
                                              focal_cov = effort_eoe20s21s,
                                              rho_cov = c(1, 0, 0), rho_cov_index = 3,
                                              rho_inxs_cov = 0, rho_inxs_cov_index = 0)
-  wolf.bear.eff.pred.yr1 <- predict_detection(mod = wolf.bear.hab, ncat = 4, npoints = 500,
+  wolf.bear.eff.pred.yr1 <- predict_detection(mod = wolf.bear.hab.px, ncat = 4, npoints = 500,
                                               focal_cov = effort_eoe20s21s,
                                               rho_cov = c(1, 1, 0), rho_cov_index = 3,
                                               rho_inxs_cov = 0, rho_inxs_cov_index = 0)
@@ -179,11 +179,11 @@
                                          rho_inxs_cov = c(1), rho_inxs_cov_index = 0)
   
   #####  Lion-Bear predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_2024-08-29.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbear_psi(yr)_p(.)_px(.)_2024-08-30.RData")  
   
   
   #####  Lion-Bobcat predictions  ####
-  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_2024-08-29.RData")  
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/lionbob_psi(yr)_p(.)_px(.)_2024-08-30.RData")  
   lion.bob.ung.yr1 <- predict_detection(mod = lion.bob.null.px, ncat = 4, npoints = 500,
                                         focal_cov = effort_eoe20s21s,
                                         rho_cov = c(1), rho_cov_index = 0,
@@ -213,7 +213,7 @@
                                         rho_inxs_cov = c(1), rho_inxs_cov_index = 0)
   
   #####  Black bear-Coyote predictions  ####
-  load()
+  load("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/bearcoy_psi(setup_habitat_yr)_psix(.)_p(setup_effort)_px(.)_2024-08-30.RData")
   bear.coy.eff.ung.yr1 <- predict_detection(mod = bear.coy.habx.px, ncat = 4, npoints = 500,
                                            focal_cov = effort_eoe20s21s,
                                            rho_cov = c(1, 0, 0), rho_cov_index = 3,
@@ -238,7 +238,7 @@
   #'  --------------------------------
   ####  Plot marginal Pr(detection)  ####
   #'  --------------------------------
-  load("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_rho-cov_relationships_2023-06-29.RData")
+  load("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/Predicted_rho-cov_relationships_2024-08-30.RData")
   
   #'  Color-blind friendly color palette from Khroma
   plot_scheme(colour("sunset")(11))
