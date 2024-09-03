@@ -42,12 +42,13 @@
   eoe_gmu <- gmu[gmu$NAME == "1" | gmu$NAME == "6" | gmu$NAME == "10A",] 
   usa <- st_read("./Shapefiles/tl_2012_us_state/tl_2012_us_state.shp")
   id <- usa[usa$NAME == "Idaho",] 
-  na_wgs84 <- st_read("./Shapefiles/stanford-NorthAmerica-shapefile/ns372xw1938.shp")
+  # na_wgs84 <- st_read("./Shapefiles/stanford-NorthAmerica-shapefile/ns372xw1938.shp")
   eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
   id_wgs84 <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp") %>%
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
   gmu_wgs84 <- st_transform(gmu, "+proj=longlat +datum=WGS84 +no_defs")
+  usa_wgs84 <- st_transform(usa, "+proj=longlat +datum=WGS84 +no_defs")
   
   dem_low <- rast("./Shapefiles/National Elevation Dataset (NED) NAD83/DEM_100m_res.tiff")
   dem_low_wgs84 <- project(dem_low, "+proj=longlat +datum=WGS84 +no_defs")
@@ -75,6 +76,128 @@
   
   #'  Order the GMUs
   eoe_gmu_wgs84 <- mutate(eoe_gmu_wgs84, NAME = factor(NAME, levels = c("1", "6", "10A")))
+  
+  #'  Study area colors
+  eoe_color <- c("#364B9A", "#FDB366", "#A50026")
+  
+  #'  2021 camera locations
+  cams2021_wgs84 <- cams_wgs84[[2]]
+  
+  #'  --------------------------------
+  ####  Maps within maps within maps  ####
+  #'  --------------------------------
+  #####  Map #1  #####
+  #'  Plot USA with Idaho highlighted
+  usa_map <- ggplot() +
+    geom_sf(data = usa_wgs84, fill = "white", color = "gray50") +
+    geom_sf(data = id_wgs84, fill = "gray20", color = "gray20") +
+    #'  Constrain plot to the lower 48 
+    coord_sf(xlim = c(-124.2, -68.2), ylim = c(25, 49)) +
+    theme_minimal() +  
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          axis.text.x=element_blank(), axis.ticks.x=element_blank(), axis.title.x=element_blank(),
+          axis.text.y=element_blank(), axis.ticks.y=element_blank(), axis.title.y=element_blank(),
+          #'  No margins around figure
+          plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"))
+  
+  #####  Map #2  #####
+  #'  Text to label state of Idaho
+  grob <- grobTree(textGrob("Idaho, USA", x = 0.45,  y = 0.95, hjust = 0,
+                            gp = gpar(col = "black", fontsize = 18, fontface = "italic")))
+  
+  #' #'  Order GMUs geographically (N to S)
+  #' sa_gmu_wgs84$NAME <- factor(sa_gmu_wgs84$NAME, levels = c("4", "28", "33", "34", "35"))
+  
+  #'  Plot study areas within Idaho
+  ID_study_areas <- ggplot() +
+    geom_sf(data = gmu_wgs84, fill = "gray95", color="gray50", size = 0.5) +
+    geom_sf(data = eoe_gmu_wgs84, aes(fill = NAME, color = NAME), linewidth = 0.75, alpha = 0.7) +
+    scale_fill_manual(values = eoe_color) +
+    scale_color_manual(values = eoe_color) +
+    labs(fill = "GMU", color = "GMU") +
+    geom_rect(aes(xmin = -117.3, xmax = -114.15, ymin = 45.75, ymax = 49.25), color = "black", fill = NA, size = 0.5)  +
+    theme_minimal() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.grid.major = element_blank(),
+          legend.title = element_text(size = 18),
+          legend.text = element_text(size = 16)) +
+    theme(legend.justification = c(1, 0)) 
+  
+  #####  Map #3  #####
+  #'  Plot close up of study areas
+  zoomed_in_gmus <- ggplot() +
+    geom_sf(data = id_wgs84, fill = "gray85", color = "gray50", linewidth = 0.5) +
+    geom_spatraster(data = dem_low_crop) + 
+    scale_fill_continuous(low = "gray90", high = "gray25", na.value = "transparent") + 
+    geom_sf(data = eoe_gmu_wgs84, color = "black", fill = c("#364B9A", "#FDB366", "#A50026"), alpha = 0.15, linewidth = 0.75, show.legend = FALSE) + 
+    geom_sf(data = cams2021_wgs84, color = "black", shape = 20, size = 2) +
+    #'  Constrain plot to study areas plus some room on the side & bottom
+    coord_sf(xlim = c(-117.2, -114.25), ylim = c(45.75, 49), expand = TRUE) + 
+    theme_bw() +
+    theme(panel.grid = element_blank(), 
+          axis.title.x = element_text(size = 18), 
+          axis.title.y = element_text(size = 18),
+          axis.text.x = element_text(size = 16, angle = 45, hjust = 1, colour = "black"), 
+          axis.text.y = element_text(size = 16, colour = "black"), 
+          legend.title = element_text(size = 18),
+          legend.text = element_text(size = 16)) +
+    labs(x = "Longitude", y = "Latitude", fill = "Elevation (m)") + 
+    theme(legend.justification = c(1, 0)) + 
+    #'  Add north arrow
+    annotation_north_arrow(location = "bl", which_north = "true", 
+                           pad_x = unit(0.2, "in"), pad_y = unit(0.2, "in"),
+                           style = north_arrow_fancy_orienteering(fill = c("gray20", "white",
+                                                                           line_col = "gray10"))) +
+    #'  Add scale bar (be sure to double check the scale)
+    annotation_scale(location = "bl", width_hint = 0.5, bar_cols = c("gray10", "white"))
+  
+  #'  Build plot with map of study areas and inset map of WA
+  #'  https://upgo.lab.mcgill.ca/2019/12/13/making-beautiful-maps/
+  #'  Requires "cowplot" package
+  #'  Don't use png or other calls to save while plotting- formatting gets messed up
+  #'  Use export option in Plot window and formatting holds
+  # tiff(file = "./Outputs/Figures/StudyAreaMap_v1.tiff",
+  #      units = "in", width = 7, height = 9, res = 800, compress = 'lzw')
+  StudyArea_Map <- ggdraw(ID_study_areas) + 
+    draw_plot(
+      {
+        usa_map 
+      },
+      #'  Distance along a (0,1) x-axis to draw the left edge of the plot
+      x = 0.40,
+      #'  Distance along a (0,1) y-axis to draw the bottom edge of the plot
+      y = 0.50,
+      #'  Width & height of the plot expressed as proportion of the entire ggdraw object
+      #'  THIS DEPENDS ON HOW BIG YOUR PLOT WINDOW IS TOO!!!!
+      width = 0.55,
+      height = 0.55) +
+    theme(panel.background = element_rect(fill = "white", color = "black"))
+  plot(StudyArea_Map)
+  # dev.off()
+  
+  tiff(file = "./Outputs/Figures/Map_StudyAreas_CameraSites.tiff",
+       units = "in", width = 10, height = 11, res = 800, compress = 'lzw')
+  Full_Map <- ggdraw(zoomed_in_gmus) +
+    draw_plot(
+      {
+        StudyArea_Map #+
+      },
+      #'  Distance along a (0,1) x-axis to draw the left edge of the plot
+      x = 0.60,
+      #'  Distance along a (0,1) y-axis to draw the bottom edge of the plot
+      y = 0.52,
+      #'  Width & height of the plot expressed as proportion of the entire ggdraw object
+      #'  THIS DEPENDS ON HOW BIG YOUR PLOT WINDOW IS TOO!!!!
+      width = 0.37,
+      height = 0.45) 
+  plot(Full_Map)
+  dev.off()
+  
+  
+  
+  
   
   #'  Plot state of Idaho for inset
   ID_state <- ggplot() + 
