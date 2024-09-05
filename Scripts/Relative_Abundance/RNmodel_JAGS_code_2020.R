@@ -56,7 +56,8 @@ cat(file = './Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt', "
       #'  Latent state (abundance)
       for(i in 1:nsites){
         N[i] ~ dpois(lambda[i])
-        lambda[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[i]])
+        # lambda[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[i]])
+        lambda[i] <- exp(beta0 + beta4[gmu[i]])
         
         #'  Detection state
         for(j in 1:nsurveys){
@@ -78,10 +79,12 @@ cat(file = './Outputs/Relative_Abundance/RN_model/JAGS_RNmod_2020.txt', "
       
       #'  Predicted site-level abundance per GMU 
       for(i in 1:ncams1) {
-        Ngmu1[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[1]])
+        # Ngmu1[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[1]])
+        Ngmu1[i] <- exp(beta0 + beta4[gmu[1]])
       }
       for(i in 1:ncams2) {
-        Ngmu2[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[2]])
+        # Ngmu2[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[2]])
+        Ngmu2[i] <- exp(beta0 + beta4[gmu[2]])
       }
       
       #'  Total abundance across camera sites
