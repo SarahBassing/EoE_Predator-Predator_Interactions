@@ -47,6 +47,19 @@
     dplyr::select(c("NewLocationID", "Gmu", "Setup", "Season")) %>%
     distinct()
   
+  #'  Load forage data for elk
+  file_paths_elk <- list.files(path = "./Data/side_quests/Hilger/Ungulate density covariates kg_ha/Elk", pattern = "\\.rds", full.names = TRUE)
+  file_names_elk <- gsub(pattern = "\\.rds$", replacement = "", x = basename(file_paths_elk))
+  forage_list_elk <- lapply(file_paths_elk, readRDS)
+  names(forage_list_elk) <- c("Elk2020_kg_ha", "Elk2021_kg_ha", "Elk2022_kg_ha")
+  
+  #'  Load forage data for white-tailed deer
+  file_paths_wtd <- list.files(path = "./Data/side_quests/Hilger/Ungulate density covariates kg_ha/WTD", pattern = "\\.rds", full.names = TRUE)
+  file_names_wtd <- gsub(pattern = "\\.rds$", replacement = "", x = basename(file_paths_wtd))
+  forage_list_wtd <- lapply(file_paths_wtd, readRDS)
+  names(forage_list_wtd) <- c("WTD2020_kg_ha", "WTD2021_kg_ha", "WTD2022_kg_ha")
+  head(forage_list_wtd[[1]])
+  
   #'  Read in spatial data and extract
   pforest_100m <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForest_100m.tif")
   elev <- rast("./Shapefiles/IDFG spatial data/Elevation__10m2.tif")
@@ -90,6 +103,18 @@
   sitecovs_20s <- extract_covs(cams_aea[[1]], cams_nad83[[1]])
   sitecovs_21s <- extract_covs(cams_aea[[2]], cams_nad83[[2]])
   sitecovs_22s <- extract_covs(cams_aea[[3]], cams_nad83[[3]])
+  
+  #'  Merge sitecovs and forage data per species and year
+  join_covs <- function(sitecovs, numnumcovs) {
+    covs <- full_join(sitecovs, numnumcovs, by = c("NewLocationID" = "original_id"))
+    return(covs)
+  }
+  covs_elk_20s <- join_covs(sitecovs_20s, forage_list_elk[[1]])
+  covs_elk_21s <- join_covs(sitecovs_21s, forage_list_elk[[2]])
+  covs_elk_22s <- join_covs(sitecovs_22s, forage_list_elk[[3]])
+  covs_wtd_20s <- join_covs(sitecovs_20s, forage_list_wtd[[1]])
+  covs_wtd_21s <- join_covs(sitecovs_21s, forage_list_wtd[[2]])
+  covs_wtd_22s <- join_covs(sitecovs_22s, forage_list_wtd[[3]])
   
   #'  --------------------------
   ####  Filter and format data  ####
@@ -291,20 +316,30 @@
     
     return(formatted)
   }
-  stations_eoe20s <- format_covs(DH_eoe20s_RNmod[[1]], cams = sites_20s, sitecovs = sitecovs_20s) %>%
-    dplyr::select(-ID)
-  stations_eoe21s <- format_covs(DH_eoe21s_RNmod[[1]], cams = sites_21s, sitecovs = sitecovs_21s) %>%
-    dplyr::select(-ID)
-  stations_eoe22s <- format_covs(DH_eoe22s_RNmod[[1]], cams = sites_22s, sitecovs = sitecovs_22s) %>%
-    dplyr::select(-ID)
+  stations_elk_eoe20s <- format_covs(DH_eoe20s_RNmod[[1]], cams = sites_20s, sitecovs = covs_elk_20s) %>% dplyr::select(-ID)
+  stations_elk_eoe21s <- format_covs(DH_eoe21s_RNmod[[1]], cams = sites_21s, sitecovs = covs_elk_21s) %>% dplyr::select(-ID)
+  stations_elk_eoe22s <- format_covs(DH_eoe22s_RNmod[[1]], cams = sites_22s, sitecovs = covs_elk_22s) %>% dplyr::select(-ID)
+  stations_wtd_eoe20s <- format_covs(DH_eoe20s_RNmod[[1]], cams = sites_20s, sitecovs = covs_wtd_20s) %>% dplyr::select(-ID)
+  stations_wtd_eoe21s <- format_covs(DH_eoe21s_RNmod[[1]], cams = sites_21s, sitecovs = covs_wtd_21s) %>% dplyr::select(-ID)
+  stations_wtd_eoe22s <- format_covs(DH_eoe22s_RNmod[[1]], cams = sites_22s, sitecovs = covs_wtd_22s) %>% dplyr::select(-ID)
   
   #'  Stack together 
-  station_stats <- rbind(stations_eoe20s, stations_eoe21s, stations_eoe22s)
+  station_stack_elk <- rbind(stations_elk_eoe20s, stations_elk_eoe21s, stations_elk_eoe22s)
+  station_stack_wtd <- rbind(stations_wtd_eoe20s, stations_wtd_eoe21s, stations_wtd_eoe22s)
+  
+  #'  Seasonal stacked data
+  station_stack_elk_july <- station_stack_elk %>% dplyr::select(-c("mean_Tbio_august_kg_ha", "max_Tbio_august_kg_ha", "cv_Tbio_august", "mean_HQ_august", "max_HQ_august", "cv_HQ_august"))
+  station_stack_elk_aug <- station_stack_elk %>% dplyr::select(-c("mean_Tbio_july_kg_ha", "max_Tbio_july_kg_ha", "cv_Tbio_july", "mean_HQ_july", "max_HQ_july", "cv_HQ_july"))
+  station_elk_list <- list(station_stack_elk_july, station_stack_elk_aug)
+  
+  station_stack_wtd_july <- station_stack_wtd %>% dplyr::select(-c("mean_Tbio_august_kg_ha", "max_Tbio_august_kg_ha", "cv_Tbio_august", "mean_HQ_august", "max_HQ_august", "cv_HQ_august"))
+  station_stack_wtd_aug <- station_stack_wtd %>% dplyr::select(-c("mean_Tbio_july_kg_ha", "max_Tbio_july_kg_ha", "cv_Tbio_july", "mean_HQ_july", "max_HQ_july", "cv_HQ_july"))
+  station_wtd_list <- list(station_stack_wtd_july, station_stack_wtd_aug)
   
   #'  Double check things are ordered correctly!!!!
-  stations_eoe20s[82:90,]; DH_eoe20s_RNmod[[1]][82:90,1:3]; nrow(stations_eoe20s); nrow(DH_eoe20s_RNmod[[1]])
-  stations_eoe21s[82:90,]; DH_eoe21s_RNmod[[1]][82:90,1:3]; nrow(stations_eoe21s); nrow(DH_eoe21s_RNmod[[1]])
-  stations_eoe22s[82:90,]; DH_eoe22s_RNmod[[1]][82:90,1:3]; nrow(stations_eoe22s); nrow(DH_eoe22s_RNmod[[1]])
+  stations_elk_eoe20s[82:90,1:5]; DH_eoe20s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe20s); nrow(DH_eoe20s_RNmod[[1]])
+  stations_elk_eoe21s[82:90,1:5]; DH_eoe21s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe21s); nrow(DH_eoe21s_RNmod[[1]])
+  stations_elk_eoe22s[82:90,1:5]; DH_eoe22s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe22s); nrow(DH_eoe22s_RNmod[[1]])
   
   #####  Save!  #####
   #'  ----------
@@ -318,9 +353,12 @@
   save(DH_wtd_list, file = "./Data/Side_quests/Hilger/DH_wtd_RNmod.RData")
   
   #'  Seasonal camera station data
-  save(stations_eoe20s, file = "./Data/Side_quests/Hilger/stations_eoe20s.RData")
-  save(stations_eoe21s, file = "./Data/Side_quests/Hilger/stations_eoe21s.RData")
-  save(stations_eoe22s, file = "./Data/Side_quests/Hilger/stations_eoe22s.RData")
+  save(stations_elk_eoe20s, file = "./Data/Side_quests/Hilger/stations_elk_eoe20s.RData")
+  save(stations_elk_eoe21s, file = "./Data/Side_quests/Hilger/stations_elk_eoe21s.RData")
+  save(stations_elk_eoe22s, file = "./Data/Side_quests/Hilger/stations_elk_eoe22s.RData")
+  save(stations_wtd_eoe20s, file = "./Data/Side_quests/Hilger/stations_wtd_eoe20s.RData")
+  save(stations_wtd_eoe21s, file = "./Data/Side_quests/Hilger/stations_wtd_eoe21s.RData")
+  save(stations_wtd_eoe22s, file = "./Data/Side_quests/Hilger/stations_wtd_eoe22s.RData")
   
   #'  ---------------------------------
   ####  Royle-Nichols Abundance Model  ####
@@ -354,9 +392,8 @@
     str(bundled)
     return(bundled)
   }
-  list_names <- c("July_DH", "August_DH")
-  data_JAGS_bundle_elk <- lapply(DH_elk_list, bundle_dat, cov = station_stats)
-  data_JAGS_bundle_wtd <- lapply(DH_wtd_list, bundle_dat, cov = station_stats)
+  data_JAGS_bundle_elk <- mapply(bundle_dat, dh = DH_elk_list, cov = station_elk_list, SIMPLIFY = FALSE)
+  data_JAGS_bundle_wtd <- mapply(bundle_dat, dh = DH_wtd_list, cov = station_wtd_list, SIMPLIFY = FALSE)
   
   #'  Initial values
   #'  Using naive occupancy as a starting point for local abundance
