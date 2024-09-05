@@ -156,19 +156,19 @@
     short_dh <- det_hist[[1]][,1:oc]
     short_effort <- det_hist[[2]][,1:oc]
     
-    #'  Remove rows where camera was inoperable during the entire sampling season
-    short_dh <- as.data.frame(short_dh)
-    short_effort <- as.data.frame(short_effort)
-    short_dh <- filter(short_dh, rowSums(is.na(short_dh)) != ncol(short_dh))
-    short_effort <- filter(short_effort, rowSums(is.na(short_effort)) != ncol(short_effort))
-    
     #' #'  Remove rows where camera was inoperable during the entire sampling season
     #' short_dh <- as.data.frame(short_dh)
-    #' short_effort <- as.data.frame(short_effort)  %>%
-    #'   mutate(NewLocationID = row.names(.)) %>% relocate(NewLocationID, .before = "o1")
-    #' short_dh <- filter(short_dh, rowSums(is.na(short_dh)) != ncol(short_dh)) %>%
-    #'   mutate(NewLocationID = row.names(.)) %>% relocate(NewLocationID, .before = "o1")
-    #' short_effort <- short_effort[short_effort$NewLocationID %in% short_dh$NewLocationID,]
+    #' short_effort <- as.data.frame(short_effort)
+    #' short_dh <- filter(short_dh, rowSums(is.na(short_dh)) != ncol(short_dh))
+    #' short_effort <- filter(short_effort, rowSums(is.na(short_effort)) != ncol(short_effort))
+    
+    #'  Remove rows where camera was inoperable during the entire sampling season
+    short_dh <- as.data.frame(short_dh)
+    short_effort <- as.data.frame(short_effort)  %>%
+      mutate(NewLocationID = row.names(.)) %>% relocate(NewLocationID, .before = "o1")
+    short_dh <- filter(short_dh, rowSums(is.na(short_dh)) != ncol(short_dh)) %>%
+      mutate(NewLocationID = row.names(.)) %>% relocate(NewLocationID, .before = "o1")
+    short_effort <- short_effort[short_effort$NewLocationID %in% short_dh$NewLocationID,]
     
     dh_list <- list(short_dh, short_effort)
     
@@ -184,6 +184,7 @@
   strip_list <- function(dh) {
     #'  Keep only the detection history per species
     dh_only <- dh[[1]]
+    dh_only <- dh_only %>% dplyr::select(-NewLocationID)
     return(dh_only)
   }
   DH_npp20s_RNmod <- lapply(DHeff_npp20s_RNmod, strip_list)
@@ -198,7 +199,7 @@
   sampling_effort <- function(dh) {
     camdays <- dh[[1]][[2]]
     effort <- as.data.frame(camdays) %>% 
-      # dplyr::select(-NewLocationID) %>%
+      dplyr::select(-NewLocationID) %>%
       rownames_to_column(var = "NewLocationID") %>%
       #'  Count total operational days and what that is in hours
       mutate(ndays = rowSums(.[-1], na.rm = T),
