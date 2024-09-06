@@ -32,15 +32,14 @@
           
         #'  Categorical effect for GMU needs multiple beta1 coefficients
         beta1[1] <- 0
-        for(gmu in 2:ngmu) {
-          beta1[gmu] ~ dnorm(0, 0.001)
+        for(year in 2:nyear) {
+          beta1[year] ~ dnorm(0, 0.001)
         }
           
         #'  Continuous effects for elevation, forest cover, high qualigy biomass, and total biomass
         beta2 ~ dnorm(0, 0.001)
         beta3 ~ dnorm(0, 0.001)
         beta4 ~ dnorm(0, 0.001)
-        beta5 ~ dnorm(0, 0.001)
           
         #'  Detection priors
         mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
@@ -58,7 +57,7 @@
         #'  Latent state (abundance)
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + beta1[gmu[i]] + beta2*elev[i] + beta3*forest[i] + beta4*qualitybiomass[i] + beta5*totalbiomass[i])
+          lambda[i] <- exp(beta0 + beta1[year[i]] + beta2*mean_HQ[i] + beta3*max_HQ[i] + beta4*cv_HQ[i])
             
           #'  Detection state
           for(j in 1:nsurveys){
