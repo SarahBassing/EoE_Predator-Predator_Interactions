@@ -6,7 +6,7 @@
   #'  ---------------------------
   #'  Script to format photo-capture data of elk and white-tailed deer in northern 
   #'  Idaho and fit Royle-Nichols abundance models to detection histories to test
-  #'  the effects of forage on ungualte relative abundance. Fit RN models per
+  #'  the effects of forage on ungulate relative abundance. Fit RN models per
   #'  month, with annual data stacked together.
   #'  
   #'  Input data: Species-specific detection data (June, July, Aug, 2020, 2021, & 2022)
@@ -127,7 +127,7 @@
     
     #'  Filter images to focal species and time period of interest
     clean_dets <- skinny_dets %>%
-      filter(Species == "elk" | Species == "moose" | Species == "whitetaileddeer") %>%
+      filter(Species == "elk" | Species == "whitetaileddeer") %>%
       #'  Add count = 1 for species missing count data 
       mutate(Count = ifelse(Count == 0, 1, Count),
              Count = ifelse(is.na(Count), 1, Count),
@@ -328,18 +328,34 @@
   station_stack_wtd <- rbind(stations_wtd_eoe20s, stations_wtd_eoe21s, stations_wtd_eoe22s)
   
   #'  Seasonal stacked data
-  station_stack_elk_july <- station_stack_elk %>% dplyr::select(-c("mean_Tbio_august_kg_ha", "max_Tbio_august_kg_ha", "cv_Tbio_august", "mean_HQ_august", "max_HQ_august", "cv_HQ_august"))
-  station_stack_elk_aug <- station_stack_elk %>% dplyr::select(-c("mean_Tbio_july_kg_ha", "max_Tbio_july_kg_ha", "cv_Tbio_july", "mean_HQ_july", "max_HQ_july", "cv_HQ_july"))
+  station_stack_elk_july <- station_stack_elk %>% dplyr::select(-c("mean_Tbio_august_kg_ha", "max_Tbio_august_kg_ha", "cv_Tbio_august", "mean_HQ_august", "max_HQ_august", "cv_HQ_august")) %>%
+    #'  Remove the month identifier in each column so covariate names are identical across data sets
+    rename_at(vars(matches("_july")), ~ str_remove(., "_july")) %>%
+    rename_at(vars(matches("july")), ~ str_remove(., "july")) %>%
+    rename_at(vars(matches("_elk")), ~ str_remove(., "_elk"))
+  station_stack_elk_aug <- station_stack_elk %>% dplyr::select(-c("mean_Tbio_july_kg_ha", "max_Tbio_july_kg_ha", "cv_Tbio_july", "mean_HQ_july", "max_HQ_july", "cv_HQ_july")) %>%
+    #'  Remove the month identifier in each column so covariate names are identical across data sets
+    rename_at(vars(matches("_august")), ~ str_remove(., "_august")) %>%
+    rename_at(vars(matches("august")), ~ str_remove(., "august")) %>%
+    rename_at(vars(matches("_elk")), ~ str_remove(., "_elk"))
   station_elk_list <- list(station_stack_elk_july, station_stack_elk_aug)
   
-  station_stack_wtd_july <- station_stack_wtd %>% dplyr::select(-c("mean_Tbio_august_kg_ha", "max_Tbio_august_kg_ha", "cv_Tbio_august", "mean_HQ_august", "max_HQ_august", "cv_HQ_august"))
-  station_stack_wtd_aug <- station_stack_wtd %>% dplyr::select(-c("mean_Tbio_july_kg_ha", "max_Tbio_july_kg_ha", "cv_Tbio_july", "mean_HQ_july", "max_HQ_july", "cv_HQ_july"))
+  station_stack_wtd_july <- station_stack_wtd %>% dplyr::select(-c("mean_Tbio_august_kg_ha", "max_Tbio_august_kg_ha", "cv_Tbio_august", "mean_HQ_august", "max_HQ_august", "cv_HQ_august")) %>%
+    #'  Remove the month identifier in each column so covariate names are identical across data sets
+    rename_at(vars(matches("_july")), ~ str_remove(., "_july")) %>%
+    rename_at(vars(matches("july")), ~ str_remove(., "july"))%>%
+    rename_at(vars(matches("_deer")), ~ str_remove(., "_deer"))
+  station_stack_wtd_aug <- station_stack_wtd %>% dplyr::select(-c("mean_Tbio_july_kg_ha", "max_Tbio_july_kg_ha", "cv_Tbio_july", "mean_HQ_july", "max_HQ_july", "cv_HQ_july")) %>%
+    #'  Remove the month identifier in each column so covariate names are identical across data sets
+    rename_at(vars(matches("_august")), ~ str_remove(., "_august")) %>%
+    rename_at(vars(matches("august")), ~ str_remove(., "august"))%>%
+    rename_at(vars(matches("_deer")), ~ str_remove(., "_deer"))
   station_wtd_list <- list(station_stack_wtd_july, station_stack_wtd_aug)
   
   #'  Double check things are ordered correctly!!!!
-  stations_elk_eoe20s[82:90,1:5]; DH_eoe20s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe20s); nrow(DH_eoe20s_RNmod[[1]])
-  stations_elk_eoe21s[82:90,1:5]; DH_eoe21s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe21s); nrow(DH_eoe21s_RNmod[[1]])
-  stations_elk_eoe22s[82:90,1:5]; DH_eoe22s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe22s); nrow(DH_eoe22s_RNmod[[1]])
+  stations_elk_eoe20s[82:90,1:9]; DH_eoe20s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe20s); nrow(DH_eoe20s_RNmod[[1]])
+  stations_elk_eoe21s[82:90,1:9]; DH_eoe21s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe21s); nrow(DH_eoe21s_RNmod[[1]])
+  stations_elk_eoe22s[82:90,1:9]; DH_eoe22s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe22s); nrow(DH_eoe22s_RNmod[[1]])
   
   #####  Save!  #####
   #'  ----------
@@ -388,7 +404,16 @@
                     setup = as.numeric(cov$Setup),
                     year = as.numeric(cov$Season, levels = c("Smr20", "Smr21", "Smr22")),
                     elev = as.numeric(scale(cov$elev)),
-                    forest = as.numeric(scale(cov$perc_forest)))
+                    forest = as.numeric(scale(cov$perc_forest)),
+                    mean_Tbio = as.numeric(scale(cov$mean_Tbio_kg_ha)),
+                    max_Tbio = as.numeric(scale(cov$max_Tbio_kg_ha)),
+                    cv_Tbio = as.numeric(scale(cov$cv_Tbio)),
+                    mean_HQ = as.numeric(scale(cov$mean_HQ)),
+                    max_HQ = as.numeric(scale(cov$max_HQ)),
+                    cv_HQ = as.numeric(scale(cov$cv_HQ)),
+                    total_selected = as.numeric(scale(cov$total_selected_species)),
+                    total_predicted = as.numeric(scale(cov$total_predicted_species)),
+                    prop_selected = as.numeric(scale(cov$prop_selected_species_weighted)))
     str(bundled)
     return(bundled)
   }
@@ -408,7 +433,7 @@
   ninit_wtd <- lapply(DH_wtd_list, initial_n)
   
   #'  Parameters monitored
-  params <- c("beta0", "beta1", "beta2", "beta3", "beta4", "beta5", "alpha0", "alpha1", 
+  params <- c("beta0", "beta1", "beta2", "beta3", "beta4", "alpha0", "alpha1", 
               "rSetup", "mu.r", "mean.p", "mu.lambda", "totalN", "occSites", "mean.psi", "N")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept based on reference category, i.e., mean lambda for GMU10A 
@@ -437,15 +462,15 @@
   ######  Model 1  ######
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
-  RN_elk_july_mod1 <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
-                      "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod1.txt",
+  RN_elk_july_mod3 <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
+                      "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod3.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_mod1$summary)
-  which(RN_elk_july_mod1$summary[,"Rhat"] > 1.1)
+  print(RN_elk_july_mod3$summary)
+  which(RN_elk_july_mod3$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_mod1$samples)
-  save(RN_elk_july_mod1, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_mod1_", Sys.Date(), ".RData"))
+  save(RN_elk_july_mod1, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_mod3_", Sys.Date(), ".RData"))
   
   ######  Model 2  ######
   start.time = Sys.time()
