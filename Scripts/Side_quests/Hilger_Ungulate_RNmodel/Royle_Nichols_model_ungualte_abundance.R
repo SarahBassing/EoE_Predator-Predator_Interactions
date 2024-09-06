@@ -446,7 +446,7 @@
   
   #'  Parameters monitored
   params <- c("beta0", "b.year", "alpha0", "a.setup", 
-              "b.meanTbio", "b.cvTbio", "b.meanHQ", "b.cvHQ",
+              "b.meanTbio", "b.cvTbio", "b.meanHQ", "b.cvHQ", "b.selected", "b.prop.selected", # ALSO CONSIDER swapping b.selected for b.predicted
               "rSetup", "mu.r", "mean.p", "N")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept based on reference category, i.e., mean lambda for 2020 
