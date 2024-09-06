@@ -357,6 +357,18 @@
   stations_elk_eoe21s[82:90,1:9]; DH_eoe21s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe21s); nrow(DH_eoe21s_RNmod[[1]])
   stations_elk_eoe22s[82:90,1:9]; DH_eoe22s_RNmod[[1]][82:90,1:3]; nrow(stations_elk_eoe22s); nrow(DH_eoe22s_RNmod[[1]])
   
+  #'  Correlation matrix to check for collinearity among continuous variables
+  corr_matrix <- function(dat, firstcol, lastcol) {
+    continuous_variables <- dat[,firstcol:lastcol]
+    corr_all <- cor(continuous_variables)
+    corr_all <- as.data.frame(round(corr_all, 2))
+    return(corr_all)
+  }
+  corr_matrix(station_stack_elk_july, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.89), mean & max HQ (0.77), and total predicted & total selected (0.77) 
+  corr_matrix(station_stack_elk_aug, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.90), mean & max HQ (0.74), and total predicted & total selected (0.77) 
+  corr_matrix(station_stack_wtd_july, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.91), mean & max HQ (0.87), cv Tbio & cv HQ (0.69), and total predicted & total selected (0.79) 
+  corr_matrix(station_stack_wtd_aug, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.91), mean & max HQ (0.86), cv Tbio & cv HQ (0.69), and total predicted & total selected (0.79) 
+  
   #####  Save!  #####
   #'  ----------
   #'  Seasonal detection histories
@@ -433,10 +445,11 @@
   ninit_wtd <- lapply(DH_wtd_list, initial_n)
   
   #'  Parameters monitored
-  params <- c("beta0", "beta1", "beta2", "beta3", "beta4", "alpha0", "alpha1", 
-              "rSetup", "mu.r", "mean.p", "mu.lambda", "totalN", "occSites", "mean.psi", "N")
+  params <- c("beta0", "b.year", "alpha0", "a.setup", 
+              "b.meanTbio", "b.cvTbio", "b.meanHQ", "b.cvHQ",
+              "rSetup", "mu.r", "mean.p", "N")
   #'  NOTE about mean vs mu lambda and r: 
-  #'  mean.lambda = the intercept based on reference category, i.e., mean lambda for GMU10A 
+  #'  mean.lambda = the intercept based on reference category, i.e., mean lambda for 2020 
   #'  mean.r = the intercept based on reference category, i.e., per-individual detection probability at random sites
   #'  mu.lambda = lambda averaged across all GMUs
   #'  mu.r = per-individual detection probability averaged across all sites 
@@ -455,6 +468,8 @@
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod1.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod2.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod3.R")
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod4.R")
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod5.R")
   
   #'  -----------------------
   #####  Elk July RN models  #####
@@ -462,15 +477,15 @@
   ######  Model 1  ######
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
-  RN_elk_july_mod3 <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
-                      "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod3.txt",
+  RN_elk_july_mod1 <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
+                      "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod1.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_mod3$summary)
-  which(RN_elk_july_mod3$summary[,"Rhat"] > 1.1)
+  print(RN_elk_july_mod1$summary)
+  which(RN_elk_july_mod1$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_mod1$samples)
-  save(RN_elk_july_mod1, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_mod3_", Sys.Date(), ".RData"))
+  save(RN_elk_july_mod1, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_mod1_", Sys.Date(), ".RData"))
   
   ######  Model 2  ######
   start.time = Sys.time()
