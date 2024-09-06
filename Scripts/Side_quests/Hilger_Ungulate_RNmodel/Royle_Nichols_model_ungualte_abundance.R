@@ -469,7 +469,7 @@
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod2.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod3.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod4.R")
-  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod5.R")
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_mod5.R")   #### GLOBAL
   
   #'  -----------------------
   #####  Elk July RN models  #####
@@ -500,6 +500,34 @@
   mcmcplot(RN_elk_july_mod2$samples)
   save(RN_elk_july_mod2, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_mod2_", Sys.Date(), ".RData"))
   
+  ######  Model 3  ######
+  start.time = Sys.time()
+  inits_elk_July <- function(){list(N = ninit_elk[[1]])}
+  RN_elk_july_mod3 <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
+                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod3.txt",
+                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                           n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_july_mod3$summary)
+  which(RN_elk_july_mod3$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_july_mod3$samples)
+  save(RN_elk_july_mod3, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_mod3_", Sys.Date(), ".RData"))
+  
+  ######  Model 4  ######
+  start.time = Sys.time()
+  inits_elk_July <- function(){list(N = ninit_elk[[1]])}
+  RN_elk_july_mod4 <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
+                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod4.txt",
+                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                           n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_july_mod4$summary)
+  which(RN_elk_july_mod4$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_july_mod4$samples)
+  save(RN_elk_july_mod4, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_mod4_", Sys.Date(), ".RData"))
+  
+  ######  GLOBAL  ######
+  
   #'  -------------------------
   #####  Elk August RN models  #####
   #'  -------------------------
@@ -528,6 +556,34 @@
   which(RN_elk_aug_mod2$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_aug_mod2$samples)
   save(RN_elk_aug_mod2, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_mod2_", Sys.Date(), ".RData"))
+  
+  ######  Model 3  ######
+  start.time = Sys.time()
+  inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
+  RN_elk_aug_mod3 <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
+                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod3.txt",
+                          n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                          n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_aug_mod3$summary)
+  which(RN_elk_aug_mod3$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_aug_mod3$samples)
+  save(RN_elk_aug_mod3, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_mod3_", Sys.Date(), ".RData"))
+  
+  ######  Model 4  ######
+  start.time = Sys.time()
+  inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
+  RN_elk_aug_mod4 <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
+                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod4.txt",
+                          n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                          n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_aug_mod4$summary)
+  which(RN_elk_aug_mod4$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_aug_mod4$samples)
+  save(RN_elk_aug_mod4, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_mod4_", Sys.Date(), ".RData"))
+  
+  ######  GLOBAL  ######
   
   #'  -----------------------
   #####  WTD July RN models  #####
@@ -558,6 +614,34 @@
   mcmcplot(RN_wtd_july_mod2$samples)
   save(RN_wtd_july_mod2, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_mod2_", Sys.Date(), ".RData"))
   
+  ######  Model 3  ######
+  start.time = Sys.time()
+  inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
+  RN_wtd_july_mod3 <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
+                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod3.txt",
+                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                           n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_july_mod3$summary)
+  which(RN_wtd_july_mod3$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wtd_july_mod3$samples)
+  save(RN_wtd_july_mod3, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_mod3_", Sys.Date(), ".RData"))
+  
+  ######  Model 4  ######
+  start.time = Sys.time()
+  inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
+  RN_wtd_july_mod4 <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
+                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod4.txt",
+                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                           n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_july_mod4$summary)
+  which(RN_wtd_july_mod4$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wtd_july_mod4$samples)
+  save(RN_wtd_july_mod4, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_mod4_", Sys.Date(), ".RData"))
+  
+  ######  GLOBAL  ######
+  
   #'  -------------------------
   #####  WTD August RN models  #####
   #'  -------------------------
@@ -587,7 +671,33 @@
   mcmcplot(RN_wtd_aug_mod2$samples)
   save(RN_wtd_aug_mod2, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_mod2_", Sys.Date(), ".RData"))
   
+  ######  Model 3  ######
+  start.time = Sys.time()
+  inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
+  RN_wtd_aug_mod3 <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
+                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod3.txt",
+                          n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                          n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_aug_mod3$summary)
+  which(RN_wtd_aug_mod3$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wtd_aug_mod3$samples)
+  save(RN_wtd_aug_mod3, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_mod3_", Sys.Date(), ".RData"))
+  
+  ######  Model 4  ######
+  start.time = Sys.time()
+  inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
+  RN_wtd_aug_mod4 <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
+                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod4.txt",
+                          n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                          n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_aug_mod4$summary)
+  which(RN_wtd_aug_mod4$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wtd_aug_mod4$samples)
+  save(RN_wtd_aug_mod4, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_mod4_", Sys.Date(), ".RData"))
   
   
+  ######  GLOBAL  ######
   
   
