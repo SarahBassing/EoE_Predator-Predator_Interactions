@@ -1010,6 +1010,10 @@
                           spatial_rn_elk, spatial_rn_lago, spatial_rn_moose, spatial_rn_wtd)
   save(spatial_RN_list, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_RN_list.RData")
   
+  #'  Merge wolf results into single large spatial dataframe and save as a shapefile
+  spatial_rn_wolf_locs <- bind_rows(spatial_rn_wolf[[1]], spatial_rn_wolf[[2]], spatial_rn_wolf[[3]])
+  st_write(spatial_rn_wolf_locs, "./Shapefiles/IDFG spatial data/Camera_locations/spatial_rn_wolf_locs.shp")
+  
   year_list <- list("2020", "2021", "2022")
   
   #'  Function to map RN abundance
@@ -1289,7 +1293,7 @@
   umf_setup <- function(dh, listnames, sitecovs, srvycovs, plotit = T) {
     
     #'  Create array with detection histories, site-level and survey-level covariates
-    UMF <- unmarkedFrameOccu(y = dh, siteCovs = sitecovs, obsCovs = srvycovs)
+    UMF <- unmarkedFrameOccu(y = dh, siteCovs = sitecovs)#, obsCovs = srvycovs)
     
     #'  Plot detection histories
     print(plot(UMF))
@@ -1298,25 +1302,25 @@
     
     return(UMF)
   }
-  bear_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[1]][[1]], sitecovs = stations_npp20s, srvycovs = srvy_covs_20s)
-  bear_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[1]][[1]], sitecovs = stations_npp21s, srvycovs = srvy_covs_21s)
-  bear_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[1]][[1]], sitecovs = stations_npp22s, srvycovs = srvy_covs_22s)
+  bear_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[1]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  bear_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[1]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  bear_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[1]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
   
-  bob_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[2]][[1]], sitecovs = stations_npp20s, srvycovs = srvy_covs_20s)
-  bob_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[2]][[1]], sitecovs = stations_npp21s, srvycovs = srvy_covs_21s)
-  bob_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[2]][[1]], sitecovs = stations_npp22s, srvycovs = srvy_covs_22s)
+  bob_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[2]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  bob_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[2]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  bob_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[2]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
   
-  coy_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[3]][[1]], sitecovs = stations_npp20s, srvycovs = srvy_covs_20s)
-  coy_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[3]][[1]], sitecovs = stations_npp21s, srvycovs = srvy_covs_21s)
-  coy_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[3]][[1]], sitecovs = stations_npp22s, srvycovs = srvy_covs_22s)
+  coy_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[3]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  coy_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[3]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  coy_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[3]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
   
-  lion_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[4]][[1]], sitecovs = stations_npp20s, srvycovs = srvy_covs_20s)
-  lion_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[4]][[1]], sitecovs = stations_npp21s, srvycovs = srvy_covs_21s)
-  lion_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[4]][[1]], sitecovs = stations_npp22s, srvycovs = srvy_covs_22s)
+  lion_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[4]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  lion_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[4]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  lion_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[4]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
   
-  wolf_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[5]][[1]], sitecovs = stations_npp20s, srvycovs = srvy_covs_20s)
-  wolf_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[5]][[1]], sitecovs = stations_npp21s, srvycovs = srvy_covs_21s)
-  wolf_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[5]][[1]], sitecovs = stations_npp22s, srvycovs = srvy_covs_22s)
+  wolf_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[5]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  wolf_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[5]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  wolf_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[5]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
 
   #'  -------------------------------
   #####  Run RN model with unmarked  #####  
