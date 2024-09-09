@@ -4,7 +4,7 @@
   #'  Sarah Bassing
   #'  July 2023
   #'  -------------------------------
-  #'  Explore how to group cameras into clusters based on grid cell size
+  #'  Explore how to group cameras into clusters based on clustering algorithms and grid cells
   #'  
   #'  Camera operations table generated in Detection_data_cleaning.R
   #'  -------------------------------
@@ -37,6 +37,27 @@
   id_wgs84 <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp") %>%
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
   
+  #'  Camera locations with wolf RAI from RN models
+  wolf_cams <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/spatial_rn_wolf_locs.shp") %>%
+    st_transform("+proj=longlat +datum=WGS84 +no_defs") %>%
+    mutate(N_rounded = round(RN_n, 0)) %>%
+    filter(Setup == "P") %>%
+    #'  Retain the observation across years with the highest RAI
+    group_by(NwLctID) %>%
+    slice(which.max(RN_n)) %>%
+    ungroup() #%>%
+    #distinct(geometry, .keep_all = TRUE)
+  
+  xy <- st_coordinates(wolf_cams)
+  
+  crs(wolf_cams)
+  
+  #'  Split wolf cameras by GMU
+  wolf_cams_gmu1 <- wolf_cams[wolf_cams$GMU == "GMU1",]
+  wolf_cams_gmu6 <- wolf_cams[wolf_cams$GMU == "GMU6",]
+  wolf_cams_gmu10a <- wolf_cams[wolf_cams$GMU == "GMU10A",]
+  wolf_cams_list <- list(wolf_cams_gmu1, wolf_cams_gmu6, wolf_cams_gmu10a)
+  
   #'  Define projections and units
   gmu_proj <- crs(eoe_gmu) #crs("+init=EPSG:2243") #NAD83 / Idaho West (ftUS)
   id_proj <- crs(id)
@@ -54,13 +75,111 @@
   cams_wgs84 <- lapply(cams_list, spatial_locs, proj = wgs84)
   cams_nad83 <- lapply(cams_list, spatial_locs, proj = gmu_proj)
   
-  units::set_units(st_area(eoe_gmu), km^2) #' area of each GMU in sq-km (order = GMU1, GMU6, GMU10A)
-  units::set_units(st_area(id), km^2) 
+  #'  Visualize wolf RN abundance estimates (June - Sept 2020 - 2022)
+  ggplot() +
+    geom_sf(data = eoe_gmu_wgs84, fill = NA) +
+    geom_sf(data = wolf_cams, aes(size = N_rounded), shape  = 21, 
+            col = "darkred", fill = "darkred", alpha = 3/10) +
+    scale_size_continuous(breaks = c(0, 1, 2, 3, 5, 7, 9, 12), range = c(0,12)) +
+    labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) 
+  
+  # units::set_units(st_area(eoe_gmu), km^2) #' area of each GMU in sq-km (order = GMU1, GMU6, GMU10A)
+  # units::set_units(st_area(id), km^2) 
 
+  #'  -----------------------
+  ####  Clustering approach  ####
+  #'  -----------------------
+  # options(repos = c(
+  #   mpadge = 'https://mpadge.r-universe.dev',
+  #   CRAN = 'https://cloud.r-project.org'))
+  # install.packages ("spatialcluster")
+  library(spatialcluster)
+  library(dbscan)
+  library(pracma)
+  
+  #'  Calculate non-spatial distance between RN estimates
+  N_distance <- function(locs) {
+    RN_dist <- dist(locs$RN_n)
+    RN_dist <- as.matrix(RN_dist)
+    return(RN_dist)
+  }
+  N_dist_list <- lapply(wolf_cams_list, N_distance)
+  
+  #'  Grab xy coordinates and calculate distance between each camera 
+  xy_distance <- function(locs) {
+    xy <- as.matrix(st_coordinates(locs))
+    xy_dist <- dist(xy)
+    xy_dist <- as.matrix(xy_dist)
+    return(xy_dist)
+  }
+  xy_dist_list <- lapply(wolf_cams_list, xy_distance)
+  
+  
+  kD <- pdist2(xy_dist_list[[2]], xy_dist_list[[2]])
+  kDsort <- sort(kD, decreasing = FALSE)
+  plot(kDsort)
+  
+  N_distance_dataset <- function(locs) {
+    xy <- as.data.frame(st_coordinates(locs))
+    RN_dist <- bind_cols(locs, xy) %>%
+      dplyr::select(c(RN_n, X, Y)) %>%
+      as.data.frame() %>%
+      dplyr::select(-geometry)
+    RN_dist <- as.matrix(RN_dist)
+    return(RN_dist)
+  }
+  Nxy_dist_list <- lapply(wolf_cams_list, N_distance_dataset)
+  
+  clusters_GMU1 <- dbscan::dbscan(Nxy_dist_list[[1]], eps = 0.1, minPts = 4)
+  augment(clusters_GMU1, Nxy_dist_list[[1]]) %>%
+    ggplot(aes(x = X, y = Y)) + geom_point(aes(color = .cluster, shape = noise), size = 2.5) + scale_shape_manual(values = c(19, 4))
+  
+  clusters_GMU6 <- dbscan::dbscan(Nxy_dist_list[[2]], eps = 0.07, minPts = 4)
+  augment(clusters_GMU6, Nxy_dist_list[[2]]) %>%
+    ggplot(aes(x = X, y = Y)) + geom_point(aes(color = .cluster, shape = noise), size = 2.5) + scale_shape_manual(values = c(19, 4))
+  
+  clusters_GMU10A <- dbscan::dbscan(Nxy_dist_list[[3]], eps = 0.07, minPts = 4)
+  augment(clusters_GMU10A, Nxy_dist_list[[3]]) %>%
+    ggplot(aes(x = X, y = Y)) + geom_point(aes(color = .cluster, shape = noise), size = 2.5) + scale_shape_manual(values = c(19, 4))
+  
+  
+  
+  #'  Merge two distance matrices
+  dbscan_cluster <- function(dist1, dist2, eps_buffer, minimumPts, locs) {
+    dist <- dist1 + dist2
+    clusters <- dbscan::dbscan(dist, eps = eps_buffer, minPts = minimumPts)
+    print(tidy(clusters))
+    augment(dist, clusters)
+    locs$clusters <- clusters$cluster
+    map_clusters <- ggplot() +
+      geom_sf(data = locs, aes(color = clusters), size = 3) + scale_color_gradient(low = "lightblue", high = "red") + 
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    print(map_clusters)
+    return(locs)
+  }
+  double_dist_list <- mapply(dbscan_cluster, dist1 = N_dist_list, dist2 = xy_dist_list, 
+                             eps_buffer = 800, minimumPts = 2, locs = wolf_cams_list, SIMPLIFY = FALSE)
+  
+  scl_cluster <- function(locs, dist1, nclusters, linkages) {
+    xy <- as.matrix(st_coordinates(locs))
+    clusters <- scl_full(xy, dist1, ncl = nclusters, linkage = linkages)
+    print(plot(clusters))
+    return(locs)
+  }
+  scl_cluster_list <- mapply(scl_cluster, locs = wolf_cams_list, dist1 = N_dist_list,
+                             nclusters = 15, linkages = "single", SIMPLIFY = FALSE)
+  
+  
+  #'  ----------------------
+  ####  Grid cell approach  ####
+  #'  ----------------------
   #'  How many cells are needed for raster? 
   #'  Calculate length/width of EoE bbox, divide by length/width of pixel, and round to nearest whole number
   bbox <- st_bbox(eoe_gmu)
-  pxl_size <- 6400 * 2 # 6400m = 6.4km min. dist. btwn rendezvous sites of adjacent packs (Ausband et al. 2010)
+  pxl_size <- 6400 * 2 # Minimum dist. btwn rendezvous sites of adjacent packs was 6.4km (Ausband et al. 2010)
   xcells <- round(((bbox[3] - bbox[1]) / pxl_size), 0)
   ycells <- round(((bbox[4] - bbox[2]) / pxl_size), 0)
   
