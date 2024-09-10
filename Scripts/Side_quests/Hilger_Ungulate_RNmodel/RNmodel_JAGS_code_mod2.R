@@ -36,8 +36,8 @@
           b.year[yr] ~ dnorm(0, 0.001)
         }
         
-        #'  Continuous effects for mean and CV high quality biomass
-        b.meanHQ ~ dnorm(0, 0.001)
+        #'  Continuous effects for maximum and CV high quality biomass
+        b.maxHQ ~ dnorm(0, 0.001)
         b.cvHQ ~ dnorm(0, 0.001)
           
         #'  Detection priors
@@ -56,7 +56,7 @@
         #'  Latent state (abundance)
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + b.year[year[i]] + b.meanHQ*mean_HQ[i] + b.cvHQ*cv_HQ[i])
+          lambda[i] <- exp(beta0 + b.year[year[i]] + b.maxHQ*mean_HQ[i] + b.cvHQ*cv_HQ[i])
             
           #'  Detection state
           for(j in 1:nsurveys){

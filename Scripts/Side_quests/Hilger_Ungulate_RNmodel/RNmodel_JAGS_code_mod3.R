@@ -36,8 +36,8 @@
           b.year[yr] ~ dnorm(0, 0.001)
         }
           
-        #'  Continuous effects for mean total biomass and CV total biomass
-        b.meanTbio ~ dnorm(0, 0.001)
+        #'  Continuous effects for maximum total biomass and CV total biomass
+        b.maxTbio ~ dnorm(0, 0.001)
         b.cvTbio ~ dnorm(0, 0.001)
           
         #'  Detection priors
@@ -56,7 +56,7 @@
         #'  Latent state (abundance)
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + b.year[year[i]] + b.meanTbio*mean_Tbio[i] + b.cvTbio*cv_Tbio[i])
+          lambda[i] <- exp(beta0 + b.year[year[i]] + b.maxTbio*mean_Tbio[i] + b.cvTbio*cv_Tbio[i])
             
           #'  Detection state
           for(j in 1:nsurveys){
