@@ -653,7 +653,7 @@
   print(RN_elk_aug_maxHQ$DIC)
   save(RN_elk_aug_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_maxHQ_", Sys.Date(), ".RData"))
   
-  #'  Mean Tbio
+  #'  Mean Tbio (DIC = 24546.61)
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_meanTbio <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -665,7 +665,7 @@
   print(RN_elk_aug_meanTbio$DIC)
   save(RN_elk_aug_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_meanTbio_", Sys.Date(), ".RData"))
   
-  #'  Max Tbio
+  #'  Max Tbio (DIC = 24544.07)
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_maxTbio <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -681,7 +681,7 @@
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_selected <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
-                               "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_selected.txt",
+                               "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_totalSelected.txt",
                                n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -693,7 +693,7 @@
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_predicted <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
-                                "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_predicted.txt",
+                                "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_totalPredicted.txt",
                                 n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                 n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
