@@ -4,7 +4,7 @@
   #'  Sarah Bassing
   #'  July 2023
   #'  -------------------------------
-  #'  Explore how to group cameras into clusters based on clustering algorithms and grid cells
+  #'  Group cameras into clusters based on clustering algorithms 
   #'  
   #'  Camera operations table generated in Detection_data_cleaning.R
   #'  -------------------------------
@@ -18,6 +18,7 @@
   library(terra)
   library(ggplot2)
   library(tidyverse)
+  library(ClustGeo)
   
   #'  ----------------
   ####  Read in data  ####
@@ -40,17 +41,13 @@
   #'  Camera locations with wolf RAI from RN models
   wolf_cams <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/spatial_rn_wolf_locs.shp") %>%
     st_transform("+proj=longlat +datum=WGS84 +no_defs") %>%
-    mutate(N_rounded = round(RN_n, 0)) %>%
-    filter(Setup == "P") %>%
-    #'  Retain the observation across years with the highest RAI
-    group_by(NwLctID) %>%
-    slice(which.max(RN_n)) %>%
-    ungroup() #%>%
+    mutate(N_rounded = round(RN_n, 0)) #%>%
+    # filter(Setup == "P") %>%
+    #' #'  Retain the observation across years with the highest RAI
+    #' group_by(NwLctID) %>%
+    #' slice(which.max(RN_n)) %>%
+    #' ungroup() #%>%
     #distinct(geometry, .keep_all = TRUE)
-  
-  xy <- st_coordinates(wolf_cams)
-  
-  crs(wolf_cams)
   
   #'  Split wolf cameras by GMU
   wolf_cams_gmu1 <- wolf_cams[wolf_cams$GMU == "GMU1",]
@@ -95,84 +92,221 @@
   #   mpadge = 'https://mpadge.r-universe.dev',
   #   CRAN = 'https://cloud.r-project.org'))
   # install.packages ("spatialcluster")
-  library(spatialcluster)
-  library(dbscan)
-  library(pracma)
+  # library(spatialcluster)
+  # library(dbscan)
+  # library(pracma)
+  # library(units)
   
-  #'  Calculate non-spatial distance between RN estimates
-  N_distance <- function(locs) {
-    RN_dist <- dist(locs$RN_n)
-    RN_dist <- as.matrix(RN_dist)
-    return(RN_dist)
+  #'  Select value for epsilon using a k-distance graph
+  #'  https://www.mathworks.com/help/stats/dbscan-clustering.html#mw_0ad71796-4ae1-4620-a0e5-9ea5dcded2c6
+  kD_plot <- function(locs, n) {
+    #'  Remove duplicated cameras so each location represented once (avoids lots of 0 dist)
+    skinny_locs <- distinct(locs, geometry, .keep_all = TRUE)
+    #'  Calculate distance (m) between all locations
+    dist.mat <- st_distance(skinny_locs)
+    #'  Sort and return the distances between the first n nearest neighbors... 
+    #'  excluding the 1 nearest distance which is 0 b/c the closes point is always 
+    #'  going to be itself in st_distance
+    nn.dist <- apply(dist.mat, 1, function(x) {return(sort(x, partial = 2)[2:n+1])})
+    #' #'  Find average distance between n nearest neighbors
+    #' avg.nn.dist <- apply(nn.dist, 2, function(x) {return(mean(x))})
+    #'  Sort n nearest neighbor distances 
+    kDsort <- sort(nn.dist, decreasing = FALSE)
+    #'  Plot k-distance graph
+    plot(kDsort)
+    return(kDsort)
   }
-  N_dist_list <- lapply(wolf_cams_list, N_distance)
+  kDsort_byGMU <- lapply(wolf_cams_list, kD_plot, n = 1)
+  #'  "Knee" in graph corresponds to nearest neighbor distances that start tailing
+  #'  off into outlier (noise) territory. The "knee" is typically a good value for epsilon
+  #' #'  GMU1 knee: 20000 (n = 4)
+  #' #'  GMU6 knee: 12000 (n = 4)
+  #' #'  GMU10A knee: 15000 (n = 4)
+  #' epsilon <- list(60000, 40000, 40000)
+  #' 
+  #' #'  Calculate non-spatial and spatial distances and combine for dbscan clustering analysis
+  #' Nxy_distance <- function(locs) {
+  #'   #'  Calculate non-spatial distances between RN abundance estimates across sites
+  #'   RN_dist <- dist(locs$N_rounded)
+  #'   RN_dist <- as.matrix(RN_dist)
+  #' 
+  #'   #'  Calculate spatial distances between camera sites
+  #'   xy_dist <- st_distance(locs)
+  #'   xy_dist_m <- drop_units(xy_dist)
+  #' 
+  #'   #'  Add non-spatial and spatial matrices together  (NOTE: this is simple linear addition so scale of non-spatial vs spatial distances strongly influence weight of each variable in influencing clustering)
+  #'   d <- RN_dist + xy_dist_m
+  #'   return(d)
+  #' }
+  #' Nxy_dist_list <- lapply(wolf_cams_list, Nxy_distance)
+  #' 
+  #' #'  Use DBSCAN algorithm to identify spatially-clustered data
+  #' dbscan_clusters <- function(dat, epsilon, minimumPts, locs) {
+  #'   xy <- st_coordinates(locs, geometry) 
+  #'   # locs <- locs %>%
+  #'   #   bind_cols(xy) %>%
+  #'   #   as.data.frame() %>%
+  #'   #   dplyr::select(c(RN_n, X, Y))
+  #'   clustered_N <- dbscan::dbscan(dat, eps = epsilon, minPts = minimumPts) #eps = epsilon, 
+  #'   table(clustered_N$cluster)
+  #'   # plot(clustered_N, gradient = c("purple", "blue", "green", "yellow"), 
+  #'   #      scale = 1.5, show_flat = TRUE)
+  #'   # print(clustered_N$cluster_scores)
+  #'   # head(clustered_N$membership_prob)
+  #'   # plot(locs[,2:3], col=clustered_N$cluster+1, pch=21)
+  #'   # colors <- mapply(function(col, i) adjustcolor(col, alpha.f = clustered_N$membership_prob[i]), 
+  #'   #                  palette()[clustered_N$cluster+1], seq_along(clustered_N$cluster))
+  #'   # points(locs[,2:3], col=colors, pch=20)
+  #'   
+  #'   dbscan_out <- augment(clustered_N, locs)
+  #'   dbscan_plot <- dbscan_out %>%
+  #'     bind_cols(xy) %>%
+  #'     ggplot(aes(x = X, y = Y)) +
+  #'     geom_point(aes(color = .cluster, shape = noise), size = 2.5) +
+  #'     scale_shape_manual(values = c(19, 4))
+  #'   plot(dbscan_plot)
+  #'   return(dbscan_out)
+  #' }
+  #' tst <- mapply(dbscan_clusters, dat = Nxy_dist_list, epsilon = epsilon, minimumPts = 5, locs = wolf_cams_list)
   
-  #'  Grab xy coordinates and calculate distance between each camera 
-  xy_distance <- function(locs) {
-    xy <- as.matrix(st_coordinates(locs))
-    xy_dist <- dist(xy)
-    xy_dist <- as.matrix(xy_dist)
-    return(xy_dist)
+  
+  
+  #'  Use Ward-like hierarchical clustering to group cameras based on geographical distance & RAI
+  ward_like_cluster <- function(dat, k, a, nndist, a2) {
+    
+    #'  Create dissimilarity matrices from RAI and geographic data
+    #'  Grab just RAI estimates
+    rai <- dat %>% dplyr::select(RN_n) %>% as.data.frame() %>% dplyr::select(-geometry)
+    #'  Calculate distance for RAI across sites
+    D0 <- dist(rai)
+    #'  Calculate spatial distances between camera sites
+    xy_dist <- st_distance(dat)
+    #'  Remove units and turn into a dist object
+    D1 <- as.dist(drop_units(xy_dist))
+    
+    #'  Generate clusters by ignoring geographical distances (for demonstration only)
+    tree_D0 <- hclustgeo(D0)
+    partition_D0tree <- cutree(tree_D0, k)
+    cams <- as(dat, "Spatial")
+    sp::plot(cams, col = partition_D0tree, pch = 19, main = "Cluster RAI, Ignoring geographical distances") 
+    legend("topleft", legend = paste("cluster", 1:k), fill = 1:k, bty = "n")
+    
+    #'  Generate clusters by ignoring RAI distances (for demonstration only)
+    tree_D1 <- hclustgeo(D1)
+    partition_D1tree <- cutree(tree_D1, k)
+    cams <- as(dat, "Spatial")
+    sp::plot(cams, col = partition_D1tree, pch = 19, main = "Cluster cameras, Ignoring RAI distances") 
+    legend("topleft", legend = paste("cluster", 1:k), fill = 1:k, bty = "n")
+    
+    #'  Look for alpha that retains as much homogeneity as possible from D0 and D1 perspective
+    #'  alpha = 0 all weight on D0, alpha = 1 all weight on D1
+    #'  Must provide a pre-defined number of clusters
+    cr <- choicealpha(D0, D1, range.alpha = seq(0, 1, 0.1), K = k, graph = TRUE)
+    #'  Identify clusters with both dissimilarity matrices, weighting importance
+    #'  of the constraints to increase geographical homogeneity without losing too 
+    #'  much homogeneity of RAI within each cluster
+    tree_D0D1 <- hclustgeo(D0, D1, alpha = a)
+    #'  Split data into clusters
+    Partitions <- cutree(tree_D0D1, k)
+    #'  Visualize
+    cams <- as(dat, "Spatial")
+    sp::plot(cams, col = Partitions, pch = 19, main = "Clusters, weighted by RAI & geographical distances")
+    legend("topleft", legend = paste("cluster", 1:k), fill = 1:k, bty = "n")
+    
+    #'  Adjust clusters by accounting for spatial adjacency among cameras (incorporate spatial autocorrelation)
+    #'  Find all nearest neighbors within set distance (spherical distance in km)
+    nearst_cams <- spdep::dnearneigh(sp::coordinates(cams), 0, nndist, longlat = TRUE) 
+    #'  Grab camera names
+    NwLctID_label <- as.vector(cams$NwLctID)
+    #'  Nearest neighbors for an example camera
+    print(NwLctID_label[nearst_cams[[117]]]) 
+    #'  Build adjacency matrix with binary coding (flag all neighboring cameras for a given cam)
+    adjacency_matrix <- spdep::nb2mat(nearst_cams, style = "B") 
+    #'  Fill in 1 on the diagonal (each camera is its own neighbor)
+    diag(adjacency_matrix) <- 1
+    #'  Label matrix rows & columns with corresponding camera name
+    colnames(adjacency_matrix) <- rownames(adjacency_matrix) <- NwLctID_label
+    #'  Replace D1 distance matrix with adjacency matrix, but inverted (switch 0s and 1)
+    D1 <- 1-adjacency_matrix 
+    #'  Trun it into a dist object
+    D1 <- as.dist(D1)
+    #'  Look for alpha that retains homogeneity for D0 & D1
+    #'  Focus on alpha for standardized values of Q if D0 and D1 are on extremely different scales
+    cr <- choicealpha(D0, D1, range.alpha = seq(0, 1, 0.1), K = k, graph = TRUE)
+    cr$Q
+    cr$Qnorm
+    #'  Identify clusters again, this time with adjacency matrix and new alpha
+    tree_D0D1a <- hclustgeo(D0, D1, alpha = a2)
+    #'  And visualize
+    plot(tree_D0D1a, hang = -1, label = FALSE, xlab = "", sub = "", main = "")
+    Partitions_adjacency <- cutree(tree_D0D1a, k)
+    sp::plot(cams, col = Partitions_adjacency, pch = 19, main = "Clusters, weighted by RAI & adjacency matrix")
+    legend("topleft", legend = paste("cluster", 1:k), fill = 1:k, bty = "n")
+    
+    #'  List clusters (with and without adjacency matrix)
+    cluster_list <- list(tree_D0D1, tree_D0D1a)
+    
+    return(cluster_list)
   }
-  xy_dist_list <- lapply(wolf_cams_list, xy_distance)
-  
-  
-  kD <- pdist2(xy_dist_list[[2]], xy_dist_list[[2]])
-  kDsort <- sort(kD, decreasing = FALSE)
-  plot(kDsort)
-  
-  N_distance_dataset <- function(locs) {
-    xy <- as.data.frame(st_coordinates(locs))
-    RN_dist <- bind_cols(locs, xy) %>%
-      dplyr::select(c(RN_n, X, Y)) %>%
-      as.data.frame() %>%
-      dplyr::select(-geometry)
-    RN_dist <- as.matrix(RN_dist)
-    return(RN_dist)
-  }
-  Nxy_dist_list <- lapply(wolf_cams_list, N_distance_dataset)
-  
-  clusters_GMU1 <- dbscan::dbscan(Nxy_dist_list[[1]], eps = 0.1, minPts = 4)
-  augment(clusters_GMU1, Nxy_dist_list[[1]]) %>%
-    ggplot(aes(x = X, y = Y)) + geom_point(aes(color = .cluster, shape = noise), size = 2.5) + scale_shape_manual(values = c(19, 4))
-  
-  clusters_GMU6 <- dbscan::dbscan(Nxy_dist_list[[2]], eps = 0.07, minPts = 4)
-  augment(clusters_GMU6, Nxy_dist_list[[2]]) %>%
-    ggplot(aes(x = X, y = Y)) + geom_point(aes(color = .cluster, shape = noise), size = 2.5) + scale_shape_manual(values = c(19, 4))
-  
-  clusters_GMU10A <- dbscan::dbscan(Nxy_dist_list[[3]], eps = 0.07, minPts = 4)
-  augment(clusters_GMU10A, Nxy_dist_list[[3]]) %>%
-    ggplot(aes(x = X, y = Y)) + geom_point(aes(color = .cluster, shape = noise), size = 2.5) + scale_shape_manual(values = c(19, 4))
+  #'  Play around with k & nndist, then update a & a2 accordingly
+  #'  Current nndist = 10 based on results from k-distance plots (used to define 
+  #'  nearest neighbors and plots average distances between each point - values
+  #'  past the "elbow" or "knee" are usually noise based on DBSCAN clustering method)
+  clusters_gmu1 <- ward_like_cluster(wolf_cams_gmu1, k = 6, a = 0.55, nndist = 10, a2 = 0.15) 
+  clusters_gmu6 <- ward_like_cluster(wolf_cams_gmu6, k = 6, a = 0.3, nndist = 10, a2 = 0.1) 
+  clusters_gmu10a <- ward_like_cluster(wolf_cams_gmu10a, k = 7, a = 0.3, nndist = 10, a2 = 0.1) 
   
   
   
-  #'  Merge two distance matrices
-  dbscan_cluster <- function(dist1, dist2, eps_buffer, minimumPts, locs) {
-    dist <- dist1 + dist2
-    clusters <- dbscan::dbscan(dist, eps = eps_buffer, minPts = minimumPts)
-    print(tidy(clusters))
-    augment(dist, clusters)
-    locs$clusters <- clusters$cluster
-    map_clusters <- ggplot() +
-      geom_sf(data = locs, aes(color = clusters), size = 3) + scale_color_gradient(low = "lightblue", high = "red") + 
-      theme_classic() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-    print(map_clusters)
-    return(locs)
-  }
-  double_dist_list <- mapply(dbscan_cluster, dist1 = N_dist_list, dist2 = xy_dist_list, 
-                             eps_buffer = 800, minimumPts = 2, locs = wolf_cams_list, SIMPLIFY = FALSE)
-  
-  scl_cluster <- function(locs, dist1, nclusters, linkages) {
-    xy <- as.matrix(st_coordinates(locs))
-    clusters <- scl_full(xy, dist1, ncl = nclusters, linkage = linkages)
-    print(plot(clusters))
-    return(locs)
-  }
-  scl_cluster_list <- mapply(scl_cluster, locs = wolf_cams_list, dist1 = N_dist_list,
-                             nclusters = 15, linkages = "single", SIMPLIFY = FALSE)
+  dat <- wolf_cams_gmu1 %>% dplyr::select(RN_n) %>% as.data.frame() %>% dplyr::select(-geometry)
+  D0 <- dist(dat)
+  #'  Calculate spatial distances between camera sites
+  xy_dist <- st_distance(wolf_cams_gmu1)
+  D1 <- as.dist(drop_units(xy_dist))
+  tree <- hclustgeo(D0)
+  plot(tree, label = FALSE, xlab = "", sub = "", main = "") # generate dendrogram
+  rect.hclust(tree, k = 6, border = c(1, 2, 3, 4, 5, 6)) # view what k=6 clusters looks like
+  legend("topleft", legend = paste("cluster", 1), fill = 1, bty = "n")
+  P6 <- cutree(tree, 6)
+  cams <- as(wolf_cams_gmu1, "Spatial")
+  sp::plot(cams, col = P6, pch = 19) # Clustered based on RAI data only
+  legend("topleft", legend = paste("cluster", 1:6), fill = 1:6, bty = "n")
   
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+   
+  # scl_cluster <- function(locs, dist1, nclusters, linkages) {
+  #   xy <- as.matrix(st_coordinates(locs))
+  #   clusters <- scl_full(xy, dist1, ncl = nclusters, linkage = linkages)
+  #   print(plot(clusters))
+  #   return(locs)
+  # }
+  # scl_cluster_list <- mapply(scl_cluster, locs = wolf_cams_list, dist1 = N_dist_list,
+  #                            nclusters = 15, linkages = "single", SIMPLIFY = FALSE)
+  # 
+  # 
   #'  ----------------------
   ####  Grid cell approach  ####
   #'  ----------------------
