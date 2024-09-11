@@ -258,19 +258,11 @@
   
   
   
-  dat <- wolf_cams_gmu1 %>% dplyr::select(RN_n) %>% as.data.frame() %>% dplyr::select(-geometry)
-  D0 <- dist(dat)
-  #'  Calculate spatial distances between camera sites
-  xy_dist <- st_distance(wolf_cams_gmu1)
-  D1 <- as.dist(drop_units(xy_dist))
-  tree <- hclustgeo(D0)
-  plot(tree, label = FALSE, xlab = "", sub = "", main = "") # generate dendrogram
-  rect.hclust(tree, k = 6, border = c(1, 2, 3, 4, 5, 6)) # view what k=6 clusters looks like
-  legend("topleft", legend = paste("cluster", 1), fill = 1, bty = "n")
-  P6 <- cutree(tree, 6)
-  cams <- as(wolf_cams_gmu1, "Spatial")
-  sp::plot(cams, col = P6, pch = 19) # Clustered based on RAI data only
-  legend("topleft", legend = paste("cluster", 1:6), fill = 1:6, bty = "n")
+  #  PLAY WITH DIFFERENT K and a, save plots, start with approximate number of packs that could theoretically fit pre GMU
+  #  Choose K and a for final clustering
+  #  Buffered MCPs around each cluster (non-overlapping buffered MCPs)
+  #  Calculate density per species per year per cluster
+  #  SEM your heart out
   
   
   
