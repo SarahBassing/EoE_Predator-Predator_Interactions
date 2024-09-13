@@ -19,6 +19,9 @@
   library(ggplot2)
   library(tidyverse)
   library(ClustGeo)
+  library(units)
+  library(mapview)
+  library(adehabitatHR)
   
   #'  ----------------
   ####  Read in data  ####
@@ -82,8 +85,11 @@
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) 
   
-  # units::set_units(st_area(eoe_gmu), km^2) #' area of each GMU in sq-km (order = GMU1, GMU6, GMU10A)
-  # units::set_units(st_area(id), km^2) 
+  #'  Area of each GMU in sq-km (order = GMU1, GMU6, GMU10A)
+  units::set_units(st_area(eoe_gmu), km^2) 
+  #'  Number of potential wolf territories that could fit within GMU based on avg. territory size (686 sq-km)
+  starting_k <- drop_units(round(units::set_units(st_area(eoe_gmu), km^2)/686, 0)) 
+  
 
   #'  -----------------------
   ####  Clustering approach  ####
@@ -188,14 +194,14 @@
     tree_D0 <- hclustgeo(D0)
     partition_D0tree <- cutree(tree_D0, k)
     cams <- as(dat, "Spatial")
-    sp::plot(cams, col = partition_D0tree, pch = 19, main = "Cluster RAI, Ignoring geographical distances") 
+    sp::plot(cams, col = partition_D0tree, pch = 19, main = paste("Clusters ignoring geographical distances, k =", k)) 
     legend("topleft", legend = paste("cluster", 1:k), fill = 1:k, bty = "n")
     
     #'  Generate clusters by ignoring RAI distances (for demonstration only)
     tree_D1 <- hclustgeo(D1)
     partition_D1tree <- cutree(tree_D1, k)
     cams <- as(dat, "Spatial")
-    sp::plot(cams, col = partition_D1tree, pch = 19, main = "Cluster cameras, Ignoring RAI distances") 
+    sp::plot(cams, col = partition_D1tree, pch = 19, main = paste("Clusters ignoring RAI distances, k =", k)) 
     legend("topleft", legend = paste("cluster", 1:k), fill = 1:k, bty = "n")
     
     #'  Look for alpha that retains as much homogeneity as possible from D0 and D1 perspective
@@ -208,9 +214,12 @@
     tree_D0D1 <- hclustgeo(D0, D1, alpha = a)
     #'  Split data into clusters
     Partitions <- cutree(tree_D0D1, k)
+    #'  Append partitions to original data
+    dat$Clusters <- Partitions
     #'  Visualize
     cams <- as(dat, "Spatial")
-    sp::plot(cams, col = Partitions, pch = 19, main = "Clusters, weighted by RAI & geographical distances")
+    sp::plot(cams, col = Partitions, pch = 19, 
+             main = paste("Clusters weighted by RAI & geographical distances \nk =", k, "a =", a))
     legend("topleft", legend = paste("cluster", 1:k), fill = 1:k, bty = "n")
     
     #'  Adjust clusters by accounting for spatial adjacency among cameras (incorporate spatial autocorrelation)
@@ -219,7 +228,7 @@
     #'  Grab camera names
     NwLctID_label <- as.vector(cams$NwLctID)
     #'  Nearest neighbors for an example camera
-    print(NwLctID_label[nearst_cams[[117]]]) 
+    print(NwLctID_label[nearst_cams[[74]]]) 
     #'  Build adjacency matrix with binary coding (flag all neighboring cameras for a given cam)
     adjacency_matrix <- spdep::nb2mat(nearst_cams, style = "B") 
     #'  Fill in 1 on the diagonal (each camera is its own neighbor)
@@ -240,29 +249,91 @@
     #'  And visualize
     plot(tree_D0D1a, hang = -1, label = FALSE, xlab = "", sub = "", main = "")
     Partitions_adjacency <- cutree(tree_D0D1a, k)
-    sp::plot(cams, col = Partitions_adjacency, pch = 19, main = "Clusters, weighted by RAI & adjacency matrix")
+    #'  Append partitions to original data
+    dat$Clusters_adjacency <- Partitions_adjacency
+    sp::plot(cams, col = Partitions_adjacency, pch = 19, 
+             main = paste("Clusters weighted by RAI & adjacency matrix \nk =", k, "a =", a2))
     legend("topleft", legend = paste("cluster", 1:k), fill = 1:k, bty = "n")
     
-    #'  List clusters (with and without adjacency matrix)
-    cluster_list <- list(tree_D0D1, tree_D0D1a)
-    
-    return(cluster_list)
+    return(dat)
   }
-  #'  Play around with k & nndist, then update a & a2 accordingly
+  #'  NOTES about parameter values:
+  #'  k based on 2015 total documented and suspected packs per GMU, at peak of
+  #'  wolf population growth & likely all usable N Idaho territories occupied 
+  #'  Run to identify a & a2 based on Q0Q1-alpha plots, then re-run w/ updated values
   #'  Current nndist = 10 based on results from k-distance plots (used to define 
   #'  nearest neighbors and plots average distances between each point - values
   #'  past the "elbow" or "knee" are usually noise based on DBSCAN clustering method)
-  clusters_gmu1 <- ward_like_cluster(wolf_cams_gmu1, k = 6, a = 0.55, nndist = 10, a2 = 0.15) 
-  clusters_gmu6 <- ward_like_cluster(wolf_cams_gmu6, k = 6, a = 0.3, nndist = 10, a2 = 0.1) 
-  clusters_gmu10a <- ward_like_cluster(wolf_cams_gmu10a, k = 7, a = 0.3, nndist = 10, a2 = 0.1) 
+  clusters_gmu1 <- ward_like_cluster(wolf_cams_gmu1, k = 9, a = 0.6, nndist = 10, a2 = 0.3) # current best: all cams, k = 9, a = 0.6, nndist = 10, a2 = 0.3 weighted to favor geographic distance a bit more, RAI and geographic distance that does not account for adjacency
+  clusters_gmu6 <- ward_like_cluster(wolf_cams_gmu6, k = 4, a = 0.3, nndist = 10, a2 = 0.1) # current best: all cams, k = 4, a = 0.3, nndist = 10, a2 = 0.1 weighted to favor geographic distance a bit more, RAI and geographic distance that does not account for adjacency
+  clusters_gmu10a <- ward_like_cluster(wolf_cams_gmu10a, k = 7, a = 0.4, nndist = 10, a2 = 0.1) # current best: all cams, k = 7, a = 0.4, nndist = 10, a2 = 0.1 weighted to favor geographic distance a bit more, RAI and geographic distance that does not account for adjacency
+  
+  #'  Create polygons around each cluster
+  #'  Function to create convex hull for cameras in each cluster
+  starter_hull <- function(dat) {
+    df.sf <- dat 
+    #'  Visualize with Mapview package
+    print(mapview::mapview(df.sf))
+    #'  Group and summarise by cluster, and draw hulls
+    hulls <- df.sf %>%
+      group_by(Clusters) %>%
+      summarise(geometry = st_combine(geometry)) %>%
+      st_convex_hull()
+    #'  View result
+    print(mapview::mapview(list(df.sf, hulls)))
+    return(hulls)
+  }
+  starter_hulls_gmu1 <- starter_hull(clusters_gmu1) 
+  starter_hulls_gmu6 <- starter_hull(clusters_gmu6) 
+  starter_hulls_gmu10a <- starter_hull(clusters_gmu10a) 
+  
+  #'  Function to create density polygons (utility distributions) for cameras in each cluster
+  starter_UDs <- function(dat) {
+    #'  Grab just the cluster column (and geometries)
+    clusters <- dat %>% dplyr::select(Clusters)
+    #'  Convert sf object to a sp SpatialPointsDataFrame
+    clusters <- as(clusters, "Spatial")
+    #'  Create utilization distribution for each cluster of cameras
+    #'  h controls the smoothing parameter
+    #'  kern defines how to calculate the UD -- using epa to keep the UD tighter (bivnorm creates huge polygons for some of these)
+    kud <- kernelUD(clusters, h = "href", kern = "epa") # or "bivnorm" 
+    #'  Grab 95% - 85% vertices for each cluster UD
+    cluster95 <- getverticeshr(kud, 95)
+    cluster90 <- getverticeshr(kud, 90)
+    cluster85 <- getverticeshr(kud, 85)
+    #'  Convert to sf object
+    cluster95_sf <- st_as_sf(cluster95) %>% rename("Clusters" = "id")
+    cluster90_sf <- st_as_sf(cluster90) %>% rename("Clusters" = "id")
+    cluster85_sf <- st_as_sf(cluster85) %>% rename("Clusters" = "id")
+    #'  Visualize clusters with mapview
+    print(mapview::mapview(list(dat, cluster95_sf), zcol = "Clusters")) # 95UDs contain all points
+    print(mapview::mapview(list(dat, cluster90_sf), zcol = "Clusters")) # 90UDs exclude some cams... don't want that
+    print(mapview::mapview(list(dat, cluster85_sf), zcol = "Clusters"))
+    return(cluster95_sf)
+  }
+  UDs_gmu1 <- starter_UDs(clusters_gmu1) # toss ud2 and ud5
+  UDs_gmu6 <- starter_UDs(clusters_gmu6)
+  UDs_gmu10a <- starter_UDs(clusters_gmu10a) # toss ud5
+  
+
+  
+  #'  Remove UDs where all points are also contained within other UD
+  #'  Figure out how to intersect and drop overlapping sections of UDs
   
   
   
-  #  PLAY WITH DIFFERENT K and a, save plots, start with approximate number of packs that could theoretically fit pre GMU
-  #  Choose K and a for final clustering
+  
+  
+  
+  
+  
+  
+  
+  
   #  Buffered MCPs around each cluster (non-overlapping buffered MCPs)
   #  Calculate density per species per year per cluster
   #  SEM your heart out
+  
   
   
   
