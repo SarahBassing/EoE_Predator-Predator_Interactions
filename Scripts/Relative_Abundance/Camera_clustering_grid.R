@@ -311,14 +311,52 @@
     print(mapview::mapview(list(dat, cluster85_sf), zcol = "Clusters"))
     return(cluster95_sf)
   }
-  UDs_gmu1 <- starter_UDs(clusters_gmu1) # toss ud2 and ud5
+  UDs_gmu1 <- starter_UDs(clusters_gmu1) # toss ud2 
   UDs_gmu6 <- starter_UDs(clusters_gmu6)
   UDs_gmu10a <- starter_UDs(clusters_gmu10a) # toss ud5
   
+  #'  Drop UDs where all points are also contained within other UDs
+  UDs_gmu1 <- UDs_gmu1 %>% filter(Clusters != 2)
+  mapview::mapview(list(clusters_gmu1, UDs_gmu1), zcol = "Clusters")
+  UDs_gmu10a <- UDs_gmu10a %>% filter(Clusters != 5)
+  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a), zcol = "Clusters")
 
+  #'  Intersect overlapping UDs and filter to smaller set of non-overlapping UDs
+  UDs_gmu1_intersect <- st_intersection(UDs_gmu1) %>%
+    mutate(NewClusters = row.names(.)) %>%
+    dplyr::select(c(Clusters, NewClusters)) 
+  mapview::mapview(list(clusters_gmu1, UDs_gmu1_intersect), zcol = "Clusters")
+  UDs_gmu1_skinny <- UDs_gmu1_intersect%>%
+    filter(NewClusters != 1.1 & NewClusters != 3.1 & NewClusters != 3.2 & NewClusters != 4 
+           & NewClusters != 4.1 & NewClusters != 4.2 & NewClusters != 4.3 & NewClusters != 6.1 &
+             NewClusters != 5 & NewClusters != 5.1 & NewClusters != 3.5 & NewClusters != 3.3)
+    # filter(NewClusters == 1 | NewClusters == 3 | NewClusters == 3.3 | NewClusters == 3.5 | 
+    #          NewClusters == 3.6 | NewClusters == 5 | NewClusters == 5.1 | NewClusters == 6 |  
+    #          NewClusters == 6.1 | NewClusters == 7 | NewClusters == 8 | NewClusters == 9)
+  mapview::mapview(list(clusters_gmu1, UDs_gmu1_skinny), zcol = "Clusters")
+  #'  Retain original c4 UD
+  UDs_gmu1_c4 <- UDs_gmu1 %>%
+    filter(Clusters == 4) %>%
+    mutate(NewClusters = row.names(.)) %>%
+    dplyr::select(c(Clusters, NewClusters))
+  UDs_gmu1_c3.2 <- UDs_gmu1_intersect %>%
+    filter(NewClusters == 3.2) 
+  UDs_gmu1_c5 <- UDs_gmu1 %>%
+    filter(Clusters == 5) %>% 
+    mutate(NewClusters = row.names(.)) %>%
+    dplyr::select(c(Clusters, NewClusters)) %>%
+    bind_rows(UDs_gmu1_c3.2) %>%
+    st_intersection(.) %>%
+    mutate(NewClusters = row.names(.)) %>%
+    dplyr::select(c(Clusters, NewClusters)) %>%
+    filter(NewClusters == 5)
+  mapview::mapview(list(clusters_gmu1, UDs_gmu1_skinny, UDs_gmu1_c4, UDs_gmu1_c5), zcol = "Clusters")
+  #'  Union 5.1 & 3.3 & 3.5,  3 & 3.6,  6 & 6.1
   
   #'  Remove UDs where all points are also contained within other UD
   #'  Figure out how to intersect and drop overlapping sections of UDs
+  #'  Crop out large waterbodies from UDs (don't want that area included when calculating density)
+  #'  Crop out Canada from border UDs??
   
   
   
