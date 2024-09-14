@@ -91,19 +91,10 @@
   starting_k <- drop_units(round(units::set_units(st_area(eoe_gmu), km^2)/686, 0)) 
   
 
-  #'  -----------------------
-  ####  Clustering approach  ####
-  #'  -----------------------
-  # options(repos = c(
-  #   mpadge = 'https://mpadge.r-universe.dev',
-  #   CRAN = 'https://cloud.r-project.org'))
-  # install.packages ("spatialcluster")
-  # library(spatialcluster)
-  # library(dbscan)
-  # library(pracma)
-  # library(units)
-  
-  #'  Select value for epsilon using a k-distance graph
+  #'  -----------------------------------------------------------------
+  ####  Cluster camera sites by geographic distance & RAI homogeneity  ####
+  #'  -----------------------------------------------------------------
+  #'  Select value for defining nearest neighbor using a k-distance graph
   #'  https://www.mathworks.com/help/stats/dbscan-clustering.html#mw_0ad71796-4ae1-4620-a0e5-9ea5dcded2c6
   kD_plot <- function(locs, n) {
     #'  Remove duplicated cameras so each location represented once (avoids lots of 0 dist)
@@ -114,8 +105,6 @@
     #'  excluding the 1 nearest distance which is 0 b/c the closes point is always 
     #'  going to be itself in st_distance
     nn.dist <- apply(dist.mat, 1, function(x) {return(sort(x, partial = 2)[2:n+1])})
-    #' #'  Find average distance between n nearest neighbors
-    #' avg.nn.dist <- apply(nn.dist, 2, function(x) {return(mean(x))})
     #'  Sort n nearest neighbor distances 
     kDsort <- sort(nn.dist, decreasing = FALSE)
     #'  Plot k-distance graph
@@ -123,63 +112,9 @@
     return(kDsort)
   }
   kDsort_byGMU <- lapply(wolf_cams_list, kD_plot, n = 1)
-  #'  "Knee" in graph corresponds to nearest neighbor distances that start tailing
-  #'  off into outlier (noise) territory. The "knee" is typically a good value for epsilon
-  #' #'  GMU1 knee: 20000 (n = 4)
-  #' #'  GMU6 knee: 12000 (n = 4)
-  #' #'  GMU10A knee: 15000 (n = 4)
-  #' epsilon <- list(60000, 40000, 40000)
-  #' 
-  #' #'  Calculate non-spatial and spatial distances and combine for dbscan clustering analysis
-  #' Nxy_distance <- function(locs) {
-  #'   #'  Calculate non-spatial distances between RN abundance estimates across sites
-  #'   RN_dist <- dist(locs$N_rounded)
-  #'   RN_dist <- as.matrix(RN_dist)
-  #' 
-  #'   #'  Calculate spatial distances between camera sites
-  #'   xy_dist <- st_distance(locs)
-  #'   xy_dist_m <- drop_units(xy_dist)
-  #' 
-  #'   #'  Add non-spatial and spatial matrices together  (NOTE: this is simple linear addition so scale of non-spatial vs spatial distances strongly influence weight of each variable in influencing clustering)
-  #'   d <- RN_dist + xy_dist_m
-  #'   return(d)
-  #' }
-  #' Nxy_dist_list <- lapply(wolf_cams_list, Nxy_distance)
-  #' 
-  #' #'  Use DBSCAN algorithm to identify spatially-clustered data
-  #' dbscan_clusters <- function(dat, epsilon, minimumPts, locs) {
-  #'   xy <- st_coordinates(locs, geometry) 
-  #'   # locs <- locs %>%
-  #'   #   bind_cols(xy) %>%
-  #'   #   as.data.frame() %>%
-  #'   #   dplyr::select(c(RN_n, X, Y))
-  #'   clustered_N <- dbscan::dbscan(dat, eps = epsilon, minPts = minimumPts) #eps = epsilon, 
-  #'   table(clustered_N$cluster)
-  #'   # plot(clustered_N, gradient = c("purple", "blue", "green", "yellow"), 
-  #'   #      scale = 1.5, show_flat = TRUE)
-  #'   # print(clustered_N$cluster_scores)
-  #'   # head(clustered_N$membership_prob)
-  #'   # plot(locs[,2:3], col=clustered_N$cluster+1, pch=21)
-  #'   # colors <- mapply(function(col, i) adjustcolor(col, alpha.f = clustered_N$membership_prob[i]), 
-  #'   #                  palette()[clustered_N$cluster+1], seq_along(clustered_N$cluster))
-  #'   # points(locs[,2:3], col=colors, pch=20)
-  #'   
-  #'   dbscan_out <- augment(clustered_N, locs)
-  #'   dbscan_plot <- dbscan_out %>%
-  #'     bind_cols(xy) %>%
-  #'     ggplot(aes(x = X, y = Y)) +
-  #'     geom_point(aes(color = .cluster, shape = noise), size = 2.5) +
-  #'     scale_shape_manual(values = c(19, 4))
-  #'   plot(dbscan_plot)
-  #'   return(dbscan_out)
-  #' }
-  #' tst <- mapply(dbscan_clusters, dat = Nxy_dist_list, epsilon = epsilon, minimumPts = 5, locs = wolf_cams_list)
-  
-  
   
   #'  Use Ward-like hierarchical clustering to group cameras based on geographical distance & RAI
   ward_like_cluster <- function(dat, k, a, nndist, a2) {
-    
     #'  Create dissimilarity matrices from RAI and geographic data
     #'  Grab just RAI estimates
     rai <- dat %>% dplyr::select(RN_n) %>% as.data.frame() %>% dplyr::select(-geometry)
@@ -261,14 +196,16 @@
   #'  k based on 2015 total documented and suspected packs per GMU, at peak of
   #'  wolf population growth & likely all usable N Idaho territories occupied 
   #'  Run to identify a & a2 based on Q0Q1-alpha plots, then re-run w/ updated values
-  #'  Current nndist = 10 based on results from k-distance plots (used to define 
+  #'  Current nndist = 10km based on results from k-distance plots (used to define 
   #'  nearest neighbors and plots average distances between each point - values
   #'  past the "elbow" or "knee" are usually noise based on DBSCAN clustering method)
   clusters_gmu1 <- ward_like_cluster(wolf_cams_gmu1, k = 9, a = 0.6, nndist = 10, a2 = 0.3) # current best: all cams, k = 9, a = 0.6, nndist = 10, a2 = 0.3 weighted to favor geographic distance a bit more, RAI and geographic distance that does not account for adjacency
   clusters_gmu6 <- ward_like_cluster(wolf_cams_gmu6, k = 4, a = 0.3, nndist = 10, a2 = 0.1) # current best: all cams, k = 4, a = 0.3, nndist = 10, a2 = 0.1 weighted to favor geographic distance a bit more, RAI and geographic distance that does not account for adjacency
   clusters_gmu10a <- ward_like_cluster(wolf_cams_gmu10a, k = 7, a = 0.4, nndist = 10, a2 = 0.1) # current best: all cams, k = 7, a = 0.4, nndist = 10, a2 = 0.1 weighted to favor geographic distance a bit more, RAI and geographic distance that does not account for adjacency
   
-  #'  Create polygons around each cluster
+  #'  ---------------------------------------
+  ####  Create polygons around each cluster  ####
+  #'  ---------------------------------------
   #'  Function to create convex hull for cameras in each cluster
   starter_hull <- function(dat) {
     df.sf <- dat 
@@ -308,12 +245,17 @@
     #'  Visualize clusters with mapview
     print(mapview::mapview(list(dat, cluster95_sf), zcol = "Clusters")) # 95UDs contain all points
     print(mapview::mapview(list(dat, cluster90_sf), zcol = "Clusters")) # 90UDs exclude some cams... don't want that
-    print(mapview::mapview(list(dat, cluster85_sf), zcol = "Clusters"))
+    print(mapview::mapview(list(dat, cluster85_sf), zcol = "Clusters")) # excludes some cams... no good
     return(cluster95_sf)
   }
-  UDs_gmu1 <- starter_UDs(clusters_gmu1) # toss ud2 
+  UDs_gmu1 <- starter_UDs(clusters_gmu1)  
   UDs_gmu6 <- starter_UDs(clusters_gmu6)
-  UDs_gmu10a <- starter_UDs(clusters_gmu10a) # toss ud5
+  UDs_gmu10a <- starter_UDs(clusters_gmu10a) 
+  
+  #'  ----------------------------
+  #####  Adjust cluster polygons  #####
+  #'  ----------------------------
+  #'  Can't have overlapping polygons or polygons with shared camera sites
   
   #'  Drop UDs where all points are also contained within other UDs
   UDs_gmu1 <- UDs_gmu1 %>% filter(Clusters != 2)
@@ -321,40 +263,82 @@
   UDs_gmu10a <- UDs_gmu10a %>% filter(Clusters != 5)
   mapview::mapview(list(clusters_gmu10a, UDs_gmu10a), zcol = "Clusters")
 
-  #'  Intersect overlapping UDs and filter to smaller set of non-overlapping UDs
+  #'  Intersect overlapping UDs
   UDs_gmu1_intersect <- st_intersection(UDs_gmu1) %>%
     mutate(NewClusters = row.names(.)) %>%
     dplyr::select(c(Clusters, NewClusters)) 
   mapview::mapview(list(clusters_gmu1, UDs_gmu1_intersect), zcol = "Clusters")
-  UDs_gmu1_skinny <- UDs_gmu1_intersect%>%
-    filter(NewClusters != 1.1 & NewClusters != 3.1 & NewClusters != 3.2 & NewClusters != 4 
-           & NewClusters != 4.1 & NewClusters != 4.2 & NewClusters != 4.3 & NewClusters != 6.1 &
-             NewClusters != 5 & NewClusters != 5.1 & NewClusters != 3.5 & NewClusters != 3.3)
-    # filter(NewClusters == 1 | NewClusters == 3 | NewClusters == 3.3 | NewClusters == 3.5 | 
-    #          NewClusters == 3.6 | NewClusters == 5 | NewClusters == 5.1 | NewClusters == 6 |  
-    #          NewClusters == 6.1 | NewClusters == 7 | NewClusters == 8 | NewClusters == 9)
-  mapview::mapview(list(clusters_gmu1, UDs_gmu1_skinny), zcol = "Clusters")
-  #'  Retain original c4 UD
-  UDs_gmu1_c4 <- UDs_gmu1 %>%
-    filter(Clusters == 4) %>%
+  UDs_gmu6_intersect <- st_intersection(UDs_gmu6) %>%
     mutate(NewClusters = row.names(.)) %>%
-    dplyr::select(c(Clusters, NewClusters))
-  UDs_gmu1_c3.2 <- UDs_gmu1_intersect %>%
-    filter(NewClusters == 3.2) 
-  UDs_gmu1_c5 <- UDs_gmu1 %>%
-    filter(Clusters == 5) %>% 
+    dplyr::select(c(Clusters, NewClusters)) 
+  mapview::mapview(list(clusters_gmu6, UDs_gmu6_intersect), zcol = "Clusters")
+  UDs_gmu10a_intersect <- st_intersection(UDs_gmu10a) %>%
     mutate(NewClusters = row.names(.)) %>%
-    dplyr::select(c(Clusters, NewClusters)) %>%
-    bind_rows(UDs_gmu1_c3.2) %>%
-    st_intersection(.) %>%
-    mutate(NewClusters = row.names(.)) %>%
-    dplyr::select(c(Clusters, NewClusters)) %>%
-    filter(NewClusters == 5)
-  mapview::mapview(list(clusters_gmu1, UDs_gmu1_skinny, UDs_gmu1_c4, UDs_gmu1_c5), zcol = "Clusters")
-  #'  Union 5.1 & 3.3 & 3.5,  3 & 3.6,  6 & 6.1
+    dplyr::select(c(Clusters, NewClusters)) 
+  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a_intersect), zcol = "Clusters")
   
-  #'  Remove UDs where all points are also contained within other UD
-  #'  Figure out how to intersect and drop overlapping sections of UDs
+  #'  Create unique & non-overlapping cluster polygons through unions
+  #'  Rules for joining intersected polygons:
+  #'    1) If there is a mix of cams from different clusters in intersection,  
+  #'    assign intersection to polygon w/ larger proportion of cams in the 
+  #'    intersection (e.g., jion GMU1 NewCluster 4.3 to 4 instead of 9 b/c more 
+  #'    Cluster 4 cams than Cluster 9 cams in intersection NewCluster 4.3) 
+  #'    2) If intersection is empty of cameras, assign to cluster polygon with 
+  #'    cameras closest to the edge of the intersection
+  
+  ######  GMU1 Cluster Polygons  ######
+  #'  ---------------------------
+  #'  Snag individual cluster polygons that are stand alone
+  ud_gmu1_c1 <- filter(UDs_gmu1, Clusters == 1)
+  ud_gmu1_c8 <- filter(UDs_gmu1, Clusters == 8)
+  ud_gmu1_c5 <- filter(UDs_gmu1, Clusters == 5)
+  
+  #'  Create individual polygons for places where two cluster polygons intersect
+  ud_gmu1_c3 <- filter(UDs_gmu1_intersect, NewClusters == 3)
+  ud_gmu1_c3.1 <- filter(UDs_gmu1_intersect, NewClusters == 3.1)
+  ud_gmu1_c3.2 <- filter(UDs_gmu1_intersect, NewClusters == 3.2)
+  ud_gmu1_c3.3 <- filter(UDs_gmu1_intersect, NewClusters == 3.3)
+  ud_gmu1_c3.4 <- filter(UDs_gmu1_intersect, NewClusters == 3.4)
+  ud_gmu1_c3.5 <- filter(UDs_gmu1_intersect, NewClusters == 3.5)
+  ud_gmu1_c3.6 <- filter(UDs_gmu1_intersect, NewClusters == 3.6)
+  ud_gmu1_c4 <- filter(UDs_gmu1_intersect, NewClusters == 4)
+  ud_gmu1_c4.1 <- filter(UDs_gmu1_intersect, NewClusters == 4.1)
+  ud_gmu1_c4.2 <- filter(UDs_gmu1_intersect, NewClusters == 4.2)
+  ud_gmu1_c4.3 <- filter(UDs_gmu1_intersect, NewClusters == 4.3)
+  ud_gmu1_c6 <- filter(UDs_gmu1_intersect, NewClusters == 6)
+  ud_gmu1_c6.1 <- filter(UDs_gmu1_intersect, NewClusters == 6.1)
+  ud_gmu1_c7 <- filter(UDs_gmu1_intersect, NewClusters == 7)
+  ud_gmu1_c9 <- filter(UDs_gmu1_intersect, NewClusters == 9)
+  
+  #'  Turn off spherical geometry (st_union doesn't work with globe type geometry like an S2 object)
+  sf::sf_use_s2(FALSE)
+  
+  #'  Union between NewClusters 4, 4.3, and 3.1
+  ud_gmu1_c4 <- st_union(ud_gmu1_c4, ud_gmu1_c3.1) %>% st_union(ud_gmu1_c4.3) %>% dplyr::select(c(Clusters, NewClusters))
+  #'  Union between NewClusters 4.1 and 6
+  ud_gmu1_c6 <- st_union(ud_gmu1_c6, ud_gmu1_c4.1) %>% dplyr::select(c(Clusters, NewClusters)) 
+  #'  Union between NewClusters 6.1 and 7
+  ud_gmu1_c7 <- st_union(ud_gmu1_c7, ud_gmu1_c6.1) %>% dplyr::select(c(Clusters, NewClusters))
+  
+  #'  Spatial data frame of new cluster polygons
+  UDs_gmu1_poly <- bind_rows(ud_gmu1_c1, ud_gmu1_c3, ud_gmu1_c4, ud_gmu1_c5, ud_gmu1_c6, ud_gmu1_c7, ud_gmu1_c8, ud_gmu1_c9) %>%
+    dplyr::select(-NewClusters)
+  mapview::mapview(list(clusters_gmu1, UDs_gmu1_poly), zcol = "Clusters")
+  
+  ######  GMU6 Cluster Polygons  ######
+  #'  ---------------------------
+  
+  
+  
+  #'  Back to allowing spherical geometry
+  sf::sf_use_s2(TRUE)
+  
+  
+  
+  
+  
+  
+  
   #'  Crop out large waterbodies from UDs (don't want that area included when calculating density)
   #'  Crop out Canada from border UDs??
   
