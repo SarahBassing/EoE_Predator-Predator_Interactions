@@ -492,7 +492,7 @@
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU1 relative wolf density index")
+    ggtitle("GMU1 relative wolf density index (wolves/km^2)")
   
   gmu6_clusters_og <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
@@ -518,7 +518,7 @@
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU6 relative wolf density index")
+    ggtitle("GMU6 relative wolf density index (wolves/km^2)")
   
   gmu10a_clusters_og <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
@@ -544,7 +544,7 @@
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU10A relative wolf density index")
+    ggtitle("GMU10A relative wolf density index (wolves/km^2)")
   
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU1_clusters_og.tiff", gmu1_clusters_og,
          units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
