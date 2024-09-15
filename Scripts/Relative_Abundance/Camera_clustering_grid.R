@@ -20,8 +20,9 @@
   library(tidyverse)
   library(ClustGeo)
   library(units)
-  library(mapview)
+  library(mapview); mapviewOptions(fgb = FALSE)
   library(adehabitatHR)
+  library(lwgeom)
   
   #'  ----------------
   ####  Read in data  ####
@@ -40,11 +41,17 @@
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
   id_wgs84 <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp") %>%
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
+  id_waterbodies <- st_read("./Shapefiles/National Hydrology Database Idaho State/Shape/NHDWaterbody.shp") 
+  bigwater <- id_waterbodies[id_waterbodies$areasqkm > 1,]
+  bigwater_wgs84 <- st_transform(bigwater, crs = "+proj=longlat +datum=WGS84 +no_defs") %>%
+    filter(gnis_name == "Priest Lake" | gnis_name == "Upper Priest Lake" | 
+             gnis_name == "Lake Pend Oreille" | gnis_name == "Cabinet Gorge Reservoir" |
+             gnis_name == "Chatcolet Lake" | gnis_name == "Dworshak Reservoir") %>%
+    dplyr::select(gnis_name)
   
   #'  Camera locations with wolf RAI from RN models
   wolf_cams <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/spatial_rn_wolf_locs.shp") %>%
-    st_transform("+proj=longlat +datum=WGS84 +no_defs") %>%
-    mutate(N_rounded = round(RN_n, 0)) #%>%
+    st_transform("+proj=longlat +datum=WGS84 +no_defs") #%>%
     # filter(Setup == "P") %>%
     #' #'  Retain the observation across years with the highest RAI
     #' group_by(NwLctID) %>%
@@ -77,23 +84,18 @@
   
   #'  Visualize wolf RN abundance estimates (June - Sept 2020 - 2022)
   ggplot() +
+    geom_sf(data = bigwater_wgs84, fill = "lightblue") +
     geom_sf(data = eoe_gmu_wgs84, fill = NA) +
-    geom_sf(data = wolf_cams, aes(size = N_rounded), shape  = 21, 
+    geom_sf(data = wolf_cams, aes(size = RN_n_rn), shape  = 21, 
             col = "darkred", fill = "darkred", alpha = 3/10) +
     scale_size_continuous(breaks = c(0, 1, 2, 3, 5, 7, 9, 12), range = c(0,12)) +
     labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) 
   
-  #'  Area of each GMU in sq-km (order = GMU1, GMU6, GMU10A)
-  units::set_units(st_area(eoe_gmu), km^2) 
-  #'  Number of potential wolf territories that could fit within GMU based on avg. territory size (686 sq-km)
-  starting_k <- drop_units(round(units::set_units(st_area(eoe_gmu), km^2)/686, 0)) 
-  
-
-  #'  -----------------------------------------------------------------
-  ####  Cluster camera sites by geographic distance & RAI homogeneity  ####
-  #'  -----------------------------------------------------------------
+  #'  --------------------------------------------------------
+  ####  Cluster camera sites by geographic & RAI homogeneity  ####
+  #'  --------------------------------------------------------
   #'  Select value for defining nearest neighbor using a k-distance graph
   #'  https://www.mathworks.com/help/stats/dbscan-clustering.html#mw_0ad71796-4ae1-4620-a0e5-9ea5dcded2c6
   kD_plot <- function(locs, n) {
@@ -244,8 +246,8 @@
     cluster85_sf <- st_as_sf(cluster85) %>% rename("Clusters" = "id")
     #'  Visualize clusters with mapview
     print(mapview::mapview(list(dat, cluster95_sf), zcol = "Clusters")) # 95UDs contain all points
-    print(mapview::mapview(list(dat, cluster90_sf), zcol = "Clusters")) # 90UDs exclude some cams... don't want that
-    print(mapview::mapview(list(dat, cluster85_sf), zcol = "Clusters")) # excludes some cams... no good
+    # print(mapview::mapview(list(dat, cluster90_sf), zcol = "Clusters")) # 90UDs exclude some cams... don't want that
+    # print(mapview::mapview(list(dat, cluster85_sf), zcol = "Clusters")) # excludes some cams... no good
     return(cluster95_sf)
   }
   UDs_gmu1 <- starter_UDs(clusters_gmu1)  
@@ -256,27 +258,6 @@
   #####  Adjust cluster polygons  #####
   #'  ----------------------------
   #'  Can't have overlapping polygons or polygons with shared camera sites
-  
-  #'  Drop UDs where all points are also contained within other UDs
-  UDs_gmu1 <- UDs_gmu1 %>% filter(Clusters != 2)
-  mapview::mapview(list(clusters_gmu1, UDs_gmu1), zcol = "Clusters")
-  UDs_gmu10a <- UDs_gmu10a %>% filter(Clusters != 5)
-  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a), zcol = "Clusters")
-
-  #'  Intersect overlapping UDs
-  UDs_gmu1_intersect <- st_intersection(UDs_gmu1) %>%
-    mutate(NewClusters = row.names(.)) %>%
-    dplyr::select(c(Clusters, NewClusters)) 
-  mapview::mapview(list(clusters_gmu1, UDs_gmu1_intersect), zcol = "Clusters")
-  UDs_gmu6_intersect <- st_intersection(UDs_gmu6) %>%
-    mutate(NewClusters = row.names(.)) %>%
-    dplyr::select(c(Clusters, NewClusters)) 
-  mapview::mapview(list(clusters_gmu6, UDs_gmu6_intersect), zcol = "Clusters")
-  UDs_gmu10a_intersect <- st_intersection(UDs_gmu10a) %>%
-    mutate(NewClusters = row.names(.)) %>%
-    dplyr::select(c(Clusters, NewClusters)) 
-  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a_intersect), zcol = "Clusters")
-  
   #'  Create unique & non-overlapping cluster polygons through unions
   #'  Rules for joining intersected polygons:
   #'    1) If there is a mix of cams from different clusters in intersection,  
@@ -285,9 +266,21 @@
   #'    Cluster 4 cams than Cluster 9 cams in intersection NewCluster 4.3) 
   #'    2) If intersection is empty of cameras, assign to cluster polygon with 
   #'    cameras closest to the edge of the intersection
+  #'  Turn off spherical geometry (st_union doesn't work with globe type geometry like an S2 object)
+  sf::sf_use_s2(FALSE)
   
   ######  GMU1 Cluster Polygons  ######
   #'  ---------------------------
+  #'  Drop UDs where all points are also contained within other UDs
+  UDs_gmu1 <- UDs_gmu1 %>% filter(Clusters != 2)
+  mapview::mapview(list(clusters_gmu1, UDs_gmu1), zcol = "Clusters")
+  
+  #'  Intersect overlapping UDs
+  UDs_gmu1_intersect <- st_intersection(UDs_gmu1) %>%
+    mutate(NewClusters = row.names(.)) %>%
+    dplyr::select(c(Clusters, NewClusters)) 
+  mapview::mapview(list(clusters_gmu1, UDs_gmu1_intersect), zcol = "Clusters")
+  
   #'  Snag individual cluster polygons that are stand alone
   ud_gmu1_c1 <- filter(UDs_gmu1, Clusters == 1)
   ud_gmu1_c8 <- filter(UDs_gmu1, Clusters == 8)
@@ -310,9 +303,6 @@
   ud_gmu1_c7 <- filter(UDs_gmu1_intersect, NewClusters == 7)
   ud_gmu1_c9 <- filter(UDs_gmu1_intersect, NewClusters == 9)
   
-  #'  Turn off spherical geometry (st_union doesn't work with globe type geometry like an S2 object)
-  sf::sf_use_s2(FALSE)
-  
   #'  Union between NewClusters 4, 4.3, and 3.1
   ud_gmu1_c4 <- st_union(ud_gmu1_c4, ud_gmu1_c3.1) %>% st_union(ud_gmu1_c4.3) %>% dplyr::select(c(Clusters, NewClusters))
   #'  Union between NewClusters 4.1 and 6
@@ -322,37 +312,206 @@
   
   #'  Spatial data frame of new cluster polygons
   UDs_gmu1_poly <- bind_rows(ud_gmu1_c1, ud_gmu1_c3, ud_gmu1_c4, ud_gmu1_c5, ud_gmu1_c6, ud_gmu1_c7, ud_gmu1_c8, ud_gmu1_c9) %>%
-    dplyr::select(-NewClusters)
+    dplyr::select(-c(NewClusters, area))
   mapview::mapview(list(clusters_gmu1, UDs_gmu1_poly), zcol = "Clusters")
+  
+  #'  Remove large waterbodies from to GMU1 UDs
+  UDs_gmu1_poly_nowater <- st_difference(UDs_gmu1_poly, st_union(bigwater_wgs84))
+  # ggplot() + geom_sf(data = UDs_gmu1_poly_nowater[UDs_gmu1_poly_nowater$Clusters == 6,])
+  mapview(list(clusters_gmu1, UDs_gmu1_poly_nowater), zcol = "Clusters")   
+
+  #'  Calculate area (km^2) for each cluster polygon
+  gmu1_poly_area <- st_area(UDs_gmu1_poly_nowater) %>% set_units(., km^2) %>% drop_units(.) %>% as.data.frame()
+  names(gmu1_poly_area) <- "area_km2"
+  UDs_gmu1_poly_nowater <- bind_cols(UDs_gmu1_poly_nowater, gmu1_poly_area) 
+  mean(UDs_gmu1_poly_nowater$area_km2)
   
   ######  GMU6 Cluster Polygons  ######
   #'  ---------------------------
+  #'  Intersect overlapping UDs
+  UDs_gmu6_intersect <- st_intersection(UDs_gmu6) %>%
+    mutate(NewClusters = row.names(.)) %>%
+    dplyr::select(c(Clusters, NewClusters)) 
+  mapviewOptions(fgb = TRUE)
+  mapview::mapview(list(clusters_gmu6, UDs_gmu6_intersect), zcol = "Clusters")
   
+  #'  Snag individual cluster polygon that's not changing
+  #'  Other 3 cluster polygons overlap portions of polygon 3 but cluster 3 is most 
+  #'  distinct from other clusters so want to retain the original polygon
+  ud_gmu6_c3 <- filter(UDs_gmu6, Clusters == 3)
   
+  #'  Create individual polygons remaining portions of other cluster polygons
+  ud_gmu6_c1 <- filter(UDs_gmu6_intersect, NewClusters == 1)
+  ud_gmu6_c1.2 <- filter(UDs_gmu6_intersect, NewClusters == 1.2)
+  ud_gmu6_c2 <- filter(UDs_gmu6_intersect, NewClusters == 2)
+  ud_gmu6_c2.3 <- filter(UDs_gmu6_intersect, NewClusters == 2.3)
+  ud_gmu6_c4 <- filter(UDs_gmu6_intersect, NewClusters == 4)
+  
+  #'  Union between NewClusters 4, 1.2, and 2.3
+  ud_gmu6_c4 <- st_union(ud_gmu6_c4, ud_gmu6_c1.2) %>% st_union(ud_gmu6_c2.3) %>% dplyr::select(c(Clusters, NewClusters))
+  
+  #'  Spatial data frame of new cluster polygons
+  UDs_gmu6_poly <- bind_rows(ud_gmu6_c1, ud_gmu6_c2, ud_gmu6_c3, ud_gmu6_c4) %>%
+    dplyr::select(-c(NewClusters, area))
+  mapview::mapview(list(clusters_gmu6, UDs_gmu6_poly), zcol = "Clusters")
+  
+  #'  Calculate area (km^2) for each cluster polygon
+  gmu6_poly_area <- st_area(UDs_gmu6_poly) %>% set_units(., km^2) %>% drop_units(.) %>% as.data.frame()
+  names(gmu6_poly_area) <- "area_km2"
+  UDs_gmu6_poly <- bind_cols(UDs_gmu6_poly, gmu6_poly_area)
+  mean(UDs_gmu6_poly$area_km2)
+  
+  ######  GMU10A Cluster Polygons  ######
+  #'  -----------------------------
+  #'  Drop UDs where all points are also contained within other UDs
+  UDs_gmu10a <- UDs_gmu10a %>% filter(Clusters != 5)
+  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a), zcol = "Clusters")
+  
+  #'  Intersect overlapping UDs
+  UDs_gmu10a_intersect <- st_intersection(UDs_gmu10a) %>%
+    mutate(NewClusters = row.names(.)) %>%
+    dplyr::select(c(Clusters, NewClusters)) 
+  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a_intersect), zcol = "Clusters")
+  
+  #'  Snag individual cluster polygons that are stand alone
+  ud_gmu10a_c4 <- filter(UDs_gmu10a, Clusters == 4)
+  ud_gmu10a_c6 <- filter(UDs_gmu10a, Clusters == 6)
+  
+  #'  Create individual polygons for places where two cluster polygons intersect
+  ud_gmu10a_c1 <- filter(UDs_gmu10a_intersect, NewClusters == 1)
+  ud_gmu10a_c1.1 <- filter(UDs_gmu10a_intersect, NewClusters == 1.1)
+  ud_gmu10a_c1.2 <- filter(UDs_gmu10a_intersect, NewClusters == 1.2)
+  ud_gmu10a_c2 <- filter(UDs_gmu10a_intersect, NewClusters == 2)
+  ud_gmu10a_c2.2 <- filter(UDs_gmu10a_intersect, NewClusters == 2.2)
+  ud_gmu10a_c3 <- filter(UDs_gmu10a_intersect, NewClusters == 3)
+  ud_gmu10a_c7 <- filter(UDs_gmu10a_intersect, NewClusters == 7)
+  
+  #'  Union between NewClusters 2 and 1.1
+  ud_gmu10a_c2 <- st_union(ud_gmu10a_c2, ud_gmu10a_c1.1) %>% dplyr::select(c(Clusters, NewClusters))
+  #'  Union between NewClusters 3 and 1.2
+  ud_gmu10a_c3 <- st_union(ud_gmu10a_c3, ud_gmu10a_c1.2) %>% dplyr::select(c(Clusters, NewClusters))
+  #'  Union between NewClusters 7 and 2.2
+  ud_gmu10a_c7 <- st_union(ud_gmu10a_c7, ud_gmu10a_c2.2) %>% dplyr::select(c(Clusters, NewClusters))
+  
+  #'  Spatial data frame of new cluster polygons
+  UDs_gmu10a_poly <- bind_rows(ud_gmu10a_c1, ud_gmu10a_c2, ud_gmu10a_c3, ud_gmu10a_c4, ud_gmu10a_c6, ud_gmu10a_c7) %>%
+    dplyr::select(-c(NewClusters, area))
+  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a_poly), zcol = "Clusters")
+  
+  #'  Remove large waterbodies from to GMU10A UDs
+  UDs_gmu10a_poly_nowater <- st_difference(UDs_gmu10a_poly, st_union(bigwater_wgs84))
+  mapview(list(clusters_gmu10a, UDs_gmu10a_poly_nowater), zcol = "Clusters")   
+  
+  #'  Calculate area (km^2) for each cluster polygon
+  gmu10a_poly_area <- st_area(UDs_gmu10a_poly_nowater) %>% set_units(., km^2) %>% drop_units(.) %>% as.data.frame()
+  names(gmu10a_poly_area) <- "area_km2"
+  UDs_gmu10a_poly_nowater <- bind_cols(UDs_gmu10a_poly_nowater, gmu10a_poly_area) 
+  mean(UDs_gmu10a_poly_nowater$area_km2)
+  
+  #'  ------------------------------------------------------
+  ####  Relabel camera clusters based on adjusted polygons  ####
+  #'  ------------------------------------------------------
+  cam_clusters_gmu1 <- st_intersection(clusters_gmu1, UDs_gmu1_poly) %>%
+    dplyr::select(-c(Clusters, Clusters_adjacency)) %>%
+    rename("Clusters" = "Clusters.1") 
+  mapview::mapview(list(cam_clusters_gmu1, UDs_gmu1_poly), zcol = "Clusters")
+  
+  cam_clusters_gmu6 <- st_intersection(clusters_gmu6, UDs_gmu6_poly) %>%
+    dplyr::select(-c(Clusters, Clusters_adjacency)) %>%
+    rename("Clusters" = "Clusters.1")
+  #'  Need to add one site back into Cluster 2 - falls just outside of polygon during intersection
+  cluster2_area <- unique(cam_clusters_gmu6$area_km2[cam_clusters_gmu6$Clusters == 2])
+  GMU6_U_125 <- filter(clusters_gmu6, NwLctID == "GMU6_U_125") %>%
+    dplyr::select(-Clusters_adjacency) %>%
+    mutate(Clusters = as.character(Clusters),
+           area_km2 = cluster2_area) %>%
+    relocate(area_km2, .after = Clusters)
+  cam_clusters_gmu6 <- bind_rows(cam_clusters_gmu6, GMU6_U_125)
+  mapview::mapview(list(cam_clusters_gmu6, UDs_gmu6_poly), zcol = "Clusters")
+  
+  cam_clusters_gmu10a <- st_intersection(clusters_gmu10a, UDs_gmu10a_poly) %>%
+    dplyr::select(-c(Clusters, Clusters_adjacency)) %>%
+    rename("Clusters" = "Clusters.1") 
+  mapview::mapview(list(cam_clusters_gmu10a, UDs_gmu10a_poly), zcol = "Clusters")
   
   #'  Back to allowing spherical geometry
   sf::sf_use_s2(TRUE)
   
+  #'  Visualize with ggplot and save
+  clusters_gmu1 <- clusters_gmu1 %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
+  clusters_gmu6 <- clusters_gmu6 %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
+  clusters_gmu10a <- clusters_gmu10a %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
+  gmu1_clusters_og <- ggplot() +
+    geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,], fill = NA) +
+    geom_sf(data = UDs_gmu1, aes(fill = Clusters), alpha = 0.2) +
+    geom_sf(data = clusters_gmu1, aes(col = Clusters, fill = Clusters), 
+            shape  = 21, size = 2.5) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    ggtitle("GMU1 Camera clusters, original")
+  gmu1_clusters_final <- ggplot() +
+    geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,], fill = NA) +
+    geom_sf(data = UDs_gmu1_poly, aes(fill = Clusters), alpha = 0.2) +
+    geom_sf(data = cam_clusters_gmu1, aes(col = Clusters, fill = Clusters), 
+            shape  = 21, size = 2.5) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    ggtitle("GMU1 Camera clusters, final")
+  
+  gmu6_clusters_og <- ggplot() +
+    geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
+    geom_sf(data = UDs_gmu6, aes(fill = Clusters), alpha = 0.2) +
+    geom_sf(data = clusters_gmu6, aes(col = Clusters, fill = Clusters), 
+            shape  = 21, size = 2.5) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    ggtitle("GMU6 Camera clusters, original")
+  gmu6_clusters_final <- ggplot() +
+    geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
+    geom_sf(data = UDs_gmu6_poly, aes(fill = Clusters), alpha = 0.2) +
+    geom_sf(data = cam_clusters_gmu6, aes(col = Clusters, fill = Clusters), 
+            shape  = 21, size = 2.5) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    ggtitle("GMU6 Camera clusters, final")
+  
+  gmu10a_clusters_og <- ggplot() +
+    geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
+    geom_sf(data = UDs_gmu10a, aes(fill = Clusters), alpha = 0.2) +
+    geom_sf(data = clusters_gmu10a, aes(col = Clusters, fill = Clusters), 
+            shape  = 21, size = 2.5) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    ggtitle("GMU10A Camera clusters, original")
+  gmu10a_clusters_final <- ggplot() +
+    geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
+    geom_sf(data = UDs_gmu10a_poly, aes(fill = Clusters), alpha = 0.2) +
+    geom_sf(data = cam_clusters_gmu10a, aes(col = Clusters, fill = Clusters), 
+            shape  = 21, size = 2.5) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    ggtitle("GMU10A Camera clusters, final")
+  
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU1_clusters_og.tiff", gmu1_clusters_og,
+         units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU1_clusters_final.tiff", gmu1_clusters_final,
+         units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU6_clusters_og.tiff", gmu6_clusters_og,
+         units = "in", width = 6, height = 5, dpi = 300, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU6_clusters_final.tiff", gmu6_clusters_final,
+         units = "in", width = 6, height = 5, dpi = 300, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU10A_clusters_og.tiff", gmu10a_clusters_og,
+         units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU10A_clusters_final.tiff", gmu10a_clusters_final,
+         units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
   
   
-  
-  
-  
-  
-  #'  Crop out large waterbodies from UDs (don't want that area included when calculating density)
-  #'  Crop out Canada from border UDs??
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  #  Buffered MCPs around each cluster (non-overlapping buffered MCPs)
   #  Calculate density per species per year per cluster
   #  SEM your heart out
   
