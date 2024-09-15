@@ -411,7 +411,8 @@
   #'  ------------------------------------------------------
   ####  Relabel camera clusters based on adjusted polygons  ####
   #'  ------------------------------------------------------
-  cam_clusters_gmu1 <- st_intersection(clusters_gmu1, UDs_gmu1_poly) %>%
+  mapviewOptions(fgb = FALSE)
+  cam_clusters_gmu1 <- st_intersection(clusters_gmu1, UDs_gmu1_poly_nowater) %>%
     dplyr::select(-c(Clusters, Clusters_adjacency)) %>%
     rename("Clusters" = "Clusters.1") 
   mapview::mapview(list(cam_clusters_gmu1, UDs_gmu1_poly), zcol = "Clusters")
@@ -429,10 +430,36 @@
   cam_clusters_gmu6 <- bind_rows(cam_clusters_gmu6, GMU6_U_125)
   mapview::mapview(list(cam_clusters_gmu6, UDs_gmu6_poly), zcol = "Clusters")
   
-  cam_clusters_gmu10a <- st_intersection(clusters_gmu10a, UDs_gmu10a_poly) %>%
+  cam_clusters_gmu10a <- st_intersection(clusters_gmu10a, UDs_gmu10a_poly_nowater) %>%
     dplyr::select(-c(Clusters, Clusters_adjacency)) %>%
     rename("Clusters" = "Clusters.1") 
   mapview::mapview(list(cam_clusters_gmu10a, UDs_gmu10a_poly), zcol = "Clusters")
+  
+  #'  -----------------------------------------------------------
+  ####  Calculate Relative Density Index for wolves per cluster  ####
+  #'  -----------------------------------------------------------
+  #  Calculate density per species per year per cluster
+  wolf_density_gmu1 <- cam_clusters_gmu1 %>%
+    group_by(Clusters) %>%
+    reframe(nWolf = sum(RN_n),
+            `Wolf density` = nWolf/area_km2) %>%
+    unique() %>%
+    full_join(UDs_gmu1_poly_nowater, by = "Clusters") %>%
+    st_as_sf()
+  wolf_density_gmu6 <- cam_clusters_gmu6 %>%
+    group_by(Clusters) %>%
+    reframe(nWolf = sum(RN_n),
+            `Wolf density` = nWolf/area_km2) %>%
+    unique() %>%
+    full_join(UDs_gmu6_poly, by = "Clusters") %>%
+    st_as_sf()
+  wolf_density_gmu10a <- cam_clusters_gmu10a %>%
+    group_by(Clusters) %>%
+    reframe(nWolf = sum(RN_n),
+            `Wolf density` = nWolf/area_km2) %>%
+    unique() %>%
+    full_join(UDs_gmu10a_poly_nowater, by = "Clusters") %>%
+    st_as_sf()
   
   #'  Back to allowing spherical geometry
   sf::sf_use_s2(TRUE)
@@ -459,6 +486,13 @@
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("GMU1 Camera clusters, final")
+  gmu1_wolf_density <- ggplot() +
+    geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,], fill = NA) +
+    geom_sf(data = wolf_density_gmu1, aes(fill = `Wolf density`), alpha = 0.2) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    ggtitle("GMU1 relative wolf density index")
   
   gmu6_clusters_og <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
@@ -478,6 +512,13 @@
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("GMU6 Camera clusters, final")
+  gmu6_wolf_density <- ggplot() +
+    geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
+    geom_sf(data = wolf_density_gmu6, aes(fill = `Wolf density`), alpha = 0.2) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    ggtitle("GMU6 relative wolf density index")
   
   gmu10a_clusters_og <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
@@ -497,22 +538,35 @@
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("GMU10A Camera clusters, final")
+  gmu10a_wolf_density <- ggplot() +
+    geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
+    geom_sf(data = wolf_density_gmu10a, aes(fill = `Wolf density`), alpha = 0.2) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+    ggtitle("GMU10A relative wolf density index")
   
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU1_clusters_og.tiff", gmu1_clusters_og,
          units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU1_clusters_final.tiff", gmu1_clusters_final,
          units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU1_wolf_density.tiff", gmu1_wolf_density,
+         units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU6_clusters_og.tiff", gmu6_clusters_og,
          units = "in", width = 6, height = 5, dpi = 300, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU6_clusters_final.tiff", gmu6_clusters_final,
          units = "in", width = 6, height = 5, dpi = 300, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU6_wolf_density.tiff", gmu6_wolf_density,
+         units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU10A_clusters_og.tiff", gmu10a_clusters_og,
          units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU10A_clusters_final.tiff", gmu10a_clusters_final,
          units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU10A_wolf_density.tiff", gmu10a_wolf_density,
+         units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
   
   
-  #  Calculate density per species per year per cluster
+  
   #  SEM your heart out
   
   
