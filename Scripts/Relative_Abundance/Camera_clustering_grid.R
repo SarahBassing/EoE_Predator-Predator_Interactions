@@ -20,7 +20,7 @@
   library(tidyverse)
   library(ClustGeo)
   library(units)
-  library(mapview); mapviewOptions(fgb = FALSE)
+  library(mapview)#; mapviewOptions(fgb = FALSE)
   library(adehabitatHR)
   library(lwgeom)
   
