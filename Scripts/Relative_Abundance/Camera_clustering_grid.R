@@ -41,8 +41,9 @@
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
   id_wgs84 <- st_read("./Shapefiles/tl_2012_us_state/IdahoState.shp") %>%
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
-  id_waterbodies <- st_read("./Shapefiles/National Hydrology Database Idaho State/Shape/NHDWaterbody.shp") 
-  bigwater <- id_waterbodies[id_waterbodies$areasqkm > 1,]
+  # id_waterbodies <- st_read("./Shapefiles/National Hydrology Database Idaho State/Shape/NHDWaterbody.shp") 
+  # bigwater <- id_waterbodies[id_waterbodies$areasqkm > 1,]
+  bigwater <- st_read("./Shapefiles/National Hydrology Database Idaho State/Idaho_waterbodies_1km2.shp")
   bigwater_wgs84 <- st_transform(bigwater, crs = "+proj=longlat +datum=WGS84 +no_defs") %>%
     filter(gnis_name == "Priest Lake" | gnis_name == "Upper Priest Lake" | 
              gnis_name == "Lake Pend Oreille" | gnis_name == "Cabinet Gorge Reservoir" |
@@ -411,7 +412,7 @@
   #'  ------------------------------------------------------
   ####  Relabel camera clusters based on adjusted polygons  ####
   #'  ------------------------------------------------------
-  mapviewOptions(fgb = FALSE)
+  # mapviewOptions(fgb = FALSE)
   cam_clusters_gmu1 <- st_intersection(clusters_gmu1, UDs_gmu1_poly_nowater) %>%
     dplyr::select(-c(Clusters, Clusters_adjacency)) %>%
     rename("Clusters" = "Clusters.1") 
@@ -486,13 +487,13 @@
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("GMU1 Camera clusters, final")
-  gmu1_wolf_density <- ggplot() +
+  (gmu1_wolf_density <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,], fill = NA) +
     geom_sf(data = wolf_density_gmu1, aes(fill = `Wolf density`), alpha = 0.2) +
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU1 relative wolf density index (wolves/km^2)")
+    ggtitle("GMU1 relative wolf density index (wolves/km^2)"))
   
   gmu6_clusters_og <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
@@ -512,13 +513,13 @@
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("GMU6 Camera clusters, final")
-  gmu6_wolf_density <- ggplot() +
+  (gmu6_wolf_density <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
     geom_sf(data = wolf_density_gmu6, aes(fill = `Wolf density`), alpha = 0.2) +
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU6 relative wolf density index (wolves/km^2)")
+    ggtitle("GMU6 relative wolf density index (wolves/km^2)"))
   
   gmu10a_clusters_og <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
@@ -538,13 +539,13 @@
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("GMU10A Camera clusters, final")
-  gmu10a_wolf_density <- ggplot() +
+  (gmu10a_wolf_density <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
     geom_sf(data = wolf_density_gmu10a, aes(fill = `Wolf density`), alpha = 0.2) +
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU10A relative wolf density index (wolves/km^2)")
+    ggtitle("GMU10A relative wolf density index (wolves/km^2)"))
   
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/GMU1_clusters_og.tiff", gmu1_clusters_og,
          units = "in", width = 5, height = 6, dpi = 300, device = "tiff", compression = "lzw")
