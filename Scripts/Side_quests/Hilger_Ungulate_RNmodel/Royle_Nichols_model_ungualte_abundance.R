@@ -496,7 +496,7 @@
                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                              n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_meanHQ$summary)
+  print(RN_elk_july_meanHQ$summary[1:15,])
   print(RN_elk_july_meanHQ$DIC)
   save(RN_elk_july_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_meanHQ_", Sys.Date(), ".RData"))
   
@@ -508,7 +508,7 @@
                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_maxHQ$summary)
+  print(RN_elk_july_maxHQ$summary[1:15,])
   print(RN_elk_july_maxHQ$DIC)
   save(RN_elk_july_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_maxHQ_", Sys.Date(), ".RData"))
   
@@ -520,7 +520,7 @@
                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_meanTbio$summary)
+  print(RN_elk_july_meanTbio$summary[1:15,])
   print(RN_elk_july_meanTbio$DIC)
   save(RN_elk_july_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_meanTbio_", Sys.Date(), ".RData"))
   
@@ -532,7 +532,7 @@
                                n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_maxTbio$summary)
+  print(RN_elk_july_maxTbio$summary[1:15,])
   print(RN_elk_july_maxTbio$DIC)
   save(RN_elk_july_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_maxTbio_", Sys.Date(), ".RData"))
   
@@ -544,7 +544,7 @@
                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                              n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_selected$summary)
+  print(RN_elk_july_selected$summary[1:15,])
   print(RN_elk_july_selected$DIC)
   save(RN_elk_july_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_selected_", Sys.Date(), ".RData"))
   
@@ -556,7 +556,7 @@
                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_predicted$summary)
+  print(RN_elk_july_predicted$summary[1:15,])
   print(RN_elk_july_predicted$DIC)
   save(RN_elk_july_predicted, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_predicted_", Sys.Date(), ".RData"))
   
@@ -637,7 +637,7 @@
                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                              n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_aug_meanHQ$summary)
+  print(RN_elk_aug_meanHQ$summary[1:15,])
   print(RN_elk_aug_meanHQ$DIC)
   save(RN_elk_aug_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_meanHQ_", Sys.Date(), ".RData"))
   
@@ -649,7 +649,7 @@
                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_aug_maxHQ$summary)
+  print(RN_elk_aug_maxHQ$summary[1:15,])
   print(RN_elk_aug_maxHQ$DIC)
   save(RN_elk_aug_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_maxHQ_", Sys.Date(), ".RData"))
   
@@ -661,7 +661,7 @@
                                n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_aug_meanTbio$summary)
+  print(RN_elk_aug_meanTbio$summary[1:15,])
   print(RN_elk_aug_meanTbio$DIC)
   save(RN_elk_aug_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_meanTbio_", Sys.Date(), ".RData"))
   
@@ -673,7 +673,7 @@
                               n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                               n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_aug_maxTbio$summary)
+  print(RN_elk_aug_maxTbio$summary[1:15,])
   print(RN_elk_aug_maxTbio$DIC)
   save(RN_elk_aug_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_maxTbio_", Sys.Date(), ".RData"))
   
@@ -685,7 +685,7 @@
                                n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_aug_selected$summary)
+  print(RN_elk_aug_selected$summary[1:15,])
   print(RN_elk_aug_selected$DIC)
   save(RN_elk_aug_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_selected_", Sys.Date(), ".RData"))
   
@@ -778,7 +778,7 @@
                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                              n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_july_meanHQ$summary)
+  print(RN_wtd_july_meanHQ$summary[1:15,])
   print(RN_wtd_july_meanHQ$DIC)
   save(RN_wtd_july_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_meanHQ_", Sys.Date(), ".RData"))
   
@@ -790,7 +790,7 @@
                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_july_maxHQ$summary)
+  print(RN_wtd_july_maxHQ$summary[1:15,])
   print(RN_wtd_july_maxHQ$DIC)
   save(RN_wtd_july_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_maxHQ_", Sys.Date(), ".RData"))
   
@@ -802,7 +802,7 @@
                                n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_july_meanTbio$summary)
+  print(RN_wtd_july_meanTbio$summary[1:15,])
   print(RN_wtd_july_meanTbio$DIC)
   save(RN_wtd_july_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_meanTbio_", Sys.Date(), ".RData"))
   
@@ -814,7 +814,7 @@
                               n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                               n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_july_maxTbio$summary)
+  print(RN_wtd_july_maxTbio$summary[1:15,])
   print(RN_wtd_july_maxTbio$DIC)
   save(RN_wtd_july_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_maxTbio_", Sys.Date(), ".RData"))
   
@@ -826,7 +826,7 @@
                                n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_july_selected$summary)
+  print(RN_wtd_july_selected$summary[1:15,])
   print(RN_wtd_july_selected$DIC)
   save(RN_wtd_july_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_selected_", Sys.Date(), ".RData"))
   
@@ -838,7 +838,7 @@
                                 n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                 n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_july_predicted$summary)
+  print(RN_wtd_july_predicted$summary[1:15,])
   print(RN_wtd_july_predicted$DIC)
   save(RN_wtd_july_predicted, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_predicted_", Sys.Date(), ".RData"))
   
@@ -932,7 +932,7 @@
                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                              n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_aug_meanHQ$summary)
+  print(RN_wtd_aug_meanHQ$summary[1:15,])
   print(RN_wtd_aug_meanHQ$DIC)
   save(RN_wtd_aug_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_meanHQ_", Sys.Date(), ".RData"))
   
@@ -944,7 +944,7 @@
                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_aug_maxHQ$summary)
+  print(RN_wtd_aug_maxHQ$summary[1:15,])
   print(RN_wtd_aug_maxHQ$DIC)
   save(RN_wtd_aug_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_maxHQ_", Sys.Date(), ".RData"))
   
@@ -956,7 +956,7 @@
                                n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_aug_meanTbio$summary)
+  print(RN_wtd_aug_meanTbio$summary[1:15,])
   print(RN_wtd_aug_meanTbio$DIC)
   save(RN_wtd_aug_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_meanTbio_", Sys.Date(), ".RData"))
   
@@ -968,7 +968,7 @@
                               n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                               n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_aug_maxTbio$summary)
+  print(RN_wtd_aug_maxTbio$summary[1:15,])
   print(RN_wtd_aug_maxTbio$DIC)
   save(RN_wtd_aug_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_maxTbio_", Sys.Date(), ".RData"))
   
@@ -980,7 +980,7 @@
                                n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_aug_selected$summary)
+  print(RN_wtd_aug_selected$summary[1:15,])
   print(RN_wtd_aug_selected$DIC)
   save(RN_wtd_aug_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_selected_", Sys.Date(), ".RData"))
   
@@ -992,7 +992,7 @@
                                 n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                 n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_aug_predicted$summary)
+  print(RN_wtd_aug_predicted$summary[1:15,])
   print(RN_wtd_aug_predicted$DIC)
   save(RN_wtd_aug_predicted, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_predicted_", Sys.Date(), ".RData"))
   
