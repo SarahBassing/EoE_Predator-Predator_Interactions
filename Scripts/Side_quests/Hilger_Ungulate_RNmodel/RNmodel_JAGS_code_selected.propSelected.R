@@ -21,7 +21,7 @@
   #'  site i during occasion j, and the number of individuals at site i, N[i].
   #'  -------------------------------
   
-  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod4.txt', "
+  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_selected.propSelected.txt', "
       model{
           
         #'  Define priors

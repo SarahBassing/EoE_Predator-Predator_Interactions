@@ -21,7 +21,7 @@
   #'  site i during occasion j, and the number of individuals at site i, N[i].
   #'  -------------------------------
   
-  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_mod1.txt', "
+  cat(file = './Outputs/Hilger_RNmodel/RNmodel_JAGS_code_wtd_july_global.txt', "
       model{
           
         #'  Define priors
@@ -36,6 +36,13 @@
           b.year[yr] ~ dnorm(0, 0.001)
         }
           
+        #'  Continuous effects for HQ biomass, total biomass, and community composition
+        b.meanHQ ~ dnorm(0, 0.001)
+        b.cvHQ ~ dnorm(0, 0.001)
+        b.meanTbio ~ dnorm(0, 0.001)
+        b.selected ~ dnorm(0, 0.001)
+        b.prop.selected ~ dnorm(0, 0.001)
+          
         #'  Detection priors
         mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
         alpha0 <- logit(mean.r)     # Detection intercept (on logit scale)
@@ -46,13 +53,15 @@
           a.setup[cam] ~ dnorm(0, 0.001)
         }
           
-
+          
         #'  Define likelihood
         #'  -----------------
         #'  Latent state (abundance)
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + b.year[year[i]]) 
+          lambda[i] <- exp(beta0 + b.year[year[i]] + b.meanHQ*mean_HQ[i] + b.cvHQ*cv_HQ[i] + 
+                           b.meanTbio*mean_Tbio[i] + b.selected*total_selected[i] + 
+                           b.prop.selected*prop_selected[i])
             
           #'  Detection state
           for(j in 1:nsurveys){
@@ -68,7 +77,7 @@
         for(yr in 1:nyear) {
           lambdaYr[yr] <- exp(beta0 + b.year[yr])
         }
-  
+     
         #'  Mean per-individual detection probability (r) per camera setup
         for(cam in 1:nsets) {
           rSetup[cam] <- 1/(1 + exp(-(alpha0 + a.setup[cam])))
@@ -82,5 +91,5 @@
         }
         mean.p <- mean(p.occasion[])
           
-      }
-      ")
+    }
+    ")
