@@ -621,7 +621,7 @@
   mcmcplot(RN_elk_july_Tbio_mean.cv$samples)
   save(RN_elk_july_Tbio_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_Tbio_mean.cv_", Sys.Date(), ".RData"))
   
-  #'  Max & CV   (DIC = 24629.42)
+  #'  Max & CV   (DIC = 24519.28)
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_Tbio_max.cv <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -636,7 +636,7 @@
   save(RN_elk_july_Tbio_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_Tbio_max.cv_", Sys.Date(), ".RData"))
   
   ######  Community Composition  ######
-  #'  Selected & Proportion Selected  (DIC = 24444.04)
+  #'  Selected & Proportion Selected  (DIC = 24561.73)
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_selected.propSelected <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -650,7 +650,7 @@
   mcmcplot(RN_elk_july_selected.propSelected$samples)
   save(RN_elk_july_selected.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_selected.propSelected_", Sys.Date(), ".RData"))
   
-  #'  Predicted & Proportion Selected  (DIC = 24431.45)
+  #'  Predicted & Proportion Selected  (DIC = 24532.68)
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_predicted.propSelected <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -666,7 +666,7 @@
   
   ######  GLOBAL  ######
   #'  Using only most supported non-correlated covariates
-  #'  Global: Max HQ, cv HQ, Mean Tbio, cv Tbio, Predicted, PropSelected
+  #'  Global: Max HQ, cv HQ, Max Tbio, cv Tbio, Predicted, PropSelected
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_global <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -769,7 +769,7 @@
   save(RN_elk_aug_null, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_null_", Sys.Date(), ".RData"))
   
   ######  High Quality Biomass  ######
-  #'  Mean & CV   (DIC = 23770.1)
+  #'  Mean & CV   (DIC = 23686.27)
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_HQ_mean.cv <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -783,7 +783,7 @@
   mcmcplot(RN_elk_aug_HQ_mean.cv$samples)
   save(RN_elk_aug_HQ_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_HQ_mean.cv_", Sys.Date(), ".RData"))
   
-  #'  Max & CV  (DIC = 23682.14)
+  #'  Max & CV  (DIC = 23655.3)
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_HQ_max.cv <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -798,7 +798,7 @@
   save(RN_elk_aug_HQ_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_HQ_max.cv_", Sys.Date(), ".RData"))
   
   ######  Total Biomass  ######
-  #'  Mean & CV   (DIC = 23718.18)
+  #'  Mean & CV   (DIC = 23667.26)
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_Tbio_mean.cv <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -812,7 +812,7 @@
   mcmcplot(RN_elk_aug_Tbio_mean.cv$samples)
   save(RN_elk_aug_Tbio_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_Tbio_mean.cv_", Sys.Date(), ".RData"))
   
-  #'  Max & CV  (DIC = 23642.67)
+  #'  Max & CV  (DIC = 23669.06)
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_Tbio_max.cv <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -827,7 +827,7 @@
   save(RN_elk_aug_Tbio_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_Tbio_max.cv_", Sys.Date(), ".RData"))
   
   ######  Community Composition  ######
-  #'  Selected & Proportion Selected  (DIC = 23604.98)
+  #'  Selected & Proportion Selected  (DIC = 23699.09)
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_selected.propSelected <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -841,7 +841,7 @@
   mcmcplot(RN_elk_aug_selected.propSelected$samples)
   save(RN_elk_aug_selected.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_selected.propSelected_", Sys.Date(), ".RData"))
   
-  #'  Predicted & Proportion Selected  (DIC = 23662.67)
+  #'  Predicted & Proportion Selected  (DIC = 23681.46)
   start.time = Sys.time()  
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_predicted.propSelected <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -857,7 +857,7 @@
   
   ######  GLOBAL  ######
   #'  Using only most supported non-correlated covariates
-  #'  Global: Max HQ, cv HQ, Max Tbio, cv Tbio, Selected, PropSelected
+  #'  Global: Max HQ, cv HQ, Mean Tbio, cv Tbio, predicted, PropSelected
   start.time = Sys.time() 
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
@@ -961,7 +961,7 @@
   save(RN_wtd_july_null, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_null_", Sys.Date(), ".RData"))
   
   ######  High Quality Biomass  ######
-  #'  Mean & CV  (DIC = 40478.03)
+  #'  Mean & CV  (DIC = )
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_HQ_mean.cv <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -975,7 +975,7 @@
   mcmcplot(RN_wtd_july_HQ_mean.cv$samples)
   save(RN_wtd_july_HQ_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_HQ_mean.cv_", Sys.Date(), ".RData"))
   
-  #'  Max & CV  (DIC = 40551.11)
+  #'  Max & CV  (DIC = )
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_HQ_max.cv <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -990,7 +990,7 @@
   save(RN_wtd_july_HQ_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_HQ_max.cv_", Sys.Date(), ".RData"))
   
   ######  Total Biomass  ######
-  #'  Mean & CV  (DIC = 40584.25)
+  #'  Mean & CV  (DIC = )
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_Tbio_mean.cv <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1004,7 +1004,7 @@
   mcmcplot(RN_wtd_july_Tbio_mean.cv$samples)
   save(RN_wtd_july_Tbio_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_Tbio_mean.cv_", Sys.Date(), ".RData"))
   
-  #'  Max & CV  (DIC = 40724.56)
+  #'  Max & CV  (DIC = )
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_Tbio_max.cv <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1019,7 +1019,7 @@
   save(RN_wtd_july_Tbio_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_Tbio_max.cv_", Sys.Date(), ".RData"))
   
   ######  Community Composition  ######
-  #'  Selected & Proportion Selected  (DIC = 40585.3)
+  #'  Selected & Proportion Selected  (DIC = )
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_selected.propSelected <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1033,7 +1033,7 @@
   mcmcplot(RN_wtd_july_selected.propSelected$samples)
   save(RN_wtd_july_selected.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_selected.propSelected_", Sys.Date(), ".RData"))
   
-  #'  Predicted & Proportion Selected  (DIC = 40591.17)
+  #'  Predicted & Proportion Selected  (DIC = )
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_predicted.propSelected <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
