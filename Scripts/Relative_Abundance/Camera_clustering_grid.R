@@ -409,7 +409,21 @@
   #'  Create new polygons by joining specific intersections
   ud_gmu1E_c2 <- st_union(ud_gmu1E_c2, ud_gmu1E_c2.1)
   ud_gmu1E_c4 <- st_union(ud_gmu1E_c4, ud_gmu1E_c1.2)
-  ud_gmu1E_c8 <- st_union(ud_gmu1E_c8, ud_gmu1E_c7.1)   ### need to drop disjoint pieces of c7.1 (satellites)
+  ud_gmu1E_c8 <- st_union(ud_gmu1E_c8, ud_gmu1E_c7.1)    ### need to drop disjoint pieces of c7.1 (satellites)
+  ud_gmu1E_c8a <- st_geometry(ud_gmu1E_c8)[[1]][[1]] 
+  
+  tst <- as.data.frame(ud_gmu1E_c8) %>% st_join(ud_gmu1E_c8a)
+  
+  
+  ud_gmu1E_c8a <- as.matrix(ud_gmu1E_c8a) %>% as.data.frame(.) %>%
+    dplyr::mutate(., Clusters = 8)
+  tst <- st_as_sf(ud_gmu1E_c8a, coords = c("V1", "V2"), proj = wgs84)
+  
+  library(nngeo)
+  ud_gmu1E_c8a <- st_cast(ud_gmu1E_c8, "POLYGON") %>% st_difference(.)
+  # ud_gmu1E_c8a <- st_segments(ud_gmu1E_c8)
+  ud_gmu1E_c8a <- lwgeom::st_split(ud_gmu1E_c8a)
+  ud_gmu1E_c8b <- ud_gmu1E_c8a[108,]; mapview::mapview(ud_gmu1E_c8a)
   
     #'  Remove large waterbodies from to GMU1 UDs
   UDs_gmu1E_poly_nowater <- st_difference(UDs_gmu1E_poly, st_union(bigwater_wgs84))
