@@ -56,13 +56,23 @@
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
           lambda[i] <- exp(beta0 + b.year[year[i]] + b.meanHQ*mean_HQ[i])
-            
+          
+          #'  Log-likelihood of N for WAICj
+          log_N[i] <- logdensity.pois(N[i], lambda[i])
+  
           #'  Detection state
           for(j in 1:nsurveys){
             y[i,j] ~ dbern(p[i,j])
             p[i,j] <- 1 - pow((1 - r[i,j]), N[i])
             logit(r[i,j]) <- alpha0 + a.setup[setup[i]]
+          
+            #'  Log likelihood of y for WAICj
+            loglike.waic[i,j] <- logdensity.bin(y[i,j], p[i,j], N[i])
           }
+      
+          #'  Joint log-likelihood of N and y for WAICj
+          loglike.new[i] <- sum(loglike.waic[i,])+log_N[i]
+      
         }
           
         #'  Derived parameters
