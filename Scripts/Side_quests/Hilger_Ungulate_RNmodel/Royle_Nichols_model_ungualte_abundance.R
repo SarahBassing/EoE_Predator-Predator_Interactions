@@ -1348,7 +1348,7 @@
   mcmcplot(RN_wtd_aug_global1$samples)
   save(RN_wtd_aug_global1, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_global.cvHQ_", Sys.Date(), ".RData"))
   
-  #'  (DIC = ; WAICj = )
+  #'  (DIC = 39877.86; WAICj = 1257700)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_global2 <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1358,6 +1358,7 @@
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_aug_global2$summary)
   (RN_wtd_aug_global2_WAICj <- calc.jointlike(RN_wtd_aug_global2))
+  print(RN_wtd_aug_global2$DIC)
   which(RN_wtd_aug_global2$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_global2$samples)
   save(RN_wtd_aug_global2, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_global.cvTbio_", Sys.Date(), ".RData"))
