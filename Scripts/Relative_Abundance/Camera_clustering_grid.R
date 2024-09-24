@@ -48,6 +48,7 @@
              gnis_name == "Lake Pend Oreille" | gnis_name == "Cabinet Gorge Reservoir" |
              gnis_name == "Chatcolet Lake" | gnis_name == "Dworshak Reservoir") %>%
     dplyr::select(gnis_name)
+  #' #'  Extract and generate sf line objects from big rivers
   #' #'  Idaho flowlines (line features)
   #' bigwater_line0 <- st_read("./Shapefiles/National Hydrology Database Idaho State/Shape/NHDFlowline_0.shp") %>%
   #'   st_zm(drop = TRUE, what = "ZM") %>% st_transform("+proj=longlat +datum=WGS84 +no_defs")
@@ -62,9 +63,13 @@
   #' pr <- st_union(pr0, pr1) %>% st_cast(., "MULTILINESTRING")
   #' #'  Join all rivers, convert to a multilinestring, then to a linestring, and drop duplicate sub-geometries so object is a manageable size
   #' priestrivers <- st_union(upr, pr) %>% st_cast(., "MULTILINESTRING") %>% st_cast(priestrivers, "LINESTRING") %>% st_difference(.)
+  # northfork0 <- bigwater_line0 %>% filter(gnis_name == "North Fork Clearwater River") %>% st_cast(., "MULTILINESTRING")
+  # northfork1 <- bigwater_line1 %>% filter(gnis_name == "North Fork Clearwater River") %>% st_cast(., "MULTILINESTRING")
+  # northforkclearwater <- st_union(northfork0, northfork1) %>% st_cast(., "MULTILINESTRING") %>% st_cast(., "LINESTRING") %>% st_difference(.)
   priestrivers <- st_read("./Shapefiles/National Hydrology Database Idaho State/PriestRiver_flowline.shp")
   pendoreille <- st_read("./Shapefiles/National Hydrology Database Idaho State/Pendoreille_flowline.shp")
   kootenairiver <- st_read("./Shapefiles/National Hydrology Database Idaho State/KootenaiRiver_flowline.shp")
+  clearwater <- st_read("./Shapefiles/National Hydrology Database Idaho State/NorthForkClearwater_flowline.shp")
   
   #'  Extend Priest River line so it goes beyond Pend Oreille River (needed for cropping polygons)
   #'  Convert line to points and add row name to data frame
@@ -93,21 +98,45 @@
   longer_priestriver <- rbind(priestrivers_basic, new_line)
   mapview(longer_priestriver)
   
-  #'  Split GMU1 by Upper Priest River and Priest River
+  #'  Extend Kootenai River line so it goes beyond US-Canada border by a smidge
+  #'  Convert line to points and add row name to data frame
+  mapview::mapview(list(eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,], kootenairiver))
+  kr_points <- st_cast(kootenairiver, "MULTIPOINT") %>%
+    mutate(rowID = row.names(.))
+  mapview(kr_points)
+  #'  Identify the last reach on Kootenai and save as series of points 
+  last_reach <-  st_cast(kootenairiver[51,], "MULTIPOINT") %>% st_cast("POINT")
+  #'  Identify the last point of the last reach
+  (last_point <- as.data.frame(st_coordinates(last_reach[8,])))
+  #'  Create new point that extends south
+  X <- -116.5038; Y <- 49.00500
+  new_last_point <- bind_cols(X,Y) %>% as.data.frame(.) 
+  names(new_last_point) <- c("X", "Y")
+  #'  Merge with last point of last reach
+  new_last_point <- rbind(last_point, new_last_point) %>%
+    mutate(gns_n_1 = "Kootenai River")
+  #'  Make df spatial
+  new_last_point_sf <- st_as_sf(new_last_point, coords = c("X", "Y"), crs = "+proj=longlat +datum=WGS84 +no_defs")
+  #'  Convert spatial points into a line
+  new_line <- new_last_point_sf %>% group_by(gns_n_1) %>% dplyr::summarize(do_union = FALSE) %>%  
+    st_cast("LINESTRING") 
+  kootenai_basic <- dplyr::select(kootenairiver, "gns_n_1")
+  #'  Merge with larger Priest River line
+  longer_kootenairiver <- rbind(kootenai_basic, new_line)
+  mapview(longer_kootenairiver)
+  
+  #'  Split GMU1 by Upper Priest River, Priest River, and Kootenai River
   gmu1_priestriver_split <- eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,] %>% lwgeom::st_split(longer_priestriver) %>%
     st_collection_extract("POLYGON")
   #'  Save just the E & W sides of GMU1 as unique polygons
   gmu1_E <- gmu1_priestriver_split[1,]; plot(gmu1_E[1])
   gmu1_W <- gmu1_priestriver_split[2,]; plot(gmu1_W[1])
   mapview::mapview(list(gmu1_E, gmu1_W))
-  
-  
-  #' #'  Split GMU1E by Kootenai River
-  #' gmu1_kootenairiver_split <- gmu1_E %>% lwgeom::st_split(kootenairiver) %>%  ### NOT WORKING
-  #'   st_collection_extract("POLYGON")
-  #' gmu1_NE <- gmu1_kootenairiver_split[1,]; plot(gmu1_NE[1])
-  #' gmu1_C
-  #' mapview::mapview(list(gmu1_kootenairiver_split, kootenairiver))
+  gmu1_kootenairiver_split <- gmu1_E %>% lwgeom::st_split(longer_kootenairiver) %>%  ### NOT WORKING
+    st_collection_extract("POLYGON")
+  gmu1_NE <- gmu1_kootenairiver_split[2,]; plot(gmu1_NE[1])
+  gmu1_C <- gmu1_kootenairiver_split[1,]; plot(gmu1_C[1])
+  mapview::mapview(list(gmu1_W, gmu1_NE, gmu1_C))
   
   #'  Split GMU10A by Dwarshak Reservior
   #'  Grab just Dwarshak polygon and convert to a line feature
@@ -284,6 +313,8 @@
   
   #'  Split camera data based on large waterbodies that act as barriers
   wolf_cams_gmu1_E <- st_intersection(wolf_cams_gmu1, gmu1_E) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
+  wolf_cams_gmu1_NE <- st_intersection(wolf_cams_gmu1, gmu1_NE) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
+  wolf_cams_gmu1_C <- st_intersection(wolf_cams_gmu1, gmu1_C) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
   wolf_cams_gmu1_W <- st_intersection(wolf_cams_gmu1, gmu1_W) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
   wolf_cams_gmu10a_N <- st_intersection(wolf_cams_gmu10a, gmu10a_N) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
   wolf_cams_gmu10a_S <- st_intersection(wolf_cams_gmu10a, gmu10a_S) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
@@ -293,18 +324,14 @@
   #'  and 1 cluster is entirely on W side so allowing for 3 on W side, and up to 8 on E side
   clusters_gmu1E <- ward_like_cluster(wolf_cams_gmu1_E, k = 8, a = 0.8, nndist = 10, a2 = 0.4) # current best: E cams, k = 8, a = 0.8, nndist = 10, a2 = 0.4
   mapview::mapview(clusters_gmu1E, zcol = "Clusters")
+  clusters_gmu1NE <- ward_like_cluster(wolf_cams_gmu1_NE, k = 2, a = 0.9, nndist = 10, a2 = 0.5) # current best: NE cams, k = 2, a = 0.9, nndist = 10, a2 = 0.5
+  mapview::mapview(clusters_gmu1NE, zcol = "Clusters")
+  clusters_gmu1C <- ward_like_cluster(wolf_cams_gmu1_C, k = 7, a = 0.8, nndist = 10, a2 = 0.6) # current best: C cams, k = 7, a = 0.8, nndist = 10, a2 = 0.6
+  mapview::mapview(clusters_gmu1C, zcol = "Clusters")
   clusters_gmu1W <- ward_like_cluster(wolf_cams_gmu1_W, k = 3, a = 0.7, nndist = 10, a2 = 0.3) # current best: W cams, k = 3, a = 0.7, nndist = 10, a2 = 0.3
   mapview::mapview(clusters_gmu1W, zcol = "Clusters")
-  #' clusters_gmu1W <- clusters_gmu1W %>%
-  #'   mutate(Clusters = ifelse(Clusters == 1, 9, Clusters),
-  #'          Clusters = ifelse(Clusters == 2, 10, Clusters),
-  #'          Clusters = ifelse(Clusters == 3, 11, Clusters),
-  #'          Clusters_adjacency = ifelse(Clusters_adjacency == 1, 9, Clusters_adjacency),
-  #'          Clusters_adjacency = ifelse(Clusters_adjacency == 2, 10, Clusters_adjacency),
-  #'          Clusters_adjacency = ifelse(Clusters_adjacency == 3, 11, Clusters_adjacency)) 
-  #' #'  Merge E & W clusters
-  #' clusters_gmu1split <- bind_rows(clusters_gmu1W, clusters_gmu1E)
-  #' mapview::mapview(clusters_gmu1split, zcol = "Clusters")
+  mapview::mapview(list(clusters_gmu1W, clusters_gmu1C, clusters_gmu1NE), zcol = "Clusters")
+  
   
   #'  Rerun clustering for cameras split into GMU10A N & S
   #'  Dworshak Reservior appears to split 2 of the 7 clusters identified in clusters_gmu10a,
@@ -351,6 +378,8 @@
   }
   starter_hulls_gmu1W <- starter_hull(clusters_gmu1W, buff = 3336.067) # buff based on avg. nearest neighbor distance from k-distance plot
   starter_hulls_gmu1E <- starter_hull(clusters_gmu1E, buff = 3336.067)
+  starter_hulls_gmu1NE <- starter_hull(clusters_gmu1NE, buff = 3336.067)
+  starter_hulls_gmu1C <- starter_hull(clusters_gmu1C, buff = 3336.067)
   starter_hulls_gmu6 <- starter_hull(clusters_gmu6, buff = 1157.688) 
   starter_hulls_gmu10aN <- starter_hull(clusters_gmu10aN, buff = 1237.789) 
   starter_hulls_gmu10aS <- starter_hull(clusters_gmu10aS, buff = 1237.789) 
@@ -382,6 +411,8 @@
   }
   UDs_gmu1W <- starter_UDs(clusters_gmu1W) 
   UDs_gmu1E <- starter_UDs(clusters_gmu1E) 
+  UDs_gmu1NE <- starter_UDs(clusters_gmu1NE) 
+  UDs_gmu1C <- starter_UDs(clusters_gmu1C) 
   UDs_gmu6 <- starter_UDs(clusters_gmu6)
   UDs_gmu10aN <- starter_UDs(clusters_gmu10aN) 
   UDs_gmu10aS <- starter_UDs(clusters_gmu10aS) 
@@ -405,8 +436,11 @@
   #'  ---------------------------
   #'  Drop UDs where all points are also contained within other UDs
   UDs_gmu1E <- UDs_gmu1E %>% filter(Clusters != 5)
+  UDs_gmu1C <- UDs_gmu1C %>% filter(Clusters != 5)
   mapview::mapview(list(clusters_gmu1E, UDs_gmu1E), zcol = "Clusters")
-  mapview::mapview(list(clusters_gmu1W, UDs_gmu1W), zcol = "Clusters")
+  mapview::mapview(list(clusters_gmu1NE, UDs_gmu1NE), zcol = "Clusters")
+  mapview::mapview(list(clusters_gmu1C, UDs_gmu1C), zcol = "Clusters")
+  mapview::mapview(list(clusters_gmu1W, UDs_gmu1W), zcol = "Clusters")   ##### LEFT OFF HERE - NEED TO RESHAPE POLYGONS FOR GMU1NE & GMU1C
   
   #'  Intersect overlapping UDs
   UDs_gmu1E_intersect <- st_intersection(UDs_gmu1E) %>%
@@ -516,19 +550,13 @@
   
   #'  Create individual polygons remaining portions of other cluster polygons
   ud_gmu6_c1 <- filter(UDs_gmu6_intersect, NewClusters == 1) %>% st_cast("POLYGON")
-  # ud_gmu6_c1.2 <- filter(UDs_gmu6_intersect, NewClusters == 1.2) %>% st_cast("POLYGON")
-  # ud_gmu6_c1.5 <- filter(UDs_gmu6_intersect, NewClusters == 1.5) %>% st_cast("POLYGON")
   ud_gmu6_c2 <- filter(UDs_gmu6_intersect, NewClusters == 2) %>% st_cast("POLYGON")
-  # ud_gmu6_c2.3 <- filter(UDs_gmu6_intersect, NewClusters == 2.3) %>% st_cast("POLYGON")
   #'  Split amalgamation of Cluster 4 polygons into individual polygons
   ud_gmu6_c4 <- filter(UDs_gmu6_intersect, NewClusters == 4 | NewClusters == 1.2)  %>% 
     st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu6_c4[1:2,])
-  #'  Save individual cluster 8 polygons so they can be joined as needed
+  #'  Join specific polygons from cluster 4
   ud_gmu6_c4 <- st_union(ud_gmu6_c4[2,], ud_gmu6_c4[1,]) %>% st_cast("POLYGON"); mapview(ud_gmu6_c4)
 
-  #' #'  Union between NewClusters 4, 1.2, and 2.3
-  #' ud_gmu6_c4 <- st_union(ud_gmu6_c4, ud_gmu6_c1.2) %>% st_cast("POLYGON") %>% dplyr::select(c(Clusters, NewClusters))
-  
   #'  Spatial data frame of new cluster polygons
   UDs_gmu6_poly <- bind_rows(ud_gmu6_c1, ud_gmu6_c2, ud_gmu6_c3, ud_gmu6_c4) %>%
     dplyr::select(-c(NewClusters, Clusters.1, NewClusters.1, area))
@@ -542,44 +570,72 @@
   
   ######  GMU10A Cluster Polygons  ######
   #'  -----------------------------
-  #'  Drop UDs where all points are also contained within other UDs
-  UDs_gmu10a <- UDs_gmu10a %>% filter(Clusters != 5)
-  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a), zcol = "Clusters")
-  
+  mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN), zcol = "Clusters")
+  mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS), zcol = "Clusters")
+    
   #'  Intersect overlapping UDs
-  UDs_gmu10a_intersect <- st_intersection(UDs_gmu10a) %>%
+  UDs_gmu10aN_intersect <- st_intersection(UDs_gmu10aN) %>%
     mutate(NewClusters = row.names(.)) %>%
     dplyr::select(c(Clusters, NewClusters)) 
-  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a_intersect), zcol = "Clusters")
+  mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN_intersect), zcol = "Clusters")
+  UDs_gmu10aS_intersect <- st_intersection(UDs_gmu10aS) %>%
+    mutate(NewClusters = row.names(.)) %>%
+    dplyr::select(c(Clusters, NewClusters)) 
+  mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_intersect), zcol = "Clusters")
   
   #'  Snag individual cluster polygons that are stand alone
-  ud_gmu10a_c4 <- filter(UDs_gmu10a, Clusters == 4)
-  ud_gmu10a_c6 <- filter(UDs_gmu10a, Clusters == 6)
+  ud_gmu10aN_c1 <- filter(UDs_gmu10aN, Clusters == 1)
+  ud_gmu10aS_c4 <- filter(UDs_gmu10aS, Clusters == 4)
+  ud_gmu10aS_c6 <- filter(UDs_gmu10aS, Clusters == 6)
   
   #'  Create individual polygons for places where two cluster polygons intersect
-  ud_gmu10a_c1 <- filter(UDs_gmu10a_intersect, NewClusters == 1)
-  ud_gmu10a_c1.1 <- filter(UDs_gmu10a_intersect, NewClusters == 1.1)
-  ud_gmu10a_c1.2 <- filter(UDs_gmu10a_intersect, NewClusters == 1.2)
-  ud_gmu10a_c2 <- filter(UDs_gmu10a_intersect, NewClusters == 2)
-  ud_gmu10a_c2.2 <- filter(UDs_gmu10a_intersect, NewClusters == 2.2)
-  ud_gmu10a_c3 <- filter(UDs_gmu10a_intersect, NewClusters == 3)
-  ud_gmu10a_c7 <- filter(UDs_gmu10a_intersect, NewClusters == 7)
+  ud_gmu10aN_c2 <- filter(UDs_gmu10aN_intersect, NewClusters == 2)
+  ud_gmu10aS_c1 <- filter(UDs_gmu10aS_intersect, NewClusters == 1 | NewClusters == 1.1 | NewClusters == 1.4) %>% 
+    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c1[c(1,4:5),])
+  # ud_gmu10aS_c1a <- ud_gmu10aS_c1[1,] %>% st_cast("POLYGON"); ud_gmu10aS_c1b <- ud_gmu10aS_c1[4,] %>% st_cast("POLYGON")
+  # ud_gmu10aS_c1c <- ud_gmu10aS_c1[5,] %>% st_cast("POLYGON"); mapview(list(ud_gmu10aS_c1a, ud_gmu10aS_c1b, ud_gmu10aS_c1c))
+  ud_gmu10aS_c2 <- filter(UDs_gmu10aS_intersect, NewClusters == 2 | NewClusters == 2.1 | NewClusters == 2.2 | NewClusters == 1.2) %>% 
+    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c2)
+  # ud_gmu10aS_c2a <- ud_gmu10aS_c2[1,] %>% st_cast("POLYGON"); ud_gmu10aS_c2b <- ud_gmu10aS_c2[4,] %>% st_cast("POLYGON")
+  # ud_gmu10aS_c2c <- ud_gmu10aS_c2[5,] %>% st_cast("POLYGON"); mapview(list(ud_gmu10aS_c2a, ud_gmu10aS_c2b, ud_gmu10aS_c2c))
+  ud_gmu10aS_c3 <- filter(UDs_gmu10aS_intersect, NewClusters == 3 | NewClusters == 3.1 | NewClusters == 1.3) %>% 
+    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c3)
+  ud_gmu10aS_c5 <- filter(UDs_gmu10aS_intersect, NewClusters == 5) %>% dplyr::select(Clusters)
+  ud_gmu10aS_c7 <- filter(UDs_gmu10aS_intersect, NewClusters == 7 | NewClusters == 1.5) %>% 
+    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c7)
   
-  #'  Union between NewClusters 2 and 1.1
-  ud_gmu10a_c2 <- st_union(ud_gmu10a_c2, ud_gmu10a_c1.1) %>% dplyr::select(c(Clusters, NewClusters))
-  #'  Union between NewClusters 3 and 1.2
-  ud_gmu10a_c3 <- st_union(ud_gmu10a_c3, ud_gmu10a_c1.2) %>% dplyr::select(c(Clusters, NewClusters))
-  #'  Union between NewClusters 7 and 2.2
-  ud_gmu10a_c7 <- st_union(ud_gmu10a_c7, ud_gmu10a_c2.2) %>% dplyr::select(c(Clusters, NewClusters))
-  
-  #'  Spatial data frame of new cluster polygons
-  UDs_gmu10a_poly <- bind_rows(ud_gmu10a_c1, ud_gmu10a_c2, ud_gmu10a_c3, ud_gmu10a_c4, ud_gmu10a_c6, ud_gmu10a_c7) %>%
-    dplyr::select(-c(NewClusters, area))
-  mapview::mapview(list(clusters_gmu10a, UDs_gmu10a_poly), zcol = "Clusters")
+  #'  Create new polygons by joining specific intersections
+  ud_gmu10aS_c1 <- st_union(ud_gmu10aS_c1[1,], ud_gmu10aS_c1[4,]) %>% st_union(., ud_gmu10aS_c1[5,]) %>% 
+    dplyr::select(Clusters) %>% st_cast(., "GEOMETRYCOLLECTION") %>% 
+    st_collection_extract("POLYGON"); mapview(ud_gmu10aS_c1)
+  row.names(ud_gmu10aS_c1) <- 1
+  ud_gmu10aS_c2 <- st_union(ud_gmu10aS_c2[1,], ud_gmu10aS_c2[2,]) %>% st_union(., ud_gmu10aS_c2[3,]) %>% 
+    st_union(., ud_gmu10aS_c2[4,]) %>% 
+    dplyr::select(Clusters); mapview(ud_gmu10aS_c2)
+  ud_gmu10aS_c3 <- st_union(ud_gmu10aS_c3[2,], ud_gmu10aS_c3[3,]) %>% st_union(., ud_gmu10aS_c3[4,]) %>% 
+    st_union(., ud_gmu10aS_c3[1,]) %>% 
+    dplyr::select(Clusters); mapview(ud_gmu10aS_c3)
+  ud_gmu10aS_c7 <- st_union(ud_gmu10aS_c7[2,], ud_gmu10aS_c7[1,]) %>% 
+    dplyr::select(Clusters); mapview(ud_gmu10aS_c7)
   
   #'  Remove large waterbodies from to GMU10A UDs
-  UDs_gmu10a_poly_nowater <- st_difference(UDs_gmu10a_poly, st_union(bigwater_wgs84))
-  mapview(list(clusters_gmu10a, UDs_gmu10a_poly_nowater), zcol = "Clusters")   
+  ud_gmu10aN_c2_dworsak_split <- ud_gmu10aN_c2 %>% lwgeom::st_split(dworshak) %>% 
+    st_collection_extract("POLYGON") 
+  ud_gmu10aN_c2 <- ud_gmu10aN_c2_dworsak_split[1,]; mapview(ud_gmu10aN_c2)
+  UDs_gmu10aS_poly_nowater <- bind_rows(ud_gmu10aS_c3, ud_gmu10aS_c4, ud_gmu10aS_c7) %>% 
+    dplyr::select(Clusters) %>% lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON") %>% 
+    lwgeom::st_split(clearwater) %>% st_collection_extract("POLYGON"); mapview(UDs_gmu10aS_poly_nowater)
+  UDs_gmu10aS_poly <- bind_rows(UDs_gmu10aS_poly_nowater[16,], UDs_gmu10aS_poly_nowater[5,], UDs_gmu10aS_poly_nowater[24,])
+  mapview(UDs_gmu10aS_poly, zcol = "Clusters")
+  
+  #'  Spatial data frame of new cluster polygons
+  UDs_gmu10aN_poly <- bind_rows(ud_gmu10aN_c1, ud_gmu10aN_c2) %>%
+    dplyr::select(-c(NewClusters, area))
+  mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN_poly), zcol = "Clusters")
+  UDs_gmu10aS_poly <- bind_rows(ud_gmu10aS_c1, ud_gmu10aS_c2, ud_gmu10aS_c3, ud_gmu10aS_c4, ud_gmu10aS_c5, ud_gmu10aS_c6, ud_gmu10aS_c7) %>%
+    dplyr::select(-area)
+  mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_poly), zcol = "Clusters")
+  
   
   #'  Calculate area (km^2) for each cluster polygon
   gmu10a_poly_area <- st_area(UDs_gmu10a_poly_nowater) %>% set_units(., km^2) %>% drop_units(.) %>% as.data.frame()
