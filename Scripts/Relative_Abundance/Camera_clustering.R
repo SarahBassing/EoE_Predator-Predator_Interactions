@@ -144,6 +144,7 @@
   
   #'  Grab just Pend Oreille Lake and convert to line feature
   lakependoreille <- bigwater_wgs84 %>% filter(gnis_name == "Lake Pend Oreille") %>% st_cast(., "MULTILINESTRING")
+  priestlakes <- bigwater_wgs84 %>% filter(gnis_name == "Priest Lake" | gnis_name == "Upper Priest Lake") %>% st_cast(., "MULTILINESTRING")
   
   #'  Split GMU10A by Dwarshak Reservior
   #'  Grab just Dwarshak polygon and convert to a line feature
@@ -526,12 +527,15 @@
   
   ud_gmu1C_c1_pr_split <- ud_gmu1C_c1 %>% lwgeom::st_split(pendoreille) %>%  
     st_collection_extract("POLYGON") %>% lwgeom::st_split(longer_priestriver) %>%  
+    st_collection_extract("POLYGON") %>% lwgeom::st_split(priestlakes) %>%  
     st_collection_extract("POLYGON")
   ud_gmu1C_c2_kr_split <- ud_gmu1C_c2 %>% lwgeom::st_split(kootenairiver) %>%
     st_collection_extract("POLYGON") %>% lwgeom::st_split(longer_priestriver) %>%  
+    st_collection_extract("POLYGON") %>% lwgeom::st_split(priestlakes) %>%  
     st_collection_extract("POLYGON")
   ud_gmu1C_c4_kr_split <- ud_gmu1C_c4 %>% lwgeom::st_split(kootenairiver) %>%
     st_collection_extract("POLYGON") %>% lwgeom::st_split(longer_priestriver) %>%  
+    st_collection_extract("POLYGON") %>% lwgeom::st_split(priestlakes) %>%  
     st_collection_extract("POLYGON")
   ud_gmu1C_c6_por_split <- ud_gmu1C_c6 %>% lwgeom::st_split(lakependoreille) %>%
     st_collection_extract("POLYGON") %>% lwgeom::st_split(clarkfork) %>%  
@@ -543,8 +547,10 @@
     st_collection_extract("POLYGON") %>% lwgeom::st_split(longer_priestriver) %>%  
     st_collection_extract("POLYGON")
   ud_gmu1W_c2_pr_split <- ud_gmu1W_c2 %>% lwgeom::st_split(longer_priestriver) %>%
+    st_collection_extract("POLYGON") %>% lwgeom::st_split(priestlakes) %>%  
     st_collection_extract("POLYGON") 
   ud_gmu1W_c3_pr_split <- ud_gmu1W_c3 %>% lwgeom::st_split(longer_priestriver) %>%  
+    st_collection_extract("POLYGON") %>% lwgeom::st_split(priestlakes) %>%  
     st_collection_extract("POLYGON")
   
   #'  Save just the E & W sides of GMU1 as unique polygons
@@ -560,9 +566,9 @@
   
   ud_gmu1C_c1_noriver <- ud_gmu1C_c1_pr_split[2,]; plot(ud_gmu1C_c1_noriver[1])  
   row.names(ud_gmu1C_c1_noriver) <- 1
-  ud_gmu1C_c2_noriver <- ud_gmu1C_c2_kr_split[2,]; plot(ud_gmu1C_c2_noriver[1])  
+  ud_gmu1C_c2_noriver <- ud_gmu1C_c2_kr_split[3,]; plot(ud_gmu1C_c2_noriver[1])  
   row.names(ud_gmu1C_c2_noriver) <- 2
-  ud_gmu1C_c4_noriver <- ud_gmu1C_c4_kr_split[2,]; plot(ud_gmu1C_c4_noriver[1]) 
+  ud_gmu1C_c4_noriver <- ud_gmu1C_c4_kr_split[7,]; plot(ud_gmu1C_c4_noriver[1]) 
   row.names(ud_gmu1C_c4_noriver) <- 4
   ud_gmu1C_c6_noriver <- ud_gmu1C_c6_por_split[1,]; plot(ud_gmu1C_c6_noriver[1])
   row.names(ud_gmu1C_c6_noriver) <- 6
@@ -686,7 +692,7 @@
     st_collection_extract("POLYGON"); mapview(ud_gmu10aS_c1)
   row.names(ud_gmu10aS_c1) <- 1
   ud_gmu10aS_c2 <- st_union(ud_gmu10aS_c2[1,], ud_gmu10aS_c2[2,]) %>% st_union(., ud_gmu10aS_c2[3,]) %>% 
-    st_union(., ud_gmu10aS_c2[4,]) %>% 
+    st_union(., ud_gmu10aS_c2[4,]) %>% st_union(., ud_gmu10aS_c2[6,]) %>%  
     dplyr::select(Clusters); mapview(ud_gmu10aS_c2)
   ud_gmu10aS_c3 <- st_union(ud_gmu10aS_c3[2,], ud_gmu10aS_c3[3,]) %>% st_union(., ud_gmu10aS_c3[4,]) %>% 
     st_union(., ud_gmu10aS_c3[1,]) %>% 
