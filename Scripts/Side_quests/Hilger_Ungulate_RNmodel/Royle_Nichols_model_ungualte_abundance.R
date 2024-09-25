@@ -467,8 +467,10 @@
   #'  Univariate models to compare mean & max biomass variables, and selected vs predicted community composition
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_meanHQ.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_maxHQ.R")
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_cvHQ.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_meanTbio.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_maxTbio.R")
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_cvTbio.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_totalSelected.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_totalPredicted.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_null.R")
@@ -524,6 +526,20 @@
   print(RN_elk_july_maxHQ$DIC)
   save(RN_elk_july_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_maxHQ_", Sys.Date(), ".RData"))
   
+  #'  cv HQ  (DIC = ) 
+  start.time = Sys.time()
+  inits_elk_July <- function(){list(N = ninit_elk[[1]])}
+  RN_elk_july_cvHQ <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
+                            "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_cvHQ.txt",
+                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                            n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_july_cvHQ$summary[1:15,])
+  (RN_elk_july_cvHQ_WAICj <- calc.jointlike(RN_elk_july_cvHQ))
+  print(RN_elk_july_cvHQ$DIC)
+  save(RN_elk_july_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_cvHQ_", Sys.Date(), ".RData"))
+  
+  
   #'  Mean Tbio (DIC = 24546.61)
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
@@ -549,6 +565,19 @@
   (RN_elk_july_maxTbio_WAICj <- calc.jointlike(RN_elk_july_maxTbio))
   print(RN_elk_july_maxTbio$DIC)
   save(RN_elk_july_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_maxTbio_", Sys.Date(), ".RData"))
+  
+  #'  cv Tbio (DIC = ) 
+  start.time = Sys.time()
+  inits_elk_July <- function(){list(N = ninit_elk[[1]])}
+  RN_elk_july_cvTbio <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
+                              "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_cvTbio.txt",
+                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                              n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_july_cvTbio$summary[1:15,])
+  (RN_elk_july_cvTbio_WAICj <- calc.jointlike(RN_elk_july_cvTbio))
+  print(RN_elk_july_cvTbio$DIC)
+  save(RN_elk_july_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_cvTbio_", Sys.Date(), ".RData"))
   
   #'  Total Selected (DIC = 24521.24) **
   start.time = Sys.time()
@@ -733,6 +762,20 @@
   print(RN_elk_aug_maxHQ$DIC)
   save(RN_elk_aug_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_maxHQ_", Sys.Date(), ".RData"))
   
+  #'  cv HQ (DIC = ) 
+  start.time = Sys.time()
+  inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
+  RN_elk_aug_cvHQ <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
+                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_cvHQ.txt",
+                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                           n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_aug_cvHQ$summary[1:15,])
+  (RN_elk_aug_cvHQ_WAICj <- calc.jointlike(RN_elk_aug_cvHQ))
+  print(RN_elk_aug_cvHQ$DIC)
+  save(RN_elk_aug_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_cvHQ_", Sys.Date(), ".RData"))
+  
+  
   #'  Mean Tbio (DIC = 23696.5)
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
@@ -758,6 +801,19 @@
   (RN_elk_aug_maxTbio_WAICj <- calc.jointlike(RN_elk_aug_maxTbio))
   print(RN_elk_aug_maxTbio$DIC)
   save(RN_elk_aug_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_maxTbio_", Sys.Date(), ".RData"))
+  
+  #'  cv Tbio (DIC = ) 
+  start.time = Sys.time()
+  inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
+  RN_elk_aug_cvTbio <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
+                             "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_cvTbio.txt",
+                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                             n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_aug_cvTbio$summary[1:15,])
+  (RN_elk_aug_cvTbio_WAICj <- calc.jointlike(RN_elk_aug_cvTbio))
+  print(RN_elk_aug_cvTbio$DIC)
+  save(RN_elk_aug_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_cvTbio_", Sys.Date(), ".RData"))
   
   #'  Total Selected (DIC = 23666.4) **
   start.time = Sys.time()
@@ -943,6 +999,19 @@
   print(RN_wtd_july_maxHQ$DIC)
   save(RN_wtd_july_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_maxHQ_", Sys.Date(), ".RData"))
   
+  #'  cv HQ  (DIC = )
+  start.time = Sys.time()
+  inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
+  RN_wtd_july_cvHQ <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
+                            "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_cvHQ.txt",
+                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                            n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_july_cvHQ$summary[1:15,])
+  (RN_wtd_july_cvHQ_WAICj <- calc.jointlike(RN_wtd_july_cvHQ))
+  print(RN_wtd_july_cvHQ$DIC)
+  save(RN_wtd_july_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_cvHQ_", Sys.Date(), ".RData"))
+  
   #'  Mean Tbio (DIC = 40619.1)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
@@ -968,6 +1037,19 @@
   (RN_wtd_july_maxTbio_WAICj <- calc.jointlike(RN_wtd_july_maxTbio))
   print(RN_wtd_july_maxTbio$DIC)
   save(RN_wtd_july_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_maxTbio_", Sys.Date(), ".RData"))
+  
+  #'  cv Tbio (DIC = ) 
+  start.time = Sys.time()
+  inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
+  RN_wtd_july_cvTbio <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
+                              "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_cvTbio.txt",
+                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                              n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_july_cvTbio$summary[1:15,])
+  (RN_wtd_july_cvTbio_WAICj <- calc.jointlike(RN_wtd_july_cvTbio))
+  print(RN_wtd_july_cvTbio$DIC)
+  save(RN_wtd_july_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_cvTbio_", Sys.Date(), ".RData"))
   
   #'  Total Selected (DIC = 40597.45) **
   start.time = Sys.time()
@@ -1168,6 +1250,19 @@
   print(RN_wtd_aug_maxHQ$DIC)
   save(RN_wtd_aug_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_maxHQ_", Sys.Date(), ".RData"))
   
+  #'  cv HQ  (DIC = )
+  start.time = Sys.time()
+  inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
+  RN_wtd_aug_cvHQ <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
+                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_cvHQ.txt",
+                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                           n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_aug_cvHQ$summary[1:15,])
+  (RN_wtd_aug_cvHQ_WAICj <- calc.jointlike(RN_wtd_aug_cvHQ))
+  print(RN_wtd_aug_cvHQ$DIC)
+  save(RN_wtd_aug_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_cvHQ_", Sys.Date(), ".RData"))
+  
   #'  Mean Tbio (DIC = 39927.51)
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
@@ -1193,6 +1288,19 @@
   (RN_wtd_aug_maxTbio_WAICj <- calc.jointlike(RN_wtd_aug_maxTbio))
   print(RN_wtd_aug_maxTbio$DIC)
   save(RN_wtd_aug_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_maxTbio_", Sys.Date(), ".RData"))
+
+  #'  cv Tbio (DIC = ) 
+  start.time = Sys.time()
+  inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
+  RN_wtd_aug_cvTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
+                             "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_cvTbio.txt",
+                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                             n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wtd_aug_cvTbio$summary[1:15,])
+  (RN_wtd_aug_cvTbio_WAICj <- calc.jointlike(RN_wtd_aug_cvTbio))
+  print(RN_wtd_aug_cvTbio$DIC)
+  save(RN_wtd_aug_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_cvTbio_", Sys.Date(), ".RData"))
   
   #'  Total Selected (DIC = 39889.78) **
   start.time = Sys.time()
