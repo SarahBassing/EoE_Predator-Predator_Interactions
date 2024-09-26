@@ -692,7 +692,8 @@
     st_collection_extract("POLYGON"); mapview(ud_gmu10aS_c1)
   row.names(ud_gmu10aS_c1) <- 1
   ud_gmu10aS_c2 <- st_union(ud_gmu10aS_c2[1,], ud_gmu10aS_c2[2,]) %>% st_union(., ud_gmu10aS_c2[3,]) %>% 
-    st_union(., ud_gmu10aS_c2[4,]) %>% st_union(., ud_gmu10aS_c2[6,]) %>%  
+    st_union(., ud_gmu10aS_c2[4,]) %>% st_union(., ud_gmu10aS_c2[6,]) %>% 
+    st_cast(., "GEOMETRYCOLLECTION") %>% st_collection_extract("POLYGON") %>% 
     dplyr::select(Clusters); mapview(ud_gmu10aS_c2)
   ud_gmu10aS_c3 <- st_union(ud_gmu10aS_c3[2,], ud_gmu10aS_c3[3,]) %>% st_union(., ud_gmu10aS_c3[4,]) %>% 
     st_union(., ud_gmu10aS_c3[1,]) %>% 
@@ -772,30 +773,6 @@
     rename("Clusters" = "Clusters.1")
   mapview(list(gmu10a_poly, cam_clusters_gmu10a), zcol = "Clusters")
   
-  #' # mapviewOptions(fgb = FALSE)
-  #' cam_clusters_gmu1 <- st_intersection(clusters_gmu1, UDs_gmu1_poly_nowater) %>%
-  #'   dplyr::select(-c(Clusters, Clusters_adjacency)) %>%
-  #'   rename("Clusters" = "Clusters.1") 
-  #' mapview::mapview(list(cam_clusters_gmu1, UDs_gmu1_poly), zcol = "Clusters")
-  #' 
-  #' cam_clusters_gmu6 <- st_intersection(clusters_gmu6, UDs_gmu6_poly) %>%
-  #'   dplyr::select(-c(Clusters, Clusters_adjacency)) %>%
-  #'   rename("Clusters" = "Clusters.1")
-  #' #'  Need to add one site back into Cluster 2 - falls just outside of polygon during intersection
-  #' cluster2_area <- unique(cam_clusters_gmu6$area_km2[cam_clusters_gmu6$Clusters == 2])
-  #' GMU6_U_125 <- filter(clusters_gmu6, NwLctID == "GMU6_U_125") %>%
-  #'   dplyr::select(-Clusters_adjacency) %>%
-  #'   mutate(Clusters = as.character(Clusters),
-  #'          area_km2 = cluster2_area) %>%
-  #'   relocate(area_km2, .after = Clusters)
-  #' cam_clusters_gmu6 <- bind_rows(cam_clusters_gmu6, GMU6_U_125)
-  #' mapview::mapview(list(cam_clusters_gmu6, UDs_gmu6_poly), zcol = "Clusters")
-  #' 
-  #' cam_clusters_gmu10a <- st_intersection(clusters_gmu10a, UDs_gmu10a_poly_nowater) %>%
-  #'   dplyr::select(-c(Clusters, Clusters_adjacency)) %>%
-  #'   rename("Clusters" = "Clusters.1") 
-  #' mapview::mapview(list(cam_clusters_gmu10a, UDs_gmu10a_poly), zcol = "Clusters")
-  
   #'  -----------------------------------------------------------
   ####  Calculate Relative Density Index for wolves per cluster  ####
   #'  -----------------------------------------------------------
@@ -836,6 +813,16 @@
   
   #'  Back to allowing spherical geometry
   sf::sf_use_s2(TRUE)
+  
+  
+  #'  Save cluster data as shapefiles
+  st_write(cam_clusters_gmu1, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_clusters_gmu1.shp")
+  st_write(cam_clusters_gmu6, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_clusters_gmu6.shp")
+  st_write(cam_clusters_gmu10a, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_clusters_gmu10a.shp")
+  st_write(gmu1_poly, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_cluster_polygons_gmu1.shp")
+  st_write(gmu6_poly, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_cluster_polygons_gmu6.shp")
+  st_write(gmu10a_poly, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_cluster_polygons_gmu10a.shp")
+  
   
   #'  Visualize with ggplot and save
   clusters_gmu1 <- clusters_gmu1 %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
@@ -947,40 +934,6 @@
   
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-   
-  # scl_cluster <- function(locs, dist1, nclusters, linkages) {
-  #   xy <- as.matrix(st_coordinates(locs))
-  #   clusters <- scl_full(xy, dist1, ncl = nclusters, linkage = linkages)
-  #   print(plot(clusters))
-  #   return(locs)
-  # }
-  # scl_cluster_list <- mapply(scl_cluster, locs = wolf_cams_list, dist1 = N_dist_list,
-  #                            nclusters = 15, linkages = "single", SIMPLIFY = FALSE)
-  # 
-  # 
   #'  ----------------------
   ####  Grid cell approach  ####
   #'  ----------------------
