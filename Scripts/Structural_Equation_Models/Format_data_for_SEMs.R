@@ -17,6 +17,7 @@
   #install.packages("multcompView", repos="http://R-Forge.R-project.org")
   # library(multcompView)
   library(tidyverse)
+  library(ggplot2)
   
   #'  Load RN model local abundance estimates
   load("./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
@@ -32,7 +33,7 @@
     return(skinny_clusters)
   }
   
-  #'  Load camera cluster data and clean up with reformat_clusters() function
+  #'  Read in camera cluster shapefiles and clean up with reformat_clusters() function
   clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp") %>% 
     reformat_clusters(.)
   clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp") %>% 
@@ -46,6 +47,19 @@
     slice(1L) %>%
     ungroup()
   
+  #'  Read in cluster polygon shapefiles
+  gmu1_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp") %>% mutate(GMU = "GMU1")
+  gmu6_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp") %>% mutate(GMU = "GMU6")
+  gmu10a_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp") %>% mutate(GMU = "GMU10A")
+  
+  #'  Merge cluster polygons across GMUs
+  cluster_poly <- bind_rows(gmu1_poly, gmu6_poly, gmu10a_poly) %>%
+    rename(ClusterID = Clusters)
+  
+  #'  Read in EoE GMUs shapefile
+  eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
+    st_transform("+proj=longlat +datum=WGS84 +no_defs")
+  
   #'  ---------------------------------------------------
   ####  Calculate index of relative density per species  ####
   #'  ---------------------------------------------------
@@ -57,18 +71,116 @@
   }
   RN_abundance_sf <- lapply(RN_abundance, cluster_RAI, clusters = clusters_all)
   
-  #'  Calculate index of relative density per species in each cluster
-  cluster_density <- function(rai) {
+  #'  Calculate index of relative density per species per cluster per year
+  density_per_cluster <- function(rai, yr) {
     relative_density <- rai %>%
-      group_by(ClusterID) %>%
+      group_by(GMU, ClusterID, Species) %>%
       reframe(SppN = sum(RN.n),
-              SppDensity = SppN/area_km2,
+              SppDensity.km2 = SppN/area_km2,
+              SppDensity.100km2 = SppDensity.km2*100,
               SppN.r = sum(round(RN.n, 0)),
-              SppDensity.r = SppN.r/area_km2) %>%
-      ungroup() 
+              SppDensity.km2.r = SppN.r/area_km2,
+              SppDensity.100km2.r = SppDensity.km2.r*100) %>% #,
+              # NewLocationID = NewLocationID,
+              # RN.n = RN.n) %>%
+      unique() %>%
+      mutate(Year = yr) %>%
+      #'  Join spatial polygon data to relative density estimates
+      left_join(cluster_poly, by = c("GMU", "ClusterID")) %>%
+      st_as_sf()
     return(relative_density)
   }
-  tst <- cluster_density(RN_abundance_sf[[1]])
+  yr <- list("2020", "2021", "2022")
+  cluster_density <- mapply(density_per_cluster, rai = RN_abundance_sf, yr = yr, SIMPLIFY = FALSE)
+  
+  #'  ---------------------------------
+  ####  Explore density relationships  ####
+  #'  ---------------------------------
+  #'  Visualize with ggplot
+  dat <- bind_rows(cluster_density[[1]], cluster_density[[2]], cluster_density[[3]])
+  (wolf_density <- dat %>% filter(Species == "wolf") %>%
+      ggplot() +
+      geom_sf(data = eoe_gmu_wgs84, fill = NA) +
+      geom_sf(aes(fill = SppDensity.100km2.r, group = Year), alpha = 0.2) +
+      scale_fill_gradient(low = "white", high = "blue") +
+      labs(x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + 
+      facet_wrap(~Year) +
+      ggtitle("Relative density index (wolves/100km^2)"))
+  (bear_density <- dat %>% filter(Species == "bear_black") %>%
+      ggplot() +
+      geom_sf(data = eoe_gmu_wgs84, fill = NA) +
+      geom_sf(aes(fill = SppDensity.100km2.r, group = Year), alpha = 0.2) +
+      scale_fill_gradient(low = "white", high = "red") +
+      labs(x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + 
+      facet_wrap(~Year) +
+      ggtitle("Relative density index (black bear/100km^2)"))
+  (lion_density <- dat %>% filter(Species == "mountain_lion") %>%
+      ggplot() +
+      geom_sf(data = eoe_gmu_wgs84, fill = NA) +
+      geom_sf(aes(fill = SppDensity.100km2.r, group = Year), alpha = 0.2) +
+      scale_fill_gradient(low = "white", high = "green") +
+      labs(x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + 
+      facet_wrap(~Year) +
+      ggtitle("Relative density index (mountain lion/100km^2)"))
+  (coy_density <- dat %>% filter(Species == "coyote") %>%
+      ggplot() +
+      geom_sf(data = eoe_gmu_wgs84, fill = NA) +
+      geom_sf(aes(fill = SppDensity.100km2.r, group = Year), alpha = 0.2) +
+      scale_fill_gradient(low = "white", high = "orange") +
+      labs(x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + 
+      facet_wrap(~Year) +
+      ggtitle("Relative density index (coyote/100km^2)"))
+  (elk_density <- dat %>% filter(Species == "elk") %>%
+      ggplot() +
+      geom_sf(data = eoe_gmu_wgs84, fill = NA) +
+      geom_sf(aes(fill = SppDensity.100km2.r, group = Year), alpha = 0.2) +
+      scale_fill_gradient(low = "white", high = "purple") +
+      labs(x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + 
+      facet_wrap(~Year) +
+      ggtitle("Relative density index (elk/100km^2)"))
+  (moose_density <- dat %>% filter(Species == "moose") %>%
+      ggplot() +
+      geom_sf(data = eoe_gmu_wgs84, fill = NA) +
+      geom_sf(aes(fill = SppDensity.100km2.r, group = Year), alpha = 0.2) +
+      scale_fill_gradient(low = "white", high = "gold") +
+      labs(x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + 
+      facet_wrap(~Year) +
+      ggtitle("Relative density index (moose/100km^2)"))
+  (wtd_density <- dat %>% filter(Species == "whitetailed_deer") %>%
+      ggplot() +
+      geom_sf(data = eoe_gmu_wgs84, fill = NA) +
+      geom_sf(aes(fill = SppDensity.100km2.r, group = Year), alpha = 0.2) +
+      scale_fill_gradient(low = "white", high = "black") +
+      labs(x = "Longitude", y = "Latitude") +
+      theme_classic() +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) + 
+      facet_wrap(~Year) +
+      ggtitle("Relative density index (white-tailed deer/100km^2)"))
+  
+  #'  Long to wide data structure
+  wide_data <- function(dat) {
+    pivot_data_wide <- as.data.frame(dat) %>%
+      #'  Create categorical year variable
+      mutate(Year = factor(Year, levels = c("2020", "2021", "2022"))) %>%
+      dplyr::select(c(GMU, ClusterID, Year, Species, SppDensity.100km2.r)) %>%
+      #'  Create column per species with their site-specific local abundance 
+      pivot_wider(names_from = "Species",
+                  values_from = c("SppDensity.100km2.r")) 
+    return(pivot_data_wide)
+  }
+  density_wide <- lapply(cluster_density, wide_data)
   
   #'  ----------------------------------
   ####  Load and format covariate data  ####
