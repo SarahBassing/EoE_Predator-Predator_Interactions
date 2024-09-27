@@ -325,7 +325,9 @@
   wolf_cams_gmu1_C <- st_intersection(wolf_cams_gmu1, gmu1_C) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
   wolf_cams_gmu1_W <- st_intersection(wolf_cams_gmu1, gmu1_W) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
   wolf_cams_gmu10a_N <- st_intersection(wolf_cams_gmu10a, gmu10a_N) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
-  wolf_cams_gmu10a_S <- st_intersection(wolf_cams_gmu10a, gmu10a_S) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn"))
+  wolf_cams_gmu10a_S <- st_intersection(wolf_cams_gmu10a, gmu10a_S) %>% dplyr::select(c("NwLctID", "CellID", "GMU", "Setup", "Species", "RN_n", "RN_sd", "RN_n_rn")) %>%
+    #'  Add "GMU10A_P_59" back in (falls slightly outside of GMU10a boundaries)
+    bind_rows(wolf_cams_gmu10a[wolf_cams_gmu10a$NwLctID == "GMU10A_P_59",])
   
   #'  Rerun clustering for cameras split into GMU1 E & W
   #'  Priest River appears to split 2 of the 9 clusters identified in clusters_gmu1, 
@@ -668,18 +670,14 @@
   #'  Snag individual cluster polygons that are stand alone
   ud_gmu10aN_c1 <- filter(UDs_gmu10aN, Clusters == 1)
   ud_gmu10aS_c4 <- filter(UDs_gmu10aS, Clusters == 4)
-  ud_gmu10aS_c6 <- filter(UDs_gmu10aS, Clusters == 6)
+  ud_gmu10aS_c6 <- filter(UDs_gmu10aS, Clusters == 6) %>% st_cast("POLYGON") 
   
   #'  Create individual polygons for places where two cluster polygons intersect
   ud_gmu10aN_c2 <- filter(UDs_gmu10aN_intersect, NewClusters == 2)
   ud_gmu10aS_c1 <- filter(UDs_gmu10aS_intersect, NewClusters == 1 | NewClusters == 1.1 | NewClusters == 1.4) %>% 
-    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c1[c(1,4:5),])
-  # ud_gmu10aS_c1a <- ud_gmu10aS_c1[1,] %>% st_cast("POLYGON"); ud_gmu10aS_c1b <- ud_gmu10aS_c1[4,] %>% st_cast("POLYGON")
-  # ud_gmu10aS_c1c <- ud_gmu10aS_c1[5,] %>% st_cast("POLYGON"); mapview(list(ud_gmu10aS_c1a, ud_gmu10aS_c1b, ud_gmu10aS_c1c))
+    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c1[c(1,5:6),])
   ud_gmu10aS_c2 <- filter(UDs_gmu10aS_intersect, NewClusters == 2 | NewClusters == 2.1 | NewClusters == 2.2 | NewClusters == 1.2) %>% 
     st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c2)
-  # ud_gmu10aS_c2a <- ud_gmu10aS_c2[1,] %>% st_cast("POLYGON"); ud_gmu10aS_c2b <- ud_gmu10aS_c2[4,] %>% st_cast("POLYGON")
-  # ud_gmu10aS_c2c <- ud_gmu10aS_c2[5,] %>% st_cast("POLYGON"); mapview(list(ud_gmu10aS_c2a, ud_gmu10aS_c2b, ud_gmu10aS_c2c))
   ud_gmu10aS_c3 <- filter(UDs_gmu10aS_intersect, NewClusters == 3 | NewClusters == 3.1 | NewClusters == 1.3) %>% 
     st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c3)
   ud_gmu10aS_c5 <- filter(UDs_gmu10aS_intersect, NewClusters == 5) %>% dplyr::select(Clusters)
@@ -687,17 +685,20 @@
     st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c7)
   
   #'  Create new polygons by joining specific intersections
-  ud_gmu10aS_c1 <- st_union(ud_gmu10aS_c1[1,], ud_gmu10aS_c1[4,]) %>% st_union(., ud_gmu10aS_c1[5,]) %>% 
+  ud_gmu10aS_c1 <- st_union(ud_gmu10aS_c1[1,], ud_gmu10aS_c1[5,]) %>% st_union(., ud_gmu10aS_c1[6,]) %>% 
     dplyr::select(Clusters) %>% st_cast(., "GEOMETRYCOLLECTION") %>% 
-    st_collection_extract("POLYGON"); mapview(ud_gmu10aS_c1)
+    st_collection_extract("POLYGON")
+  mapview(ud_gmu10aS_c1)
   row.names(ud_gmu10aS_c1) <- 1
   ud_gmu10aS_c2 <- st_union(ud_gmu10aS_c2[1,], ud_gmu10aS_c2[2,]) %>% st_union(., ud_gmu10aS_c2[3,]) %>% 
     st_union(., ud_gmu10aS_c2[4,]) %>% st_union(., ud_gmu10aS_c2[6,]) %>% 
-    st_cast(., "GEOMETRYCOLLECTION") %>% st_collection_extract("POLYGON") %>% 
+    # st_cast(., "GEOMETRYCOLLECTION") %>% st_collection_extract("POLYGON") %>% 
     dplyr::select(Clusters); mapview(ud_gmu10aS_c2)
-  ud_gmu10aS_c3 <- st_union(ud_gmu10aS_c3[2,], ud_gmu10aS_c3[3,]) %>% st_union(., ud_gmu10aS_c3[4,]) %>% 
-    st_union(., ud_gmu10aS_c3[1,]) %>% 
-    dplyr::select(Clusters); mapview(ud_gmu10aS_c3)
+  ud_gmu10aS_c3 <- st_union(ud_gmu10aS_c3[3,], ud_gmu10aS_c3[2,]) %>% st_union(., ud_gmu10aS_c3[4,]) %>% 
+    st_union(., ud_gmu10aS_c3[1,]) %>% st_cast("POLYGON") %>%
+    dplyr::select(Clusters)
+  ud_gmu10aS_c3 <- ud_gmu10aS_c3[1,]; mapview(ud_gmu10aS_c3)
+  row.names(ud_gmu10aS_c3) <- 3
   ud_gmu10aS_c7 <- st_union(ud_gmu10aS_c7[2,], ud_gmu10aS_c7[1,]) %>% 
     dplyr::select(Clusters); mapview(ud_gmu10aS_c7)
   
@@ -706,9 +707,11 @@
     st_collection_extract("POLYGON") 
   ud_gmu10aN_c2 <- ud_gmu10aN_c2_dworsak_split[1,]; mapview(ud_gmu10aN_c2)
   UDs_gmu10aS_poly_nowater <- bind_rows(ud_gmu10aS_c3, ud_gmu10aS_c4, ud_gmu10aS_c7) %>% 
-    dplyr::select(Clusters) %>% lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON") %>% 
+    st_cast("MULTIPOLYGON") %>% dplyr::select(Clusters) %>% 
+    lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON") %>% 
     lwgeom::st_split(clearwater) %>% st_collection_extract("POLYGON"); mapview(UDs_gmu10aS_poly_nowater)
   UDs_gmu10aS_poly_nowater <- bind_rows(UDs_gmu10aS_poly_nowater[16,], UDs_gmu10aS_poly_nowater[5,], UDs_gmu10aS_poly_nowater[24,])
+  row.names(UDs_gmu10aS_poly_nowater) <- c(4, 3, 7)
   mapview(UDs_gmu10aS_poly_nowater, zcol = "Clusters")
   
   #'  Spatial data frame of new cluster polygons
@@ -816,12 +819,12 @@
   
   
   #'  Save cluster data as shapefiles
-  st_write(cam_clusters_gmu1, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_clusters_gmu1.shp")
-  st_write(cam_clusters_gmu6, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_clusters_gmu6.shp")
-  st_write(cam_clusters_gmu10a, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_clusters_gmu10a.shp")
-  st_write(gmu1_poly, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_cluster_polygons_gmu1.shp")
-  st_write(gmu6_poly, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_cluster_polygons_gmu6.shp")
-  st_write(gmu10a_poly, "./Shapefiles/IDFG spatial data/Camera_clusters/cam_cluster_polygons_gmu10a.shp")
+  st_write(cam_clusters_gmu1, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp")
+  st_write(cam_clusters_gmu6, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp")
+  st_write(cam_clusters_gmu10a, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a.shp")
+  st_write(gmu1_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp")
+  st_write(gmu6_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp")
+  st_write(gmu10a_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp")
   
   
   #'  Visualize with ggplot and save
