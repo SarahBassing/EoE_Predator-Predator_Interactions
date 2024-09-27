@@ -20,6 +20,55 @@
   
   #'  Load RN model local abundance estimates
   load("./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
+  # load("./Shapefiles/IDFG spatial data/Camera_locations/spatial_RN_list.RData")
+  
+  #'  Function to clean up camera cluster spatial data
+  reformat_clusters <- function(clusters) {
+    skinny_clusters <- clusters %>%
+      dplyr::select(c(NwLctID, CellID, GMU, Setup, Clustrs, are_km2, geometry)) %>%
+      rename(NewLocationID = NwLctID) %>%
+      rename(ClusterID = Clustrs) %>%
+      rename(area_km2 = are_km2)
+    return(skinny_clusters)
+  }
+  
+  #'  Load camera cluster data and clean up with reformat_clusters() function
+  clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp") %>% 
+    reformat_clusters(.)
+  clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp") %>% 
+    reformat_clusters(.)
+  clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a.shp") %>% 
+    reformat_clusters(.)
+  
+  #'  Merge spatial camera cluster data together and reduce to one observation per camera
+  clusters_all <- bind_rows(clusters_gmu1, clusters_gmu6, clusters_gmu10a) %>%
+    group_by(NewLocationID) %>%
+    slice(1L) %>%
+    ungroup()
+  
+  #'  ---------------------------------------------------
+  ####  Calculate index of relative density per species  ####
+  #'  ---------------------------------------------------
+  #'  Join local abundance estimates with spatial cluster data
+  cluster_RAI <- function(rai, clusters) {
+    clustered_rai <- rai %>%
+      left_join(clusters, by = c("NewLocationID", "CellID", "GMU", "Setup"))
+    return(clustered_rai)
+  }
+  RN_abundance_sf <- lapply(RN_abundance, cluster_RAI, clusters = clusters_all)
+  
+  #'  Calculate index of relative density per species in each cluster
+  cluster_density <- function(rai) {
+    relative_density <- rai %>%
+      group_by(ClusterID) %>%
+      reframe(SppN = sum(RN.n),
+              SppDensity = SppN/area_km2,
+              SppN.r = sum(round(RN.n, 0)),
+              SppDensity.r = SppN.r/area_km2) %>%
+      ungroup() 
+    return(relative_density)
+  }
+  tst <- cluster_density(RN_abundance_sf[[1]])
   
   #'  ----------------------------------
   ####  Load and format covariate data  ####
