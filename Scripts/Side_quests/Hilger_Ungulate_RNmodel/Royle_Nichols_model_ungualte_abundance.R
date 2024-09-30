@@ -971,8 +971,8 @@
   #'  -----------------------
   #####  WTD July RN models  #####
   #'  -----------------------
-  ######  Univariate models ######  # MeanHQ, MaxTbio, TotalSelected have more DIC support
-  #'  Mean HQ (DIC = 40592.29) **
+  ######  Univariate models ######  
+  #'  Mean HQ (DIC = 40637.75; WAICj = 1615593) 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_meanHQ <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -985,7 +985,7 @@
   print(RN_wtd_july_meanHQ$DIC)
   save(RN_wtd_july_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_meanHQ_", Sys.Date(), ".RData"))
   
-  #'  Max HQ  (DIC = 40642.9)
+  #'  Max HQ  (DIC = 40668.77; WAICj = 1533173)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_maxHQ <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -998,7 +998,7 @@
   print(RN_wtd_july_maxHQ$DIC)
   save(RN_wtd_july_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_maxHQ_", Sys.Date(), ".RData"))
   
-  #'  cv HQ  (DIC = )
+  #'  cv HQ  (DIC = 40604.1; WAICj = 1650763)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_cvHQ <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1011,7 +1011,7 @@
   print(RN_wtd_july_cvHQ$DIC)
   save(RN_wtd_july_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_cvHQ_", Sys.Date(), ".RData"))
   
-  #'  Mean Tbio (DIC = 40619.1)
+  #'  Mean Tbio (DIC = 40625.89; WAICj = 1536776)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_meanTbio <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1024,7 +1024,7 @@
   print(RN_wtd_july_meanTbio$DIC)
   save(RN_wtd_july_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_meanTbio_", Sys.Date(), ".RData"))
   
-  #'  Max Tbio (DIC = 40602.09) **
+  #'  Max Tbio (DIC = 40640.9; WAICj = 1578467) 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_maxTbio <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1037,7 +1037,7 @@
   print(RN_wtd_july_maxTbio$DIC)
   save(RN_wtd_july_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_maxTbio_", Sys.Date(), ".RData"))
   
-  #'  cv Tbio (DIC = ) 
+  #'  cv Tbio (DIC = 40661.37; WAICj = 1574691) 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_cvTbio <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1050,7 +1050,7 @@
   print(RN_wtd_july_cvTbio$DIC)
   save(RN_wtd_july_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_cvTbio_", Sys.Date(), ".RData"))
   
-  #'  Total Selected (DIC = 40597.45) **
+  #'  Total Selected (DIC = 40608.65; WAICj = 1665993) 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_selected <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1063,7 +1063,7 @@
   print(RN_wtd_july_selected$DIC)
   save(RN_wtd_july_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_selected_", Sys.Date(), ".RData"))
   
-  #'  Total Predicted (DIC = 40645.89)
+  #'  Total Predicted (DIC = 40598.26; WAICj = 1710570)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_predicted <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1222,8 +1222,8 @@
   #'  -------------------------
   #####  WTD August RN models  #####
   #'  -------------------------
-  ######  Univariate models ######  # MeanHQ, MaxTbio, TotalSelected have more DIC support
-  #'  Mean HQ (DIC = 39910.93) **
+  ######  Univariate models ######  
+  #'  Mean HQ (DIC = 39898.85; WAICj = 1064529) 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_meanHQ <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1236,7 +1236,7 @@
   print(RN_wtd_aug_meanHQ$DIC)
   save(RN_wtd_aug_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_meanHQ_", Sys.Date(), ".RData"))
   
-  #'  Max HQ  (DIC = 39937.76)
+  #'  Max HQ  (DIC = 39933.86; WAICj = 1003597)
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_maxHQ <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1249,7 +1249,7 @@
   print(RN_wtd_aug_maxHQ$DIC)
   save(RN_wtd_aug_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_maxHQ_", Sys.Date(), ".RData"))
   
-  #'  cv HQ  (DIC = )
+  #'  cv HQ  (DIC = 39906.11; WAICj = 1070011)
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_cvHQ <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1262,7 +1262,7 @@
   print(RN_wtd_aug_cvHQ$DIC)
   save(RN_wtd_aug_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_cvHQ_", Sys.Date(), ".RData"))
   
-  #'  Mean Tbio (DIC = 39927.51)
+  #'  Mean Tbio (DIC = ; WAICj = )
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_meanTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1275,7 +1275,7 @@
   print(RN_wtd_aug_meanTbio$DIC)
   save(RN_wtd_aug_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_meanTbio_", Sys.Date(), ".RData"))
   
-  #'  Max Tbio (DIC = 39915.58) **
+  #'  Max Tbio (DIC = ; WAICj = ) 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_maxTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1288,7 +1288,7 @@
   print(RN_wtd_aug_maxTbio$DIC)
   save(RN_wtd_aug_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_maxTbio_", Sys.Date(), ".RData"))
 
-  #'  cv Tbio (DIC = ) 
+  #'  cv Tbio (DIC = ; WAICj = ) 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_cvTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1301,7 +1301,7 @@
   print(RN_wtd_aug_cvTbio$DIC)
   save(RN_wtd_aug_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_cvTbio_", Sys.Date(), ".RData"))
   
-  #'  Total Selected (DIC = 39889.78) **
+  #'  Total Selected (DIC = ; WAICj = )
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_selected <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1314,7 +1314,7 @@
   print(RN_wtd_aug_selected$DIC)
   save(RN_wtd_aug_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_selected_", Sys.Date(), ".RData"))
   
-  #'  Total Predicted (DIC = 39893.59)
+  #'  Total Predicted (DIC = ; WAICj = )
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_predicted <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
