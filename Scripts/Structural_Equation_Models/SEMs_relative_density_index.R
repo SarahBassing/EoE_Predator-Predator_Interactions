@@ -250,5 +250,14 @@
   names(modSelect) <- c("model", "AIC", "K", "n")
   arrange(modSelect, AIC, decreasing = TRUE)
   
+  #'  Review Fisher's C and Chi-square test statistics for each model
+  LLchisq(top_down_inter.a); fisherC(top_down_inter.a)
+  LLchisq(top_down_exploit.a); fisherC(top_down_exploit.a)
+  LLchisq(bottom_up_inter.a); fisherC(bottom_up_inter.a)
+  LLchisq(bottom_up_exploit.a); fisherC(bottom_up_exploit.a)
+  LLchisq(bottom_up_exploit_wtd.a); fisherC(bottom_up_exploit_wtd.a)
   
+  #'  Dig into top model based on AIC, Fisher's C
+  getDAG(top_down_exploit.a)
+  residuals(top_down_exploit.a)
   
