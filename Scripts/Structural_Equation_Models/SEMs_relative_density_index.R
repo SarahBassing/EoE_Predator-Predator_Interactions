@@ -82,6 +82,10 @@
     lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + coyote.Tminus1, data = localN_z_1YrLag),
     lm(elk.T ~ elk.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag),
     lm(moose.T ~ moose.Tminus1 + wolf.Tminus1, data = localN_z_1YrLag),
+    # lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
+    # lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
+    # lm(bear_black.T ~ bear_black.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
+    # lm(coyote.T ~ coyote.Tminus1 + whitetailed_deer.Tminus1 + mountain_lion.Tminus1, data = localN_z_1YrLag),
     data = localN_z_1YrLag
   ) 
   summary(top_down_exploit)
@@ -97,6 +101,10 @@
     lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1, data = localN_z_1YrLag),
     lm(elk.T ~ elk.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag),
     lm(moose.T ~ moose.Tminus1, data = localN_z_1YrLag),
+    # lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1, data = localN_z_1YrLag),
+    # lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1, data = localN_z_1YrLag),
+    # lm(bear_black.T ~ bear_black.Tminus1, data = localN_z_1YrLag),
+    # lm(coyote.T ~ coyote.Tminus1, data = localN_z_1YrLag),
     #'  Update with unspecified correlated errors - focus on exogenous variables 
     #'  (year T variables) that are not presumed to have a causal & unidirectional
     #'  relationship but are related by an underlying factor making them appear 
@@ -203,49 +211,23 @@
   #' summary(top_down_exploit.a.new)
   #' AIC(bottom_up_inter.a, bottom_up_exploit.a.new)
   
-  
-  #'  --------------------------------------------------------------
-  #####  Bottom up, exploitative competition via white-tailed deer  #####
-  #'  --------------------------------------------------------------
-  #'  White-tailed deer economy
-  bottom_up_exploit_wtd <- psem(
-    lm(wolf.T ~ wolf.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
-    lm(mountain_lion.T ~ mountain_lion.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
-    lm(bear_black.T ~ bear_black.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag), 
-    lm(coyote.T ~ coyote.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
-    data = localN_z_1YrLag
-  )
-  summary(bottom_up_exploit_wtd)
-  AIC_psem(bottom_up_exploit_wtd, AIC.type = "loglik")
-  
-  bottom_up_exploit_wtd.a <- psem(
-    lm(mountain_lion.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag),
-    lm(bear_black.T ~ bear_black.Tminus1, data = localN_z_1YrLag), 
-    lm(coyote.T ~ coyote.Tminus1, data = localN_z_1YrLag),
-    coyote.T %~~% mountain_lion.T,
-    data = localN_z_1YrLag
-  )
-  summary(bottom_up_exploit_wtd.a) #.... not very informative
-  
   #'  -----------------------------
   ####  Model selection using AIC  ####
   #'  -----------------------------
   #'  Include all permutations of these models (original & reduced via dSep)
   modSelect <- AIC(top_down_inter, top_down_inter.a, top_down_exploit, top_down_exploit.a, 
-                   bottom_up_inter, bottom_up_inter.a, bottom_up_exploit, bottom_up_exploit.a, 
-                   bottom_up_exploit_wtd, bottom_up_exploit_wtd.a)
+                   bottom_up_inter, bottom_up_inter.a, bottom_up_exploit, bottom_up_exploit.a)
   mod_names <- c("top_down_inter", "top_down_inter_reduced", "top_down_exploit", "top_down_exploit_reduced", 
-                 "bottom_up_inter", "bottom_up_inter_reduced", "bottom_up_exploit", "bottom_up_exploit_reduced", 
-                 "bottom_up_exploit_wtd", "bottom_up_exploit_wtd_reduced")
+                 "bottom_up_inter", "bottom_up_inter_reduced", "bottom_up_exploit", "bottom_up_exploit_reduced")
   modSelect <- bind_cols(mod_names, modSelect)
   names(modSelect) <- c("model", "AIC", "K", "n")
   arrange(modSelect, AIC, decreasing = TRUE)
   
   #'  Just the reduced models 
   modSelect <- AIC(top_down_inter.a, top_down_exploit.a, bottom_up_inter.a, 
-                   bottom_up_exploit.a, bottom_up_exploit_wtd.a)
-  mod_names <- c("top_down_inter_reduced", "top_down_exploit_reduced", "bottom_up_inter_reduced", 
-                 "bottom_up_exploit_reduced", "bottom_up_exploit_wtd_reduced")
+                   bottom_up_exploit.a)
+  mod_names <- c("top_down_inter_reduced", "top_down_exploit_reduced", 
+                 "bottom_up_inter_reduced", "bottom_up_exploit_reduced")
   modSelect <- bind_cols(mod_names, modSelect)
   names(modSelect) <- c("model", "AIC", "K", "n")
   arrange(modSelect, AIC, decreasing = TRUE)
@@ -255,9 +237,142 @@
   LLchisq(top_down_exploit.a); fisherC(top_down_exploit.a)
   LLchisq(bottom_up_inter.a); fisherC(bottom_up_inter.a)
   LLchisq(bottom_up_exploit.a); fisherC(bottom_up_exploit.a)
-  LLchisq(bottom_up_exploit_wtd.a); fisherC(bottom_up_exploit_wtd.a)
   
+  #'  ----------------------
+  ####  Dig into top model  ####
+  #'  ----------------------
   #'  Dig into top model based on AIC, Fisher's C
-  getDAG(top_down_exploit.a)
-  residuals(top_down_exploit.a)
+  #'  Check for multicollinearity
+  RVIF(top_down_exploit.a[[1]]) # white-tailed deer model
+  RVIF(top_down_exploit.a[[2]]) # elk model
+  RVIF(top_down_exploit.a[[3]]) # moose model
+  
+  #'  Run some basic model diagnostics on individuals models
+  #'  This is handy: http://www.sthda.com/english/articles/39-regression-model-diagnostics/161-linear-regression-assumptions-and-diagnostics-in-r-essentials/
+  wtd_mod <- lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1, data = localN_z_1YrLag)
+  plot(wtd_mod)
+  elk_mod <- lm(elk.T ~ elk.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag)
+  plot(elk_mod)
+  moose_mod <- lm(moose.T ~ moose.Tminus1, data = localN_z_1YrLag)
+  plot(moose_mod)
+  
+  #'  Visualize SEM
+  piecewiseSEM:::plot.psem(top_down_exploit.a, 
+                           node_attrs = data.frame(shape = "rectangle", color = "black", fillcolor = "orange", fontcolor = "black"), 
+                           layout = "tree")
+  piecewiseSEM:::plot.psem(top_down_exploit.a, 
+                           node_attrs = data.frame(shape = "rectangle", color = "orange", fontcolor = "black"), 
+                           layout = "circle",
+                           output = "visNetwork")
+  
+  piecewiseSEM:::plot.psem(top_down_inter.a, 
+                           node_attrs = data.frame(shape = "rectangle", color = "orange", fontcolor = "black"), 
+                           layout = "circle",
+                           output = "visNetwork")
+  piecewiseSEM:::plot.psem(bottom_up_inter.a, 
+                           node_attrs = data.frame(shape = "rectangle", color = "orange", fontcolor = "black"), 
+                           layout = "circle",
+                           output = "visNetwork")
+  piecewiseSEM:::plot.psem(bottom_up_exploit.a, 
+                           node_attrs = data.frame(shape = "rectangle", color = "orange", fontcolor = "black"), 
+                           layout = "circle",
+                           output = "visNetwork")
+  
+  #'  Calculate direct, indirect, total, and mediator effects (SE & 95% CI) for 
+  #'  all endogenous (response) variables using semEff package
+  #'  https://murphymv.github.io/semEff/articles/semEff.html
+  #'  First bootstrap standardized model coefficients (necessary for calculating SEs)
+  #'  THIS TAKES AWHILE! 
+  top_down_exploit.a_bootEff <- bootEff(top_down_exploit.a, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  save(top_down_exploit.a_bootEff, file = paste0("./Outputs/SEM/top_down_exploit.a_bootEff_", Sys.Date(), ".RData"))
+  
+  top_down_inter.a_bootEff <- bootEff(top_down_inter.a, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  bottom_up_inter.a_bootEff <- bootEff(bottom_up_inter.a, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  bottom_up_exploit.a_bootEff <- bootEff(bottom_up_exploit.a, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  
+  #'  Second calculate standardized effects for all casual pathways
+  #'  Note, these are standardized unique effects (i.e., adjusted for multicollinearity;
+  #'  i.e., semipartial correlations), allowing us to fully partition effects in the system
+  #'  These tend to be smaller than the unadjusted standardized coefficients
+  #'  If there are large differences btwn the two then consideration should be given
+  #'  to the impact and relevance of multicollinearity in the system (check with RVIF())
+  (top_down_exploit.a_semEff <- semEff(top_down_exploit.a_bootEff))
+  summary(top_down_exploit.a_semEff)
+  save(top_down_exploit.a_semEff, file = paste0("./Outputs/SEM/top_down_exploit.a_semEff_", Sys.Date(), ".RData"))
+  
+  (top_down_inter.a_semEff <- semEff(top_down_inter.a_bootEff))
+  summary(top_down_inter.a_semEff)
+  (bottom_up_inter.a_semEff <- semEff(bottom_up_inter.a_bootEff))
+  summary(bottom_up_inter.a_semEff)
+  (bottom_up_exploit.a_semEff <- semEff(bottom_up_exploit.a_bootEff))
+  summary(bottom_up_exploit.a_semEff)
+  
+  
+  
+  
+  
+  #'  ---------------------------------------------------
+  ####  SEM with 1-year time lag, with annual variation  ####
+  #'  ---------------------------------------------------
+  #'  ---------------------------------------
+  #####  Top down, interference competition  #####
+  #'  ---------------------------------------
+  top_down_inter_yr <- psem(
+    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1 + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1 + coyote.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2 + coyote.yr2, data = localN_z),
+    lm(elk.yr2 ~ elk.yr1 + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(elk.yr3 ~ elk.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    lm(moose.yr2 ~ moose.yr1 + wolf.yr1, data = localN_z),
+    lm(moose.yr3 ~ moose.yr2 + wolf.yr2, data = localN_z),
+    lm(wolf.yr2 ~ wolf.yr1, data = localN_z),
+    lm(wolf.yr3 ~ wolf.yr2, data = localN_z),
+    lm(mountain_lion.yr2 ~ mountain_lion.yr1 + wolf.yr1 + bear_black.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ mountain_lion.yr2 + wolf.yr2 + bear_black.yr2, data = localN_z),
+    lm(bear_black.yr2 ~ bear_black.yr1 + wolf.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ bear_black.yr2 + wolf.yr2, data = localN_z),
+    lm(coyote.yr2 ~ coyote.yr1 + wolf.yr1 + mountain_lion.yr1, data = localN_z),
+    lm(coyote.yr3 ~ coyote.yr2 + wolf.yr2 + mountain_lion.yr2, data = localN_z),
+    data = localN_z
+  )
+  summary(top_down_inter_yr)
+  AIC_psem(top_down_inter_yr, AIC.type = "loglik")
+  
+  top_down_inter_yr.r <- psem(
+    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2, data = localN_z),
+    lm(elk.yr2 ~ elk.yr1, data = localN_z),
+    lm(elk.yr3 ~ elk.yr2, data = localN_z),
+    lm(moose.yr2 ~ moose.yr1, data = localN_z),
+    lm(moose.yr3 ~ moose.yr2, data = localN_z),
+    lm(mountain_lion.yr2 ~ mountain_lion.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ mountain_lion.yr2, data = localN_z),
+    lm(bear_black.yr2 ~ bear_black.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ bear_black.yr2, data = localN_z),
+    lm(coyote.yr2 ~ coyote.yr1 + whitetailed_deer.yr1, data = localN_z),
+    lm(coyote.yr3 ~ coyote.yr2, data = localN_z),
+    data = localN_z
+  )
+  summary(top_down_inter_yr.r)     ### Need to add a whole bunch of correlated errors
+  AIC_psem(top_down_inter_yr.r, AIC.type = "loglik")
+  
+  
+  top_down_exploit_yr <- psem(
+    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1 + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1 + coyote.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2 + coyote.yr2, data = localN_z),
+    lm(elk.yr2 ~ elk.yr1 + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(elk.yr3 ~ elk.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    lm(moose.yr2 ~ moose.yr1 + wolf.yr1, data = localN_z),
+    lm(moose.yr3 ~ moose.yr2 + wolf.yr2, data = localN_z),
+    data = localN_z
+  )
+  summary(top_down_exploit_yr)
+  AIC_psem(top_down_exploit_yr, AIC.type = "loglik")
+  
+  
+  
+  
+  
+  
+  
+  
   
