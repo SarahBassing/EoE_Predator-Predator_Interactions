@@ -363,14 +363,58 @@
     lm(elk.yr3 ~ elk.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
     lm(moose.yr2 ~ moose.yr1 + wolf.yr1, data = localN_z),
     lm(moose.yr3 ~ moose.yr2 + wolf.yr2, data = localN_z),
+    lm(wolf.yr2 ~ wolf.yr1, data = localN_z),
+    lm(wolf.yr3 ~ wolf.yr2, data = localN_z),
+    lm(mountain_lion.yr2 ~ mountain_lion.yr1 + elk.yr1 + whitetailed_deer.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ mountain_lion.yr2 + elk.yr2 + whitetailed_deer.yr2, data = localN_z),
+    lm(bear_black.yr2 ~ bear_black.yr1 + elk.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ bear_black.yr2 + elk.yr2, data = localN_z),
+    lm(coyote.yr2 ~ coyote.yr1 + whitetailed_deer.yr1, data = localN_z),
+    lm(coyote.yr3 ~ coyote.yr2 + whitetailed_deer.yr2, data = localN_z),
     data = localN_z
   )
   summary(top_down_exploit_yr)
   AIC_psem(top_down_exploit_yr, AIC.type = "loglik")
   
+  top_down_exploit_yr.r <- psem(
+    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2, data = localN_z),
+    lm(elk.yr2 ~ elk.yr1, data = localN_z),
+    lm(elk.yr3 ~ elk.yr2, data = localN_z),
+    lm(moose.yr2 ~ moose.yr1, data = localN_z),
+    lm(moose.yr3 ~ moose.yr2, data = localN_z),
+    lm(mountain_lion.yr2 ~ mountain_lion.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ mountain_lion.yr2 + elk.yr2, data = localN_z),
+    lm(bear_black.yr2 ~ bear_black.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ bear_black.yr2, data = localN_z),
+    lm(coyote.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+    lm(coyote.yr3 ~ coyote.yr2, data = localN_z),
+    data = localN_z
+  )
+  summary(top_down_exploit_yr.r)
+  AIC_psem(top_down_exploit_yr.r, AIC.type = "loglik")
   
   
   
+  bottom_up_inter_yr <- psem(
+    lm(wolf.yr2 ~ wolf.yr1 + moose.yr1 + elk.yr1 + whitetailed_deer.yr1, data = localN_z),
+    lm(wolf.yr3 ~ wolf.yr2 + moose.yr2 + elk.yr2 + whitetailed_deer.yr2, data = localN_z),
+    lm(mountain_lion.yr2 ~ mountain_lion.yr1 + wolf.yr1 + bear_black.yr1 + elk.yr1 + whitetailed_deer.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ mountain_lion.yr2 + wolf.yr2 + bear_black.yr2 + elk.yr2 + whitetailed_deer.yr2, data = localN_z),
+    lm(bear_black.yr2 ~ bear_black.yr1 + wolf.yr1 + elk.yr1 + whitetailed_deer.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ bear_black.yr2 + wolf.yr2 + elk.yr2 + whitetailed_deer.yr2, data = localN_z),
+    lm(coyote.yr2 ~ coyote.yr1 + wolf.yr1 + mountain_lion.yr1 + whitetailed_deer.yr1, data = localN_z),
+    lm(coyote.yr3 ~ coyote.yr2 + wolf.yr2 + mountain_lion.yr2 + whitetailed_deer.yr2, data = localN_z),
+    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2, data = localN_z),
+    lm(elk.yr2 ~ elk.yr1 + wolf.yr1, data = localN_z),
+    lm(elk.yr3 ~ elk.yr2 + wolf.yr2, data = localN_z),
+    lm(moose.yr2 ~ moose.yr1, data = localN_z),
+    lm(moose.yr3 ~ moose.yr2, data = localN_z),
+    data = localN_z
+  )
+  summary(bottom_up_inter_yr)
+  AIC_psem(bottom_up_inter_yr, AIC.type = "loglik")
   
   
   
