@@ -75,9 +75,9 @@
   summary(top_down_inter.a)
   AIC_psem(top_down_inter.a, AIC.type = "loglik")
   
-  #'  ---------------------------------------
-  #####  Top-down, exploitative competition  #####
-  #'  ---------------------------------------
+  #'  -------------
+  #####  Top-down  #####
+  #'  -------------
   top_down_exploit <- psem(
     lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + coyote.Tminus1, data = localN_z_1YrLag),
     lm(elk.T ~ elk.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag),
