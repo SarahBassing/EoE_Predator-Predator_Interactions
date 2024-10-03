@@ -169,6 +169,22 @@
       facet_wrap(~Year) +
       ggtitle("Relative density index (white-tailed deer/100km^2)"))
   
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/cluster_wolf_density.tiff", wolf_density,
+  #        units = "in", width = 6, height = 4, dpi = 300, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/cluster_bear_density.tiff", bear_density,
+  #        units = "in", width = 6, height = 4, dpi = 300, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/cluster_lion_density.tiff", lion_density,
+  #        units = "in", width = 6, height = 4, dpi = 300, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/cluster_coy_density.tiff", coy_density,
+  #        units = "in", width = 6, height = 4, dpi = 300, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/cluster_elk_density.tiff", elk_density,
+  #        units = "in", width = 6, height = 4, dpi = 300, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/cluster_moose_density.tiff", moose_density,
+  #        units = "in", width = 6, height = 4, dpi = 300, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/cluster_wtd_density.tiff", wtd_density,
+  #        units = "in", width = 6, height = 4, dpi = 300, device = "tiff", compression = "lzw")
+  
+  
   #'  -----------------------------------------
   ####  Format local abundance estimates & SD  ####
   #'  -----------------------------------------
