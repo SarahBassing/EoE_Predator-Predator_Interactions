@@ -1262,7 +1262,7 @@
   print(RN_wtd_aug_cvHQ$DIC)
   save(RN_wtd_aug_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_cvHQ_", Sys.Date(), ".RData"))
   
-  #'  Mean Tbio (DIC = ; WAICj = )
+  #'  Mean Tbio (DIC = 39936.03; WAICj = 1001615)
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_meanTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1275,7 +1275,7 @@
   print(RN_wtd_aug_meanTbio$DIC)
   save(RN_wtd_aug_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_meanTbio_", Sys.Date(), ".RData"))
   
-  #'  Max Tbio (DIC = ; WAICj = ) 
+  #'  Max Tbio (DIC = 39957.38; WAICj = 1034550) 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_maxTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1288,7 +1288,7 @@
   print(RN_wtd_aug_maxTbio$DIC)
   save(RN_wtd_aug_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_maxTbio_", Sys.Date(), ".RData"))
 
-  #'  cv Tbio (DIC = ; WAICj = ) 
+  #'  cv Tbio (DIC = 39941.43; WAICj = 1017798) 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_cvTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1301,7 +1301,7 @@
   print(RN_wtd_aug_cvTbio$DIC)
   save(RN_wtd_aug_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_cvTbio_", Sys.Date(), ".RData"))
   
-  #'  Total Selected (DIC = ; WAICj = )
+  #'  Total Selected (DIC = 39875.41; WAICj = 1118610)
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_selected <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1314,7 +1314,7 @@
   print(RN_wtd_aug_selected$DIC)
   save(RN_wtd_aug_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_selected_", Sys.Date(), ".RData"))
   
-  #'  Total Predicted (DIC = ; WAICj = )
+  #'  Total Predicted (DIC = 39865.96; WAICj = 1120307)
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_predicted <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
