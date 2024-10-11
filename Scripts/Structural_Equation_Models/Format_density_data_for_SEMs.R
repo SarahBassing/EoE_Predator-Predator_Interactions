@@ -18,6 +18,7 @@
   # library(multcompView)
   library(tidyverse)
   library(sf)
+  library(terra)
   library(ggplot2)
   
   #'  Load RN model local abundance estimates
@@ -59,6 +60,72 @@
   #'  Read in EoE GMUs shapefile
   eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
+  
+  #'  Read in forested landcover
+  perc_forest <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForest_100m.tif")
+  forest <- rast("./Shapefiles/National Land Cover Database (NCLD)/Forested_landcover.tif")
+  notforest <- rast("./Shapefiles/National Land Cover Database (NCLD)/NonForested_landcover.tif")
+  forest_proj <- crs(forest)
+  
+  #' #'  Calculate average percent forested habitat across cameras in each cluster
+  #' extract_forest <- function(cams, gmu) {
+  #'   #'  Transform and reduce to a single observation per camera (don't need to 
+  #'   #'  repeat information across years)
+  #'   cams <- st_transform(cams, forest_proj) %>%
+  #'     group_by(NewLocationID) %>%
+  #'     slice(1L) %>%
+  #'     ungroup()
+  #'   #'  Extract % forested habitat within 100m radius of each camera site and
+  #'   #'  average across cameras per cluster
+  #'   perc_forest_100m <- terra::extract(perc_forest, vect(cams)) %>%
+  #'     dplyr::select(-ID) %>%
+  #'     bind_cols(cams) %>%
+  #'     rename("percent_forest" = "focal_sum") %>%
+  #'     group_by(ClusterID) %>%
+  #'     summarise(percent_forest = mean(percent_forest)) %>%
+  #'     ungroup() %>%
+  #'     mutate(GMU = gmu)
+  #'   return(perc_forest_100m)
+  #' }
+  #' forest_gmu1 <- extract_forest(clusters_gmu1, gmu = "GMU1")
+  #' forest_gmu6 <- extract_forest(clusters_gmu6, gmu = "GMU6")
+  #' forest_gmu10a <- extract_forest(clusters_gmu10a, gmu = "GMU10A")
+  #' 
+  #' perc_forest <- bind_rows(forest_gmu1, forest_gmu6, forest_gmu10a) %>%
+  #'   dplyr::select(c(GMU, ClusterID, percent_forest))
+  
+  #' #'  Vectorize polygons
+  #' gmu1_vect <- st_transform(gmu1_poly, forest_proj) %>% vect(.)
+  #' gmu6_vect <- st_transform(gmu6_poly, forest_proj) %>% vect(.)
+  #' gmu10a_vect <- st_transform(gmu10a_poly, forest_proj) %>% vect(.)
+
+  #'  Zonal statistics: sum amount of forest and non-forested land cover per cluster
+  #'  and calculate % forested
+  percent_forested <- function(polygon) {
+    #'  Vectorize polygons
+    vect_poly <- st_transform(polygon, forest_proj) %>% vect(.)
+    #'  Snag cluster ID
+    clusters <- as.data.frame(polygon) %>% dplyr::select(c(Clusters, GMU))
+    #'  Sum pixels classified as forested land cover per cluster
+    sum_forest <- zonal(forest, vect_poly, fun = "sum", na.rm = TRUE) %>%
+      rename("total_forest" = "NLCD Land Cover Class")
+    #'  Sum pixels classified as non-forested land cover per cluster
+    sum_nonforest <- zonal(notforest, vect_poly, fun = "sum", na.rm = TRUE) %>%
+      rename("total_nonforest" = "NLCD Land Cover Class")
+    #'  Combine and calculate percent forested per cluster
+    perc_forest <- cbind(sum_forest, sum_nonforest) %>% as.data.frame(.) %>%
+      mutate(total_pix = total_forest + total_nonforest,
+             percent_forest = total_forest/total_pix) %>%
+      bind_cols(clusters) %>%
+      rename("ClusterID" = "Clusters")
+    return(perc_forest)
+  }
+  cluster_perc_forest_gmu1 <- percent_forested(gmu1_poly)
+  cluster_perc_forest_gmu6 <- percent_forested(gmu6_poly)
+  cluster_perc_forest_gmu10a <- percent_forested(gmu10a_poly)
+
+  perc_forest <- bind_rows(cluster_perc_forest_gmu1, cluster_perc_forest_gmu6, cluster_perc_forest_gmu10a) %>%
+    dplyr::select(c(GMU, ClusterID, percent_forest))
   
   #'  ---------------------------------------------------
   ####  Calculate index of relative density per species  ####
@@ -185,9 +252,37 @@
   #        units = "in", width = 6, height = 4, dpi = 300, device = "tiff", compression = "lzw")
   
   
+  #'  ---------------------------------
+  ####  Google Earth Engine data sets  ####
+  #'  ---------------------------------
+  #'  PRISM weather data
+  #'  Source script to load & format average monthly precip & temp data
+  #'  Produces standardized average monthly total precipitation and standardized 
+  #'  average monthly minimum temp for each winter and GMU for past 50 years
+  source("./Scripts/Structural_Equation_Models/Format_weather_data.R")   
+  
+  #'  Generate Winter Severity Index (WSI) per year and Cluster
+  wsi <- full_join(wtr_totalPrecip, wtr_minTemp, by = c("GMU", "Clusters", "Season")) %>%
+    #'  Multiply standardized precip by standardized temp data
+    mutate(DecFeb_WSI = DecFeb_meanPPT_z * DecFeb_meanMinTemp_z) %>%
+    dplyr::select(c("GMU", "Clusters", "Season", "DecFeb_WSI")) %>%
+    #'  Filter to the winters preceding Summer 2020, 2021, and 2022 surveys
+    filter(Season == "Wtr1920" | Season == "Wtr2021" | Season == "Wtr2122") %>%
+    #'  Change Season column to reference annual summer sampling
+    rename("PreviousWinter" = "Season") %>%
+    mutate(year = ifelse(PreviousWinter == "Wtr1920", "yr1", "yr3"),
+           year = ifelse(PreviousWinter == "Wtr2021", "yr2", year)) %>%
+    relocate(year, .after = "Clusters") %>%
+    rename("ClusterID" = "Clusters")
+  print(wsi)
+  
+  
   #'  -----------------------------------------
   ####  Format local abundance estimates & SD  ####
   #'  -----------------------------------------
+  #'  Join covariates together
+  covs <- full_join(perc_forest, wsi, by = c("GMU", "ClusterID")) 
+  
   #'  Long to wide data structure
   wide_data <- function(dat) {
     pivot_data_wide <- as.data.frame(dat) %>%
@@ -200,7 +295,11 @@
       dplyr::select(c(GMU, ClusterID, year, Species, SppDensity.100km2.r)) %>%
       #'  Create column per species with their site-specific local abundance 
       pivot_wider(names_from = "Species",
-                  values_from = c("SppDensity.100km2.r")) 
+                  values_from = c("SppDensity.100km2.r")) %>%
+      left_join(covs, by = c("GMU", "year", "ClusterID")) %>%
+      dplyr::select(-PreviousWinter) %>%
+      relocate(percent_forest, .after = year) %>%
+      relocate(DecFeb_WSI, .after = percent_forest)
     return(pivot_data_wide)
   }
   density_wide <- lapply(cluster_density, wide_data)
@@ -225,6 +324,8 @@
     hist(dat$elk, main = paste("Relative elk density across clusters,", yr))
     hist(dat$moose, main = paste("Relative moose density across clusters,", yr))
     hist(dat$whitetailed_deer, main = paste("Relative wtd density across clusters,", yr))
+    hist(dat$percent_forest, main = paste("Percent forested land cover,", yr))
+    hist(dat$DecFeb_WSI, main = paste("Dec-Feb Winter Severity Index,", yr))
   }
   plot_histogram(density_wide[[1]], yr = "2020")
   plot_histogram(density_wide[[2]], yr = "2021")
@@ -243,7 +344,7 @@
   wide_data_by_year <- function(dat, yr) {
     data_by_yr <- dat %>%
       #'  Add year identifier to each column name
-      rename_with(.cols = bear_black:wolf, function(x){paste0(x, ".", yr)}) %>% 
+      rename_with(.cols = percent_forest:wolf, function(x){paste0(x, ".", yr)}) %>% 
       dplyr::select(-year)
     return(data_by_yr)
   }
@@ -257,14 +358,13 @@
   density_wide_annual_20s_22s <- full_join(density_wide_annual[[1]], density_wide_annual[[2]], by = c("GMU", "ClusterID")) %>%
     full_join(density_wide_annual[[3]], by = c("GMU", "ClusterID")) %>%
     arrange(GMU, ClusterID)
-  head(density_wide_annual)
+  head(density_wide_annual_20s_22s)
   
   #'  Z-transform local abundance estimates (per year b/c annual estimates are stand alone variables)
   localN_z <- density_wide_annual_20s_22s %>%
     mutate(ClusterID = as.character(ClusterID)) %>%
-    mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
-    #mutate(across(starts_with(c("RN.n_", "PercDisturbedForest", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
-  
+    mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE))) 
+    
   #'  Create correlation matrix for all continuous covariates at once
   cov_correlation <- function(dat) {
     covs <- dat %>%
@@ -272,7 +372,7 @@
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
-  cov_correlation(localN_z) #'  Annual prey N correlated across years
+  cov_correlation(localN_z) # why is percent_forested and WSI so correlated???
   
   #'  Drop sites with NAs (missing 1+ years of data)
   localN_z <- drop_na(localN_z)
@@ -308,6 +408,10 @@
   summary(lm(coyote.yr3 ~ wolf.yr2, data = localN_z))
   summary(lm(coyote.yr2 ~ mountain_lion.yr1, data = localN_z))  
   summary(lm(coyote.yr3 ~ mountain_lion.yr2, data = localN_z))  
+  summary(lm(moose.yr2 ~ DecFeb_WSI.yr1, data = localN_z))
+  summary(lm(moose.yr3 ~ DecFeb_WSI.yr2, data = localN_z))
+  summary(lm(bear_black.yr2 ~ percent_forest.yr1, data = localN_z))  
+  summary(lm(bear_black.yr3 ~ percent_forest.yr2, data = localN_z))  
   
   plot(whitetailed_deer.yr3 ~ mountain_lion.yr2, data = localN_z)
   plot(moose.yr3 ~ wolf.yr2, data = localN_z)
@@ -325,14 +429,14 @@
     #'  Indicate whether observation was from first or second year in grouped data
     mutate(GroupYear = ifelse(year == "yr1", "first", "second")) %>%
     #'  Add time period identifier to each column name
-    rename_with(.cols = bear_black:wolf, function(x){paste0(x, ".Tminus1")}) %>%
+    rename_with(.cols = percent_forest:wolf, function(x){paste0(x, ".Tminus1")}) %>%
     dplyr::select(-year)
   #'  Stack year 2 & year 3 data
   dat_t <- dat_stack_list[[2]] %>% #full_bx_dat_stack[[2]] %>%
     #'  Indicate whether observation was from first or second year in grouped data
     mutate(GroupYear = ifelse(year == "yr2", "first", "second")) %>%
     #'  Add time period identifier to each column name
-    rename_with(.cols = bear_black:wolf, function(x){paste0(x, ".T")}) %>%
+    rename_with(.cols = percent_forest:wolf, function(x){paste0(x, ".T")}) %>%
     dplyr::select(-year)
   
   #'  Join t-1 and t data based on camera location
