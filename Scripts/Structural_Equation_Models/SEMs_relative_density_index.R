@@ -21,7 +21,7 @@
   
   #'  Take a quick look
   head(localN_z); head(localN_z_1YrLag); head(localN_z_all)
-  localN_z_all2 <- localN_z_all %>%
+  localN_z_all <- localN_z_all %>%
     mutate(year = as.factor(year),
            year = as.numeric(year)) 
   
@@ -36,18 +36,19 @@
   #####  Top down, interference competition  #####
   #'  ---------------------------------------
   top_down_inter <- psem(
-    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + coyote.Tminus1, data = localN_z_1YrLag),
-    lm(elk.T ~ elk.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag),
-    lm(moose.T ~ moose.Tminus1 + wolf.Tminus1, data = localN_z_1YrLag),
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + coyote.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
+    lm(elk.T ~ elk.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
+    lm(moose.T ~ moose.Tminus1 + wolf.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
     lm(wolf.T ~ wolf.Tminus1, data = localN_z_1YrLag),
     lm(mountain_lion.T ~ mountain_lion.Tminus1 + wolf.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag),
-    lm(bear_black.T ~ bear_black.Tminus1 + wolf.Tminus1, data = localN_z_1YrLag),
+    lm(bear_black.T ~ bear_black.Tminus1 + wolf.Tminus1 + percent_forest.Tminus1, data = localN_z_1YrLag),
     lm(coyote.T ~ coyote.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1, data = localN_z_1YrLag),
     data = localN_z_1YrLag
   )
   summary(top_down_inter)
   AIC_psem(top_down_inter, AIC.type = "loglik")
   dSep(top_down_inter)
+  
 
   #'  Reduced model
   #'  For all linear models at once-
@@ -79,9 +80,9 @@
   #####  Top-down  #####
   #'  -------------
   top_down <- psem(
-    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + coyote.Tminus1, data = localN_z_1YrLag),
-    lm(elk.T ~ elk.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag),
-    lm(moose.T ~ moose.Tminus1 + wolf.Tminus1, data = localN_z_1YrLag),
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + coyote.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
+    lm(elk.T ~ elk.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
+    lm(moose.T ~ moose.Tminus1 + wolf.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
     data = localN_z_1YrLag
   ) 
   summary(top_down)
@@ -122,12 +123,12 @@
   #####  Top-down, exploitation competition  #####
   #'  ---------------------------------------
   top_down_exploit <- psem(
-    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + coyote.Tminus1, data = localN_z_1YrLag),
-    lm(elk.T ~ elk.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag),
-    lm(moose.T ~ moose.Tminus1 + wolf.Tminus1, data = localN_z_1YrLag),
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + coyote.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
+    lm(elk.T ~ elk.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
+    lm(moose.T ~ moose.Tminus1 + wolf.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
     lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
     lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
-    lm(bear_black.T ~ bear_black.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
+    lm(bear_black.T ~ bear_black.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1 + percent_forest.Tminus1, data = localN_z_1YrLag),
     lm(coyote.T ~ coyote.Tminus1 + whitetailed_deer.Tminus1 + mountain_lion.Tminus1, data = localN_z_1YrLag),
     data = localN_z_1YrLag
   ) 
@@ -168,11 +169,11 @@
   bottom_up_inter <- psem(
     lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
     lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1 + wolf.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag),
-    lm(bear_black.T ~ bear_black.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1 + wolf.Tminus1, data = localN_z_1YrLag), 
+    lm(bear_black.T ~ bear_black.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1 + wolf.Tminus1 + percent_forest.Tminus1, data = localN_z_1YrLag), 
     lm(coyote.T ~ coyote.Tminus1 + whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1, data = localN_z_1YrLag),
-    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1, data = localN_z_1YrLag),
-    lm(elk.T ~ elk.Tminus1, data = localN_z_1YrLag),
-    lm(moose.T ~ moose.Tminus1, data = localN_z_1YrLag), 
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
+    lm(elk.T ~ elk.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag),
+    lm(moose.T ~ moose.Tminus1 + percent_forest.Tminus1 + DecFeb_WSI.Tminus1, data = localN_z_1YrLag), 
     data = localN_z_1YrLag
   )
   summary(bottom_up_inter)
@@ -211,7 +212,7 @@
   bottom_up_exploit <- psem(
     lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = localN_z_1YrLag),
     lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1 + wolf.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag),
-    lm(bear_black.T ~ bear_black.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1 + wolf.Tminus1, data = localN_z_1YrLag), 
+    lm(bear_black.T ~ bear_black.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1 + wolf.Tminus1 + percent_forest.Tminus1, data = localN_z_1YrLag), 
     lm(coyote.T ~ coyote.Tminus1 + whitetailed_deer.Tminus1 + wolf.Tminus1 + mountain_lion.Tminus1, data = localN_z_1YrLag),
     data = localN_z_1YrLag
   )
