@@ -14,12 +14,25 @@
   #'  Load libraries
   library(tidyverse)
   
-  #'  PRISM total monthly precipitation (averaged per GMU)
-  precip <- read_csv("./Data/GEE outputs/PRISM_camBuff_monthly_total_precip_1972_2023.csv") %>%  
-    dplyr::select(c(NewLocationID, date, meanMonthlyValue))
-  #'  PRISM minimum monthly temperature (averaged per GMU)
-  temp <- read_csv("./Data/GEE outputs/PRISM_camBuff_monthly_min_temp_1972_2023.csv") %>%  
-    dplyr::select(c(NewLocationID, date, meanMonthlyValue))
+  #' #'  PRISM total monthly precipitation (averaged per GMU) per camera site
+  #' precip <- read_csv("./Data/GEE outputs/PRISM_camBuff_monthly_total_precip_1972_2023.csv") %>%  
+  #'   dplyr::select(c(NewLocationID, date, meanMonthlyValue))
+  #' #'  PRISM minimum monthly temperature (averaged per GMU) per camera site
+  #' temp <- read_csv("./Data/GEE outputs/PRISM_camBuff_monthly_min_temp_1972_2023.csv") %>%  
+  #'   dplyr::select(c(NewLocationID, date, meanMonthlyValue))
+  
+  #'  PRISM total monthly precipitation (averaged per GMU) per cluster
+  precip <- read_csv("./Data/GEE outputs/PRISM_ClusterAvg_monthly_total_precip_1972_2023.csv") %>%  
+    dplyr::select(c(featureID, Clusters, date, meanMonthlyValue)) %>%
+    mutate(GMU = ifelse(str_detect(featureID, "1_1_"), "GMU1", featureID),
+           GMU = ifelse(str_detect(GMU, "1_2_"), "GMU10A", GMU),
+           GMU = ifelse(str_detect(GMU, "2_"), "GMU6", GMU))
+  #'  PRISM minimum monthly temperature (averaged per GMU) per cluster
+  temp <- read_csv("./Data/GEE outputs/PRISM_ClusterAvg_monthly_min_temp_1972_2023.csv") %>%  
+    dplyr::select(c(featureID, Clusters, date, meanMonthlyValue)) %>%
+    mutate(GMU = ifelse(str_detect(featureID, "1_1_"), "GMU1", featureID),
+           GMU = ifelse(str_detect(GMU, "1_2_"), "GMU10A", GMU),
+           GMU = ifelse(str_detect(GMU, "2_"), "GMU6", GMU))
   
   #'  Function to add season column to weather data
   add_season <- function(prism) {
@@ -93,12 +106,14 @@
   format_weather <- function(prism) {
     avg_winter_weather <- prism %>%
       #'  Reformat columns
-      transmute(NewLocationID = NewLocationID,
+      transmute(Clusters = Clusters, #NewLocationID = NewLocationID,
+                GMU = GMU,
                 Season = Season,
                 Date = date,
                 meanWeather = meanMonthlyValue) %>%
       #'  Average monthly weather by year and site
-      group_by(NewLocationID, Season) %>%
+      # group_by(NewLocationID, Season) %>%
+      group_by(GMU, Clusters, Season) %>%
       summarise(DecFeb_meanWeather = mean(meanWeather),
                 DecFeb_meanWeather_se = sd(meanWeather)/sqrt(nrow(.))) %>%
       ungroup() %>%
