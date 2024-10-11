@@ -21,9 +21,9 @@
   
   #'  Load libraries
   library(sf)
-  library(stars)
-  library(rgeos)
-  library(raster)
+  # library(stars)
+  # library(rgeos)
+  # library(raster)
   library(terra)
   library(tidyverse)
   
@@ -63,15 +63,23 @@
   forest <- matrix(c(0,40,0,
                      40,43,1,
                      43,95,0), ncol = 3, byrow = TRUE)
+  #'  Not forest: everything else
+  notforest <- matrix(c(0,40,1,
+                        40,43,0,
+                        43,95,1), ncol = 3, byrow = TRUE)
   
   #'  Check to make sure it looks right
   forest
+  notforest
   #'  Reclassify the raster based on a matrix
   forest19 <- classify(nlcd, forest, include.lowest = FALSE)
+  notforest19 <- classify(nlcd, notforest, include.lowest = FALSE)
   
   #'  Plot to see how it looks - only forest areas (binary format)
   plot(forest19, main = "Forested landcover")
-  
+  plot(notforest19, main = "Non-forested landcover")
+  writeRaster(forest19, filename = "./Shapefiles/National Land Cover Database (NCLD)/Forested_landcover.tif")
+  writeRaster(notforest19, filename = "./Shapefiles/National Land Cover Database (NCLD)/NonForested_landcover.tif")
   
   #'  --------------------------
   ####  Moving window analysis  ####
