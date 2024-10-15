@@ -63,6 +63,9 @@
   eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
   
+  #'  ----------------------------------
+  ####  Percent Forest Cover Covariate  ####
+  #'  ----------------------------------
   #'  Read in forested landcover
   perc_forest <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForest_100m.tif")
   forest <- rast("./Shapefiles/National Land Cover Database (NCLD)/Forested_landcover.tif")
@@ -132,147 +135,202 @@
   #'  ----------------------------
   ####  Percent disturbed forest  ####
   #'  ----------------------------
-  #'  Hansen's Global Forest Change dataset (area and year of canopy loss per cluster)
-  gfc <- read_csv("./Data/GEE outputs/GFC_annual_canopy_loss_area_clusters.csv") %>% 
+  #'  Hansen's Global Forest Change dataset (area of 2020 canopy cover per cluster)
+  gfc <- read_csv("./Data/GEE outputs/GFC_2020_canopy_cover_area_clusters.csv") %>% 
     dplyr::select(-`.geo`) %>%
-    #'  Make canopy loss year easier to interpret
-    mutate(CanopyLossYear = Year_add1 + 2001,
-           #'  Calculate proportion of canopy loss within each cluster
-           CanopyLossProp = CanopyLossArea_sq_m/BufferArea_sq_m,
-           CanopyLossArea_sq_km = CanopyLossArea_sq_m/1000000,
-           CanopyLossArea_sq_m = round(CanopyLossArea_sq_m, 3),
-           CanopyLossProp = round(CanopyLossProp, 5),
-           #'  Relabel GEE indexing to corresponding GMUs
-           GMU = ifelse(str_detect(`system:index`, "_1_1_"), "GMU1", `system:index`),  # note the order is different with PRISM data
-           GMU = ifelse(str_detect(GMU, "_1_2_"), "GMU6", GMU),
-           GMU = ifelse(str_detect(GMU, "_2_"), "GMU10A", GMU)) %>%
-    #'  Remove unnecessary columns and rows
-    dplyr::select(c(GMU, ClusterID, CanopyLossYear, CanopyLossArea_sq_km, CanopyLossArea_sq_m, CanopyLossProp)) %>%
-    filter(CanopyLossArea_sq_m > 0) %>% 
-    #'  Retain loss year where largest proportion of area was lost (not necessarily 
-    #'  the most recent - want to represent the "dominant" habitat type so even if 
-    #'  smaller more recent loss occurred area is best represented by larger, older loss)
-    group_by(GMU, ClusterID) %>%
-    slice_max(order_by = CanopyLossProp, n = 1) %>% 
-    ungroup() %>%
-    arrange(GMU, ClusterID)
-  
-  #'  National Landcover Database (frequency of landcover class per cluster)
-  nlcd <- read_csv("./Data/GEE outputs/NLCD_frequencies_2019_2021_clusters.csv") %>%
     #'  Relabel GEE indexing to corresponding GMUs
     mutate(GMU = ifelse(str_detect(`system:index`, "1_1_"), "GMU1", `system:index`),  # note the order is different with PRISM data
            GMU = ifelse(str_detect(GMU, "1_2_"), "GMU6", GMU),
            GMU = ifelse(str_detect(GMU, "2_"), "GMU10A", GMU)) %>%
-    dplyr::select(c(GMU, Clusters, landcover_2019, landcover_2021)) %>%
+    dplyr::select(-`system:index`) %>%
+    relocate(CanopyCoverAreaSqKm, .after = area_km2) %>%
     rename("ClusterID" = "Clusters") %>%
-    mutate(landcover_2019 = str_replace_all(landcover_2019, "[[{}]]", ""),
-           landcover_2021 = str_replace_all(landcover_2021, "[[{}]]", ""))
-  nlcd19 <- nlcd %>% dplyr::select(c(GMU, ClusterID, landcover_2019)) %>%
-    #'  Remove GMU1 cameras from this dataset
-    filter(GMU != "GMU1") %>%
-    #'  Separate wonky GEE character string grouping all landcover outputs together 
-    #'  (FYI separate does something weird with extra columns so be sure to provide 
-    #'  double the max number of possible landcover types). Ignore warning about missing pieces and NAs.
-    separate(landcover_2019, into = c("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", "col11", "col12", "col13", "col14", "col15", "col16", "col17", "col18", "col19", "col20", "col21", "col22"), sep = "[, ]")
-  nlcd21 <- nlcd %>% dplyr::select(c(GMU, ClusterID, landcover_2021)) %>%
-    separate(landcover_2021, into = c("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", "col11", "col12", "col13", "col14", "col15", "col16", "col17", "col18", "col19", "col20", "col21", "col22"), sep = "[, ]")
+    #'  Column to double check canopy cover area is less than or equal to area of polygon (if FALSE, that's a problem)
+    mutate(areas_ok = ifelse(CanopyCoverAreaSqKm <= area_km2, TRUE, FALSE))
   
-  #'  Function to reformat NLCD data extracted from GEE
-  habitat_frequencies <- function(dat) {
-    reformatted <- dat %>%
-      #'  Convert to long format to organize columns better
-      pivot_longer(!c(GMU, ClusterID), names_to = "col_name", values_to = "landcover_class") %>%
-      #'  Split landcover class from number of pixels
-      separate(landcover_class, into = c("NLCD_class", "npixels"), sep = "[=]") %>%
-      #'  Drop unneeded columns and rows
-      dplyr::select(-col_name) %>%
-      filter(!is.na(npixels)) %>%
-      #'  Reformat npixels 
-      mutate(npixels = as.numeric(npixels)) %>%
-             # npixels = round(npixels, 2)) %>%
-      #'  Calculate proportion of pixels made up by each cover type near camera
-      group_by(GMU, ClusterID) %>%
-      reframe(NLCD_class = NLCD_class,
-              npixels = npixels,
-              totalPix = sum(npixels),
-              pixel_area_m2 = totalPix * (30*30),
-              pixel_area_km2 = pixel_area_m2/1000000,
-              percentPix = npixels/totalPix) %>%
-      ungroup() %>%
-      mutate(percentPix = round(percentPix, 3)) %>%
-      arrange(GMU, ClusterID) %>%
-      # rename("NewLocationID" = "NwLctID") %>%
-      #'  Define NLCD landcover classifications using https://developers.google.com/earth-engine/datasets/catalog/USGS_NLCD_RELEASES_2021_REL_NLCD
-      mutate(habitat_type = ifelse(NLCD_class == "11", "Other", NLCD_class),               #11: Open water
-             habitat_type = ifelse(NLCD_class == "12", "Other", habitat_type),             #12: Perennial ice/snow
-             habitat_type = ifelse(NLCD_class == "21", "Developed", habitat_type),         #21: Developed, open space: mixture of constructed materials, mostly vegetation in the form of lawn grasses
-             habitat_type = ifelse(NLCD_class == "22", "Developed", habitat_type),         #22: Developed, low intensity: areas with a mixture of constructed materials and vegetation, most commonly single-family housing units
-             habitat_type = ifelse(NLCD_class == "23", "Developed", habitat_type),         #21: Developed, medium intensity: areas with a mixture of constructed materials and vegetation, most commonly single-family housing units
-             habitat_type = ifelse(NLCD_class == "24", "Developed", habitat_type),         #22: Developed, high intensity: highly developed areas where people reside or work in high numbers
-             habitat_type = ifelse(NLCD_class == "31", "Other", habitat_type),             #31: Barren Land
-             habitat_type = ifelse(NLCD_class == "41", "Forested", habitat_type),          #41: Deciduous Forest
-             habitat_type = ifelse(NLCD_class == "42", "Forested", habitat_type),          #42: Evergreen Forest
-             habitat_type = ifelse(NLCD_class == "43", "Forested", habitat_type),          #43: Mixed Forest
-             habitat_type = ifelse(NLCD_class == "52", "Shrubland", habitat_type),         #52: Shrub/Scrub
-             habitat_type = ifelse(NLCD_class == "71", "Grassland", habitat_type),         #71: Grassland/Herbaceous
-             habitat_type = ifelse(NLCD_class == "81", "Agriculture", habitat_type),       #81: Pasture/Hay
-             habitat_type = ifelse(NLCD_class == "82", "Agriculture", habitat_type),       #82: Cultivated Crops
-             habitat_type = ifelse(NLCD_class == "90", "Riparian_woodland", habitat_type),      #90: Woody Wetlands
-             habitat_type = ifelse(NLCD_class == "95", "Riparian_wetland", habitat_type)) %>%   #95: Emergent Herbaceous Wetlands)
-      relocate(habitat_type, .after = "ClusterID")
+  #'  Hansen's Global Forest Change dataset (area and year of canopy loss per cluster)
+  gfc_loss <- read_csv("./Data/GEE outputs/GFC_annual_canopy_loss_area_clusters.csv") %>% 
+    dplyr::select(-`.geo`) %>%
+    #'  Relabel GEE indexing to corresponding GMUs
+    mutate(GMU = ifelse(str_detect(`system:index`, "_1_1_"), "GMU1", `system:index`),  # note the order is different with PRISM data
+           GMU = ifelse(str_detect(GMU, "_1_2_"), "GMU6", GMU),
+           GMU = ifelse(str_detect(GMU, "_2_"), "GMU10A", GMU)) %>%
+    dplyr::select(-`system:index`) %>%
+    full_join(gfc, by = c("GMU", "ClusterID")) %>%
+    #'  Make canopy loss year easier to interpret
+    mutate(CanopyLossYear = Year_add1 + 2001,
+           #'  Calculate area canopy loss within each cluster
+           CanopyLossArea_sq_km = CanopyLossArea_sq_m/1000000) %>%
+    dplyr::select(c(GMU, ClusterID, area_km2, CanopyCoverAreaSqKm, CanopyLossYear, CanopyLossArea_sq_km)) 
     
-    #'  Filter data to the dominant habitat class within each cluster
-    #'  (dominant is defined as the landcover class comprising the largest proportion
-    #'  of pixels within cluster)
-    dominant_habitat <- reformatted %>%
+  #'  Function to calculate remaining canopy cover after multiple years of loss
+  gfc_loss_accumulation <- function(Hanson, yr) {
+    gfc_loss <- Hanson %>%
+      filter(CanopyLossYear <= yr) %>%
+      #'  Accumulated canopy loss up to defined year
       group_by(GMU, ClusterID) %>%
-      slice_max(order_by = percentPix, n = 1) %>%
-      ungroup() %>%
+      reframe(area_km2 = area_km2,
+              CanopyCoverAreaSqKm = CanopyCoverAreaSqKm,
+              TotalLoss_sq_km = sum(CanopyLossArea_sq_km),
+              CanopyCover_sq_km = CanopyCoverAreaSqKm - TotalLoss_sq_km) %>%
+      #'  Reduce to single observation per cluster
+      group_by(GMU, ClusterID) %>%
+      slice(1L) %>%
       arrange(GMU, ClusterID)
-    
-    #'  Review dominant habitat types
-    print(table(dominant_habitat$habitat_type))
-    
-    #'  List both datasets together
-    landcover_list <- list(dominant_habitat, reformatted)
-    names(landcover_list) <- c("dominant_habitat", "percent_landcover")
-    
-    return(landcover_list)
-    return()
+    return(gfc_loss)
   }
-  landcover19 <- habitat_frequencies(nlcd19)
-  landcover21 <- habitat_frequencies(nlcd21)
+  #'  Accumulated loss through 2001
+  gfc_loss_thru_2001 <- gfc_loss_accumulation(gfc_loss, yr = 2001) %>%
+    rename("TotalLoss2001_sq_km" = "TotalLoss_sq_km") %>%
+    rename("CanopyCover2001_sq_km" = "CanopyCover_sq_km")
+  #  Accumulated loss through 2002
+  gfc_loss_thru_2002 <- gfc_loss_accumulation(gfc_loss, yr = 2002) %>%
+    rename("TotalLoss2002_sq_km" = "TotalLoss_sq_km") %>%
+    rename("CanopyCover2002_sq_km" = "CanopyCover_sq_km")
+  #'  Accumulated loss over last 20 years (2000 - 2020)
+  gfc_loss_thru_2020 <- gfc_loss_accumulation(gfc_loss, yr = 2020) %>%
+    #'  Calculate proportion of forest cover that has been disturbed in last 20-years
+    mutate(DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm)
+  #'  Accumulated loss over last 20 years (2001 - 2021)
+  gfc_loss_thru_2021 <- gfc_loss_accumulation(gfc_loss, yr = 2021) %>%
+    full_join(gfc_loss_thru_2001) %>%
+    #'  Adjust accumulated loss through 2021 so TotalLoss is only for past 20 years
+    #'  by updating CanopyCoverArea to that in 2001 and subtracting 2001 accumulated
+    #'  loss from 2021 accumulated loss
+    mutate(CanopyCoverAreaSqKm = CanopyCover2001_sq_km,
+           TotalLoss_sq_km = TotalLoss_sq_km - TotalLoss2001_sq_km,
+           CanopyCover_sq_km = CanopyCoverAreaSqKm - TotalLoss_sq_km,
+           #'  Calculate proportion of forest cover that has been disturbed in last 20-years
+           DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm) %>%
+    dplyr::select(-c(TotalLoss2001_sq_km, CanopyCover2001_sq_km))
+  #'  Accumulated loss over last 20 years (2002 - 2022)  
+  gfc_loss_thru_2022 <- gfc_loss_accumulation(gfc_loss, yr = 2022) %>%
+    full_join(gfc_loss_thru_2002) %>%
+    #'  Adjust accumulated loss through 2022 so TotalLoss is only for past 20 years
+    mutate(CanopyCoverAreaSqKm = CanopyCover2002_sq_km,
+           TotalLoss_sq_km = TotalLoss_sq_km - TotalLoss2002_sq_km,
+           CanopyCover_sq_km = CanopyCoverAreaSqKm - TotalLoss_sq_km,
+           #'  Calculate proportion of forest cover that has been disturbed in last 20-years
+           DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm) %>%
+    dplyr::select(-c(TotalLoss2002_sq_km, CanopyCover2002_sq_km))
   
-  #'  Load MTBS burn perimeter data 
-  mtbs <- st_read(dsn = "./Shapefiles/MTBS_perimeter_data", layer = "mtbs_perims_DD") %>%
-    st_transform(forest_proj)
-  
-  #'  Extract burn year of each pixel per cluster
-  burn_perimeters <- function(polygon) {
-    #'  Vectorize polygons
-    polygon <- st_transform(polygon, forest_proj) #%>% vect(.)
-    #'  Intersect overlapping clusters & burn perimeters
-    mtbs_simple <- mtbs %>% 
-      dplyr::select("Ig_Date", "Incid_Name", "Incid_Type") %>%
-      mutate(Burn_year = format(as.Date(Ig_Date, format="%Y-%m-%d"),"%Y")) 
-    mtbs_cluster_inter <- st_intersection(polygon, mtbs_simple) 
-    burned_area <- as.numeric(st_area(mtbs_cluster_inter)/1000000) %>%
-      as.data.frame()
-    names(burned_area) <- "burned_area_km2"
-    mtbs_cluster_inter <- bind_cols(mtbs_cluster_inter, burned_area)
-    mapview::mapview(mtbs_cluster_inter, zcol = "Clusters")
-    #'  Save burn year and area
-    mtbs_burn_yr <- as.data.frame(mtbs_cluster_inter) %>%
-      dplyr::select(c(GMU, Clusters, Burn_year, area_km2, burned_area_km2)) %>%
-      rename("ClusterID" = "Clusters") 
-    return(mtbs_burn_yr)
-  }
-  burned_gmu1 <- burn_perimeters(gmu1_poly)
-  burned_gmu6 <- burn_perimeters(gmu6_poly)
-  burned_gmu10a <- burn_perimeters(gmu10a_poly)
+  #' #'  National Landcover Database (frequency of landcover class per cluster)
+  #' nlcd <- read_csv("./Data/GEE outputs/NLCD_frequencies_2019_2021_clusters.csv") %>%
+  #'   #'  Relabel GEE indexing to corresponding GMUs
+  #'   mutate(GMU = ifelse(str_detect(`system:index`, "1_1_"), "GMU1", `system:index`),  # note the order is different with PRISM data
+  #'          GMU = ifelse(str_detect(GMU, "1_2_"), "GMU6", GMU),
+  #'          GMU = ifelse(str_detect(GMU, "2_"), "GMU10A", GMU)) %>%
+  #'   dplyr::select(c(GMU, Clusters, landcover_2019, landcover_2021)) %>%
+  #'   rename("ClusterID" = "Clusters") %>%
+  #'   mutate(landcover_2019 = str_replace_all(landcover_2019, "[[{}]]", ""),
+  #'          landcover_2021 = str_replace_all(landcover_2021, "[[{}]]", ""))
+  #' nlcd19 <- nlcd %>% dplyr::select(c(GMU, ClusterID, landcover_2019)) %>%
+  #'   #'  Remove GMU1 cameras from this dataset
+  #'   filter(GMU != "GMU1") %>%
+  #'   #'  Separate wonky GEE character string grouping all landcover outputs together 
+  #'   #'  (FYI separate does something weird with extra columns so be sure to provide 
+  #'   #'  double the max number of possible landcover types). Ignore warning about missing pieces and NAs.
+  #'   separate(landcover_2019, into = c("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", "col11", "col12", "col13", "col14", "col15", "col16", "col17", "col18", "col19", "col20", "col21", "col22"), sep = "[, ]")
+  #' nlcd21 <- nlcd %>% dplyr::select(c(GMU, ClusterID, landcover_2021)) %>%
+  #'   separate(landcover_2021, into = c("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", "col11", "col12", "col13", "col14", "col15", "col16", "col17", "col18", "col19", "col20", "col21", "col22"), sep = "[, ]")
+  #' 
+  #' #'  Function to reformat NLCD data extracted from GEE
+  #' habitat_frequencies <- function(dat) {
+  #'   reformatted <- dat %>%
+  #'     #'  Convert to long format to organize columns better
+  #'     pivot_longer(!c(GMU, ClusterID), names_to = "col_name", values_to = "landcover_class") %>%
+  #'     #'  Split landcover class from number of pixels
+  #'     separate(landcover_class, into = c("NLCD_class", "npixels"), sep = "[=]") %>%
+  #'     #'  Drop unneeded columns and rows
+  #'     dplyr::select(-col_name) %>%
+  #'     filter(!is.na(npixels)) %>%
+  #'     #'  Reformat npixels 
+  #'     mutate(npixels = as.numeric(npixels)) %>%
+  #'            # npixels = round(npixels, 2)) %>%
+  #'     #'  Calculate proportion of pixels made up by each cover type near camera
+  #'     group_by(GMU, ClusterID) %>%
+  #'     reframe(NLCD_class = NLCD_class,
+  #'             npixels = npixels,
+  #'             totalPix = sum(npixels),
+  #'             pixel_area_m2 = totalPix * (30*30),
+  #'             pixel_area_km2 = pixel_area_m2/1000000,
+  #'             percentPix = npixels/totalPix) %>%
+  #'     ungroup() %>%
+  #'     mutate(percentPix = round(percentPix, 3)) %>%
+  #'     arrange(GMU, ClusterID) %>%
+  #'     # rename("NewLocationID" = "NwLctID") %>%
+  #'     #'  Define NLCD landcover classifications using https://developers.google.com/earth-engine/datasets/catalog/USGS_NLCD_RELEASES_2021_REL_NLCD
+  #'     mutate(habitat_type = ifelse(NLCD_class == "11", "Other", NLCD_class),               #11: Open water
+  #'            habitat_type = ifelse(NLCD_class == "12", "Other", habitat_type),             #12: Perennial ice/snow
+  #'            habitat_type = ifelse(NLCD_class == "21", "Developed", habitat_type),         #21: Developed, open space: mixture of constructed materials, mostly vegetation in the form of lawn grasses
+  #'            habitat_type = ifelse(NLCD_class == "22", "Developed", habitat_type),         #22: Developed, low intensity: areas with a mixture of constructed materials and vegetation, most commonly single-family housing units
+  #'            habitat_type = ifelse(NLCD_class == "23", "Developed", habitat_type),         #21: Developed, medium intensity: areas with a mixture of constructed materials and vegetation, most commonly single-family housing units
+  #'            habitat_type = ifelse(NLCD_class == "24", "Developed", habitat_type),         #22: Developed, high intensity: highly developed areas where people reside or work in high numbers
+  #'            habitat_type = ifelse(NLCD_class == "31", "Other", habitat_type),             #31: Barren Land
+  #'            habitat_type = ifelse(NLCD_class == "41", "Forested", habitat_type),          #41: Deciduous Forest
+  #'            habitat_type = ifelse(NLCD_class == "42", "Forested", habitat_type),          #42: Evergreen Forest
+  #'            habitat_type = ifelse(NLCD_class == "43", "Forested", habitat_type),          #43: Mixed Forest
+  #'            habitat_type = ifelse(NLCD_class == "52", "Shrubland", habitat_type),         #52: Shrub/Scrub
+  #'            habitat_type = ifelse(NLCD_class == "71", "Grassland", habitat_type),         #71: Grassland/Herbaceous
+  #'            habitat_type = ifelse(NLCD_class == "81", "Agriculture", habitat_type),       #81: Pasture/Hay
+  #'            habitat_type = ifelse(NLCD_class == "82", "Agriculture", habitat_type),       #82: Cultivated Crops
+  #'            habitat_type = ifelse(NLCD_class == "90", "Riparian_woodland", habitat_type),      #90: Woody Wetlands
+  #'            habitat_type = ifelse(NLCD_class == "95", "Riparian_wetland", habitat_type)) %>%   #95: Emergent Herbaceous Wetlands)
+  #'     relocate(habitat_type, .after = "ClusterID")
+  #'   
+  #'   #'  Filter data to the dominant habitat class within each cluster
+  #'   #'  (dominant is defined as the landcover class comprising the largest proportion
+  #'   #'  of pixels within cluster)
+  #'   dominant_habitat <- reformatted %>%
+  #'     group_by(GMU, ClusterID) %>%
+  #'     slice_max(order_by = percentPix, n = 1) %>%
+  #'     ungroup() %>%
+  #'     arrange(GMU, ClusterID)
+  #'   
+  #'   #'  Review dominant habitat types
+  #'   print(table(dominant_habitat$habitat_type))
+  #'   
+  #'   #'  List both datasets together
+  #'   landcover_list <- list(dominant_habitat, reformatted)
+  #'   names(landcover_list) <- c("dominant_habitat", "percent_landcover")
+  #'   
+  #'   return(landcover_list)
+  #'   return()
+  #' }
+  #' landcover19 <- habitat_frequencies(nlcd19)
+  #' landcover21 <- habitat_frequencies(nlcd21)
+  #' 
+  #' #'  Load MTBS burn perimeter data 
+  #' mtbs <- st_read(dsn = "./Shapefiles/MTBS_perimeter_data", layer = "mtbs_perims_DD") %>%
+  #'   st_transform(forest_proj)
+  #' 
+  #' #'  Extract burn year of each pixel per cluster
+  #' burn_perimeters <- function(polygon) {
+  #'   #'  Vectorize polygons
+  #'   polygon <- st_transform(polygon, forest_proj) #%>% vect(.)
+  #'   #'  Intersect overlapping clusters & burn perimeters
+  #'   mtbs_simple <- mtbs %>% 
+  #'     dplyr::select("Ig_Date", "Incid_Name", "Incid_Type") %>%
+  #'     mutate(Burn_year = format(as.Date(Ig_Date, format="%Y-%m-%d"),"%Y")) 
+  #'   mtbs_cluster_inter <- st_intersection(polygon, mtbs_simple) 
+  #'   burned_area <- as.numeric(st_area(mtbs_cluster_inter)/1000000) %>%
+  #'     as.data.frame()
+  #'   names(burned_area) <- "burned_area_km2"
+  #'   mtbs_cluster_inter <- bind_cols(mtbs_cluster_inter, burned_area)
+  #'   mapview::mapview(mtbs_cluster_inter, zcol = "Clusters")
+  #'   #'  Save burn year and area
+  #'   mtbs_burn_yr <- as.data.frame(mtbs_cluster_inter) %>%
+  #'     dplyr::select(c(GMU, Clusters, Burn_year, area_km2, burned_area_km2)) %>%
+  #'     rename("ClusterID" = "Clusters") 
+  #'   return(mtbs_burn_yr)
+  #' }
+  #' burned_gmu1 <- burn_perimeters(gmu1_poly)
+  #' burned_gmu6 <- burn_perimeters(gmu6_poly)
+  #' burned_gmu10a <- burn_perimeters(gmu10a_poly)
  
   
   
+  ####  THIS IS WHERE I"M LEAVING OFF - WSI & % of forest disturbed in last 20 years
   #'  Add GEE data to larger covariate df
   format_cam_covs <- function(dat, landcov, season, camYr) {
     covs <- full_join(dat, gfc, by = "ClusterID") %>%
