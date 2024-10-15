@@ -36,6 +36,8 @@
   gmu <- st_read("./Shapefiles/IDFG_Game_Management_Units/Game_Management_Units.shp")
   eoe_gmu <- gmu[gmu$NAME == "1" | gmu$NAME == "6" | gmu$NAME == "10A",] 
   usa <- st_read("./Shapefiles/tl_2012_us_state/tl_2012_us_state.shp")
+  merica <- st_read("./Shapefiles/cb_2022_us_nation_20m/cb_2022_us_nation_20m.shp") %>%
+    st_transform("+proj=longlat +datum=WGS84 +no_defs")
   id <- usa[usa$NAME == "Idaho",] 
   eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
     st_transform("+proj=longlat +datum=WGS84 +no_defs")
@@ -445,6 +447,20 @@
   mapview::mapview(list(clusters_gmu1C, UDs_gmu1C), zcol = "Clusters")
   mapview::mapview(list(clusters_gmu1W, UDs_gmu1W), zcol = "Clusters")  
   
+  #'  Remove portions of clusters that extend beyond GMU boundary
+  UDs_gmu1E_clip <- st_intersection(UDs_gmu1E, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,])
+  mapview::mapview(list(clusters_gmu1E, UDs_gmu1E_clip), zcol = "Clusters")
+  UDs_gmu1E <- UDs_gmu1E_clip
+  UDs_gmu1NE_clip <- st_intersection(UDs_gmu1NE, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,])
+  mapview::mapview(list(clusters_gmu1NE, UDs_gmu1NE_clip), zcol = "Clusters")
+  UDs_gmu1NE <- UDs_gmu1NE_clip
+  UDs_gmu1C_clip <- st_intersection(UDs_gmu1C, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,])
+  mapview::mapview(list(clusters_gmu1C, UDs_gmu1C_clip), zcol = "Clusters")
+  UDs_gmu1C <- UDs_gmu1C_clip
+  UDs_gmu1W_clip <- st_intersection(UDs_gmu1W, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,])
+  mapview::mapview(list(clusters_gmu1W, UDs_gmu1W_clip), zcol = "Clusters")
+  UDs_gmu1W <- UDs_gmu1W_clip
+  
   #'  Intersect overlapping UDs
   UDs_gmu1E_intersect <- st_intersection(UDs_gmu1E) %>%
     mutate(NewClusters = row.names(.)) %>%
@@ -472,10 +488,23 @@
   ud_gmu1W_c1 <- filter(UDs_gmu1W, Clusters == 1) %>% st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON")
   ud_gmu1W_c3 <- filter(UDs_gmu1W, Clusters == 3) %>% st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON")
   
+  #' #'  Intersect clusters that overlap USA-Canadian border with US boundary and remove 
+  #' #'  portions of cluster that cross the border (not all covariate data is transboundary)
+  #' ud_gmu1NE_c2_usa <- st_intersection(ud_gmu1NE_c2, merica) %>%
+  #'   mutate(NewClusters = row.names(.)) %>%
+  #'   dplyr::select(c(Clusters, NewClusters))
+  #' mapview::mapview(list(clusters_gmu1NE, ud_gmu1NE_c2_usa), zcol = "Clusters")
+  #' ud_gmu1NE_c2 <- ud_gmu1NE_c2_usa
+  #' ud_gmu1C_c2_usa <- st_intersection(ud_gmu1C_c2, merica) %>%
+  #'   mutate(NewClusters = row.names(.)) %>%
+  #'   dplyr::select(c(Clusters, NewClusters))
+  #' mapview::mapview(list(clusters_gmu1C, ud_gmu1C_c2_usa), zcol = "Clusters")
+  #' ud_gmu1C_c2 <- ud_gmu1C_c2_usa
+  
   #'  Snag portions of remaining polygons that were created with intersection
   ud_gmu1E_c1 <- filter(UDs_gmu1E_intersect, NewClusters == 1)
   ud_gmu1E_c1.2 <- filter(UDs_gmu1E_intersect, NewClusters == 1.2)
-  ud_gmu1E_c4 <- filter(UDs_gmu1E_intersect, NewClusters == 4)
+  ud_gmu1E_c4 <- filter(UDs_gmu1E_intersect, NewClusters == 4) 
   ud_gmu1E_c2 <- filter(UDs_gmu1E_intersect, NewClusters == 2)
   ud_gmu1E_c2.1 <- filter(UDs_gmu1E_intersect, NewClusters == 2.1)
   ud_gmu1E_c7 <- filter(UDs_gmu1E_intersect, NewClusters == 7)
@@ -570,7 +599,7 @@
   row.names(ud_gmu1C_c1_noriver) <- 1
   ud_gmu1C_c2_noriver <- ud_gmu1C_c2_kr_split[3,]; plot(ud_gmu1C_c2_noriver[1])  
   row.names(ud_gmu1C_c2_noriver) <- 2
-  ud_gmu1C_c4_noriver <- ud_gmu1C_c4_kr_split[7,]; plot(ud_gmu1C_c4_noriver[1]) 
+  ud_gmu1C_c4_noriver <- ud_gmu1C_c4_kr_split[1,]; plot(ud_gmu1C_c4_noriver[1]) 
   row.names(ud_gmu1C_c4_noriver) <- 4
   ud_gmu1C_c6_noriver <- ud_gmu1C_c6_por_split[1,]; plot(ud_gmu1C_c6_noriver[1])
   row.names(ud_gmu1C_c6_noriver) <- 6
@@ -584,17 +613,17 @@
   #'  Spatial data frame of new cluster polygons
   UDs_gmu1E_poly <- bind_rows(ud_gmu1E_c1_noriver, ud_gmu1E_c2_noriver, ud_gmu1E_c3, 
                               ud_gmu1E_c4_noriver, ud_gmu1E_c6, ud_gmu1E_c7, ud_gmu1E_c8) %>%
-    dplyr::select(-c(NewClusters, Clusters.1, NewClusters.1, Clusters.2, NewClusters.2, area))
+    dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu1E, UDs_gmu1E_poly), zcol = "Clusters")
   UDs_gmu1NE_poly <- bind_rows(ud_gmu1NE_c1_noriver, ud_gmu1NE_c2_noriver) %>% 
     dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu1NE, UDs_gmu1NE_poly), zcol = "Clusters")
   UDs_gmu1C_poly <- bind_rows(ud_gmu1C_c1_noriver, ud_gmu1C_c2_noriver, ud_gmu1C_c3, 
                               ud_gmu1C_c4_noriver, ud_gmu1C_c6_noriver, ud_gmu1C_c7_noriver) %>%
-    dplyr::select(-c(NewClusters, area))
+    dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu1C, UDs_gmu1C_poly), zcol = "Clusters")
   UDs_gmu1W_poly <- bind_rows(ud_gmu1W_c1_noriver, ud_gmu1W_c2_noriver, ud_gmu1W_c3_noriver) %>%
-    dplyr::select(-c(NewClusters, area))
+    dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu1W, UDs_gmu1W_poly), zcol = "Clusters")
 
   #'  Calculate area (km^2) for each cluster polygon
@@ -620,6 +649,11 @@
   
   ######  GMU6 Cluster Polygons  ######
   #'  ---------------------------
+  #'  Remove portions of clusters that extend beyond GMU boundary
+  UDs_gmu6_clip <- st_intersection(UDs_gmu6, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,])
+  mapview::mapview(list(clusters_gmu6, UDs_gmu6_clip), zcol = "Clusters")
+  UDs_gmu6 <- UDs_gmu6_clip
+  
   #'  Intersect overlapping UDs
   UDs_gmu6_intersect <- st_intersection(UDs_gmu6) %>%
     mutate(NewClusters = row.names(.)) %>%
@@ -630,20 +664,30 @@
   #'  Snag individual cluster polygon that's not changing
   #'  Other 3 cluster polygons overlap portions of polygon 3 but cluster 3 is most 
   #'  distinct from other clusters so want to retain the original polygon
-  ud_gmu6_c3 <- filter(UDs_gmu6, Clusters == 3) %>% st_cast("POLYGON")
+  ud_gmu6_c3 <- filter(UDs_gmu6, Clusters == 3) %>% st_cast("POLYGON") %>%
+    mutate(NewClusters = row.names(.)) %>%
+    dplyr::select(c(Clusters, NewClusters)); mapview(ud_gmu6_c3)
+  #' #'  Intersect GMU6 cluster 3 with GMU6 boundary b/c currently overlaps with GMU10A cluster 1
+  #' ud_gmu6_c3_nooverlap <- st_intersection(ud_gmu6_c3, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,]) %>%
+  #'   mutate(NewClusters = row.names(.)) %>%
+  #'   dplyr::select(c(Clusters, NewClusters))
+  #' mapview::mapview(list(clusters_gmu6, ud_gmu6_c3_nooverlap), zcol = "Clusters")
+  #' ud_gmu6_c3 <- ud_gmu6_c3_nooverlap
   
   #'  Create individual polygons remaining portions of other cluster polygons
   ud_gmu6_c1 <- filter(UDs_gmu6_intersect, NewClusters == 1) %>% st_cast("POLYGON")
+  ud_gmu6_c1 <- ud_gmu6_c1[1,]; mapview(ud_gmu6_c1)
   ud_gmu6_c2 <- filter(UDs_gmu6_intersect, NewClusters == 2) %>% st_cast("POLYGON")
   #'  Split amalgamation of Cluster 4 polygons into individual polygons
   ud_gmu6_c4 <- filter(UDs_gmu6_intersect, NewClusters == 4 | NewClusters == 1.2)  %>% 
-    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu6_c4[1:2,])
+    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu6_c4[c(1,3),])
   #'  Join specific polygons from cluster 4
-  ud_gmu6_c4 <- st_union(ud_gmu6_c4[2,], ud_gmu6_c4[1,]) %>% st_cast("POLYGON"); mapview(ud_gmu6_c4)
+  ud_gmu6_c4 <- st_union(ud_gmu6_c4[3,], ud_gmu6_c4[1,]) %>% st_cast("POLYGON") %>%
+    dplyr::select(-c(Clusters.1, NewClusters.1)); mapview(ud_gmu6_c4)
 
   #'  Spatial data frame of new cluster polygons
   UDs_gmu6_poly <- bind_rows(ud_gmu6_c1, ud_gmu6_c2, ud_gmu6_c3, ud_gmu6_c4) %>%
-    dplyr::select(-c(NewClusters, Clusters.1, NewClusters.1, area))
+    dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu6, UDs_gmu6_poly), zcol = "Clusters")
   
   #'  Calculate area (km^2) for each cluster polygon
@@ -657,6 +701,14 @@
   mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN), zcol = "Clusters")
   mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS), zcol = "Clusters")
     
+  #'  Remove portions of clusters that extend beyond GMU boundary
+  UDs_gmu10aN_clip <- st_intersection(UDs_gmu10aN, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",])
+  mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN_clip), zcol = "Clusters")
+  UDs_gmu10aN <- UDs_gmu10aN_clip
+  UDs_gmu10aS_clip <- st_intersection(UDs_gmu10aS, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",])
+  mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_clip), zcol = "Clusters")
+  UDs_gmu10aS <- UDs_gmu10aS_clip
+  
   #'  Intersect overlapping UDs
   UDs_gmu10aN_intersect <- st_intersection(UDs_gmu10aN) %>%
     mutate(NewClusters = row.names(.)) %>%
@@ -671,6 +723,13 @@
   ud_gmu10aN_c1 <- filter(UDs_gmu10aN, Clusters == 1)
   ud_gmu10aS_c4 <- filter(UDs_gmu10aS, Clusters == 4)
   ud_gmu10aS_c6 <- filter(UDs_gmu10aS, Clusters == 6) %>% st_cast("POLYGON") 
+  
+  #' #'  Intersect GMU10A cluster 1 with GMU10A boundary b/c currently overlaps with GMU6 cluster 3
+  #' ud_gmu10aN_c1_nooverlap <- st_intersection(ud_gmu10aN_c1, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",]) %>%
+  #'   mutate(NewClusters = row.names(.)) %>%
+  #'   dplyr::select(c(Clusters, NewClusters))
+  #' mapview::mapview(list(clusters_gmu10a, ud_gmu10aN_c1_nooverlap), zcol = "Clusters")
+  #' ud_gmu10aN_c1 <- ud_gmu10aN_c1_nooverlap
   
   #'  Create individual polygons for places where two cluster polygons intersect
   ud_gmu10aN_c2 <- filter(UDs_gmu10aN_intersect, NewClusters == 2)
@@ -710,16 +769,16 @@
     st_cast("MULTIPOLYGON") %>% dplyr::select(Clusters) %>% 
     lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON") %>% 
     lwgeom::st_split(clearwater) %>% st_collection_extract("POLYGON"); mapview(UDs_gmu10aS_poly_nowater)
-  UDs_gmu10aS_poly_nowater <- bind_rows(UDs_gmu10aS_poly_nowater[16,], UDs_gmu10aS_poly_nowater[5,], UDs_gmu10aS_poly_nowater[24,])
-  row.names(UDs_gmu10aS_poly_nowater) <- c(4, 3, 7)
+  UDs_gmu10aS_poly_nowater <- bind_rows(UDs_gmu10aS_poly_nowater[164,], UDs_gmu10aS_poly_nowater[5,], UDs_gmu10aS_poly_nowater[29,])
+  row.names(UDs_gmu10aS_poly_nowater) <- c(7, 3, 4)
   mapview(UDs_gmu10aS_poly_nowater, zcol = "Clusters")
   
   #'  Spatial data frame of new cluster polygons
   UDs_gmu10aN_poly <- bind_rows(ud_gmu10aN_c1, ud_gmu10aN_c2) %>%
-    dplyr::select(-c(NewClusters, area))
+    dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN_poly), zcol = "Clusters")
   UDs_gmu10aS_poly <- bind_rows(UDs_gmu10aS_poly_nowater, ud_gmu10aS_c1, ud_gmu10aS_c2, ud_gmu10aS_c5, ud_gmu10aS_c6) %>%
-    dplyr::select(-area)
+    dplyr::select(Clusters) %>% arrange(Clusters)
   mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_poly), zcol = "Clusters")
   
   #'  Calculate area (km^2) for each cluster polygon
@@ -768,7 +827,7 @@
   
   #'  Join GMU10A clusters into single data set
   gmu10a_poly <- bind_rows(UDs_gmu10aN_poly, UDs_gmu10aS_poly) %>%
-    mutate(Clusters = seq(1:nrow(.))); mapview(gmu1_poly, zcol = "Clusters")
+    mutate(Clusters = seq(1:nrow(.))); mapview(gmu10a_poly, zcol = "Clusters")
   #'  Relabel GMU10A camera clusters
   cam_clusters_gmu10a <- bind_rows(clusters_gmu10aN, clusters_gmu10aS) %>%
     st_intersection(gmu10a_poly) %>%
