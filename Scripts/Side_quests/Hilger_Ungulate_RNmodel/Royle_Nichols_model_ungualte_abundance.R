@@ -445,7 +445,7 @@
   ninit_wtd <- lapply(DH_wtd_list, initial_n)
   
   #'  Parameters monitored
-  params <- c("beta0", "b.year", "alpha0", "a.setup", 
+  params <- c("beta0", "b.year", "alpha0", "a.setup", "lambda",
               "b.meanTbio", "b.maxTbio", "b.cvTbio", 
               "b.meanHQ", "b.maxHQ", "b.cvHQ", 
               "b.selected", "b.predicted", "b.prop.selected", 
@@ -500,7 +500,7 @@
   #####  Elk July RN models  #####
   #'  -----------------------
   ######  Null model  ######
-  #'  Camera setup on detection  (DIC = ; WAICj = )
+  #'  Camera setup on detection  (DIC = 24244.74; WAICj = 184011.3)
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_null <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -508,7 +508,7 @@
                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_null$summary)
+  print(RN_elk_july_null$summary[1:15,])
   (RN_elk_july_null_WAICj <- calc.jointlike(RN_elk_july_null))
   print(RN_elk_july_null$DIC)
   which(RN_elk_july_null$summary[,"Rhat"] > 1.1)
@@ -735,7 +735,7 @@
   #####  Elk August RN models  #####
   #'  -------------------------
   ######  Null model  ######
-  #'  Camera setup on detection  (DIC = ; WAICj = )
+  #'  Camera setup on detection  (DIC = 23476.15; WAICj = 105190.8)
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_null <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -743,7 +743,7 @@
                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                           n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_aug_null$summary)
+  print(RN_elk_aug_null$summary[1:15,])
   (RN_elk_aug_null_WAICj <- calc.jointlike(RN_elk_aug_null))
   print(RN_elk_aug_null$DIC)
   which(RN_elk_aug_null$summary[,"Rhat"] > 1.1)
@@ -971,7 +971,7 @@
   #####  WTD July RN models  #####
   #'  -----------------------
   ######  Null model  ######
-  #'  Camera setup on detection  (DIC = ; WAICj = )
+  #'  Camera setup on detection  (DIC = 40640.4; WAICj = 1544019)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_null <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -979,7 +979,7 @@
                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_july_null$summary)
+  print(RN_wtd_july_null$summary[1:15,])
   (RN_wtd_july_null_WAICj <- calc.jointlike(RN_wtd_july_null))
   print(RN_wtd_july_null$DIC)
   which(RN_wtd_july_null$summary[,"Rhat"] > 1.1)
@@ -1222,7 +1222,7 @@
   #####  WTD August RN models  #####
   #'  -------------------------
   ######  Null model  ######
-  #'  Camera setup on detection  (DIC = ; WAICj = )
+  #'  Camera setup on detection  (DIC = 39918.89; WAICj = 994071.3)
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_null <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
