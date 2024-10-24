@@ -6,8 +6,8 @@
   #'  --------------------------------
   #'  Format and explore data before building SEMs
   
-  #'  Clean workspace
-  rm(list = ls())
+  #' #'  Clean workspace
+  #' rm(list = ls())
   
   #'  Load libraries
   library(piecewiseSEM)
@@ -34,345 +34,33 @@
       rename(area_km2 = are_km2)
     return(skinny_clusters)
   }
-  
+
   #'  Read in camera cluster shapefiles and clean up with reformat_clusters() function
-  clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp") %>% 
+  clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp") %>%
     reformat_clusters(.)
-  clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp") %>% 
+  clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp") %>%
     reformat_clusters(.)
-  clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a.shp") %>% 
+  clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a.shp") %>%
     reformat_clusters(.)
-  
+
   #'  Merge spatial camera cluster data together and reduce to one observation per camera
   clusters_all <- bind_rows(clusters_gmu1, clusters_gmu6, clusters_gmu10a) %>%
     group_by(NewLocationID) %>%
     slice(1L) %>%
     ungroup()
-  
-  #'  Read in cluster polygon shapefiles
-  gmu1_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp") %>% mutate(GMU = "GMU1")
-  gmu6_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp") %>% mutate(GMU = "GMU6")
-  gmu10a_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp") %>% mutate(GMU = "GMU10A")
-  
-  #'  Merge cluster polygons across GMUs
-  cluster_poly <- bind_rows(gmu1_poly, gmu6_poly, gmu10a_poly) %>%
-    rename(ClusterID = Clusters)
-  mapview::mapview(list(cluster_poly, clusters_all), zcol = "ClusterID")
-  
-  #'  Read in EoE GMUs shapefile
-  eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
-    st_transform("+proj=longlat +datum=WGS84 +no_defs")
-  
-  #'  ----------------------------------
-  ####  Percent Forest Cover Covariate  ####
-  #'  ----------------------------------
-  #'  Read in forested landcover
-  perc_forest <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForest_100m.tif")
-  forest <- rast("./Shapefiles/National Land Cover Database (NCLD)/Forested_landcover.tif")
-  notforest <- rast("./Shapefiles/National Land Cover Database (NCLD)/NonForested_landcover.tif")
-  forest_proj <- crs(forest)
-  
-  #' #'  Calculate average percent forested habitat across cameras in each cluster
-  #' extract_forest <- function(cams, gmu) {
-  #'   #'  Transform and reduce to a single observation per camera (don't need to 
-  #'   #'  repeat information across years)
-  #'   cams <- st_transform(cams, forest_proj) %>%
-  #'     group_by(NewLocationID) %>%
-  #'     slice(1L) %>%
-  #'     ungroup()
-  #'   #'  Extract % forested habitat within 100m radius of each camera site and
-  #'   #'  average across cameras per cluster
-  #'   perc_forest_100m <- terra::extract(perc_forest, vect(cams)) %>%
-  #'     dplyr::select(-ID) %>%
-  #'     bind_cols(cams) %>%
-  #'     rename("percent_forest" = "focal_sum") %>%
-  #'     group_by(ClusterID) %>%
-  #'     summarise(percent_forest = mean(percent_forest)) %>%
-  #'     ungroup() %>%
-  #'     mutate(GMU = gmu)
-  #'   return(perc_forest_100m)
-  #' }
-  #' forest_gmu1 <- extract_forest(clusters_gmu1, gmu = "GMU1")
-  #' forest_gmu6 <- extract_forest(clusters_gmu6, gmu = "GMU6")
-  #' forest_gmu10a <- extract_forest(clusters_gmu10a, gmu = "GMU10A")
-  #' 
-  #' perc_forest <- bind_rows(forest_gmu1, forest_gmu6, forest_gmu10a) %>%
-  #'   dplyr::select(c(GMU, ClusterID, percent_forest))
-  
-  #' #'  Vectorize polygons
-  #' gmu1_vect <- st_transform(gmu1_poly, forest_proj) %>% vect(.)
-  #' gmu6_vect <- st_transform(gmu6_poly, forest_proj) %>% vect(.)
-  #' gmu10a_vect <- st_transform(gmu10a_poly, forest_proj) %>% vect(.)
 
-  #'  Zonal statistics: sum amount of forest and non-forested land cover per cluster
-  #'  and calculate % forested
-  percent_forested <- function(polygon) {
-    #'  Vectorize polygons
-    vect_poly <- st_transform(polygon, forest_proj) %>% vect(.)
-    #'  Snag cluster ID
-    clusters <- as.data.frame(polygon) %>% dplyr::select(c(Clusters, GMU))
-    #'  Sum pixels classified as forested land cover per cluster
-    sum_forest <- zonal(forest, vect_poly, fun = "sum", na.rm = TRUE) %>%
-      rename("total_forest" = "NLCD Land Cover Class")
-    #'  Sum pixels classified as non-forested land cover per cluster
-    sum_nonforest <- zonal(notforest, vect_poly, fun = "sum", na.rm = TRUE) %>%
-      rename("total_nonforest" = "NLCD Land Cover Class")
-    #'  Combine and calculate percent forested per cluster
-    perc_forest <- cbind(sum_forest, sum_nonforest) %>% as.data.frame(.) %>%
-      mutate(total_pix = total_forest + total_nonforest,
-             percent_forest = total_forest/total_pix) %>%
-      bind_cols(clusters) %>%
-      rename("ClusterID" = "Clusters")
-    return(perc_forest)
-  }
-  cluster_perc_forest_gmu1 <- percent_forested(gmu1_poly)
-  cluster_perc_forest_gmu6 <- percent_forested(gmu6_poly)
-  cluster_perc_forest_gmu10a <- percent_forested(gmu10a_poly)
-
-  perc_forest <- bind_rows(cluster_perc_forest_gmu1, cluster_perc_forest_gmu6, cluster_perc_forest_gmu10a) %>%
-    dplyr::select(c(GMU, ClusterID, percent_forest))
-  
-  #'  ----------------------------
-  ####  Percent disturbed forest  ####
-  #'  ----------------------------
-  #'  Hansen's Global Forest Change dataset (area of 2020 canopy cover per cluster)
-  gfc <- read_csv("./Data/GEE outputs/GFC_2020_canopy_cover_area_clusters.csv") %>% 
-    dplyr::select(-`.geo`) %>%
-    #'  Relabel GEE indexing to corresponding GMUs
-    mutate(GMU = ifelse(str_detect(`system:index`, "1_1_"), "GMU1", `system:index`),  # note the order is different with PRISM data
-           GMU = ifelse(str_detect(GMU, "1_2_"), "GMU6", GMU),
-           GMU = ifelse(str_detect(GMU, "2_"), "GMU10A", GMU)) %>%
-    dplyr::select(-`system:index`) %>%
-    relocate(CanopyCoverAreaSqKm, .after = area_km2) %>%
-    rename("ClusterID" = "Clusters") %>%
-    #'  Column to double check canopy cover area is less than or equal to area of polygon (if FALSE, that's a problem)
-    mutate(areas_ok = ifelse(CanopyCoverAreaSqKm <= area_km2, TRUE, FALSE))
-  
-  #'  Hansen's Global Forest Change dataset (area and year of canopy loss per cluster)
-  gfc_loss <- read_csv("./Data/GEE outputs/GFC_annual_canopy_loss_area_clusters.csv") %>% 
-    dplyr::select(-`.geo`) %>%
-    #'  Relabel GEE indexing to corresponding GMUs
-    mutate(GMU = ifelse(str_detect(`system:index`, "_1_1_"), "GMU1", `system:index`),  # note the order is different with PRISM data
-           GMU = ifelse(str_detect(GMU, "_1_2_"), "GMU6", GMU),
-           GMU = ifelse(str_detect(GMU, "_2_"), "GMU10A", GMU)) %>%
-    dplyr::select(-`system:index`) %>%
-    full_join(gfc, by = c("GMU", "ClusterID")) %>%
-    #'  Make canopy loss year easier to interpret
-    mutate(CanopyLossYear = Year_add1 + 2001,
-           #'  Calculate area canopy loss within each cluster
-           CanopyLossArea_sq_km = CanopyLossArea_sq_m/1000000) %>%
-    dplyr::select(c(GMU, ClusterID, area_km2, CanopyCoverAreaSqKm, CanopyLossYear, CanopyLossArea_sq_km)) 
-    
-  #'  Function to calculate remaining canopy cover after multiple years of loss
-  gfc_loss_accumulation <- function(Hanson, yr) {
-    gfc_loss <- Hanson %>%
-      filter(CanopyLossYear <= yr) %>%
-      #'  Accumulated canopy loss up to defined year
-      group_by(GMU, ClusterID) %>%
-      reframe(area_km2 = area_km2,
-              CanopyCoverAreaSqKm = CanopyCoverAreaSqKm,
-              TotalLoss_sq_km = sum(CanopyLossArea_sq_km),
-              CanopyCover_sq_km = CanopyCoverAreaSqKm - TotalLoss_sq_km) %>%
-      #'  Reduce to single observation per cluster
-      group_by(GMU, ClusterID) %>%
-      slice(1L) %>%
-      arrange(GMU, ClusterID)
-    return(gfc_loss)
-  }
-  #'  Accumulated loss through 2001
-  gfc_loss_thru_2001 <- gfc_loss_accumulation(gfc_loss, yr = 2001) %>%
-    rename("TotalLoss2001_sq_km" = "TotalLoss_sq_km") %>%
-    rename("CanopyCover2001_sq_km" = "CanopyCover_sq_km")
-  #  Accumulated loss through 2002
-  gfc_loss_thru_2002 <- gfc_loss_accumulation(gfc_loss, yr = 2002) %>%
-    rename("TotalLoss2002_sq_km" = "TotalLoss_sq_km") %>%
-    rename("CanopyCover2002_sq_km" = "CanopyCover_sq_km")
-  #'  Accumulated loss over last 20 years (2000 - 2020)
-  gfc_loss_thru_2020 <- gfc_loss_accumulation(gfc_loss, yr = 2020) %>%
-    #'  Calculate proportion of forest cover that has been disturbed in last 20-years
-    mutate(DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm)
-  #'  Accumulated loss over last 20 years (2001 - 2021)
-  gfc_loss_thru_2021 <- gfc_loss_accumulation(gfc_loss, yr = 2021) %>%
-    full_join(gfc_loss_thru_2001) %>%
-    #'  Adjust accumulated loss through 2021 so TotalLoss is only for past 20 years
-    #'  by updating CanopyCoverArea to that in 2001 and subtracting 2001 accumulated
-    #'  loss from 2021 accumulated loss
-    mutate(CanopyCoverAreaSqKm = CanopyCover2001_sq_km,
-           TotalLoss_sq_km = TotalLoss_sq_km - TotalLoss2001_sq_km,
-           CanopyCover_sq_km = CanopyCoverAreaSqKm - TotalLoss_sq_km,
-           #'  Calculate proportion of forest cover that has been disturbed in last 20-years
-           DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm) %>%
-    dplyr::select(-c(TotalLoss2001_sq_km, CanopyCover2001_sq_km))
-  #'  Accumulated loss over last 20 years (2002 - 2022)  
-  gfc_loss_thru_2022 <- gfc_loss_accumulation(gfc_loss, yr = 2022) %>%
-    full_join(gfc_loss_thru_2002) %>%
-    #'  Adjust accumulated loss through 2022 so TotalLoss is only for past 20 years
-    mutate(CanopyCoverAreaSqKm = CanopyCover2002_sq_km,
-           TotalLoss_sq_km = TotalLoss_sq_km - TotalLoss2002_sq_km,
-           CanopyCover_sq_km = CanopyCoverAreaSqKm - TotalLoss_sq_km,
-           #'  Calculate proportion of forest cover that has been disturbed in last 20-years
-           DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm) %>%
-    dplyr::select(-c(TotalLoss2002_sq_km, CanopyCover2002_sq_km))
-  
-  #' #'  National Landcover Database (frequency of landcover class per cluster)
-  #' nlcd <- read_csv("./Data/GEE outputs/NLCD_frequencies_2019_2021_clusters.csv") %>%
-  #'   #'  Relabel GEE indexing to corresponding GMUs
-  #'   mutate(GMU = ifelse(str_detect(`system:index`, "1_1_"), "GMU1", `system:index`),  # note the order is different with PRISM data
-  #'          GMU = ifelse(str_detect(GMU, "1_2_"), "GMU6", GMU),
-  #'          GMU = ifelse(str_detect(GMU, "2_"), "GMU10A", GMU)) %>%
-  #'   dplyr::select(c(GMU, Clusters, landcover_2019, landcover_2021)) %>%
-  #'   rename("ClusterID" = "Clusters") %>%
-  #'   mutate(landcover_2019 = str_replace_all(landcover_2019, "[[{}]]", ""),
-  #'          landcover_2021 = str_replace_all(landcover_2021, "[[{}]]", ""))
-  #' nlcd19 <- nlcd %>% dplyr::select(c(GMU, ClusterID, landcover_2019)) %>%
-  #'   #'  Remove GMU1 cameras from this dataset
-  #'   filter(GMU != "GMU1") %>%
-  #'   #'  Separate wonky GEE character string grouping all landcover outputs together 
-  #'   #'  (FYI separate does something weird with extra columns so be sure to provide 
-  #'   #'  double the max number of possible landcover types). Ignore warning about missing pieces and NAs.
-  #'   separate(landcover_2019, into = c("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", "col11", "col12", "col13", "col14", "col15", "col16", "col17", "col18", "col19", "col20", "col21", "col22"), sep = "[, ]")
-  #' nlcd21 <- nlcd %>% dplyr::select(c(GMU, ClusterID, landcover_2021)) %>%
-  #'   separate(landcover_2021, into = c("col1", "col2", "col3", "col4", "col5", "col6", "col7", "col8", "col9", "col10", "col11", "col12", "col13", "col14", "col15", "col16", "col17", "col18", "col19", "col20", "col21", "col22"), sep = "[, ]")
+  #' #'  Read in cluster polygon shapefiles
+  #' gmu1_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp") %>% mutate(GMU = "GMU1")
+  #' gmu6_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp") %>% mutate(GMU = "GMU6")
+  #' gmu10a_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp") %>% mutate(GMU = "GMU10A")
   #' 
-  #' #'  Function to reformat NLCD data extracted from GEE
-  #' habitat_frequencies <- function(dat) {
-  #'   reformatted <- dat %>%
-  #'     #'  Convert to long format to organize columns better
-  #'     pivot_longer(!c(GMU, ClusterID), names_to = "col_name", values_to = "landcover_class") %>%
-  #'     #'  Split landcover class from number of pixels
-  #'     separate(landcover_class, into = c("NLCD_class", "npixels"), sep = "[=]") %>%
-  #'     #'  Drop unneeded columns and rows
-  #'     dplyr::select(-col_name) %>%
-  #'     filter(!is.na(npixels)) %>%
-  #'     #'  Reformat npixels 
-  #'     mutate(npixels = as.numeric(npixels)) %>%
-  #'            # npixels = round(npixels, 2)) %>%
-  #'     #'  Calculate proportion of pixels made up by each cover type near camera
-  #'     group_by(GMU, ClusterID) %>%
-  #'     reframe(NLCD_class = NLCD_class,
-  #'             npixels = npixels,
-  #'             totalPix = sum(npixels),
-  #'             pixel_area_m2 = totalPix * (30*30),
-  #'             pixel_area_km2 = pixel_area_m2/1000000,
-  #'             percentPix = npixels/totalPix) %>%
-  #'     ungroup() %>%
-  #'     mutate(percentPix = round(percentPix, 3)) %>%
-  #'     arrange(GMU, ClusterID) %>%
-  #'     # rename("NewLocationID" = "NwLctID") %>%
-  #'     #'  Define NLCD landcover classifications using https://developers.google.com/earth-engine/datasets/catalog/USGS_NLCD_RELEASES_2021_REL_NLCD
-  #'     mutate(habitat_type = ifelse(NLCD_class == "11", "Other", NLCD_class),               #11: Open water
-  #'            habitat_type = ifelse(NLCD_class == "12", "Other", habitat_type),             #12: Perennial ice/snow
-  #'            habitat_type = ifelse(NLCD_class == "21", "Developed", habitat_type),         #21: Developed, open space: mixture of constructed materials, mostly vegetation in the form of lawn grasses
-  #'            habitat_type = ifelse(NLCD_class == "22", "Developed", habitat_type),         #22: Developed, low intensity: areas with a mixture of constructed materials and vegetation, most commonly single-family housing units
-  #'            habitat_type = ifelse(NLCD_class == "23", "Developed", habitat_type),         #21: Developed, medium intensity: areas with a mixture of constructed materials and vegetation, most commonly single-family housing units
-  #'            habitat_type = ifelse(NLCD_class == "24", "Developed", habitat_type),         #22: Developed, high intensity: highly developed areas where people reside or work in high numbers
-  #'            habitat_type = ifelse(NLCD_class == "31", "Other", habitat_type),             #31: Barren Land
-  #'            habitat_type = ifelse(NLCD_class == "41", "Forested", habitat_type),          #41: Deciduous Forest
-  #'            habitat_type = ifelse(NLCD_class == "42", "Forested", habitat_type),          #42: Evergreen Forest
-  #'            habitat_type = ifelse(NLCD_class == "43", "Forested", habitat_type),          #43: Mixed Forest
-  #'            habitat_type = ifelse(NLCD_class == "52", "Shrubland", habitat_type),         #52: Shrub/Scrub
-  #'            habitat_type = ifelse(NLCD_class == "71", "Grassland", habitat_type),         #71: Grassland/Herbaceous
-  #'            habitat_type = ifelse(NLCD_class == "81", "Agriculture", habitat_type),       #81: Pasture/Hay
-  #'            habitat_type = ifelse(NLCD_class == "82", "Agriculture", habitat_type),       #82: Cultivated Crops
-  #'            habitat_type = ifelse(NLCD_class == "90", "Riparian_woodland", habitat_type),      #90: Woody Wetlands
-  #'            habitat_type = ifelse(NLCD_class == "95", "Riparian_wetland", habitat_type)) %>%   #95: Emergent Herbaceous Wetlands)
-  #'     relocate(habitat_type, .after = "ClusterID")
-  #'   
-  #'   #'  Filter data to the dominant habitat class within each cluster
-  #'   #'  (dominant is defined as the landcover class comprising the largest proportion
-  #'   #'  of pixels within cluster)
-  #'   dominant_habitat <- reformatted %>%
-  #'     group_by(GMU, ClusterID) %>%
-  #'     slice_max(order_by = percentPix, n = 1) %>%
-  #'     ungroup() %>%
-  #'     arrange(GMU, ClusterID)
-  #'   
-  #'   #'  Review dominant habitat types
-  #'   print(table(dominant_habitat$habitat_type))
-  #'   
-  #'   #'  List both datasets together
-  #'   landcover_list <- list(dominant_habitat, reformatted)
-  #'   names(landcover_list) <- c("dominant_habitat", "percent_landcover")
-  #'   
-  #'   return(landcover_list)
-  #'   return()
-  #' }
-  #' landcover19 <- habitat_frequencies(nlcd19)
-  #' landcover21 <- habitat_frequencies(nlcd21)
-  #' 
-  #' #'  Load MTBS burn perimeter data 
-  #' mtbs <- st_read(dsn = "./Shapefiles/MTBS_perimeter_data", layer = "mtbs_perims_DD") %>%
-  #'   st_transform(forest_proj)
-  #' 
-  #' #'  Extract burn year of each pixel per cluster
-  #' burn_perimeters <- function(polygon) {
-  #'   #'  Vectorize polygons
-  #'   polygon <- st_transform(polygon, forest_proj) #%>% vect(.)
-  #'   #'  Intersect overlapping clusters & burn perimeters
-  #'   mtbs_simple <- mtbs %>% 
-  #'     dplyr::select("Ig_Date", "Incid_Name", "Incid_Type") %>%
-  #'     mutate(Burn_year = format(as.Date(Ig_Date, format="%Y-%m-%d"),"%Y")) 
-  #'   mtbs_cluster_inter <- st_intersection(polygon, mtbs_simple) 
-  #'   burned_area <- as.numeric(st_area(mtbs_cluster_inter)/1000000) %>%
-  #'     as.data.frame()
-  #'   names(burned_area) <- "burned_area_km2"
-  #'   mtbs_cluster_inter <- bind_cols(mtbs_cluster_inter, burned_area)
-  #'   mapview::mapview(mtbs_cluster_inter, zcol = "Clusters")
-  #'   #'  Save burn year and area
-  #'   mtbs_burn_yr <- as.data.frame(mtbs_cluster_inter) %>%
-  #'     dplyr::select(c(GMU, Clusters, Burn_year, area_km2, burned_area_km2)) %>%
-  #'     rename("ClusterID" = "Clusters") 
-  #'   return(mtbs_burn_yr)
-  #' }
-  #' burned_gmu1 <- burn_perimeters(gmu1_poly)
-  #' burned_gmu6 <- burn_perimeters(gmu6_poly)
-  #' burned_gmu10a <- burn_perimeters(gmu10a_poly)
- 
+  #' #'  Merge cluster polygons across GMUs
+  #' cluster_poly <- bind_rows(gmu1_poly, gmu6_poly, gmu10a_poly) %>%
+  #'   rename(ClusterID = Clusters)
+  #' mapview::mapview(list(cluster_poly, clusters_all), zcol = "ClusterID")
   
-  
-  ####  THIS IS WHERE I"M LEAVING OFF - WSI & % of forest disturbed in last 20 years
-  #'  Add GEE data to larger covariate df
-  format_cam_covs <- function(dat, landcov, season, camYr) {
-    covs <- full_join(dat, gfc, by = "ClusterID") %>%
-      full_join(gfc, by = "ClusterID") %>%
-      relocate(Burn_year, .after = "percentPix") %>%
-      mutate(Season = season,
-             #'  Calculate number of years since burn/canopy loss
-             YrsSinceBurn = camYr - as.numeric(Burn_year),
-             YrsSinceBurn = ifelse(YrsSinceBurn <0, NA, YrsSinceBurn),
-             YrsSinceLoss = camYr - CanopyLossYear,
-             YrsSinceLoss = ifelse(YrsSinceLoss <0, NA, YrsSinceLoss),
-             #'  Categorize years since burn/canopy loss following Barker et al. (2018) and Ganz et al. (2024)
-             DisturbanceLoss = ifelse(YrsSinceLoss <= 20, "Loss_1_20", habitat_type),
-             DisturbanceBurn = ifelse(YrsSinceBurn <= 5, "Burn_1_5", habitat_type),
-             DisturbanceBurn = ifelse(YrsSinceBurn > 5 & YrsSinceBurn <=10, "Burn_6_10", DisturbanceBurn),
-             DisturbanceBurn = ifelse(YrsSinceBurn > 10 & YrsSinceBurn <=15, "Burn_10_15", DisturbanceBurn),
-             DisturbanceBurn = ifelse(YrsSinceBurn > 15 & YrsSinceBurn <=20, "Burn_16_20", DisturbanceBurn),
-             DisturbanceBurn = ifelse(YrsSinceBurn > 20, "Burn_over20", DisturbanceBurn),
-             #'  Generate a single habitat class covariate representing dominant habitat type and years since burn/canopy loss (if forested)
-             Habitat_class = habitat_type,
-             Habitat_class = ifelse(!is.na(DisturbanceLoss) & Habitat_class == "Forested", DisturbanceLoss, Habitat_class),
-             Habitat_class = ifelse(!is.na(DisturbanceBurn) & Habitat_class == "Loss_1_20", DisturbanceBurn, Habitat_class),
-             #'  Grab percentPix for sites with disturbance to indicate percent disturbed forest within last 20 years
-             #'  (0 % disturbed forest if the dominant habitat class is unburned/unlogged forest or any other landcover type)
-             PercDisturbedForest = ifelse(Habitat_class == "Loss_1_20" | Habitat_class == "Burn_1_5" | 
-                                            Habitat_class == "Burn_6_10" | Habitat_class == "Burn_16_20", percentPix, 0)) %>%
-      left_join(wsi, by = c("NewLocationID", "Season")) %>%
-      relocate(Season, .after = "GMU") %>%
-      filter(!is.na(GMU))
-    
-    #'  Review new habitat classes
-    print(table(covs$Habitat_class))
-    
-    return(covs)
-  }
-  #'  Add GEE data to larger covariate dataframe; NOTE different landcover data applied to 2020 vs 2021 & 2022 data
-  cams_eoe20s <- format_cam_covs(covariate_list[[1]], landcov = landcover19[[1]], camYr = 2020, year = "2020") 
-  cams_eoe21s <- format_cam_covs(covariate_list[[2]], landcov = landcover21[[1]], camYr = 2021, year = "2021") 
-  cams_eoe22s <- format_cam_covs(covariate_list[[3]], landcov = landcover21[[1]], camYr = 2022, year = "2022") 
-  
-  #'  List annual covariate data
-  cam_covs_list <- list(cams_eoe20s, cams_eoe21s, cams_eoe22s)
+  #' #'  Run script that formats covariate data
+  #' source("./Scripts/Structural_Equation_Models/Format_covariate_data_for_SEMs.R") 
   
   #'  ---------------------------------------------------
   ####  Calculate index of relative density per species  ####
@@ -498,55 +186,27 @@
   # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/cluster_wtd_density.tiff", wtd_density,
   #        units = "in", width = 6, height = 4, dpi = 300, device = "tiff", compression = "lzw")
   
-  
-  #'  ---------------------------------
-  ####  Google Earth Engine data sets  ####
-  #'  ---------------------------------
-  #'  PRISM weather data
-  #'  Source script to load & format average monthly precip & temp data
-  #'  Produces standardized average monthly total precipitation and standardized 
-  #'  average monthly minimum temp for each winter and GMU for past 50 years
-  source("./Scripts/Structural_Equation_Models/Format_weather_data.R")   
-  
-  #'  Generate Winter Severity Index (WSI) per year and Cluster
-  wsi <- full_join(wtr_totalPrecip, wtr_minTemp, by = c("GMU", "Clusters", "Season")) %>%
-    #'  Multiply standardized precip by standardized temp data
-    mutate(DecFeb_WSI = DecFeb_meanPPT_z * DecFeb_meanMinTemp_z) %>%
-    dplyr::select(c("GMU", "Clusters", "Season", "DecFeb_WSI")) %>%
-    #'  Filter to the winters preceding Summer 2020, 2021, and 2022 surveys
-    filter(Season == "Wtr1920" | Season == "Wtr2021" | Season == "Wtr2122") %>%
-    #'  Change Season column to reference annual summer sampling
-    rename("PreviousWinter" = "Season") %>%
-    mutate(year = ifelse(PreviousWinter == "Wtr1920", "yr1", "yr3"),
-           year = ifelse(PreviousWinter == "Wtr2021", "yr2", year)) %>%
-    relocate(year, .after = "Clusters") %>%
-    rename("ClusterID" = "Clusters")
-  print(wsi)
-  
-  
+ 
   #'  -----------------------------------------
   ####  Format local abundance estimates & SD  ####
   #'  -----------------------------------------
-  #'  Join covariates together
-  covs <- full_join(perc_forest, wsi, by = c("GMU", "ClusterID")) 
-  
   #'  Long to wide data structure
   wide_data <- function(dat) {
     pivot_data_wide <- as.data.frame(dat) %>%
+      filter(!is.na(ClusterID)) %>%
       #'  Create categorical year variable
-      mutate(year = ifelse(Year == 2020, "yr1", Year),
+      mutate(Year = as.numeric(Year),
+             year = ifelse(Year == 2020, "yr1", Year),
              year = ifelse(Year == 2021, "yr2", year),
              year = ifelse(Year == 2022, "yr3", year)) %>% #,
              #' #'  Add small value to density estimates that are 0 (needed for boxcox trnasformatio below)
              #' SppDensity.100km2.r = ifelse(SppDensity.100km2.r == 0, 0.00001, SppDensity.100km2.r)) %>%
-      dplyr::select(c(GMU, ClusterID, year, Species, SppDensity.100km2.r)) %>%
+      dplyr::select(c(GMU, ClusterID, Year, year, Species, SppDensity.100km2.r)) %>%
       #'  Create column per species with their site-specific local abundance 
       pivot_wider(names_from = "Species",
                   values_from = c("SppDensity.100km2.r")) %>%
-      left_join(covs, by = c("GMU", "year", "ClusterID")) %>%
-      dplyr::select(-PreviousWinter) %>%
-      relocate(percent_forest, .after = year) %>%
-      relocate(DecFeb_WSI, .after = percent_forest)
+      left_join(covs, by = c("GMU", "Year", "ClusterID")) %>%
+      dplyr::select(-PreviousWinter)
     return(pivot_data_wide)
   }
   density_wide <- lapply(cluster_density, wide_data)
@@ -571,7 +231,7 @@
     hist(dat$elk, main = paste("Relative elk density across clusters,", yr))
     hist(dat$moose, main = paste("Relative moose density across clusters,", yr))
     hist(dat$whitetailed_deer, main = paste("Relative wtd density across clusters,", yr))
-    hist(dat$percent_forest, main = paste("Percent forested land cover,", yr))
+    hist(dat$DisturbedForest_last20Yrs, main = paste("Percent disturbed forest,", yr))
     hist(dat$DecFeb_WSI, main = paste("Dec-Feb Winter Severity Index,", yr))
   }
   plot_histogram(density_wide[[1]], yr = "2020")
@@ -591,8 +251,8 @@
   wide_data_by_year <- function(dat, yr) {
     data_by_yr <- dat %>%
       #'  Add year identifier to each column name
-      rename_with(.cols = percent_forest:wolf, function(x){paste0(x, ".", yr)}) %>% 
-      dplyr::select(-year)
+      rename_with(.cols = bear_black:DecFeb_WSI, function(x){paste0(x, ".", yr)}) %>% 
+      dplyr::select(-c(Year, year))
     return(data_by_yr)
   }
   density_wide_annual <- mapply(wide_data_by_year, dat = density_wide, yr = list("yr1", "yr2", "yr3"), SIMPLIFY = FALSE) #dat = full_bx_dat
@@ -605,7 +265,7 @@
   density_wide_annual_20s_22s <- full_join(density_wide_annual[[1]], density_wide_annual[[2]], by = c("GMU", "ClusterID")) %>%
     full_join(density_wide_annual[[3]], by = c("GMU", "ClusterID")) %>%
     arrange(GMU, ClusterID)
-  head(density_wide_annual_20s_22s)
+  head(density_wide_annual_20s_22s); tail(density_wide_annual_20s_22s)
   
   #'  Z-transform local abundance estimates (per year b/c annual estimates are stand alone variables)
   localN_z <- density_wide_annual_20s_22s %>%
@@ -657,8 +317,8 @@
   summary(lm(coyote.yr3 ~ mountain_lion.yr2, data = localN_z))  
   summary(lm(moose.yr2 ~ DecFeb_WSI.yr1, data = localN_z))
   summary(lm(moose.yr3 ~ DecFeb_WSI.yr2, data = localN_z))
-  summary(lm(bear_black.yr2 ~ percent_forest.yr1, data = localN_z))  
-  summary(lm(bear_black.yr3 ~ percent_forest.yr2, data = localN_z))  
+  summary(lm(bear_black.yr2 ~ DisturbedForest_last20Yrs.yr1, data = localN_z))  
+  summary(lm(bear_black.yr3 ~ DisturbedForest_last20Yrs.yr2, data = localN_z))  
   
   plot(whitetailed_deer.yr3 ~ mountain_lion.yr2, data = localN_z)
   plot(moose.yr3 ~ wolf.yr2, data = localN_z)
@@ -676,14 +336,14 @@
     #'  Indicate whether observation was from first or second year in grouped data
     mutate(GroupYear = ifelse(year == "yr1", "first", "second")) %>%
     #'  Add time period identifier to each column name
-    rename_with(.cols = percent_forest:wolf, function(x){paste0(x, ".Tminus1")}) %>%
+    rename_with(.cols = bear_black:DecFeb_WSI, function(x){paste0(x, ".Tminus1")}) %>%
     dplyr::select(-year)
   #'  Stack year 2 & year 3 data
   dat_t <- dat_stack_list[[2]] %>% #full_bx_dat_stack[[2]] %>%
     #'  Indicate whether observation was from first or second year in grouped data
     mutate(GroupYear = ifelse(year == "yr2", "first", "second")) %>%
     #'  Add time period identifier to each column name
-    rename_with(.cols = percent_forest:wolf, function(x){paste0(x, ".T")}) %>%
+    rename_with(.cols = bear_black:DecFeb_WSI, function(x){paste0(x, ".T")}) %>%
     dplyr::select(-year)
   
   #'  Join t-1 and t data based on camera location
@@ -735,13 +395,14 @@
   #'  -------------------------------------------------------
   #'  Z-transform local abundance estimates (across years)
   localN_z_all <- density_wide_allyrs %>%
-    mutate(ClusterID = as.character(ClusterID)) %>%
+    mutate(ClusterID = as.character(ClusterID),
+           Year = as.character(Year)) %>%
     mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
     #mutate(across(starts_with(c("RN.n_", "PercDisturbedForest", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
   
   #'  Create correlation matrix for all continuous covariates at once
   cov_correlation <- function(dat) {
-    covs <- dat[,4:12]
+    covs <- dat[,5:16]
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
@@ -749,7 +410,7 @@
 
   #'  Visualize data
   plot_histograms <- function(dat) {
-    ndat <- dat[,4:12] %>% as.matrix(.)
+    ndat <- dat[,5:16] %>% as.matrix(.)
     for(i in 1:ncol(ndat)) {
       hist(ndat[,i])
     }
