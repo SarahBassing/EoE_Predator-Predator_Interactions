@@ -495,7 +495,8 @@
   
   #'  Plot all conditional detection probabilities covariate together
   plot_all_condish_det <- function(predicted, x, ncolor) {
-    predicted <- mutate(predicted, Species = factor(Species, levels = c("Bobcat", "Coyote", "Mountain lion", "Wolf")))
+    predicted <- mutate(predicted, Species = factor(Species, levels = c("Bobcat", "Coyote", "Mountain lion", "Wolf")), 
+                        Detection = ifelse(Detection == "detected", "Detected", "Not detected"))
     cond_det_plot <- ggplot(predicted, aes(x = Detection, y = conditional_det, group = Species)) + 
       geom_errorbar(aes(ymin = lowerCRI, ymax = upperCRI, color = Species), width = 0, position = position_dodge(width = 0.4)) +
       scale_color_manual(values = ncolor) + 
@@ -503,12 +504,14 @@
       #'  Get rid of lines and gray background
       theme_bw() +
       theme(panel.border = element_blank()) +
+      theme(text = element_text(size = 11),
+            plot.title = element_text(size = 13)) +
       theme(axis.line = element_line(color = 'black')) +
       #'  Force y-axis from 0 to 1
       ylim(0,1.0) +
       #'  Use list name as X-axis title
       xlab(x) +
-      ylab("Conditional detection probability") +
+      ylab("Conditional probability of detection \nfor focal species") +
       labs(title = "Co-detection probabilities for predator dyads", 
            fill = "Focal species", color = "Focal species") +
       facet_wrap(~Species_pair, scales = "free_y") +
@@ -519,7 +522,7 @@
     
     return(cond_det_plot)
   }
-  condish_plot <- plot_all_condish_det(predicted = conditional_det, x = "Whether competitor was detected at same site", 
+  condish_plot <- plot_all_condish_det(predicted = conditional_det, x = "Detection of competitor at same site", 
                                        ncolor = bob.coy.lion.wolf_colors)
   
   #'  Plot each species separately while keeping pairings together
@@ -622,7 +625,7 @@
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/lion-bob_mean_pred_conditional_det_plots.tiff", lion.bob.condish.plots[[2]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/all_signif_pairs_mean_pred_conditional_det_plots.tiff", condish_plot, 
-         units = "in", width = 8, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 7, height = 4, dpi = 400, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/all_signif_pairs_mean_pred_conditional_det_plots_v2.tiff", condish_det_patchwork, 
          units = "in", width = 8, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
   

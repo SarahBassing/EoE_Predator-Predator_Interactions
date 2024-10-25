@@ -462,6 +462,7 @@
       theme_bw() +
       theme(panel.border = element_blank()) +
       theme(axis.line = element_line(color = 'black')) +
+      theme(text = element_text(size = 10)) +
       #'  Force y-axis from 0 to 1
       ylim(0,1.0) +
       #'  Use list name as X-axis title
@@ -494,20 +495,24 @@
   # for_ung_guide <- marginal_for_ung_plot + guides(title = "none")
   
   marginal_pred_patchwork <- marginal_for_pred_plot + elev_pred_guide + tri_pred_guide + 
-    plot_annotation(title = "Species-specific marginal occupancy across percent forest cover, elevation, and terrain ruggedness gradients") +
-    plot_annotation(tag_levels = 'a') + 
-    plot_layout(guides = "collect") & theme(legend.position = "bottom")
+    plot_annotation(title = "Species-specific marginal occupancy across habitat gradients",
+                    theme = theme(plot.title = element_text(size = 10, vjust = -3))) +
+    plot_annotation(tag_levels = 'a') + plot_layout(axes = "collect") + 
+    plot_layout(guides = "collect") & theme(legend.position = "bottom",
+                                            plot.tag = element_text(size = 8, hjust = 0, vjust = -4))
   marginal_ung_patchwork <- marginal_for_ung_plot + elev_ung_guide + tri_ung_guide + 
-    plot_annotation(title = "Species-specific marginal occupancy across percent forest cover, elevation, and terrain ruggedness gradients") +
-    plot_annotation(tag_levels = 'a') + 
-    plot_layout(guides = "collect") & theme(legend.position = "bottom")
+    plot_annotation(title = "Species-specific marginal occupancy across percent habitat gradients",
+                    theme = theme(plot.title = element_text(size = 10, vjust = -3))) +
+    plot_annotation(tag_levels = 'a') + plot_layout(axes = "collect") + 
+    plot_layout(guides = "collect") & theme(legend.position = "bottom",
+                                            plot.tag = element_text(size = 8, hjust = 0, vjust = -4))
   
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_plot_predcams.tiff", marginal_pred_patchwork, 
-         units = "in", width = 11, height = 6, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 6, height = 3.5, dpi = 400, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_plot_ungcams.tiff", marginal_ung_patchwork, 
-         units = "in", width = 11, height = 6, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 6, height = 3.5, dpi = 400, device = 'tiff', compression = 'lzw')
   
-  
+   
   #'  -----------------------------------
   ####  Plot conditional Pr(occupancy)  ####
   #'  -----------------------------------
@@ -554,23 +559,25 @@
     #'  Plot species-specific conditional occupancy probabilities & 95% CRI
     condish_occ_plot <- ggplot(predicted.conditional.occ, aes(x = covs, y = conditional_occ, group = Species_interaction)) + 
       geom_line(aes(color = Species_interaction), lwd = 1.25) + 
-      scale_color_manual(values = four_colors, labels = c(paste(spp1, "absent"), paste(spp1, "present"), paste(spp2, "absent"), paste(spp2, "present"))) + 
+      scale_color_manual(values = four_colors, labels = c(paste(spp1, "\nabsent"), paste(spp1, "\npresent"), paste(spp2, "\nabsent"), paste(spp2, "\npresent"))) + 
       #'  Add confidence intervals
       geom_ribbon(aes(ymin = lowerCRI, ymax = upperCRI, fill = Species_interaction), alpha = 0.3) +
-      scale_fill_manual(values = four_colors, labels = c(paste(spp1, "absent"), paste(spp1, "present"), paste(spp2, "absent"), paste(spp2, "present"))) + 
+      scale_fill_manual(values = four_colors, labels = c(paste(spp1, "\nabsent"), paste(spp1, "\npresent"), paste(spp2, "\nabsent"), paste(spp2, "\npresent"))) + 
       #'  Get rid of lines and gray background
       theme_bw() +
       theme(panel.border = element_blank()) +
       theme(axis.line = element_line(color = 'black')) +
+      theme(text = element_text(size = 12)) +
       #'  Force y-axis from 0 to 1
       ylim(0,1.0) +
       #'  Use list name as X-axis title
       xlab(x) +
       ylab("Conditional probability of occupancy") +
       labs(#title = paste("Conditional occupancy in response to", covname),
-           fill = "Species interaction", color = "Species interaction") +
+           fill = "Species \ninteraction", color = "Species \ninteraction") +
       facet_wrap(~Species, scales = "free_y") +
-      theme(legend.position="bottom")
+      theme(legend.position="bottom",
+            text = element_text(size = 12)) 
     #'  Review figure
     plot(condish_occ_plot)
     
@@ -644,8 +651,11 @@
     theme(rect = element_rect(fill = "transparent", linetype = "blank")) + #coy.bob.condish.elev.pred + 
     coy.bob.condish.tri.pred + 
     plot_layout(nrow = 2) + plot_annotation(tag_levels = 'a',
-                                            title = "Habitat effects on co-occurrence probabilities") +
-    plot_layout(guides = "collect") & theme(legend.position = "bottom") 
+                                            title = "Habitat effects on co-occurrence probabilities",
+                                            theme = theme(plot.title = element_text(size = 14, vjust = 0))) +
+    plot_layout(axes = "collect") +
+    plot_layout(guides = "collect") & theme(legend.position = "bottom",
+                                            plot.tag = element_text(size = 12, hjust = 0, vjust = 0)) 
   patchwork_conditional_coybob_pred
   
   patchwork_conditional_coybob_ung <- coy.bob.condish.for.ung +
@@ -655,29 +665,32 @@
     theme(rect = element_rect(fill = "transparent", linetype = "blank")) + #coy.bob.condish.elev.ung + 
     coy.bob.condish.tri.ung + 
     plot_layout(nrow = 2) + plot_annotation(tag_levels = 'a',
-                                            title = "Habitat effects on co-occurrence probabilities") +
-    plot_layout(guides = "collect") & theme(legend.position = "bottom") 
+                                            title = "Habitat effects on co-occurrence probabilities",
+                                            theme = theme(plot.title = element_text(size = 14, vjust = 0))) +
+    plot_layout(axes = "collect") +
+    plot_layout(guides = "collect") & theme(legend.position = "bottom",
+                                            plot.tag = element_text(size = 12, hjust = 0, vjust = 0)) 
   patchwork_conditional_coybob_ung
   
   
   #'  Coyote-bobcat 
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_for_ungcam.tiff", coy.bob.condish.plots[[1]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 7, height = 5, dpi = 400, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_for_predcam.tiff", coy.bob.condish.plots[[2]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 7, height = 5, dpi = 400, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_elev_ungcam.tiff", coy.bob.condish.plots[[3]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 7, height = 5, dpi = 400, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_elev_predcam.tiff", coy.bob.condish.plots[[4]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 7, height = 5, dpi = 400, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_tri_ungcam.tiff", coy.bob.condish.plots[[5]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 7, height = 5, dpi = 400, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_tri_predcam.tiff", coy.bob.condish.plots[[6]], 
-         units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 7, height = 5, dpi = 400, device = 'tiff', compression = 'lzw')
   #'  Co-occurrence plots
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_predcams.tiff", patchwork_conditional_coybob_pred, 
-         units = "in", width = 6, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 5, height = 6, dpi = 400, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_ungcams.tiff", patchwork_conditional_coybob_ung, 
-         units = "in", width = 6, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "in", width = 5, height = 6, dpi = 400, device = 'tiff', compression = 'lzw')
   
     #' #'  Effect of low and high WTD RAI values on coyote-bobcat conditional occupancy
   #' #'  with increasing lagomorph activity
