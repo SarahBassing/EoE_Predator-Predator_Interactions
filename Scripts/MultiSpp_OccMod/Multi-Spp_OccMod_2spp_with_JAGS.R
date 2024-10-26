@@ -515,8 +515,7 @@
   #' save(wolf.bear.preydiv.px2, file = paste0("./Outputs/MultiSpp_OccMod_Outputs/JAGS_output/wolfbear_psi(setup_preydiversity_yr)_p(setup_effort)_px(psi)_", Sys.Date(), ".RData"))
   
   #####  Top model w/ intx on detection model v1  #### 
-  #'  Top model: null
-  #'  psi = year; p(.); px(.)
+  #'  Top model: habitat
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(.)_altGoF.R")
   start.time = Sys.time()
   wolf.bear.hab.px <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
@@ -531,8 +530,7 @@
   
   #####  Top model w/ intx on detection model v2  #### 
   #'  Parameterization tests whether presence of one predator affects detection of the other
-  #'  Top model: null
-  #'  psi = year; p(.); px(psi)
+  #'  Top model: habitat
   source("./Scripts/MultiSpp_OccMod/JAGS code/JAGS_code_psi(setup_habitat_yr)_p(setup_effort)_px(psi).R")
   start.time = Sys.time()
   wolf.bear.hab.px2 <- jags(bundled_pred_list[[1]], inits = inits.wolf.bear, params,
