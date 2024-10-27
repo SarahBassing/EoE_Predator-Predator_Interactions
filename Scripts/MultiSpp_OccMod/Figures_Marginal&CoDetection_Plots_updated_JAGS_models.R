@@ -297,8 +297,8 @@
     return(marg_det_plot)
   }
   #####  Wolf-Bear marginal detection  ####
-  wolf.bear.marg.eff.ung <- plot_marginal_det(predicted = wolf.bear.eff.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "random sites", spppair = "Wolf - Black Bear")
-  wolf.bear.marg.eff.pred <- plot_marginal_det(predicted = wolf.bear.eff.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Elevation (m)", setup = "trail sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.eff.ung <- plot_marginal_det(predicted = wolf.bear.eff.ung.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Sampling Effort", setup = "random sites", spppair = "Wolf - Black Bear")
+  wolf.bear.marg.eff.pred <- plot_marginal_det(predicted = wolf.bear.eff.pred.yr1, spp1 = "Wolf", spp2 = "Bear", covname = "Sampling Effort", setup = "trail sites", spppair = "Wolf - Black Bear")
   wolf.bear.marg.plots <- list(wolf.bear.marg.eff.ung, wolf.bear.marg.eff.pred)
   
   #####  Wolf-Lion marginal detection  ####
