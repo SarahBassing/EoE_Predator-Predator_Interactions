@@ -304,7 +304,7 @@
   mcmcplot(tbd.bear.null$samples)
   save(tbd.bear.null, file = "./Outputs/Time_btwn_Detections/tbd.bear_intercept_only.RData") 
   
-  #####  Competitor model  ####    #DOUBLE CHECK GOF WITH MATT BEFORE IMPLIMENTING THROUGHOUT
+  #####  Competitor model  ####    
   source("./Scripts/FineScale_SpatioTemp_Response/JAGS_models/JAGS_tbd_sppID.R")
   
   #'  Run model
