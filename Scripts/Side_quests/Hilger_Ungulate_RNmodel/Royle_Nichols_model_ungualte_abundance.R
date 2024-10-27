@@ -449,7 +449,7 @@
               "b.meanTbio", "b.maxTbio", "b.cvTbio", 
               "b.meanHQ", "b.maxHQ", "b.cvHQ", 
               "b.selected", "b.predicted", "b.prop.selected", 
-              "rSetup", "mu.r", "mean.p", "N", "loglike.new")
+              "rSetup", "mu.r", "mean.p", "N", "log_N", "loglike.new")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept based on reference category, i.e., mean lambda for 2020 
   #'  mean.r = the intercept based on reference category, i.e., per-individual detection probability at random sites
@@ -458,10 +458,10 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 75000
-  nb <- 5000
+  ni <- 20000 #75000 
+  nb <- 1000 #5000
   nt <- 10
-  na <- 5000
+  na <- 1000 #5000
   
   #'  Load competing models
   #'  Univariate models to compare mean & max biomass variables, and selected vs predicted community composition
@@ -487,20 +487,32 @@
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_wtd_aug_global_1.R") 
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_wtd_aug_global_2.R") 
   
-  #'  Function to calculate joint-likelihood approach to WAIC (WAICj) based on Gaya & Ketz (2024)
+  #'  Function to calculate WAIC and joint-likelihood approach (WAICj) based on Gaya & Ketz (2024)
   calc.jointlike <- function(x){
-    like <- as.matrix(x$sims.list$loglike.new) #log-likelihood for every iteration and camera
-    fbar <- colMeans(exp(like)) #mean likelihood 
-    Pw <- sum(apply(like,2,var)) #mean variance in log-likelihood 
-    WAIC_ish<- -2*sum(log(fbar))+2*Pw
-    return(WAIC_ish)
+    #'  log-likelihood for every iteration and camera
+    like <- as.matrix(x$sims.list$log_N)
+    like_joint <- as.matrix(x$sims.list$loglike.new) 
+    #'  mean likelihood 
+    fbar <- colMeans(exp(like)) 
+    fbar_joint <- colMeans(exp(like_joint))
+    #'  mean variance in log-likelihood 
+    Pw <- sum(apply(like,2,var)) 
+    Pw_joint <- sum(apply(like_joint,2,var)) 
+    #'  WAIC
+    WAIC<- -2*sum(log(fbar))+2*Pw
+    #'  joint likelihood WAIC
+    WAIC_joint<- -2*sum(log(fbar_joint))+2*Pw_joint
+    #'  List WAIC and WAICj
+    WAICs <- list(WAIC, WAIC_joint)
+    return(WAICs)
   }
   
+
   #'  -----------------------
   #####  Elk July RN models  #####
   #'  -----------------------
   ######  Null model  ######
-  #'  Camera setup on detection  (DIC = 24244.74; WAICj = 184011.3)
+  #'  Camera setup on detection  
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_null <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -509,14 +521,14 @@
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_null$summary[1:15,])
-  (RN_elk_july_null_WAICj <- calc.jointlike(RN_elk_july_null))
+  (RN_elk_july_null_WAICs <- calc.jointlike(RN_elk_july_null))
   print(RN_elk_july_null$DIC)
   which(RN_elk_july_null$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_null$samples)
-  save(RN_elk_july_null, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_null_", Sys.Date(), ".RData"))
+  save(RN_elk_july_null, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_null.RData")
   
   ######  Univariate models ######  
-  #'  Mean HQ (DIC = ; WAICj = )
+  #'  Mean HQ 
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_meanHQ <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -525,11 +537,12 @@
                              n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_meanHQ$summary[1:15,])
-  (RN_elk_july_meanHQ_WAICj <- calc.jointlike(RN_elk_july_meanHQ))
+  (RN_elk_july_meanHQ_WAICs <- calc.jointlike(RN_elk_july_meanHQ))
   print(RN_elk_july_meanHQ$DIC)
-  save(RN_elk_july_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_meanHQ_", Sys.Date(), ".RData"))
+  which(RN_elk_july_meanHQ$summary[,"Rhat"] > 1.1)
+  save(RN_elk_july_meanHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_meanHQ.RData")
   
-  #'  Max HQ  (DIC = ; WAICj = ) 
+  #'  Max HQ  
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_maxHQ <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -538,11 +551,12 @@
                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_maxHQ$summary[1:15,])
-  (RN_elk_july_maxHQ_WAICj <- calc.jointlike(RN_elk_july_maxHQ))
+  (RN_elk_july_maxHQ_WAICs <- calc.jointlike(RN_elk_july_maxHQ))
   print(RN_elk_july_maxHQ$DIC)
-  save(RN_elk_july_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_maxHQ_", Sys.Date(), ".RData"))
+  which(RN_elk_july_maxHQ$summary[,"Rhat"] > 1.1)
+  save(RN_elk_july_maxHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_maxHQ.RData")
   
-  #'  cv HQ  (DIC = 24531.28; WAICj = 201971) 
+  #'  cv HQ   
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_cvHQ <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -551,11 +565,12 @@
                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_cvHQ$summary[1:15,])
-  (RN_elk_july_cvHQ_WAICj <- calc.jointlike(RN_elk_july_cvHQ))
+  (RN_elk_july_cvHQ_WAICs <- calc.jointlike(RN_elk_july_cvHQ))
   print(RN_elk_july_cvHQ$DIC)
-  save(RN_elk_july_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_cvHQ_", Sys.Date(), ".RData"))
+  which(RN_elk_july_cvHQ$summary[,"Rhat"] > 1.1)
+  save(RN_elk_july_cvHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_cvHQ.RData")
   
-  #'  Mean Tbio (DIC = 24532.41; WAICj = 194215.6)
+  #'  Mean Tbio 
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_meanTbio <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -564,11 +579,12 @@
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_meanTbio$summary[1:15,])
-  (RN_elk_july_meanTbio_WAICj <- calc.jointlike(RN_elk_july_meanTbio))
+  (RN_elk_july_meanTbio_WAICs <- calc.jointlike(RN_elk_july_meanTbio))
   print(RN_elk_july_meanTbio$DIC)
-  save(RN_elk_july_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_meanTbio_", Sys.Date(), ".RData"))
+  which(RN_elk_july_meanTbio$summary[,"Rhat"] > 1.1)
+  save(RN_elk_july_meanTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_meanTbio.RData")
   
-  #'  Max Tbio (DIC = 24516.76; WAICj = 191632.2)
+  #'  Max Tbio 
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_maxTbio <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -577,11 +593,12 @@
                                n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_maxTbio$summary[1:15,])
-  (RN_elk_july_maxTbio_WAICj <- calc.jointlike(RN_elk_july_maxTbio))
+  (RN_elk_july_maxTbio_WAICs <- calc.jointlike(RN_elk_july_maxTbio))
   print(RN_elk_july_maxTbio$DIC)
-  save(RN_elk_july_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_maxTbio_", Sys.Date(), ".RData"))
+  which(RN_elk_july_maxTbio$summary[,"Rhat"] > 1.1)
+  save(RN_elk_july_maxTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_maxTbio.RData")
   
-  #'  cv Tbio (DIC = 24519.9; WAICj = 193112.1) 
+  #'  cv Tbio 
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_cvTbio <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -590,11 +607,12 @@
                               n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_cvTbio$summary[1:15,])
-  (RN_elk_july_cvTbio_WAICj <- calc.jointlike(RN_elk_july_cvTbio))
+  (RN_elk_july_cvTbio_WAICs <- calc.jointlike(RN_elk_july_cvTbio))
   print(RN_elk_july_cvTbio$DIC)
-  save(RN_elk_july_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_cvTbio_", Sys.Date(), ".RData"))
+  which(RN_elk_july_cvTbio$summary[,"Rhat"] > 1.1)
+  save(RN_elk_july_cvTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_cvTbio.RData")
   
-  #'  Total Selected (DIC = 24529.53; WAICj = 191211) 
+  #'  Total Selected 
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_selected <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -603,11 +621,12 @@
                              n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_selected$summary[1:15,])
-  (RN_elk_july_selected_WAICj <- calc.jointlike(RN_elk_july_selected))
+  (RN_elk_july_selected_WAICs <- calc.jointlike(RN_elk_july_selected))
   print(RN_elk_july_selected$DIC)
-  save(RN_elk_july_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_selected_", Sys.Date(), ".RData"))
+  which(RN_elk_july_selected$summary[,"Rhat"] > 1.1)
+  save(RN_elk_july_selected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_selected.RData")
   
-  #'  Total Predicted (DIC = 24537.26; WAICj = 193519.7)
+  #'  Total Predicted 
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_predicted <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -616,12 +635,13 @@
                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_predicted$summary[1:15,])
-  (RN_elk_july_predicted_WAICj <- calc.jointlike(RN_elk_july_predicted))
+  (RN_elk_july_predicted_WAICs <- calc.jointlike(RN_elk_july_predicted))
   print(RN_elk_july_predicted$DIC)
-  save(RN_elk_july_predicted, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_predicted_", Sys.Date(), ".RData"))
+  which(RN_elk_july_predicted$summary[,"Rhat"] > 1.1)
+  save(RN_elk_july_predicted, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_predicted.RData")
   
   ######  High Quality Biomass  ######
-  #'  Mean & CV  (DIC = 24537.45; WAICj = 205032.1)
+  #'  Mean & CV  
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_HQ_mean.cv <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -630,13 +650,13 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_HQ_mean.cv$summary[1:15,])
-  (RN_elk_july_HQ_mean.cv_WAICj <- calc.jointlike(RN_elk_july_HQ_mean.cv))
+  (RN_elk_july_HQ_mean.cv_WAICs <- calc.jointlike(RN_elk_july_HQ_mean.cv))
   print(RN_elk_july_HQ_mean.cv$DIC)
   which(RN_elk_july_HQ_mean.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_HQ_mean.cv$samples)
-  save(RN_elk_july_HQ_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_HQ_mean.cv_", Sys.Date(), ".RData"))
+  save(RN_elk_july_HQ_mean.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_HQ_mean.cv.RData")
   
-  #'  Max & CV  (DIC = 24535.7; WAICj = 204042.1)
+  #'  Max & CV  
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_HQ_max.cv <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -645,14 +665,14 @@
                                  n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_HQ_max.cv$summary[1:15,])
-  (RN_elk_july_HQ_max.cv_WAICj <- calc.jointlike(RN_elk_july_HQ_max.cv))
+  (RN_elk_july_HQ_max.cv_WAICs <- calc.jointlike(RN_elk_july_HQ_max.cv))
   print(RN_elk_july_HQ_max.cv$DIC)
   which(RN_elk_july_HQ_max.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_HQ_max.cv$samples)
-  save(RN_elk_july_HQ_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_HQ_max.cv_", Sys.Date(), ".RData"))
+  save(RN_elk_july_HQ_max.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_HQ_max.cv.RData")
   
   ######  Total Biomass  ######
-  #'  Mean & CV  (DIC = 24547.04; WAICj = 195755.1)
+  #'  Mean & CV  
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_Tbio_mean.cv <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -661,13 +681,13 @@
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_Tbio_mean.cv$summary[1:15,])
-  (RN_elk_july_Tbio_mean.cv_WAICj <- calc.jointlike(RN_elk_july_Tbio_mean.cv))
+  (RN_elk_july_Tbio_mean.cv_WAICs <- calc.jointlike(RN_elk_july_Tbio_mean.cv))
   print(RN_elk_july_Tbio_mean.cv$DIC)
   which(RN_elk_july_Tbio_mean.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_Tbio_mean.cv$samples)
-  save(RN_elk_july_Tbio_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_Tbio_mean.cv_", Sys.Date(), ".RData"))
+  save(RN_elk_july_Tbio_mean.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_Tbio_mean.cv.RData")
   
-  #'  Max & CV   (DIC = 24537.56; WAICj = 192491.1)
+  #'  Max & CV   
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_Tbio_max.cv <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -676,14 +696,14 @@
                                    n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_Tbio_max.cv$summary[1:15,])
-  (RN_elk_july_Tbio_max.cv_WAICj <- calc.jointlike(RN_elk_july_Tbio_max.cv))
+  (RN_elk_july_Tbio_max.cv_WAICs <- calc.jointlike(RN_elk_july_Tbio_max.cv))
   print(RN_elk_july_Tbio_max.cv$DIC)
   which(RN_elk_july_Tbio_max.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_Tbio_max.cv$samples)
-  save(RN_elk_july_Tbio_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_Tbio_max.cv_", Sys.Date(), ".RData"))
+  save(RN_elk_july_Tbio_max.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_Tbio_max.cv.RData")
   
   ######  Community Composition  ######
-  #'  Selected & Proportion Selected  (DIC = 24521.25; WAICj = 191263)
+  #'  Selected & Proportion Selected  
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_selected.propSelected <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -692,13 +712,13 @@
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_selected.propSelected$summary[1:15,])
-  (RN_elk_july_selected.propSelected_WAICj <- calc.jointlike(RN_elk_july_selected.propSelected))
+  (RN_elk_july_selected.propSelected_WAICs <- calc.jointlike(RN_elk_july_selected.propSelected))
   print(RN_elk_july_selected.propSelected$DIC)
   which(RN_elk_july_selected.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_selected.propSelected$samples)
-  save(RN_elk_july_selected.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_selected.propSelected_", Sys.Date(), ".RData"))
+  save(RN_elk_july_selected.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_selected.propSelected.RData")
   
-  #'  Predicted & Proportion Selected  (DIC = 24559.59; WAICj = 194585.3)
+  #'  Predicted & Proportion Selected  
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_predicted.propSelected <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -707,16 +727,15 @@
                                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_predicted.propSelected$summary[1:15,])
-  (RN_elk_july_predicted.propSelected_WAICj <- calc.jointlike(RN_elk_july_predicted.propSelected))
+  (RN_elk_july_predicted.propSelected_WAICs <- calc.jointlike(RN_elk_july_predicted.propSelected))
   print(RN_elk_july_predicted.propSelected$DIC)
   which(RN_elk_july_predicted.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_predicted.propSelected$samples)
-  save(RN_elk_july_predicted.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_predicted.propSelected_", Sys.Date(), ".RData"))
+  save(RN_elk_july_predicted.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_predicted.propSelected.RData")
   
   ######  GLOBAL  ######
   #'  Using only most supported non-correlated covariates (based on WAICj from models above)
   #'  Global: Max HQ, cv HQ, Max Tbio, cv Tbio, Selected, PropSelected
-  #'  (DIC = 24532.76; WAICj = 205372.6)
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_global <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
@@ -725,17 +744,17 @@
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_july_global$summary[1:15,])
-  (RN_elk_july_global_WAICj <- calc.jointlike(RN_elk_july_global))
+  (RN_elk_july_global_WAICs <- calc.jointlike(RN_elk_july_global))
   print(RN_elk_july_global$DIC)
   which(RN_elk_july_global$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_global$samples)
-  save(RN_elk_july_global, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_july_global_", Sys.Date(), ".RData"))
+  save(RN_elk_july_global, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_july_global.RData")
   
   #'  -------------------------
   #####  Elk August RN models  #####
   #'  -------------------------
   ######  Null model  ######
-  #'  Camera setup on detection  (DIC = 23476.15; WAICj = 105190.8)
+  #'  Camera setup on detection  
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_null <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -748,10 +767,10 @@
   print(RN_elk_aug_null$DIC)
   which(RN_elk_aug_null$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_aug_null$samples)
-  save(RN_elk_aug_null, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_null_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_null, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_null.RData")
   
   ######  Univariate models ######  
-  #'  Mean HQ (DIC = 23719.27; WAICj = 111616.3)
+  #'  Mean HQ 
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_meanHQ <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -762,9 +781,9 @@
   print(RN_elk_aug_meanHQ$summary[1:15,])
   (RN_elk_aug_meanHQ_WAICj <- calc.jointlike(RN_elk_aug_meanHQ))
   print(RN_elk_aug_meanHQ$DIC)
-  save(RN_elk_aug_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_meanHQ_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_meanHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_meanHQ.RData")
   
-  #'  Max HQ (DIC = 23687.83; WAICj = 113265.1) 
+  #'  Max HQ 
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_maxHQ <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -775,9 +794,9 @@
   print(RN_elk_aug_maxHQ$summary[1:15,])
   (RN_elk_aug_maxHQ_WAICj <- calc.jointlike(RN_elk_aug_maxHQ))
   print(RN_elk_aug_maxHQ$DIC)
-  save(RN_elk_aug_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_maxHQ_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_maxHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_maxHQ.RData")
   
-  #'  cv HQ (DIC = 23685.04; WAICj = 116597.1) 
+  #'  cv HQ  
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_cvHQ <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -788,9 +807,9 @@
   print(RN_elk_aug_cvHQ$summary[1:15,])
   (RN_elk_aug_cvHQ_WAICj <- calc.jointlike(RN_elk_aug_cvHQ))
   print(RN_elk_aug_cvHQ$DIC)
-  save(RN_elk_aug_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_cvHQ_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_cvHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_cvHQ.RData")
   
-  #'  Mean Tbio (DIC = 23705.72; WAICj = 112559.6)
+  #'  Mean Tbio 
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_meanTbio <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -801,9 +820,9 @@
   print(RN_elk_aug_meanTbio$summary[1:15,])
   (RN_elk_aug_meanTbio_WAICj <- calc.jointlike(RN_elk_aug_meanTbio))
   print(RN_elk_aug_meanTbio$DIC)
-  save(RN_elk_aug_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_meanTbio_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_meanTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_meanTbio.RData")
   
-  #'  Max Tbio (DIC = 23669.32; WAICj = 111662.6) 
+  #'  Max Tbio 
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_maxTbio <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -814,9 +833,9 @@
   print(RN_elk_aug_maxTbio$summary[1:15,])
   (RN_elk_aug_maxTbio_WAICj <- calc.jointlike(RN_elk_aug_maxTbio))
   print(RN_elk_aug_maxTbio$DIC)
-  save(RN_elk_aug_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_maxTbio_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_maxTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_maxTbio.RData")
   
-  #'  cv Tbio (DIC = 23734.89; WAICj = 111978.1) 
+  #'  cv Tbio 
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_cvTbio <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -827,9 +846,9 @@
   print(RN_elk_aug_cvTbio$summary[1:15,])
   (RN_elk_aug_cvTbio_WAICj <- calc.jointlike(RN_elk_aug_cvTbio))
   print(RN_elk_aug_cvTbio$DIC)
-  save(RN_elk_aug_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_cvTbio_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_cvTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_cvTbio.RData")
   
-  #'  Total Selected (DIC = 23663.62; WAICj = 111893.7) 
+  #'  Total Selected 
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_selected <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -840,9 +859,9 @@
   print(RN_elk_aug_selected$summary[1:15,])
   (RN_elk_aug_selected_WAICj <- calc.jointlike(RN_elk_aug_selected))
   print(RN_elk_aug_selected$DIC)
-  save(RN_elk_aug_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_selected_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_selected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_selected.RData")
   
-  #'  Total Predicted (DIC = 23698.53; WAICj = 112883.1)
+  #'  Total Predicted 
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_predicted <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -853,10 +872,10 @@
   print(RN_elk_aug_predicted$summary)
   (RN_elk_aug_predicted_WAICj <- calc.jointlike(RN_elk_aug_predicted))
   print(RN_elk_aug_predicted$DIC)
-  save(RN_elk_aug_predicted, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_predicted_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_predicted, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_predicted.RData")
   
   ######  High Quality Biomass  ######
-  #'  Mean & CV   (DIC = 23685.62; WAICj = 118302.8)
+  #'  Mean & CV  
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_HQ_mean.cv <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -869,9 +888,9 @@
   print(RN_elk_aug_HQ_mean.cv$DIC)
   which(RN_elk_aug_HQ_mean.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_aug_HQ_mean.cv$samples)
-  save(RN_elk_aug_HQ_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_HQ_mean.cv_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_HQ_mean.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_HQ_mean.cv.RData")
   
-  #'  Max & CV  (DIC = 23667.9; WAICj = 117231.4)
+  #'  Max & CV  
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_HQ_max.cv <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -884,10 +903,10 @@
   print(RN_elk_aug_HQ_max.cv$DIC)
   which(RN_elk_aug_HQ_max.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_aug_HQ_max.cv$samples)
-  save(RN_elk_aug_HQ_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_HQ_max.cv_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_HQ_max.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_HQ_max.cv.RData")
   
   ######  Total Biomass  ######
-  #'  Mean & CV   (DIC = 23672.75; WAICj = 113111)
+  #'  Mean & CV  
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_Tbio_mean.cv <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -900,9 +919,9 @@
   print(RN_elk_aug_Tbio_mean.cv$DIC)
   which(RN_elk_aug_Tbio_mean.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_aug_Tbio_mean.cv$samples)
-  save(RN_elk_aug_Tbio_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_Tbio_mean.cv_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_Tbio_mean.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_Tbio_mean.cv.RData")
   
-  #'  Max & CV  (DIC = 23679.73; WAICj = 112069.8)
+  #'  Max & CV  
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_Tbio_max.cv <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -915,10 +934,10 @@
   print(RN_elk_aug_Tbio_max.cv$DIC)
   which(RN_elk_aug_Tbio_max.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_aug_Tbio_max.cv$samples)
-  save(RN_elk_aug_Tbio_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_Tbio_max.cv_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_Tbio_max.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_Tbio_max.cv.RData")
   
   ######  Community Composition  ######
-  #'  Selected & Proportion Selected  (DIC = 23674.87; WAICj = 111953.8)
+  #'  Selected & Proportion Selected  
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_selected.propSelected <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -931,9 +950,9 @@
   print(RN_elk_aug_selected.propSelected$DIC)
   which(RN_elk_aug_selected.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_aug_selected.propSelected$samples)
-  save(RN_elk_aug_selected.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_selected.propSelected_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_selected.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_selected.propSelected.RData")
   
-  #'  Predicted & Proportion Selected  (DIC = 23693.75; WAICj = 112792.3)
+  #'  Predicted & Proportion Selected  
   start.time = Sys.time()  
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_predicted.propSelected <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
@@ -946,12 +965,11 @@
   print(RN_elk_aug_predicted.propSelected$DIC)
   which(RN_elk_aug_predicted.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_aug_predicted.propSelected$samples)
-  save(RN_elk_aug_predicted.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_predicted.propSelected_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_predicted.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_predicted.propSelected.RData")
   
   ######  GLOBAL  ######
   #'  Using only most supported non-correlated covariates (based on WAICj from models above)
   #'  Global: Max HQ, cv HQ, Max Tbio, cv Tbio, selected, PropSelected
-  #'  (DIC = 23659.2; WAICj = 118713.5)
   start.time = Sys.time() 
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
@@ -965,13 +983,13 @@
   print(RN_elk_aug_global$DIC)
   which(RN_elk_aug_global$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_aug_global$samples)
-  save(RN_elk_aug_global, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_elk_aug_global_", Sys.Date(), ".RData"))
+  save(RN_elk_aug_global, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_elk_aug_global.RData")
   
   #'  -----------------------
   #####  WTD July RN models  #####
   #'  -----------------------
   ######  Null model  ######
-  #'  Camera setup on detection  (DIC = 40640.4; WAICj = 1544019)
+  #'  Camera setup on detection  
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_null <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -984,10 +1002,10 @@
   print(RN_wtd_july_null$DIC)
   which(RN_wtd_july_null$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_null$samples)
-  save(RN_wtd_july_null, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_null_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_null, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_null.RData")
   
   ######  Univariate models ######  
-  #'  Mean HQ (DIC = 40637.75; WAICj = 1615593) 
+  #'  Mean HQ 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_meanHQ <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -998,9 +1016,9 @@
   print(RN_wtd_july_meanHQ$summary[1:15,])
   (RN_wtd_july_meanHQ_WAICj <- calc.jointlike(RN_wtd_july_meanHQ))
   print(RN_wtd_july_meanHQ$DIC)
-  save(RN_wtd_july_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_meanHQ_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_meanHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_meanHQ.RData")
   
-  #'  Max HQ  (DIC = 40668.77; WAICj = 1533173)
+  #'  Max HQ  
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_maxHQ <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1011,9 +1029,9 @@
   print(RN_wtd_july_maxHQ$summary[1:15,])
   (RN_wtd_july_maxHQ_WAICj <- calc.jointlike(RN_wtd_july_maxHQ))
   print(RN_wtd_july_maxHQ$DIC)
-  save(RN_wtd_july_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_maxHQ_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_maxHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_maxHQ.RData")
   
-  #'  cv HQ  (DIC = 40604.1; WAICj = 1650763)
+  #'  cv HQ  
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_cvHQ <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1024,9 +1042,9 @@
   print(RN_wtd_july_cvHQ$summary[1:15,])
   (RN_wtd_july_cvHQ_WAICj <- calc.jointlike(RN_wtd_july_cvHQ))
   print(RN_wtd_july_cvHQ$DIC)
-  save(RN_wtd_july_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_cvHQ_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_cvHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_cvHQ.RData")
   
-  #'  Mean Tbio (DIC = 40625.89; WAICj = 1536776)
+  #'  Mean Tbio 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_meanTbio <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1037,9 +1055,9 @@
   print(RN_wtd_july_meanTbio$summary[1:15,])
   (RN_wtd_july_meanTbio_WAICj <- calc.jointlike(RN_wtd_july_meanTbio))
   print(RN_wtd_july_meanTbio$DIC)
-  save(RN_wtd_july_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_meanTbio_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_meanTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_meanTbio.RData")
   
-  #'  Max Tbio (DIC = 40640.9; WAICj = 1578467) 
+  #'  Max Tbio 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_maxTbio <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1050,9 +1068,9 @@
   print(RN_wtd_july_maxTbio$summary[1:15,])
   (RN_wtd_july_maxTbio_WAICj <- calc.jointlike(RN_wtd_july_maxTbio))
   print(RN_wtd_july_maxTbio$DIC)
-  save(RN_wtd_july_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_maxTbio_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_maxTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_maxTbio.RData")
   
-  #'  cv Tbio (DIC = 40661.37; WAICj = 1574691) 
+  #'  cv Tbio 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_cvTbio <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1063,9 +1081,9 @@
   print(RN_wtd_july_cvTbio$summary[1:15,])
   (RN_wtd_july_cvTbio_WAICj <- calc.jointlike(RN_wtd_july_cvTbio))
   print(RN_wtd_july_cvTbio$DIC)
-  save(RN_wtd_july_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_cvTbio_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_cvTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_cvTbio.RData")
   
-  #'  Total Selected (DIC = 40608.65; WAICj = 1665993) 
+  #'  Total Selected 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_selected <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1076,9 +1094,9 @@
   print(RN_wtd_july_selected$summary[1:15,])
   (RN_wtd_july_selected_WAICj <- calc.jointlike(RN_wtd_july_selected))
   print(RN_wtd_july_selected$DIC)
-  save(RN_wtd_july_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_selected_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_selected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_selected.RData")
   
-  #'  Total Predicted (DIC = 40598.26; WAICj = 1710570)
+  #'  Total Predicted 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_predicted <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1089,10 +1107,10 @@
   print(RN_wtd_july_predicted$summary[1:15,])
   (RN_wtd_july_predicted_WAICj <- calc.jointlike(RN_wtd_july_predicted))
   print(RN_wtd_july_predicted$DIC)
-  save(RN_wtd_july_predicted, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_predicted_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_predicted, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_predicted.RData")
     
   ######  High Quality Biomass  ######
-  #'  Mean & CV  (DIC = 40558.56; WAICj = 1767083)
+  #'  Mean & CV  
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_HQ_mean.cv <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1105,9 +1123,9 @@
   print(RN_wtd_july_HQ_mean.cv$DIC)
   which(RN_wtd_july_HQ_mean.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_HQ_mean.cv$samples)
-  save(RN_wtd_july_HQ_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_HQ_mean.cv_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_HQ_mean.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_HQ_mean.cv.RData")
   
-  #'  Max & CV  (DIC = 40584.65; WAICj = 1694535)
+  #'  Max & CV  
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_HQ_max.cv <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1120,10 +1138,10 @@
   print(RN_wtd_july_HQ_max.cv$DIC)
   which(RN_wtd_july_HQ_max.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_HQ_max.cv$samples)
-  save(RN_wtd_july_HQ_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_HQ_max.cv_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_HQ_max.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_HQ_max.cv.RData")
   
   ######  Total Biomass  ######
-  #'  Mean & CV  (DIC = 40632.43; WAICj = 1568780)
+  #'  Mean & CV  
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_Tbio_mean.cv <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1136,9 +1154,9 @@
   print(RN_wtd_july_Tbio_mean.cv$DIC)
   which(RN_wtd_july_Tbio_mean.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_Tbio_mean.cv$samples)
-  save(RN_wtd_july_Tbio_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_Tbio_mean.cv_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_Tbio_mean.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_Tbio_mean.cv.RData")
   
-  #'  Max & CV  (DIC = 40615.6; WAICj = 1602163)
+  #'  Max & CV  
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_Tbio_max.cv <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1151,10 +1169,10 @@
   print(RN_wtd_july_Tbio_max.cv$DIC)
   which(RN_wtd_july_Tbio_max.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_Tbio_max.cv$samples)
-  save(RN_wtd_july_Tbio_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_Tbio_max.cv_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_Tbio_max.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_Tbio_max.cv.RData")
   
   ######  Community Composition  ######
-  #'  Selected & Proportion Selected  (DIC = 40558.06; WAICj = 1796101)
+  #'  Selected & Proportion Selected 
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_selected.propSelected <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1167,9 +1185,9 @@
   print(RN_wtd_july_selected.propSelected$DIC)
   which(RN_wtd_july_selected.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_selected.propSelected$samples)
-  save(RN_wtd_july_selected.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_selected.propSelected_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_selected.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_selected.propSelected.RData")
   
-  #'  Predicted & Proportion Selected  (DIC = 40520.48; WAICj = 1886611)
+  #'  Predicted & Proportion Selected  
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_predicted.propSelected <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1182,13 +1200,12 @@
   print(RN_wtd_july_predicted.propSelected$DIC)
   which(RN_wtd_july_predicted.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_predicted.propSelected$samples)
-  save(RN_wtd_july_predicted.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_predicted.propSelected_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_predicted.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_predicted.propSelected.RData")
   
   ######  GLOBAL  ######
   #'  Using only most supported non-correlated covariates
   #'  Global: Max HQ, cv HQ, Mean Tbio, Selected, PropSelected
   #'  cvHQ & cvTbio are highly correlated so running global model with only one cv biomass variable at a time
-  #'  (DIC = 40555.07; WAICj = 1969482)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_global1 <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1201,9 +1218,8 @@
   print(RN_wtd_july_global1$DIC)
   which(RN_wtd_july_global1$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_global1$samples)
-  save(RN_wtd_july_global1, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_global.cvHQ_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_global1, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_global.cvHQ.RData")
   
-  #' (DIC = 40574.9; WAICj = 1873468)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_global2 <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1216,13 +1232,13 @@
   print(RN_wtd_july_global2$DIC)
   which(RN_wtd_july_global2$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_global2$samples)
-  save(RN_wtd_july_global2, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_july_global.cvTbio_", Sys.Date(), ".RData"))
+  save(RN_wtd_july_global2, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_july_global.cvTbio.RData")
   
   #'  -------------------------
   #####  WTD August RN models  #####
   #'  -------------------------
   ######  Null model  ######
-  #'  Camera setup on detection  (DIC = 39918.89; WAICj = 994071.3)
+  #'  Camera setup on detection  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_null <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1235,10 +1251,10 @@
   print(RN_wtd_aug_null$DIC)
   which(RN_wtd_aug_null$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_null$samples)
-  save(RN_wtd_aug_null, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_null_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_null, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_null.RData")
   
   ######  Univariate models ######  
-  #'  Mean HQ (DIC = 39898.85; WAICj = 1064529) 
+  #'  Mean HQ 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_meanHQ <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1249,9 +1265,9 @@
   print(RN_wtd_aug_meanHQ$summary[1:15,])
   (RN_wtd_aug_meanHQ_WAICj <- calc.jointlike(RN_wtd_aug_meanHQ))
   print(RN_wtd_aug_meanHQ$DIC)
-  save(RN_wtd_aug_meanHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_meanHQ_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_meanHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_meanHQ.RData")
   
-  #'  Max HQ  (DIC = 39933.86; WAICj = 1003597)
+  #'  Max HQ  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_maxHQ <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1262,9 +1278,9 @@
   print(RN_wtd_aug_maxHQ$summary[1:15,])
   (RN_wtd_aug_maxHQ_WAICj <- calc.jointlike(RN_wtd_aug_maxHQ))
   print(RN_wtd_aug_maxHQ$DIC)
-  save(RN_wtd_aug_maxHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_maxHQ_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_maxHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_maxHQ.RData")
   
-  #'  cv HQ  (DIC = 39906.11; WAICj = 1070011)
+  #'  cv HQ  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_cvHQ <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1275,9 +1291,9 @@
   print(RN_wtd_aug_cvHQ$summary[1:15,])
   (RN_wtd_aug_cvHQ_WAICj <- calc.jointlike(RN_wtd_aug_cvHQ))
   print(RN_wtd_aug_cvHQ$DIC)
-  save(RN_wtd_aug_cvHQ, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_cvHQ_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_cvHQ, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_cvHQ.RData")
   
-  #'  Mean Tbio (DIC = 39936.03; WAICj = 1001615)
+  #'  Mean Tbio 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_meanTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1288,9 +1304,9 @@
   print(RN_wtd_aug_meanTbio$summary[1:15,])
   (RN_wtd_aug_meanTbio_WAICj <- calc.jointlike(RN_wtd_aug_meanTbio))
   print(RN_wtd_aug_meanTbio$DIC)
-  save(RN_wtd_aug_meanTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_meanTbio_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_meanTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_meanTbio.RData")
   
-  #'  Max Tbio (DIC = 39957.38; WAICj = 1034550) 
+  #'  Max Tbio 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_maxTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1301,9 +1317,9 @@
   print(RN_wtd_aug_maxTbio$summary[1:15,])
   (RN_wtd_aug_maxTbio_WAICj <- calc.jointlike(RN_wtd_aug_maxTbio))
   print(RN_wtd_aug_maxTbio$DIC)
-  save(RN_wtd_aug_maxTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_maxTbio_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_maxTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_maxTbio.RData")
 
-  #'  cv Tbio (DIC = 39941.43; WAICj = 1017798) 
+  #'  cv Tbio  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_cvTbio <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1314,9 +1330,9 @@
   print(RN_wtd_aug_cvTbio$summary[1:15,])
   (RN_wtd_aug_cvTbio_WAICj <- calc.jointlike(RN_wtd_aug_cvTbio))
   print(RN_wtd_aug_cvTbio$DIC)
-  save(RN_wtd_aug_cvTbio, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_cvTbio_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_cvTbio, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_cvTbio.RData")
   
-  #'  Total Selected (DIC = 39875.41; WAICj = 1118610)
+  #'  Total Selected 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_selected <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1327,9 +1343,9 @@
   print(RN_wtd_aug_selected$summary[1:15,])
   (RN_wtd_aug_selected_WAICj <- calc.jointlike(RN_wtd_aug_selected))
   print(RN_wtd_aug_selected$DIC)
-  save(RN_wtd_aug_selected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_selected_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_selected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_selected.RData")
   
-  #'  Total Predicted (DIC = 39865.96; WAICj = 1120307)
+  #'  Total Predicted 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_predicted <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1340,10 +1356,10 @@
   print(RN_wtd_aug_predicted$summary[1:15,])
   (RN_wtd_aug_predicted_WAICj <- calc.jointlike(RN_wtd_aug_predicted))
   print(RN_wtd_aug_predicted$DIC)
-  save(RN_wtd_aug_predicted, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_predicted_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_predicted, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_predicted.RData")
   
   ######  High Quality Biomass models  ######
-  #'  Mean & CV  (DIC = 39911.87; WAICj = 1156182)
+  #'  Mean & CV  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_HQ_mean.cv <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1356,9 +1372,9 @@
   print(RN_wtd_aug_HQ_mean.cv$DIC)
   which(RN_wtd_aug_HQ_mean.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_HQ_mean.cv$samples)
-  save(RN_wtd_aug_HQ_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_HQ_mean.cv_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_HQ_mean.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_HQ_mean.cv.RData")
   
-  #'  Max & CV  (DIC = 39933.27; WAICj = 1085812)
+  #'  Max & CV  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_HQ_max.cv <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1371,10 +1387,10 @@
   print(RN_wtd_aug_HQ_max.cv$DIC)
   which(RN_wtd_aug_HQ_max.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_HQ_max.cv$samples)
-  save(RN_wtd_aug_HQ_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_HQ_max.cv_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_HQ_max.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_HQ_max.cv.RData")
   
   ######  Total Biomass  ######
-  #'  Mean & CV  (DIC = 39946.98; WAICj = 1015780)
+  #'  Mean & CV  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_Tbio_mean.cv <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1387,9 +1403,9 @@
   print(RN_wtd_aug_Tbio_mean.cv$DIC)
   which(RN_wtd_aug_Tbio_mean.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_Tbio_mean.cv$samples)
-  save(RN_wtd_aug_Tbio_mean.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_Tbio_mean.cv_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_Tbio_mean.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_Tbio_mean.cv.RData")
   
-  #'  Max & CV  (DIC = 39898.43; WAICj = 1041801)
+  #'  Max & CV  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_Tbio_max.cv <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1402,10 +1418,10 @@
   print(RN_wtd_aug_Tbio_max.cv$DIC)
   which(RN_wtd_aug_Tbio_max.cv$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_Tbio_max.cv$samples)
-  save(RN_wtd_aug_Tbio_max.cv, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_Tbio_max.cv_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_Tbio_max.cv, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_Tbio_max.cv.RData")
   
   ######  Community Composition  ######
-  #'  Selected & Proportion Selected  (DIC = 39859.71; WAICj = 1189218)
+  #'  Selected & Proportion Selected  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_selected.propSelected <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1418,9 +1434,9 @@
   print(RN_wtd_aug_selected.propSelected$DIC)
   which(RN_wtd_aug_selected.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_selected.propSelected$samples)
-  save(RN_wtd_aug_selected.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_selected.propSelected_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_selected.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_selected.propSelected.RData")
   
-  #'  Predicted & Proportion Selected  (DIC = 39814.27; WAICj = 1223039)
+  #'  Predicted & Proportion Selected  
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_predicted.propSelected <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1433,13 +1449,12 @@
   print(RN_wtd_aug_predicted.propSelected$DIC)
   which(RN_wtd_aug_predicted.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_predicted.propSelected$samples)
-  save(RN_wtd_aug_predicted.propSelected, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_predicted.propSelected_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_predicted.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_predicted.propSelected.RData")
   
   ######  GLOBAL  ######
   #'  Using only most supported non-correlated covariates
   #'  Global: Max HQ, cv HQ, Mean Tbio, cv Tbio, selected, PropSelected
   #'  cvHQ & cvTbio are highly correlated so running global model with only one cv biomass variable at a time
-  #'  (DIC = 39881.91; WAICj = 1312306)
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_global1 <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1452,9 +1467,8 @@
   print(RN_wtd_aug_global1$DIC)
   which(RN_wtd_aug_global1$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_global1$samples)
-  save(RN_wtd_aug_global1, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_global.cvHQ_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_global1, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_global.cvHQ.RData")
   
-  #'  (DIC = 39877.86; WAICj = 1257700)
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_global2 <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1467,5 +1481,5 @@
   print(RN_wtd_aug_global2$DIC)
   which(RN_wtd_aug_global2$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_global2$samples)
-  save(RN_wtd_aug_global2, file = paste0("./Outputs/Hilger_RNmodel/JAGS_out/RN_wtd_aug_global.cvTbio_", Sys.Date(), ".RData"))
+  save(RN_wtd_aug_global2, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/RN_wtd_aug_global.cvTbio.RData")
   
