@@ -17,7 +17,26 @@
   #'  forested habitat that's been disturbed over the last 20 years, and the 
   #'  percentage of forested habitat in each cluster
   #'    4) Importing IDFG BGMR harvest data (prepared by K. Peterson)
-  #'  and calculating harvest density per cluster 
+  #'  and calculating harvest density per cluster (number of wolves reported
+  #'  harvested/km^2 from the previous year)
+  #'  
+  #'  Note the varying time-lags with covariate data: 
+  #'    1) NLCD data generated 2019 so represents land cover classifications 1 - 3
+  #'  years prior to annual RAI estimates.
+  #'    2) Winter Severity Index represents winter conditions 6-months prior to 
+  #'  annual RAI estimates, based on the hypothesis that winter severity of the 
+  #'  previous winter affects probability of survival and thus abundance in summer.
+  #'    3) Percentage of disturbed habitat and percentage of forested habitat
+  #'  represent forest habitat conditions 1-year prior to annual RAI estimates,
+  #'  based on the hypothesis that forage quality/availability the previous summer
+  #'  affects body condition entering winter, which affects probability of 
+  #'  survival and birth rates and thus abundance in summer.
+  #'    4) Harvest intensity represents wolf harvest for the 12 months prior to
+  #'  annual RAI estimates (e.g., summer RAI = June 1 - Sept. 15 so harvest
+  #'  intensity includes any harvest that occurred from previous June 1 to 
+  #'  current June 1), based on the hypothesis that harvest during the previous
+  #'  season's rendezvousing (previous summer), dispersing (fall), breeding (winter), 
+  #'  or denning (spring) periods affect abundance in summer.
   #'  --------------------------------
   
   library(sf)
@@ -270,14 +289,19 @@
     #'  Multiply standardized precip by standardized temp data
     mutate(DecFeb_WSI = DecFeb_meanPPT_z * DecFeb_meanMinTemp_z) %>%
     dplyr::select(c("GMU", "Clusters", "Season", "DecFeb_WSI")) %>%
-    #'  Filter to the winters preceding Summer 2020, 2021, and 2022 surveys
-    filter(Season == "Wtr1920" | Season == "Wtr2021" | Season == "Wtr2122") %>%
-    #'  Change Season column to reference annual summer sampling
-    rename("PreviousWinter" = "Season") %>%
-    mutate(Year = ifelse(PreviousWinter == "Wtr1920", 2020, 2022),
-           Year = ifelse(PreviousWinter == "Wtr2021", 2021, Year)) %>%
+    #'  Filter to the winters preceding Summer 2020, 2021, 2022, and 2023 surveys
+    filter(Season == "Wtr1920" | Season == "Wtr2021" | Season == "Wtr2122" | Season == "Wtr2223") %>%
+    rename("Winter" = "Season") %>%
+    #'  Add column that references year of the previous summer (i.e., Wtr1920 follows summer 2019)
+    #'  This ensures that data from most recent winter affects current summer RAI
+    #'  (6-mo lag between WSI and summer RAI) based how data are stacked and lagged 
+    #'  in SEM analyses (e.g., WSI Wtr2021 is hypothesized to affect Summer 2021 RAI)
+    mutate(Year = ifelse(Winter == "Wtr1920", 2019, 2022),
+           Year = ifelse(Winter == "Wtr2021", 2020, Year),
+           Year = ifelse(Winter == "Wtr2122", 2021, Year)) %>%
     relocate(Year, .after = "Clusters") %>%
-    rename("ClusterID" = "Clusters")
+    rename("ClusterID" = "Clusters") %>%
+    filter(Year != 2019)
   print(wsi)
   
   #'  -----------------------------
@@ -312,7 +336,7 @@
     dplyr::select(c(GMU, ClusterID, area_km2, CanopyCoverAreaSqKm, CanopyLossYear, CanopyLossArea_sq_km)) 
   
   #'  Function to calculate remaining canopy cover after multiple years of loss
-  gfc_loss_accumulation <- function(Hanson, yr) {
+  gfc_loss_accumulation <- function(Hanson, season, yr) {
     gfc_loss <- Hanson %>%
       filter(CanopyLossYear <= yr) %>%
       #'  Accumulated canopy loss up to defined year
@@ -324,7 +348,7 @@
       #'  Reduce to single observation per cluster
       group_by(GMU, ClusterID) %>%
       slice(1L) %>%
-      arrange(GMU, ClusterID)
+      arrange(GMU, ClusterID) 
     return(gfc_loss)
   }
   #'  Accumulated loss through 2001
@@ -335,12 +359,24 @@
   gfc_loss_thru_2002 <- gfc_loss_accumulation(gfc_loss, yr = 2002) %>%
     rename("TotalLoss2002_sq_km" = "TotalLoss_sq_km") %>%
     rename("CanopyCover2002_sq_km" = "CanopyCover_sq_km")
+  #'  Accumulated loss over last 19 years (2000 - 2019)
+  gfc_loss_thru_2019 <- gfc_loss_accumulation(gfc_loss, yr = 2019) %>%
+    #'  Calculate proportion of forest cover that has been disturbed in last 20-years
+    #'  Actually 19 years here b/c remotely sensed data only goes back to 2000
+    mutate(DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm,
+           #'  Calculate proportion of cluster that has canopy cover
+           PercentCover = CanopyCover_sq_km/area_km2,
+           #'  Year accumulated loss goes through (i.e., remaining canopy cover in this year)
+           AccumulatedLoss_thru = 2019,
+           #'  Year of current forest condition
+           Year = 2019)
   #'  Accumulated loss over last 20 years (2000 - 2020)
   gfc_loss_thru_2020 <- gfc_loss_accumulation(gfc_loss, yr = 2020) %>%
     #'  Calculate proportion of forest cover that has been disturbed in last 20-years
     mutate(DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm,
            #'  Calculate proportion of cluster that has canopy cover
            PercentCover = CanopyCover_sq_km/area_km2,
+           AccumulatedLoss_thru = 2020,
            Year = 2020) 
   #'  Accumulated loss over last 20 years (2001 - 2021)
   gfc_loss_thru_2021 <- gfc_loss_accumulation(gfc_loss, yr = 2021) %>%
@@ -355,6 +391,7 @@
            DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm,
            #'  Calculate proportion of cluster that has canopy cover
            PercentCover = CanopyCover_sq_km/area_km2,
+           AccumulatedLoss_thru = 2021,
            Year = 2021) %>%
     dplyr::select(-c(TotalLoss2001_sq_km, CanopyCover2001_sq_km)) 
   #'  Accumulated loss over last 20 years (2002 - 2022)  
@@ -368,14 +405,14 @@
            DisturbedForest_last20Yrs = TotalLoss_sq_km/CanopyCoverAreaSqKm,
            #'  Calculate proportion of cluster that has canopy cover
            PercentCover = CanopyCover_sq_km/area_km2,
+           AccumulatedLoss_thru = 2022,
            Year = 2022) %>%
     dplyr::select(-c(TotalLoss2002_sq_km, CanopyCover2002_sq_km))
   
   #'  Join proportion of forest cover that has been disturbed in last 20-years for 2020-2022
   percDisturbedForest <- full_join(gfc_loss_thru_2020, gfc_loss_thru_2021) %>%
-    full_join(gfc_loss_thru_2022) %>%
-    dplyr::select(c(GMU, ClusterID, Year, DisturbedForest_last20Yrs, PercentCover)) #%>%
-  #filter(GMU != "GMU1" | Year != 2020)
+    full_join(gfc_loss_thru_2022) %>% 
+    dplyr::select(c(GMU, ClusterID, Year, AccumulatedLoss_thru, DisturbedForest_last20Yrs, PercentCover)) 
   
   
   #'  -------------------------------
@@ -419,9 +456,9 @@
     arrange(GMU, BGMR) %>%
     unique(.) %>%
     filter(Source != "Wildlife Services")
-  write_csv(bgmr_dat, "./Data/IDFG BGMR data/IDFG Wolf Harvest Data/GMU1_6_10A_filtered.csv")
- 
-  #' #'  Use wolf grid cells to help identify general harvest locations, then read in updated dataset
+  
+  #' #'  Save BGMR data and use wolf grid cells to help identify general harvest locations, then read in updated dataset
+  #' write_csv(bgmr_dat, "./Data/IDFG BGMR data/IDFG Wolf Harvest Data/GMU1_6_10A_filtered.csv")
   #' s_cells <- st_read("./Shapefiles/IDFG spatial data/SCells_Strata.shp")
   #' library(mapview)
   #' mapview::mapview(s_cells, zcol = "SCell")
@@ -436,18 +473,20 @@
     filter(Source != "Illegal Kill" & Source != "Depredation Kill") %>%
     #'  Exclude harvest occurring 1 year before study period
     filter(Harvest_date >= "2019-06-01") %>%
-    #'  Eclude observations missing location coordinates
+    #'  Exclude observations missing location coordinates
     filter(!is.na(Latitude))
+  
   #'  Filter observations to the year prior to each study period and make spatial
   #'  e.g., June 1 of the previous yr to June 1 of the study year
   #'  Hypothesize harvest from within past year will influence relative wolf density that summer
   bgmr_Jun19_Jun20 <- filter(bgmr_locs, Harvest_date <= "2020-06-01") %>% mutate(ID = seq(1:nrow(.))) %>% st_as_sf(coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs") #%>% st_transform(crs = crs(cluster_poly))
   bgmr_Jun20_Jun21 <- filter(bgmr_locs, Harvest_date > "2020-06-01" & Harvest_date <= "2021-06-01") %>% mutate(ID = seq(1:nrow(.))) %>% st_as_sf(coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
   bgmr_Jun21_Jun22 <- filter(bgmr_locs, Harvest_date > "2021-06-01" & Harvest_date <= "2022-06-01") %>% mutate(ID = seq(1:nrow(.))) %>% st_as_sf(coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
+  bgmr_Jun22_Jun23 <- filter(bgmr_locs, Harvest_date > "2022-06-01" & Harvest_date <= "2023-06-01") %>% mutate(ID = seq(1:nrow(.))) %>% st_as_sf(coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
   
   #'  Intersect harvest locations with clusters, sum number of wolves harvested per cluster and divide by cluster area (harvest/km2)
   sf_use_s2(FALSE)
-  cluster_harvest <- function(bgmr, yr) {
+  cluster_harvest <- function(bgmr, season, yr) {
     clusters <- as.data.frame(cluster_poly) %>% dplyr::select(-geometry) 
     harvest_polygon <- st_intersection(bgmr, cluster_poly) %>% as.data.frame(.) %>%
       dplyr::select(c(GMU, BGMR, Location_Description, Harvest_date, Source, ClusterID, area_km2)) %>%
@@ -463,16 +502,25 @@
       mutate(annual_harvest = ifelse(is.na(annual_harvest), 0, annual_harvest),
              harvest_sqKm = ifelse(is.na(harvest_sqKm), 0, harvest_sqKm), 
              harvest_sqKm = round(harvest_sqKm, 4),
+             #'  Add column representing time period of harvest
+             harvest_season = season,
+             #'  Column representing start of harvest season (e.g., 2019 = summer 
+             #'  that started harvest from June 2019 - June 2020). This ensures 
+             #'  that data from past year (past 12 months of harvest) affects current 
+             #'  summer RAI based how data are stacked and lagged in SEM analyses 
+             #'  (e.g., harvest Jun19-Jun20 is hypothesized to affect Summer 2020 RAI)
              Year = yr) %>%
       arrange(GMU, ClusterID) %>%
       dplyr::select(-area_km2)
     return(harvest_polygon)
   }
-  harvest_Jun19_Jun20 <- cluster_harvest(bgmr_Jun19_Jun20, yr = 2020)
-  harvest_Jun20_Jun21 <- cluster_harvest(bgmr_Jun20_Jun21, yr = 2021)
-  harvest_Jun21_Jun22 <- cluster_harvest(bgmr_Jun21_Jun22, yr = 2022)
+  harvest_Jun19_Jun20 <- cluster_harvest(bgmr_Jun19_Jun20, season = "Jun19toJun20", yr = 2019)
+  harvest_Jun20_Jun21 <- cluster_harvest(bgmr_Jun20_Jun21, season = "Jun20toJun21", yr = 2020)
+  harvest_Jun21_Jun22 <- cluster_harvest(bgmr_Jun21_Jun22, season = "Jun21toJun22", yr = 2021)
+  harvest_Jun22_Jun23 <- cluster_harvest(bgmr_Jun22_Jun23, season = "Jun22toJun23", yr = 2022)
   sf_use_s2(TRUE)
-  harvest_intensity <- bind_rows(harvest_Jun19_Jun20, harvest_Jun20_Jun21, harvest_Jun21_Jun22)
+  harvest_intensity <- bind_rows(harvest_Jun19_Jun20, harvest_Jun20_Jun21, harvest_Jun21_Jun22, harvest_Jun22_Jun23) %>%
+    relocate(harvest_season, .before = annual_harvest)
   
   #'  Merge forest and WSI data together
   covs <- full_join(percDisturbedForest, wsi, by = c("GMU", "ClusterID", "Year")) %>%
