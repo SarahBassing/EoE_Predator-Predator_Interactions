@@ -205,8 +205,13 @@
       #'  Create column per species with their site-specific local abundance 
       pivot_wider(names_from = "Species",
                   values_from = c("SppDensity.100km2.r")) %>%
-      left_join(covs, by = c("GMU", "Year", "ClusterID")) %>%
-      dplyr::select(-PreviousWinter)
+      left_join(covs, by = c("GMU", "Year", "ClusterID"))
+    #'  Review to make sure it time lags look right given these observations are 
+    #'  hypothesized to affect the next set of observations
+    print(pivot_data_wide)
+    #'  Drop unneeded columns used to help double check time lags
+    pivot_data_wide <- pivot_data_wide %>%
+      dplyr::select(-c(AccumulatedLoss_thru, Winter, harvest_season))
     return(pivot_data_wide)
   }
   density_wide <- lapply(cluster_density, wide_data)
@@ -224,15 +229,16 @@
   
   #'  Visualize spread of relative density estimates across clusters per year
   plot_histogram <- function(dat, yr) {
-    hist(dat$bear_black, main = paste("Relative bear density across clusters,", yr))
-    hist(dat$coyote, main = paste("Relative coyote density across clusters,", yr))
-    hist(dat$mountain_lion, main = paste("Relative lion density across clusters,", yr))
-    hist(dat$wolf, main = paste("Relative wolf density across clusters,", yr))
-    hist(dat$elk, main = paste("Relative elk density across clusters,", yr))
-    hist(dat$moose, main = paste("Relative moose density across clusters,", yr))
-    hist(dat$whitetailed_deer, main = paste("Relative wtd density across clusters,", yr))
-    hist(dat$DisturbedForest_last20Yrs, main = paste("Percent disturbed forest,", yr))
-    hist(dat$DecFeb_WSI, main = paste("Dec-Feb Winter Severity Index,", yr))
+    hist(dat$bear_black, main = paste("Relative bear density across clusters, \nsummer", yr))
+    hist(dat$coyote, main = paste("Relative coyote density across clusters, \nsummer", yr))
+    hist(dat$mountain_lion, main = paste("Relative lion density across clusters, \nsummer", yr))
+    hist(dat$wolf, main = paste("Relative wolf density across clusters, \nsummer", yr))
+    hist(dat$elk, main = paste("Relative elk density across clusters, \nsummer", yr))
+    hist(dat$moose, main = paste("Relative moose density across clusters, \nsummer", yr))
+    hist(dat$whitetailed_deer, main = paste("Relative wtd density across clusters, \nsummer", yr))
+    hist(dat$DisturbedForest_last20Yrs, main = paste("Percent disturbed forest, \nsummer", yr))
+    hist(dat$DecFeb_WSI, main = paste("Dec-Feb Winter Severity Index, \nstarting Dec", yr))
+    hist(dat$harvest_sqKm, main = paste("Wolves harvested/km2 over past 12 months, \nstarting June", yr))
   }
   plot_histogram(density_wide[[1]], yr = "2020")
   plot_histogram(density_wide[[2]], yr = "2021")
@@ -251,7 +257,7 @@
   wide_data_by_year <- function(dat, yr) {
     data_by_yr <- dat %>%
       #'  Add year identifier to each column name
-      rename_with(.cols = bear_black:DecFeb_WSI, function(x){paste0(x, ".", yr)}) %>% 
+      rename_with(.cols = bear_black:harvest_sqKm, function(x){paste0(x, ".", yr)}) %>% 
       dplyr::select(-c(Year, year))
     return(data_by_yr)
   }
@@ -319,6 +325,10 @@
   summary(lm(moose.yr3 ~ DecFeb_WSI.yr2, data = localN_z))
   summary(lm(bear_black.yr2 ~ DisturbedForest_last20Yrs.yr1, data = localN_z))  
   summary(lm(bear_black.yr3 ~ DisturbedForest_last20Yrs.yr2, data = localN_z))  
+  summary(lm(wolf.yr2 ~ harvest_sqKm.yr1, data = localN_z))
+  summary(lm(wolf.yr3 ~ harvest_sqKm.yr2, data = localN_z))
+  summary(lm(wolf.yr2 ~ annual_harvest.yr1, data = localN_z))
+  summary(lm(wolf.yr3 ~ annual_harvest.yr2, data = localN_z))
   
   plot(whitetailed_deer.yr3 ~ mountain_lion.yr2, data = localN_z)
   plot(moose.yr3 ~ wolf.yr2, data = localN_z)
@@ -336,14 +346,14 @@
     #'  Indicate whether observation was from first or second year in grouped data
     mutate(GroupYear = ifelse(year == "yr1", "first", "second")) %>%
     #'  Add time period identifier to each column name
-    rename_with(.cols = bear_black:DecFeb_WSI, function(x){paste0(x, ".Tminus1")}) %>%
+    rename_with(.cols = bear_black:harvest_sqKm, function(x){paste0(x, ".Tminus1")}) %>%
     dplyr::select(-year)
   #'  Stack year 2 & year 3 data
   dat_t <- dat_stack_list[[2]] %>% #full_bx_dat_stack[[2]] %>%
     #'  Indicate whether observation was from first or second year in grouped data
     mutate(GroupYear = ifelse(year == "yr2", "first", "second")) %>%
     #'  Add time period identifier to each column name
-    rename_with(.cols = bear_black:DecFeb_WSI, function(x){paste0(x, ".T")}) %>%
+    rename_with(.cols = bear_black:harvest_sqKm, function(x){paste0(x, ".T")}) %>%
     dplyr::select(-year)
   
   #'  Join t-1 and t data based on camera location
@@ -383,6 +393,8 @@
   summary(lm(bear_black.T ~ wolf.Tminus1 + mountain_lion.T, data = localN_z_1YrLag))
   summary(lm(mountain_lion.T ~ wolf.Tminus1 + bear_black.Tminus1, data = localN_z_1YrLag))
   summary(lm(coyote.T ~ wolf.Tminus1 + mountain_lion.Tminus1, data = localN_z_1YrLag))
+  summary(lm(wolf.T ~ wolf.Tminus1 + annual_harvest.Tminus1, data = localN_z_1YrLag))
+  summary(lm(wolf.T ~ wolf.Tminus1 + harvest_sqKm.Tminus1, data = localN_z_1YrLag))
   
   plot(whitetailed_deer.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag)
   plot(elk.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag)
@@ -402,7 +414,7 @@
   
   #'  Create correlation matrix for all continuous covariates at once
   cov_correlation <- function(dat) {
-    covs <- dat[,5:16]
+    covs <- dat[,5:18]
     cor_matrix <- cor(covs, use = "complete.obs")
     return(cor_matrix)
   }
