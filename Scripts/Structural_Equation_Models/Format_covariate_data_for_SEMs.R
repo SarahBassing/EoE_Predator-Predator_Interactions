@@ -421,13 +421,62 @@
     filter(Source != "Wildlife Services")
   write_csv(bgmr_dat, "./Data/IDFG BGMR data/IDFG Wolf Harvest Data/GMU1_6_10A_filtered.csv")
  
-  s_cells <- st_read("./Shapefiles/IDFG spatial data/SCells_Strata.shp")
-  library(mapview)
-  mapview::mapview(s_cells, zcol = "SCell")
+  #' #'  Use wolf grid cells to help identify general harvest locations, then read in updated dataset
+  #' s_cells <- st_read("./Shapefiles/IDFG spatial data/SCells_Strata.shp")
+  #' library(mapview)
+  #' mapview::mapview(s_cells, zcol = "SCell")
   
+  #'  Read in updated BGMR data with approximate harvest coordinates
+  bgmr_locs <- read_csv("././Data/IDFG BGMR data/IDFG Wolf Harvest Data/GMU1_6_10A_assigned_harvest_locations.csv") %>%
+    mutate(Harvest_date = as.Date(Harvest_date, "%m/%d/%Y"),
+           Latitude = as.numeric(Latitude),
+           Longitude = as.numeric(Longitude)) %>%
+    dplyr::select(c(-s_cell, BGMR)) %>%
+    #'  Remove observations that were not legal harvest
+    filter(Source != "Illegal Kill" & Source != "Depredation Kill") %>%
+    #'  Exclude harvest occurring 1 year before study period
+    filter(Harvest_date >= "2019-06-01") %>%
+    #'  Eclude observations missing location coordinates
+    filter(!is.na(Latitude))
+  #'  Filter observations to the year prior to each study period and make spatial
+  #'  e.g., June 1 of the previous yr to June 1 of the study year
+  #'  Hypothesize harvest from within past year will influence relative wolf density that summer
+  bgmr_Jun19_Jun20 <- filter(bgmr_locs, Harvest_date <= "2020-06-01") %>% mutate(ID = seq(1:nrow(.))) %>% st_as_sf(coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs") #%>% st_transform(crs = crs(cluster_poly))
+  bgmr_Jun20_Jun21 <- filter(bgmr_locs, Harvest_date > "2020-06-01" & Harvest_date <= "2021-06-01") %>% mutate(ID = seq(1:nrow(.))) %>% st_as_sf(coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
+  bgmr_Jun21_Jun22 <- filter(bgmr_locs, Harvest_date > "2021-06-01" & Harvest_date <= "2022-06-01") %>% mutate(ID = seq(1:nrow(.))) %>% st_as_sf(coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
+  
+  #'  Intersect harvest locations with clusters, sum number of wolves harvested per cluster and divide by cluster area (harvest/km2)
+  sf_use_s2(FALSE)
+  cluster_harvest <- function(bgmr, yr) {
+    clusters <- as.data.frame(cluster_poly) %>% dplyr::select(-geometry) 
+    harvest_polygon <- st_intersection(bgmr, cluster_poly) %>% as.data.frame(.) %>%
+      dplyr::select(c(GMU, BGMR, Location_Description, Harvest_date, Source, ClusterID, area_km2)) %>%
+      mutate(GMU = paste0("GMU", GMU)) %>%
+      group_by(GMU, ClusterID) %>%
+      reframe(area_km2 = area_km2,
+              annual_harvest = n(),
+              harvest_sqKm = annual_harvest/area_km2) %>%
+      group_by(GMU, ClusterID) %>%
+      slice(1L) %>%
+      ungroup() %>%
+      full_join(clusters, harvest_polygon, by = c("GMU", "ClusterID", "area_km2")) %>%
+      mutate(annual_harvest = ifelse(is.na(annual_harvest), 0, annual_harvest),
+             harvest_sqKm = ifelse(is.na(harvest_sqKm), 0, harvest_sqKm), 
+             harvest_sqKm = round(harvest_sqKm, 4),
+             Year = yr) %>%
+      arrange(GMU, ClusterID) %>%
+      dplyr::select(-area_km2)
+    return(harvest_polygon)
+  }
+  harvest_Jun19_Jun20 <- cluster_harvest(bgmr_Jun19_Jun20, yr = 2020)
+  harvest_Jun20_Jun21 <- cluster_harvest(bgmr_Jun20_Jun21, yr = 2021)
+  harvest_Jun21_Jun22 <- cluster_harvest(bgmr_Jun21_Jun22, yr = 2022)
+  sf_use_s2(TRUE)
+  harvest_intensity <- bind_rows(harvest_Jun19_Jun20, harvest_Jun20_Jun21, harvest_Jun21_Jun22)
   
   #'  Merge forest and WSI data together
   covs <- full_join(percDisturbedForest, wsi, by = c("GMU", "ClusterID", "Year")) %>%
+    full_join(harvest_intensity, by = c("GMU", "ClusterID", "Year")) %>%
     filter(GMU != "GMU1" | Year != 2020)
   
   
