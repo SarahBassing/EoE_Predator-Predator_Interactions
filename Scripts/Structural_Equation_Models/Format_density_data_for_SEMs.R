@@ -270,12 +270,14 @@
   #'  Unlist as one single data frame (annual columns per species and covariates)
   density_wide_annual_20s_22s <- full_join(density_wide_annual[[1]], density_wide_annual[[2]], by = c("GMU", "ClusterID")) %>%
     full_join(density_wide_annual[[3]], by = c("GMU", "ClusterID")) %>%
-    arrange(GMU, ClusterID)
+    arrange(GMU, ClusterID) %>%
+    mutate(ClusterID = as.character(ClusterID),
+           harvest_sqKm_quad.yr1 = harvest_sqKm.yr1^2,
+           harvest_sqKm_quad.yr2 = harvest_sqKm.yr2^2)
   head(density_wide_annual_20s_22s); tail(density_wide_annual_20s_22s)
   
   #'  Z-transform local abundance estimates (per year b/c annual estimates are stand alone variables)
   localN_z <- density_wide_annual_20s_22s %>%
-    mutate(ClusterID = as.character(ClusterID)) %>%
     mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE))) 
     
   #'  Create correlation matrix for all continuous covariates at once
@@ -360,11 +362,12 @@
   density_wide_1YrLag_20s_22s <- full_join(dat_t_minus_1, dat_t, by = c("GMU", "ClusterID", "GroupYear")) %>%
     relocate(GroupYear, .after = ClusterID) %>%
     #'  Drop sites with NAs (missing 1+ years of data)
-    na.omit(.)
+    na.omit(.) %>%
+    mutate(ClusterID = as.character(ClusterID),
+           harvest_sqKm_quad.Tminus1 = harvest_sqKm.Tminus1^2) 
   
   #'  Z-transform local abundance estimates (per year b/c annual estimates are stand alone variables)
   localN_z_1YrLag <- density_wide_1YrLag_20s_22s %>%
-    mutate(ClusterID = as.character(ClusterID)) %>%
     mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
     #mutate(across(starts_with(c("RN.n_", "PercDisturbedForest", "DecFeb_WSI")), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE)))
   
