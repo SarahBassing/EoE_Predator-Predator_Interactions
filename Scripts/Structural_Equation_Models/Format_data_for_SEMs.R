@@ -569,9 +569,14 @@
   
   #'  Drop sites with NAs (missing 1+ years of data)
   localN_z <- drop_na(localN_z)
+  RN_wide_annual_20s_22s <- drop_na(RN_wide_annual_20s_22s)
   
   #'  Make sure habitat classes are categorical factors
   localN_z <- localN_z %>%
+    mutate(habitat_class.yr1 = factor(habitat_class.yr1, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
+           habitat_class.yr2 = factor(habitat_class.yr2, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
+           habitat_class.yr3 = factor(habitat_class.yr3, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
+  RN_wide_annual_20s_22s <- RN_wide_annual_20s_22s %>%
     mutate(habitat_class.yr1 = factor(habitat_class.yr1, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
            habitat_class.yr2 = factor(habitat_class.yr2, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
            habitat_class.yr3 = factor(habitat_class.yr3, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
@@ -694,9 +699,14 @@
   
   #'  Drop sites with NAs (missing 1+ years of data)
   localN_z_1YrLag <- drop_na(localN_z_1YrLag)
+  RN_wide_1YrLag_20s_22s <- drop_na(RN_wide_1YrLag_20s_22s)
   
   #'  Make sure habitat classes are categorical factors
   localN_z_1YrLag <- localN_z_1YrLag %>%
+    mutate(habitat_class.Tminus1 = factor(habitat_class.Tminus1, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
+           habitat_class.T = factor(habitat_class.T, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
+  
+  RN_wide_1YrLag_20s_22s <- RN_wide_1YrLag_20s_22s %>%
     mutate(habitat_class.Tminus1 = factor(habitat_class.Tminus1, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")),
            habitat_class.T = factor(habitat_class.T, levels = c("Forested", "Loss_1_20", "Shrubland", "Grassland")))
   
@@ -711,8 +721,10 @@
   
   #'  Remove RN.n_ from local abundance column names
   names(localN_z_1YrLag) <- gsub(pattern = "RN.n*_", replacement = "", x = names(localN_z_1YrLag))
+  names(RN_wide_1YrLag_20s_22s) <- gsub(pattern = "RN.n*_", replacement = "", x = names(RN_wide_1YrLag_20s_22s))
   #'  Remove RN. from sd column names
   names(localN_z_1YrLag) <- gsub(pattern = "RN._*", replacement = "", x = names(localN_z_1YrLag))
+  names(RN_wide_1YrLag_20s_22s) <- gsub(pattern = "RN._*", replacement = "", x = names(RN_wide_1YrLag_20s_22s))
 
   #'  Check out a few basic relationships
   summary(lm(whitetailed_deer.T ~ mountain_lion.Tminus1, data = localN_z_1YrLag, weights = precision_whitetailed_deer.Tminus1))  
