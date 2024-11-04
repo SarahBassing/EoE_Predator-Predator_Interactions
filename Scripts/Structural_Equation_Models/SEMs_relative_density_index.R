@@ -420,6 +420,84 @@
   save(bottom_up_inter_simple.a_semEff, file = paste0("./Outputs/SEM/bottom_up_inter_simple.a_semEff_", Sys.Date(), ".RData"))
   
   
+  library(stringi)
+  #'  Create results tables
+  tbl_std_est <- function(mod, mod_name) {
+    #'  Extract standardized effects
+    std_eff_elk <- mod$Summary$elk.T$Effect
+    std_eff_moose <- mod$Summary$moose.T$Effect
+    std_eff_wolf <- mod$Summary$wolf.T$Effect
+    std_eff_lion <- mod$Summary$mountain.lion.T$Effect
+    std_eff_bear <- mod$Summary$bear.black.T$Effect
+    
+    #'  Extract lower confidence interval
+    lci_elk <- mod$Summary$elk.T$`Lower CI`
+    lci_moose <- mod$Summary$moose.T$`Lower CI`
+    lci_wolf <- mod$Summary$wolf.T$`Lower CI`
+    lci_lion <- mod$Summary$mountain.lion.T$`Lower CI`
+    lci_bear <- mod$Summary$bear.black.T$`Lower CI`
+    
+    #'  Extract upper confidence interval
+    uci_elk <- mod$Summary$elk.T$`Upper CI`
+    uci_moose <- mod$Summary$moose.T$`Upper CI`
+    uci_wolf <- mod$Summary$wolf.T$`Upper CI`
+    uci_lion <- mod$Summary$mountain.lion.T$`Upper CI`
+    uci_bear <- mod$Summary$bear.black.T$`Upper CI`
+    
+    #'  Extract exogenous predictor names
+    predictor_elk <- mod$Summary$elk.T[[2]]
+    predictor_moose <- mod$Summary$moose.T[[2]]
+    predictor_wolf <- mod$Summary$wolf.T[[2]]
+    predictor_lion <- mod$Summary$mountain.lion.T[[2]]
+    predictor_bear <- mod$Summary$bear.black.T[[2]]
+    
+    #'  Bind into a single data frame and add column for endogenous variable
+    tbl_elk <- as.data.frame(bind_cols(predictor_elk, std_eff_elk, lci_elk, uci_elk)) %>% bind_cols("Elk t")
+    tbl_moose <- as.data.frame(bind_cols(predictor_moose, std_eff_moose, lci_moose, uci_moose)) %>% bind_cols("Moose t")
+    tbl_wolf <- as.data.frame(bind_cols(predictor_wolf, std_eff_wolf, lci_wolf, uci_wolf)) %>% bind_cols("Wolf t")
+    tbl_lion <- as.data.frame(bind_cols(predictor_lion, std_eff_lion, lci_lion, uci_lion)) %>% bind_cols("Mountain lion t")
+    tbl_bear <- as.data.frame(bind_cols(predictor_bear, std_eff_bear, lci_bear, uci_bear)) %>% bind_cols("Black bear t")
+    
+    #'  Rename columns
+    col_names <- c("Exogenous_variable", "Standardized_effect", "lower_CI", "upper_CI", "Endogenous_variable")
+    names(tbl_elk) <- col_names
+    names(tbl_moose) <- col_names
+    names(tbl_wolf) <- col_names
+    names(tbl_lion) <- col_names
+    names(tbl_bear) <- col_names
+    
+    #'  Bind results together and clean up final table
+    full_tbl <- bind_rows(tbl_elk, tbl_moose, tbl_wolf, tbl_lion, tbl_bear) %>%
+      relocate(Endogenous_variable, .before = Exogenous_variable) %>%
+      #'  Remove extra spaces before or end of words
+      mutate(across(everything(), ~stri_trim(.))) %>%
+      #'  Replace empty cells with NA
+      mutate(across(everything(), ~na_if(., ""))) %>%
+      #'  Remove any rows with `NA`
+      filter(!if_any(everything(), is.na)) %>%
+      filter(Exogenous_variable != "n/a") %>%
+      #'  Remove duplicate information
+      distinct(.) %>%
+      #'  Create single column for confidence intervals
+      mutate("95% CI" = paste(" ", lower_CI, "-", upper_CI)) %>%
+      dplyr::select(-c(lower_CI, upper_CI)) %>%
+      arrange(Endogenous_variable, Exogenous_variable) %>%
+      #'  Add column reporting model name
+      mutate(Model = mod_name) %>%
+      relocate(Model, .before = Endogenous_variable) %>%
+      #'  Remove "." and adjust time period indicator
+      mutate(Exogenous_variable = ifelse(Exogenous_variable == "bear.black.Tminus1", "bear black.Tminus1", Exogenous_variable),
+             Exogenous_variable = ifelse(Exogenous_variable == "mountain.lion.Tminus1", "mountain lion.Tminus1", Exogenous_variable),
+             Exogenous_variable = gsub(".Tminus1", " t-1", Exogenous_variable),
+             Exogenous_variable = str_to_sentence(Exogenous_variable))
+    
+    return(full_tbl)
+  }
+  result_tbl_top_down_inter_simple.a <- tbl_std_est(top_down_inter_simple.a_semEff, mod_name = "Top model")
+  result_tbl_bottom_up_inter_simple.a <- tbl_std_est(bottom_up_inter_simple.a_semEff, mod_name = "Second top model")
+  result_tbl_top_models <- bind_rows(result_tbl_top_down_inter_simple.a, result_tbl_bottom_up_inter_simple.a)
+  write_csv(result_tbl_top_models, "./Outputs/SEM/result_table_top_models_std_effects.csv")
+  
   #'  Notes:
   #'  Many of the top-down and bottom-up hypothesized networks reduced down to 
   #'  the same refined model (e.g., top-down interference simple, top-down exploitation 
