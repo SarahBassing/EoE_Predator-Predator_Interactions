@@ -80,6 +80,18 @@
   )
   summary(top_down_inter.a)
   
+  top_down_inter.b <- psem(
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(elk.T ~ elk.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T, data = density_wide_1YrLag_20s_22s),
+    lm(moose.T ~ moose.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1 + elk.T, data = density_wide_1YrLag_20s_22s),
+    lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(bear_black.T ~ bear_black.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T, data = density_wide_1YrLag_20s_22s),
+    lm(coyote.T ~ coyote.Tminus1 + moose.Tminus1 + mountain_lion.T, data = density_wide_1YrLag_20s_22s),
+    data = density_wide_1YrLag_20s_22s
+  )
+  summary(top_down_inter.b)
+  
   
   #'  -------------------------------------------
   #####  Top down, interference, simpler system  #####
@@ -138,6 +150,19 @@
   summary(top_down_exploit.a)
   
   
+  top_down_exploit.b <- psem(
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(elk.T ~ elk.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T, data = density_wide_1YrLag_20s_22s),
+    lm(moose.T ~ moose.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(wolf.T ~ wolf.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1 + mountain_lion.Tminus1 + elk.T, data = density_wide_1YrLag_20s_22s),
+    lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(bear_black.T ~ bear_black.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T, data = density_wide_1YrLag_20s_22s),
+    lm(coyote.T ~ coyote.Tminus1 + moose.Tminus1 + mountain_lion.T, data = density_wide_1YrLag_20s_22s),
+    data = density_wide_1YrLag_20s_22s
+  ) 
+  summary(top_down_exploit.b)
+  
+  
   #'  -------------------------------------------
   #####  Top down, exploitation, simpler system  #####
   #'  -------------------------------------------
@@ -194,6 +219,20 @@
   )
   summary(bottom_up_inter.a)
   AIC_psem(bottom_up_inter.a, AIC.type = "loglik")
+  
+  
+  bottom_up_inter.b <- psem(
+    lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(bear_black.T ~ bear_black.Tminus1, data = density_wide_1YrLag_20s_22s), 
+    lm(coyote.T ~ coyote.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + bear_black.T, data = density_wide_1YrLag_20s_22s),
+    lm(elk.T ~ elk.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T + bear_black.Tminus1 + wolf.T, data = density_wide_1YrLag_20s_22s),
+    lm(moose.T ~ moose.Tminus1, data = density_wide_1YrLag_20s_22s), 
+    coyote.T %~~% mountain_lion.T,
+    data = density_wide_1YrLag_20s_22s
+  )
+  summary(bottom_up_inter.b)
   
   
   #'  --------------------------------------------
@@ -255,6 +294,19 @@
   AIC_psem(bottom_up.a, AIC.type = "loglik")
   
   
+  bottom_up.b <- psem(
+    lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(bear_black.T ~ bear_black.Tminus1, data = density_wide_1YrLag_20s_22s), 
+    lm(coyote.T ~ coyote.Tminus1 + mountain_lion.T, data = density_wide_1YrLag_20s_22s),
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + bear_black.T, data = density_wide_1YrLag_20s_22s),
+    lm(elk.T ~ elk.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T + bear_black.Tminus1 + wolf.T, data = density_wide_1YrLag_20s_22s),
+    lm(moose.T ~ moose.Tminus1, data = density_wide_1YrLag_20s_22s),
+    data = density_wide_1YrLag_20s_22s
+  )
+  summary(bottom_up.b)
+  
+  
   #'  ------------------------------
   #####  Bottom up, simpler system  #####
   #'  ------------------------------
@@ -309,37 +361,55 @@
   )
   summary(top_down_bottom_up.a)
   
+  top_down_bottom_up.b <- psem(
+    lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(elk.T ~ elk.Tminus1 + mountain_lion.Tminus1 + bear_black.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T, data = density_wide_1YrLag_20s_22s),
+    lm(moose.T ~ moose.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1 + elk.T, data = density_wide_1YrLag_20s_22s),
+    lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1, data = density_wide_1YrLag_20s_22s),
+    lm(bear_black.T ~ bear_black.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T, data = density_wide_1YrLag_20s_22s),
+    lm(coyote.T ~ coyote.Tminus1 + moose.Tminus1 + mountain_lion.T, data = density_wide_1YrLag_20s_22s),
+    data = density_wide_1YrLag_20s_22s
+  )
+  summary(top_down_bottom_up.b)
+  
   
   #'  -----------------------------
   ####  Model selection using AIC  ####
   #'  -----------------------------
   #'  Include all permutations of these models (original & reduced via dSep)
-  modSelect <- AIC(top_down_inter, top_down_inter.a, top_down_inter_simple, top_down_inter_simple.a, 
-                   top_down_exploit, top_down_exploit.a, top_down_exploit_simple, top_down_exploit_simple.a, 
-                   bottom_up_inter, bottom_up_inter.a, bottom_up, bottom_up.a, 
-                   bottom_up_simple, bottom_up_simple.a, bottom_up_inter_simple, bottom_up_inter_simple.a, 
-                   top_down_bottom_up, top_down_bottom_up.a) 
-  mod_names <- c("top_down_inter", "top_down_inter_reduced", "top_down_inter_simple", "top_down_inter_simple_reduced", 
-                 "top_down_exploit", "top_down_exploit_reduced", "top_down_exploit_simple", "top_down_exploit_simple_reduced", 
-                 "bottom_up_inter", "bottom_up_inter_reduced", "bottom_up", "bottom_up_reduced", 
-                 "bottom_up_simple", "bottom_up_simple_reduced", "bottom_up_inter_simple", "bottom_up_inter_simple_reduced", 
-                 "top_down_bottom_up", "top_down_bottom_up_reduced") 
+  modSelect <- AIC(top_down_inter, top_down_inter.a, #top_down_inter_simple, top_down_inter_simple.a, 
+                   top_down_exploit, top_down_exploit.a, #top_down_exploit_simple, top_down_exploit_simple.a, 
+                   bottom_up_inter, bottom_up_inter.a, #bottom_up_inter_simple, bottom_up_inter_simple.a, 
+                   bottom_up, bottom_up.a, #bottom_up_simple, bottom_up_simple.a, 
+                   top_down_bottom_up, top_down_bottom_up.a, 
+                   top_down_inter.b, top_down_exploit.b, bottom_up_inter.b, bottom_up.b, top_down_bottom_up.b) 
+  mod_names <- c("top_down_inter", "top_down_inter_reduced", #"top_down_inter_simple", "top_down_inter_simple_reduced", 
+                 "top_down_exploit", "top_down_exploit_reduced", #"top_down_exploit_simple", "top_down_exploit_simple_reduced", 
+                 "bottom_up_inter", "bottom_up_inter_reduced", #"bottom_up_inter_simple", "bottom_up_inter_simple_reduced", 
+                 "bottom_up", "bottom_up_reduced", #"bottom_up_simple", "bottom_up_simple_reduced", 
+                 "top_down_bottom_up", "top_down_bottom_up_reduced",
+                 "top_down_inter.b", "top_down_exploit.b", "bottom_up_inter.b", "bottom_up.b", "top_down_bottom_up.b") 
   modSelect <- bind_cols(mod_names, modSelect)
   names(modSelect) <- c("model", "AIC", "K", "n")
   arrange(modSelect, AIC, decreasing = TRUE)
   
   #'  Just the reduced models 
-  modSelect <- AIC(top_down_inter.a, top_down_inter_simple.a, top_down_exploit.a, 
-                   top_down_exploit_simple.a, bottom_up_inter.a, bottom_up.a, 
-                   bottom_up_simple.a, bottom_up_inter_simple.a, top_down_bottom_up.a)  
-  mod_names <- c("top_down_inter_reduced", "top_down_inter_simple_reduced", "top_down_exploit_reduced", 
-                 "top_down_exploit_simple_reduced", "bottom_up_inter_reduced", "bottom_up_reduced", 
-                 "bottom_up_simple_reduced", "bottom_up_inter_simple_reduced", "top_down_bottom_up_reduced") 
+  modSelect <- AIC(top_down_inter.a, top_down_exploit.a, #top_down_inter_simple.a, top_down_exploit_simple.a, 
+                   bottom_up_inter.a, bottom_up.a, #bottom_up_inter_simple.a, bottom_up_simple.a, 
+                   top_down_bottom_up.a,
+                   top_down_inter.b, top_down_exploit.b, bottom_up_inter.b, bottom_up.b, top_down_bottom_up.b)  
+  mod_names <- c("top_down_inter_reduced", "top_down_exploit_reduced", #"top_down_inter_simple_reduced", "top_down_exploit_simple_reduced", 
+                 "bottom_up_inter_reduced", "bottom_up_reduced", #"bottom_up_inter_simple_reduced", "bottom_up_simple_reduced", 
+                 "top_down_bottom_up_reduced",
+                 "top_down_inter.b", "top_down_exploit.b", "bottom_up_inter.b", "bottom_up.b", "top_down_bottom_up.b") 
   modSelect <- bind_cols(mod_names, modSelect)
   names(modSelect) <- c("model", "AIC", "K", "n")
   arrange(modSelect, AIC, decreasing = TRUE)
   
   #'  Review Fisher's C and Chi-square test statistics for each model
+  LLchisq(bottom_up.b); fisherC(bottom_up.b)
+  LLchisq(bottom_up_inter.b); fisherC(bottom_up_inter.b)
   LLchisq(top_down_inter_simple.a); fisherC(top_down_inter_simple.a)
   LLchisq(top_down_exploit_simple.a); fisherC(top_down_exploit_simple.a)
   LLchisq(bottom_up_inter.a); fisherC(bottom_up_inter.a)
@@ -356,6 +426,22 @@
   RVIF(top_down_inter_simple.a[[3]]) 
   RVIF(top_down_inter_simple.a[[4]]) 
   RVIF(top_down_inter_simple.a[[5]]) 
+  
+  RVIF(bottom_up.b[[1]]) 
+  RVIF(bottom_up.b[[2]]) 
+  RVIF(bottom_up.b[[3]]) 
+  RVIF(bottom_up.b[[4]]) 
+  RVIF(bottom_up.b[[5]]) 
+  RVIF(bottom_up.b[[6]]) 
+  RVIF(bottom_up.b[[7]]) 
+  
+  RVIF(bottom_up_inter.b[[1]]) 
+  RVIF(bottom_up_inter.b[[2]]) 
+  RVIF(bottom_up_inter.b[[3]]) 
+  RVIF(bottom_up_inter.b[[4]]) 
+  RVIF(bottom_up_inter.b[[5]]) 
+  RVIF(bottom_up_inter.b[[6]]) 
+  RVIF(bottom_up_inter.b[[7]]) 
   
   #'  Run some basic model diagnostics on individuals models
   #'  This is handy: http://www.sthda.com/english/articles/39-regression-model-diagnostics/161-linear-regression-assumptions-and-diagnostics-in-r-essentials/
@@ -393,6 +479,23 @@
   
   
   
+  piecewiseSEM:::plot.psem(top_down_inter.b, 
+                           node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
+                           edge_attrs = data.frame(style = "solid", color = "black"))
+  piecewiseSEM:::plot.psem(top_down_exploit.b, 
+                           node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
+                           edge_attrs = data.frame(style = "solid", color = "black"))
+  piecewiseSEM:::plot.psem(bottom_up_inter.b, 
+                           node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
+                           edge_attrs = data.frame(style = "solid", color = "black"))
+  piecewiseSEM:::plot.psem(bottom_up.b, 
+                           node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
+                           edge_attrs = data.frame(style = "solid", color = "black"))
+  piecewiseSEM:::plot.psem(top_down_bottom_up.b, 
+                           node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
+                           edge_attrs = data.frame(style = "solid", color = "black"))
+  
+  
   #'  Calculate direct, indirect, total, and mediator effects (SE & 95% CI) for 
   #'  all endogenous (response) variables using semEff package
   #'  https://murphymv.github.io/semEff/articles/semEff.html
@@ -403,6 +506,39 @@
   
   bottom_up_inter_simple.a_bootEff <- bootEff(bottom_up_inter_simple.a, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
   save(bottom_up_inter_simple.a_bootEff, file = paste0("./Outputs/SEM/bottom_up_inter_simple.a_bootEff_", Sys.Date(), ".RData"))
+  
+  
+  
+  bottom_up.b_bootEff <- bootEff(bottom_up.b, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  (bottom_up.b_semEff <- semEff(bottom_up.b_bootEff))
+  summary(bottom_up.b_semEff)
+  save(bottom_up.b_bootEff, file = paste0("./Outputs/SEM/bottom_up.b_bootEff_", Sys.Date(), ".RData"))
+  save(bottom_up.b_semEff, file = paste0("./Outputs/SEM/bottom_up.b_semEff_", Sys.Date(), ".RData"))
+  
+  bottom_up_inter.b_bootEff <- bootEff(bottom_up_inter.b, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  (bottom_up_inter.b_semEff <- semEff(bottom_up_inter.b_bootEff))
+  summary(bottom_up_inter.b_semEff)
+  save(bottom_up_inter.b_bootEff, file = paste0("./Outputs/SEM/bottom_up_inter.b_bootEff_", Sys.Date(), ".RData"))
+  save(bottom_up_inter.b_semEff, file = paste0("./Outputs/SEM/bottom_up_inter.b_semEff_", Sys.Date(), ".RData"))
+  
+  top_down_inter.b_bootEff <- bootEff(top_down_inter.b, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  (top_down_inter.b_semEff <- semEff(top_down_inter.b_bootEff))
+  summary(top_down_inter.b_semEff)
+  save(top_down_inter.b_bootEff, file = paste0("./Outputs/SEM/top_down_inter.b_bootEff_", Sys.Date(), ".RData"))
+  save(top_down_inter.b_semEff, file = paste0("./Outputs/SEM/top_down_inter.b_semEff_", Sys.Date(), ".RData"))
+  
+  top_down_bottom_up.b_bootEff <- bootEff(top_down_bottom_up.b, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  (top_down_bottom_up.b_semEff <- semEff(top_down_bottom_up.b_bootEff))
+  summary(top_down_bottom_up.b_semEff)
+  save(top_down_bottom_up.b_bootEff, file = paste0("./Outputs/SEM/top_down_bottom_up.b_bootEff_", Sys.Date(), ".RData"))
+  save(top_down_bottom_up.b_semEff, file = paste0("./Outputs/SEM/top_down_bottom_up.b_semEff_", Sys.Date(), ".RData"))
+  
+  top_down_exploit.b_bootEff <- bootEff(top_down_exploit.b, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  (top_down_exploit.b_semEff <- semEff(top_down_exploit.b_bootEff))
+  summary(top_down_exploit.b_semEff)
+  save(top_down_exploit.b_bootEff, file = paste0("./Outputs/SEM/top_down_exploit.b_bootEff_", Sys.Date(), ".RData"))
+  save(top_down_exploit.b_semEff, file = paste0("./Outputs/SEM/top_down_exploit.b_semEff_", Sys.Date(), ".RData"))
+  
   
   
   #'  Second calculate standardized effects for all casual pathways
@@ -542,53 +678,88 @@
   summary(top_down_inter_yr)
   AIC_psem(top_down_inter_yr, AIC.type = "loglik")
   
+  
   top_down_inter_yr.r <- psem(
     lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1, data = localN_z),
     lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2, data = localN_z),
-    lm(elk.yr2 ~ elk.yr1, data = localN_z),
-    lm(elk.yr3 ~ elk.yr2, data = localN_z),
-    lm(moose.yr2 ~ moose.yr1, data = localN_z),
-    lm(moose.yr3 ~ moose.yr2, data = localN_z),
-    # lm(wolf.yr2 ~ wolf.yr1, data = localN_z),
-    # lm(wolf.yr3 ~ wolf.yr2, data = localN_z),
-    lm(mountain_lion.yr2 ~ mountain_lion.yr1, data = localN_z),
-    lm(mountain_lion.yr3 ~ mountain_lion.yr2 + elk.yr2, data = localN_z),
-    lm(bear_black.yr2 ~ bear_black.yr1, data = localN_z),
-    lm(bear_black.yr3 ~ bear_black.yr2, data = localN_z),
-    lm(coyote.yr2 ~ whitetailed_deer.yr1, data = localN_z),
-    lm(coyote.yr3 ~ coyote.yr2, data = localN_z),
-    moose.yr3 %~~% moose.yr1,
-    moose.yr3 %~~% elk.yr1,
-    elk.yr3 %~~% moose.yr1,
-    elk.yr3 %~~% mountain_lion.yr1,
-    coyote.yr3 %~~% bear_black.yr1,
-    coyote.yr3 %~~% bear_black.yr3,
-    bear_black.yr3 %~~% bear_black.yr1,
-    elk.yr2 %~~% whitetailed_deer.yr2,
-    mountain_lion.yr3 %~~% elk.yr1,
-    data = localN_z
-  )
-  summary(top_down_inter_yr.r)     
-  AIC_psem(top_down_inter_yr.r, AIC.type = "loglik")
-  
-  top_down_inter_yr <- psem(
-    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1, data = localN_z),
-    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2, data = localN_z),
-    lm(elk.yr2 ~ elk.yr1, data = localN_z),
-    lm(elk.yr3 ~ elk.yr2, data = localN_z),
+    lm(elk.yr2 ~ elk.yr1 + whitetailed_deer.yr1 + whitetailed_deer.yr2, data = localN_z),
+    lm(elk.yr3 ~ elk.yr2 + mountain_lion.yr1, data = localN_z),
     lm(moose.yr2 ~ moose.yr1, data = localN_z),
     lm(moose.yr3 ~ moose.yr1, data = localN_z),
     lm(wolf.yr2 ~ moose.yr1, data = localN_z),
-    lm(wolf.yr3 ~ wolf.yr1, data = localN_z),
-    lm(mountain_lion.yr2 ~ mountain_lion.yr1, data = localN_z),
-    lm(mountain_lion.yr3 ~ mountain_lion.yr1 + mountain_lion.yr2 + elk.yr2, data = localN_z),
+    lm(wolf.yr3 ~ wolf.yr1 + wolf.yr2 + mountain_lion.yr1 + elk.yr1, data = localN_z),
+    lm(mountain_lion.yr2 ~ mountain_lion.yr1 + wolf.yr2, data = localN_z),
+    lm(mountain_lion.yr3 ~ mountain_lion.yr1 + mountain_lion.yr2 + wolf.yr2 + elk.yr2 + whitetailed_deer.yr1, data = localN_z),
     lm(bear_black.yr2 ~ bear_black.yr1, data = localN_z),
-    lm(bear_black.yr3 ~ bear_black.yr2, data = localN_z),
-    lm(coyote.yr2 ~ coyote.yr1 + whitetailed_deer.yr1, data = localN_z),
-    lm(coyote.yr3 ~ coyote.yr2 + bear_black.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ bear_black.yr2 + mountain_lion.yr3, data = localN_z),
+    lm(coyote.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+    lm(coyote.yr3 ~ coyote.yr2 + bear_black.yr3 + mountain_lion.yr3 + elk.yr3, data = localN_z),
     data = localN_z)
-  summary(top_down_inter_yr)
-  AIC_psem(top_down_inter_yr, AIC.type = "loglik")
+  summary(top_down_inter_yr.r)
+  
+  top_down_inter_yr.r_bootEff <- bootEff(top_down_inter_yr.r, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  (top_down_inter_yr.r_semEff <- semEff(top_down_inter_yr.r_bootEff))
+  summary(top_down_inter_yr.r_semEff)
+  save(top_down_inter_yr.r_bootEff, file = paste0("./Outputs/SEM/top_down_inter_yr.r_bootEff_", Sys.Date(), ".RData"))
+  save(top_down_inter_yr.r_semEff, file = paste0("./Outputs/SEM/top_down_inter_yr.r_semEff_", Sys.Date(), ".RData"))
+  
+  piecewiseSEM:::plot.psem(top_down_inter_yr.r, 
+                           node_attrs = data.frame(shape = "rectangle", color = "orange", fontcolor = "black"), 
+                           layout = "circle",
+                           output = "visNetwork")
+  piecewiseSEM:::plot.psem(top_down_inter_yr.r, 
+                           node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
+                           edge_attrs = data.frame(style = "solid", color = "black"))
+  
+  
+  
+  # top_down_inter_yr.r <- psem(
+  #   lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+  #   lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2, data = localN_z),
+  #   lm(elk.yr2 ~ elk.yr1, data = localN_z),
+  #   lm(elk.yr3 ~ elk.yr2, data = localN_z),
+  #   lm(moose.yr2 ~ moose.yr1, data = localN_z),
+  #   lm(moose.yr3 ~ moose.yr2, data = localN_z),
+  #   # lm(wolf.yr2 ~ wolf.yr1, data = localN_z),
+  #   # lm(wolf.yr3 ~ wolf.yr2, data = localN_z),
+  #   lm(mountain_lion.yr2 ~ mountain_lion.yr1, data = localN_z),
+  #   lm(mountain_lion.yr3 ~ mountain_lion.yr2 + elk.yr2, data = localN_z),
+  #   lm(bear_black.yr2 ~ bear_black.yr1, data = localN_z),
+  #   lm(bear_black.yr3 ~ bear_black.yr2, data = localN_z),
+  #   lm(coyote.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+  #   lm(coyote.yr3 ~ coyote.yr2, data = localN_z),
+  #   moose.yr3 %~~% moose.yr1,
+  #   moose.yr3 %~~% elk.yr1,
+  #   elk.yr3 %~~% moose.yr1,
+  #   elk.yr3 %~~% mountain_lion.yr1,
+  #   coyote.yr3 %~~% bear_black.yr1,
+  #   coyote.yr3 %~~% bear_black.yr3,
+  #   bear_black.yr3 %~~% bear_black.yr1,
+  #   elk.yr2 %~~% whitetailed_deer.yr2,
+  #   mountain_lion.yr3 %~~% elk.yr1,
+  #   data = localN_z
+  # )
+  # summary(top_down_inter_yr.r)     
+  # AIC_psem(top_down_inter_yr.r, AIC.type = "loglik")
+  # 
+  # top_down_inter_yr <- psem(
+  #   lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+  #   lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2, data = localN_z),
+  #   lm(elk.yr2 ~ elk.yr1, data = localN_z),
+  #   lm(elk.yr3 ~ elk.yr2, data = localN_z),
+  #   lm(moose.yr2 ~ moose.yr1, data = localN_z),
+  #   lm(moose.yr3 ~ moose.yr1, data = localN_z),
+  #   lm(wolf.yr2 ~ moose.yr1, data = localN_z),
+  #   lm(wolf.yr3 ~ wolf.yr1, data = localN_z),
+  #   lm(mountain_lion.yr2 ~ mountain_lion.yr1, data = localN_z),
+  #   lm(mountain_lion.yr3 ~ mountain_lion.yr1 + mountain_lion.yr2 + elk.yr2, data = localN_z),
+  #   lm(bear_black.yr2 ~ bear_black.yr1, data = localN_z),
+  #   lm(bear_black.yr3 ~ bear_black.yr2, data = localN_z),
+  #   lm(coyote.yr2 ~ coyote.yr1 + whitetailed_deer.yr1, data = localN_z),
+  #   lm(coyote.yr3 ~ coyote.yr2 + bear_black.yr1, data = localN_z),
+  #   data = localN_z)
+  # summary(top_down_inter_yr)
+  # AIC_psem(top_down_inter_yr, AIC.type = "loglik")
   
   
   #'  -------------------------------------------
@@ -680,35 +851,75 @@
     data = localN_z
   )
   summary(top_down_exploit_yr)
-  AIC_psem(top_down_exploit_yr, AIC.type = "loglik")
   
   top_down_exploit_yr.r <- psem(
-    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1, data = localN_z),
-    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2, data = localN_z),
-    lm(elk.yr2 ~ elk.yr1, data = localN_z),
-    lm(elk.yr3 ~ elk.yr2 + wolf.yr2, data = localN_z),
-    lm(moose.yr2 ~ moose.yr1, data = localN_z),
-    lm(moose.yr3 ~ moose.yr2, data = localN_z),
-    lm(wolf.yr2 ~ 1, data = localN_z),
-    lm(wolf.yr3 ~ 1, data = localN_z),
-    lm(mountain_lion.yr2 ~ mountain_lion.yr1, data = localN_z),
-    lm(mountain_lion.yr3 ~ mountain_lion.yr2 + elk.yr2 + wolf.yr2, data = localN_z),
-    lm(bear_black.yr2 ~ bear_black.yr1, data = localN_z),
-    lm(bear_black.yr3 ~ bear_black.yr2, data = localN_z),
-    lm(coyote.yr2 ~ whitetailed_deer.yr1, data = localN_z),
-    lm(coyote.yr3 ~ coyote.yr2, data = localN_z),
-    elk.yr2 %~~% whitetailed_deer.yr2,
-    elk.yr3 %~~% moose.yr1,
-    elk.yr1 %~~% moose.yr3,
-    moose.yr3 %~~% moose.yr1,
-    bear_black.yr3 %~~% bear_black.yr1,
-    coyote.yr3 %~~% bear_black.yr1,
-    coyote.yr3 %~~% bear_black.yr3,
-    mountain_lion.yr3 %~~% whitetailed_deer.yr1,
+    lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1 + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1 + coyote.yr1, data = localN_z),
+    lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2 + coyote.yr2, data = localN_z),
+    lm(elk.yr2 ~ elk.yr1 + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+    lm(elk.yr3 ~ elk.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+    lm(moose.yr2 ~ moose.yr1 + wolf.yr1, data = localN_z),
+    lm(moose.yr3 ~ moose.yr2 + wolf.yr2, data = localN_z),
+    lm(wolf.yr2 ~ wolf.yr1 + harvest_sqKm.yr1 + harvest_sqKm_quad.yr1, data = localN_z),
+    lm(wolf.yr3 ~ wolf.yr2 + harvest_sqKm.yr2 + harvest_sqKm_quad.yr2, data = localN_z),
+    lm(mountain_lion.yr2 ~ mountain_lion.yr1 + elk.yr1 + whitetailed_deer.yr1, data = localN_z),
+    lm(mountain_lion.yr3 ~ mountain_lion.yr2 + elk.yr2 + whitetailed_deer.yr2, data = localN_z),
+    lm(bear_black.yr2 ~ bear_black.yr1 + elk.yr1, data = localN_z),
+    lm(bear_black.yr3 ~ bear_black.yr2 + elk.yr2, data = localN_z),
+    lm(coyote.yr2 ~ coyote.yr1 + whitetailed_deer.yr1, data = localN_z),
+    lm(coyote.yr3 ~ coyote.yr2 + whitetailed_deer.yr2, data = localN_z),
     data = localN_z
   )
   summary(top_down_exploit_yr.r)
-  AIC_psem(top_down_exploit_yr.r, AIC.type = "loglik")
+  
+  
+ 
+  # top_down_exploit_yr <- psem(
+  #   lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1 + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1 + coyote.yr1, data = localN_z),
+  #   lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2 + coyote.yr2, data = localN_z),
+  #   lm(elk.yr2 ~ elk.yr1 + wolf.yr1 + mountain_lion.yr1 + bear_black.yr1, data = localN_z),
+  #   lm(elk.yr3 ~ elk.yr2 + wolf.yr2 + mountain_lion.yr2 + bear_black.yr2, data = localN_z),
+  #   lm(moose.yr2 ~ moose.yr1 + wolf.yr1, data = localN_z),
+  #   lm(moose.yr3 ~ moose.yr2 + wolf.yr2, data = localN_z),
+  #   lm(wolf.yr2 ~ wolf.yr1 + harvest_sqKm.yr1 + harvest_sqKm_quad.yr1, data = localN_z),
+  #   lm(wolf.yr3 ~ wolf.yr2 + harvest_sqKm.yr2 + harvest_sqKm_quad.yr2, data = localN_z),
+  #   lm(mountain_lion.yr2 ~ mountain_lion.yr1 + elk.yr1 + whitetailed_deer.yr1, data = localN_z),
+  #   lm(mountain_lion.yr3 ~ mountain_lion.yr2 + elk.yr2 + whitetailed_deer.yr2, data = localN_z),
+  #   lm(bear_black.yr2 ~ bear_black.yr1 + elk.yr1, data = localN_z),
+  #   lm(bear_black.yr3 ~ bear_black.yr2 + elk.yr2, data = localN_z),
+  #   lm(coyote.yr2 ~ coyote.yr1 + whitetailed_deer.yr1, data = localN_z),
+  #   lm(coyote.yr3 ~ coyote.yr2 + whitetailed_deer.yr2, data = localN_z),
+  #   data = localN_z
+  # )
+  # summary(top_down_exploit_yr)
+  # AIC_psem(top_down_exploit_yr, AIC.type = "loglik")
+  # 
+  # top_down_exploit_yr.r <- psem(
+  #   lm(whitetailed_deer.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+  #   lm(whitetailed_deer.yr3 ~ whitetailed_deer.yr2, data = localN_z),
+  #   lm(elk.yr2 ~ elk.yr1, data = localN_z),
+  #   lm(elk.yr3 ~ elk.yr2 + wolf.yr2, data = localN_z),
+  #   lm(moose.yr2 ~ moose.yr1, data = localN_z),
+  #   lm(moose.yr3 ~ moose.yr2, data = localN_z),
+  #   lm(wolf.yr2 ~ 1, data = localN_z),
+  #   lm(wolf.yr3 ~ 1, data = localN_z),
+  #   lm(mountain_lion.yr2 ~ mountain_lion.yr1, data = localN_z),
+  #   lm(mountain_lion.yr3 ~ mountain_lion.yr2 + elk.yr2 + wolf.yr2, data = localN_z),
+  #   lm(bear_black.yr2 ~ bear_black.yr1, data = localN_z),
+  #   lm(bear_black.yr3 ~ bear_black.yr2, data = localN_z),
+  #   lm(coyote.yr2 ~ whitetailed_deer.yr1, data = localN_z),
+  #   lm(coyote.yr3 ~ coyote.yr2, data = localN_z),
+  #   elk.yr2 %~~% whitetailed_deer.yr2,
+  #   elk.yr3 %~~% moose.yr1,
+  #   elk.yr1 %~~% moose.yr3,
+  #   moose.yr3 %~~% moose.yr1,
+  #   bear_black.yr3 %~~% bear_black.yr1,
+  #   coyote.yr3 %~~% bear_black.yr1,
+  #   coyote.yr3 %~~% bear_black.yr3,
+  #   mountain_lion.yr3 %~~% whitetailed_deer.yr1,
+  #   data = localN_z
+  # )
+  # summary(top_down_exploit_yr.r)
+  # AIC_psem(top_down_exploit_yr.r, AIC.type = "loglik")
   
   #'  -------------------------------------------
   #####  Top-down, exploitation, simpler system  #####
