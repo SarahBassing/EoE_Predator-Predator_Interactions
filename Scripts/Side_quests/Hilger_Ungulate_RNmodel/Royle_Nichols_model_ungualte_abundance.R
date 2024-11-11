@@ -458,10 +458,10 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 20000 #75000 
-  nb <- 1000 #5000
+  ni <- 75000 
+  nb <- 5000
   nt <- 10
-  na <- 1000 #5000
+  na <- 5000
   
   #'  Load competing models
   #'  Univariate models to compare mean & max biomass variables, and selected vs predicted community composition
@@ -516,7 +516,7 @@
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
   RN_elk_july_null <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
-                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_null_WAICj.txt",
+                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_null.txt",
                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -758,7 +758,7 @@
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
   RN_elk_aug_null <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
-                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_null_WAICj.txt",
+                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_null.txt",
                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                           n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -993,7 +993,7 @@
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_null <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
-                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_null_WAICj.txt",
+                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_null.txt",
                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -1242,7 +1242,7 @@
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_null <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
-                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_null_WAICj.txt",
+                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_null.txt",
                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                           n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
