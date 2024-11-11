@@ -27,42 +27,38 @@
         #'  Define priors
         #'  -------------
         #'  Abundance priors
-        beta0 ~ dunif(-10, 10)      # Abundance intercept
-        mean.lambda <- exp(beta0)   # Mean lambda for Year 1
-          
-        #'  Categorical effect for year needs multiple b.year coefficients
-        b.year[1] <- 0
-        for(yr in 2:nyear) {
-          b.year[yr] ~ dnorm(0, 0.001)
-        }
+        lambda ~ dgamma(0.001, 0.001)  
+        # beta0 ~ dunif(-10, 10)      # Abundance intercept
+        # mean.lambda <- exp(beta0)   # Mean lambda 
           
         #'  Detection priors
         mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
-        alpha0 <- logit(mean.r)     # Detection intercept (on logit scale)
+        # alpha0 <- logit(mean.r)     # Detection intercept (on logit scale)
           
-        #'  Categorical effect for camera setup needs multiple a.setup coefficients
-        a.setup[1] <- 0
-        for(cam in 2:nsets) {
-          a.setup[cam] ~ dnorm(0, 0.001)
-        }
+        #' #'  Categorical effect for camera setup needs multiple a.setup coefficients
+        #' a.setup[1] <- 0
+        #' for(cam in 2:nsets) {
+        #'   a.setup[cam] ~ dnorm(0, 0.001)
+        #' }
           
 
         #'  Define likelihood
         #'  -----------------
         #'  Latent state (abundance)
         for(i in 1:nsites){
-          N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + b.year[year[i]]) 
+          N[i] ~ dpois(lambda)
+          # lambda <- mean.lambda 
           
           #'  Log-likelihood of N for WAICj
-          log_N[i] <- logdensity.pois(N[i], lambda[i])
-      
+          log_N[i] <- logdensity.pois(N[i], lambda)
+            
           #'  Detection state
           for(j in 1:nsurveys){
             y[i,j] ~ dbern(p[i,j])
-            p[i,j] <- 1 - pow((1 - r[i,j]), N[i])
-            logit(r[i,j]) <- alpha0 + a.setup[setup[i]]
-          
+            p[i,j] <- 1 - pow((1 - mean.r), N[i])
+            # p[i,j] <- 1 - pow((1 - mean.r[i,j]), N[i])
+            # logit(r[i,j]) <- alpha0 + a.setup[setup[i]]
+            
             #'  Log likelihood of y for WAICj
             loglike.waic[i,j] <- logdensity.bin(y[i,j], p[i,j], N[i])
           }
@@ -74,17 +70,16 @@
           
         #'  Derived parameters
         #'  ------------------
-        #'  Mean lambda per year
-        for(yr in 1:nyear) {
-          lambdaYr[yr] <- exp(beta0 + b.year[yr])
-        }
+        #' #'  Mean lambda
+        #' lambda <- exp(beta0)
   
-        #'  Mean per-individual detection probability (r) per camera setup
-        for(cam in 1:nsets) {
-          rSetup[cam] <- 1/(1 + exp(-(alpha0 + a.setup[cam])))
-        }
-        #'  per-individual detection probability (r) averaged across all camera setups 
-        mu.r <- mean(rSetup[])
+        #' #'  Mean per-individual detection probability (r) per camera setup
+        #' for(cam in 1:nsets) {
+        #'   rSetup[cam] <- 1/(1 + exp(-(alpha0 + a.setup[cam])))
+        #' }
+        #' #'  per-individual detection probability (r) averaged across all camera setups 
+        #' mu.r <- mean(rSetup[])
+        mu.r <- mean.r
     
         #'  Mean detection probability (p)
         for(i in 1:nsites) {
