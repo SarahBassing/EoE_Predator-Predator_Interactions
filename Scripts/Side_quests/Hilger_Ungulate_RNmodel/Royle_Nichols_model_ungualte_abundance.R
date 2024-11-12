@@ -465,7 +465,7 @@
   
   #'  Load competing models
   #'  Univariate models to compare mean & max biomass variables, and selected vs predicted community composition
-  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_null_WAICj.R")
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_null.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_meanHQ.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_maxHQ.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_cvHQ.R")
