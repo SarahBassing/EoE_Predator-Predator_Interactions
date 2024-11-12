@@ -68,7 +68,7 @@
   wtd_aug_WAICj <- lapply(wtd_aug_mods, calc.waicj) %>% do.call(rbind.data.frame, .) 
   
   #'  Function to reformat and create model selection tables for WAIC and the joint-likelihood WAIC approach
-  waic_modSelect <- function(x, mods, select_method) {
+  waic_modSelect <- function(x, mods, select_method, spp, mo) {
     names(x) <- "WAIC"
     modSel_tbl <- x %>%
       bind_cols(names(mods)) %>%
@@ -77,22 +77,57 @@
       relocate(WAIC, .before = deltaWAIC) %>%
       arrange(WAIC)
     names(modSel_tbl) <- c("Model Name", select_method, paste0("delta", select_method))
+    modSel_tbl <- modSel_tbl %>%
+      mutate(Species = spp,
+             Month = mo) %>%
+      relocate(Species, .before = `Model Name`) %>%
+      relocate(Month, .after = Species)
     return(modSel_tbl)
   }
-  (modSel_elkJuly_WAIC <- waic_modSelect(elk_july_WAIC, elk_july_mods, "WAIC"))
-  (modSel_elkJuly_WAICj <- waic_modSelect(elk_july_WAICj, elk_july_mods, "WAICj"))
-  (modSel_elkAug_WAIC <- waic_modSelect(elk_aug_WAIC, elk_aug_mods, "WAIC"))
-  (modSel_elkAug_WAICj <- waic_modSelect(elk_aug_WAICj, elk_aug_mods, "WAICj"))
-  (modSel_wtdJuly_WAIC <- waic_modSelect(wtd_july_WAIC, wtd_july_mods, "WAIC"))
-  (modSel_wtdJuly_WAICj <- waic_modSelect(wtd_july_WAICj, wtd_july_mods, "WAICj"))
-  (modSel_wtdAug_WAIC <- waic_modSelect(wtd_aug_WAIC, wtd_aug_mods, "WAIC"))
-  (modSel_wtdAug_WAICj <- waic_modSelect(wtd_aug_WAICj, wtd_aug_mods, "WAICj"))
+  (modSel_elkJuly_WAIC <- waic_modSelect(elk_july_WAIC, elk_july_mods, "WAIC", "Elk", "July"))
+  (modSel_elkJuly_WAICj <- waic_modSelect(elk_july_WAICj, elk_july_mods, "WAICj", "Elk", "July"))
+  (modSel_elkAug_WAIC <- waic_modSelect(elk_aug_WAIC, elk_aug_mods, "WAIC", "Elk", "August"))
+  (modSel_elkAug_WAICj <- waic_modSelect(elk_aug_WAICj, elk_aug_mods, "WAICj", "Elk", "August"))
+  (modSel_wtdJuly_WAIC <- waic_modSelect(wtd_july_WAIC, wtd_july_mods, "WAIC", "White-tailed deer", "July"))
+  (modSel_wtdJuly_WAICj <- waic_modSelect(wtd_july_WAICj, wtd_july_mods, "WAICj", "White-tailed deer", "July"))
+  (modSel_wtdAug_WAIC <- waic_modSelect(wtd_aug_WAIC, wtd_aug_mods, "WAIC", "White-tailed deer", "August"))
+  (modSel_wtdAug_WAICj <- waic_modSelect(wtd_aug_WAICj, wtd_aug_mods, "WAICj", "White-tailed deer", "August"))
   
   #'  Model selection using DIC
   (modSel_elkJuly_DIC <- dictab(cand.set = elk_july_mods, modnames = names(elk_july_mods), sort = TRUE))
   (modSel_elkAug_DIC <- dictab(cand.set = elk_aug_mods, modnames = names(elk_aug_mods), sort = TRUE))
   (modSel_wtdJuly_DIC <- dictab(cand.set = wtd_july_mods, modnames = names(wtd_july_mods), sort = TRUE))
   (modSel_wtdAug_DIC <- dictab(cand.set = wtd_aug_mods, modnames = names(wtd_aug_mods), sort = TRUE))
+  
+  
+  #'  Using WAIC as model selection method
+  #'  DIC is not ideal for model selection with hierarchical models
+  #'  WAICj may be better than for N-mixture models but because the detection sub-model 
+  #'  is identical across competing models and not the focus of inference, makes 
+  #'  sense to stick with WAIC that focuses on the abundance side of the submodel
+  
+  #'  Snag most supported models (all models within 2 deltaWAIC of top)
+  elk_july_topmods <- list(elk_july_mods[[5]], elk_july_mods[[1]], elk_july_mods[[4]])
+  elk_aug_topmods <- list(elk_aug_mods[[11]], elk_aug_mods[[15]], elk_aug_mods[[4]], elk_aug_mods[[5]])
+  wtd_july_topmods <- list(wtd_july_mods[[16]])
+  wtd_aug_topmods <- list(wtd_aug_mods[[1]], wtd_aug_mods[[13]])
+  
+  #'  Save top models
+  save(elk_july_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/elk_july_topmods.RData")
+  save(elk_aug_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/elk_aug_topmods.RData")
+  save(wtd_july_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/wtd_july_topmods.RData")
+  save(wtd_aug_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/wtd_aug_topmods.RData")
+  
+  #'  Save WAIC tables
+  WAIC_modSel_tbl <- bind_rows(modSel_elkJuly_WAIC, modSel_elkAug_WAIC, modSel_wtdJuly_WAIC, modSel_wtdAug_WAIC)
+  write_csv(WAIC_modSel_tbl, "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/WAIC_modSelection_table.csv")
+  
+  #'  Results table for top model
+  
+  
+  
+  
+  
   
   
   
