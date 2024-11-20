@@ -26,10 +26,11 @@
   source("./Scripts/Structural_Equation_Models/Format_density_data_for_SEMs.R")
   
   #'  Take a quick look
-  head(localN_z); head(localN_z_1YrLag); head(localN_z_all)
-  localN_z_all <- localN_z_all %>%
-    mutate(year = as.factor(year),
-           year = as.numeric(year)) 
+  head(density_wide_1YrLag_20s_22s)
+  # head(localN_z); head(localN_z_1YrLag); head(localN_z_all)
+  # localN_z_all <- localN_z_all %>%
+  #   mutate(year = as.factor(year),
+  #          year = as.numeric(year)) 
   
   #'  Set options so all no rows are omitted in model output
   options(max.print = 9999)
@@ -410,6 +411,8 @@
   #'  Review Fisher's C and Chi-square test statistics for each model
   LLchisq(bottom_up.b); fisherC(bottom_up.b)
   LLchisq(bottom_up_inter.b); fisherC(bottom_up_inter.b)
+  LLchisq(top_down_inter.b); fisherC(top_down_inter.b)
+  LLchisq(top_down_exploit.b); fisherC(top_down_exploit.b)
   LLchisq(top_down_inter_simple.a); fisherC(top_down_inter_simple.a)
   LLchisq(top_down_exploit_simple.a); fisherC(top_down_exploit_simple.a)
   LLchisq(bottom_up_inter.a); fisherC(bottom_up_inter.a)
@@ -445,9 +448,9 @@
   
   #'  Run some basic model diagnostics on individuals models
   #'  This is handy: http://www.sthda.com/english/articles/39-regression-model-diagnostics/161-linear-regression-assumptions-and-diagnostics-in-r-essentials/
-  # wtd_mod <- lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1, data = density_wide_1YrLag_20s_22s)
-  # plot(wtd_mod)
-  elk_mod <- lm(elk.T ~ elk.Tminus1 + bear_black.Tminus1 + mountain_lion.Tminus1, data = density_wide_1YrLag_20s_22s)
+  wtd_mod <- lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + bear_black.T, data = density_wide_1YrLag_20s_22s)
+  plot(wtd_mod)
+  elk_mod <- lm(elk.T ~ elk.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T + bear_black.Tminus1 + wolf.T, data = density_wide_1YrLag_20s_22s)
   plot(elk_mod)
   moose_mod <- lm(moose.T ~ moose.Tminus1, data = density_wide_1YrLag_20s_22s)
   plot(moose_mod)
@@ -457,8 +460,8 @@
   plot(bear_mod)
   wolf_mod <- lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1, data = density_wide_1YrLag_20s_22s)
   plot(wolf_mod)
-  # coy_mod <- lm(coyote.T ~ coyote.Tminus1, data = density_wide_1YrLag_20s_22s)
-  # plot(coy_mod)
+  coy_mod <- lm(coyote.T ~ coyote.Tminus1 + mountain_lion.T, data = density_wide_1YrLag_20s_22s)
+  plot(coy_mod)
   
   #'  Visualize SEM (top but also next top models that are all within 10 deltaAIC)
   piecewiseSEM:::plot.psem(top_down_inter_simple.a, 
@@ -479,19 +482,19 @@
   
   
   
-  piecewiseSEM:::plot.psem(top_down_inter.b, 
-                           node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
-                           edge_attrs = data.frame(style = "solid", color = "black"))
-  piecewiseSEM:::plot.psem(top_down_exploit.b, 
+  piecewiseSEM:::plot.psem(bottom_up.b, 
                            node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
                            edge_attrs = data.frame(style = "solid", color = "black"))
   piecewiseSEM:::plot.psem(bottom_up_inter.b, 
                            node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
                            edge_attrs = data.frame(style = "solid", color = "black"))
-  piecewiseSEM:::plot.psem(bottom_up.b, 
+  piecewiseSEM:::plot.psem(top_down_inter.b, 
                            node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
                            edge_attrs = data.frame(style = "solid", color = "black"))
   piecewiseSEM:::plot.psem(top_down_bottom_up.b, 
+                           node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
+                           edge_attrs = data.frame(style = "solid", color = "black"))
+  piecewiseSEM:::plot.psem(top_down_exploit.b, 
                            node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
                            edge_attrs = data.frame(style = "solid", color = "black"))
   
@@ -509,7 +512,7 @@
   
   
   
-  bottom_up.b_bootEff <- bootEff(bottom_up.b, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  bottom_up.b_bootEff <- bootEff(bottom_up.b, R = 5000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
   (bottom_up.b_semEff <- semEff(bottom_up.b_bootEff))
   summary(bottom_up.b_semEff)
   save(bottom_up.b_bootEff, file = paste0("./Outputs/SEM/bottom_up.b_bootEff_", Sys.Date(), ".RData"))
