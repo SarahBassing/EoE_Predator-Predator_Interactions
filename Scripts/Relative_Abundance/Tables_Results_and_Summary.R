@@ -268,35 +268,6 @@
   write.csv(DH_summary, "./Outputs/Relative_Abundance/RN_model/Tables/Summary_table_detections.csv")
   
   
-  #'  ------------------------
-  ####  Cluster summary data  ####
-  #'  ------------------------
-  #'  Cluster area
-  wolf_cluster_tbl <- read_csv("./Outputs/Relative_Abundance/RN_model/Tables/Cluster_wolf_RAI_density.csv")
-  avg_cluster_area <- wolf_cluster_tbl %>%
-    group_by(GMU) %>%
-    summarize(mean_areakm2 = mean(area_km2),
-              se_areakm2 = sd(area_km2)/sqrt(nrow(.))) %>%
-    ungroup()
-  #'  Mean, min, and max cluster sizes
-  mean(wolf_cluster_tbl$area_km2)
-  min(wolf_cluster_tbl$area_km2); max(wolf_cluster_tbl$area_km2)
-  sd(wolf_cluster_tbl$area_km2)/sqrt(length(wolf_cluster_tbl$area_km2))
-  
-  #'  Number of cameras per cluster
-  cam_clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp")
-  cam_clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp")
-  cam_clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a.shp")
-  
-  cam_clusters <- bind_rows(cam_clusters_gmu1, cam_clusters_gmu6, cam_clusters_gmu10a) %>%
-    as.data.frame(.) %>% dplyr::select(-geometry) %>%
-    distinct(NwLctID, GMU, Clustrs) %>%
-    group_by(GMU, Clustrs) %>%
-    summarize(ncams = n()) %>%
-    ungroup()
-  min(cam_clusters$ncams); max(cam_clusters$ncams)
-  mean(cam_clusters$ncams)
-  sd(cam_clusters$ncams)/sqrt(length(cam_clusters$ncams))
   
   
   
