@@ -97,6 +97,11 @@
   npp21s_det_events <- unique_detections(df_all_21s, elapsed_time = 300)
   npp22s_det_events <- unique_detections(df_all_22s, elapsed_time = 300)
   
+  #'  Save
+  save(npp20s_det_events, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_20s.RData")
+  save(npp21s_det_events, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_21s.RData")
+  save(npp22s_det_events, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_22s.RData")
+    
   #'  ---------------------------
   #####  Camera operation table  #####
   #'  --------------------------- 
@@ -959,7 +964,7 @@
   RN_abundance <- list(rn_2020, rn_2021, rn_2022)
   save(RN_abundance, file = "./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
   
-  
+
   #####  Visualize local abundance data  #####
   #'  -----------------------------------
   #'  Map relative density data per species, study area and year
@@ -973,6 +978,19 @@
   cams_20s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp")
   cams_21s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_21s_wgs84.shp")
   cams_22s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_22s_wgs84.shp")
+  bigwater <- st_read("./Shapefiles/National Hydrology Database Idaho State/Idaho_waterbodies_1km2.shp")
+  bigwater_wgs84 <- st_transform(bigwater, crs = "+proj=longlat +datum=WGS84 +no_defs") %>%
+    filter(gnis_name == "Priest Lake" | gnis_name == "Upper Priest Lake" | 
+             gnis_name == "Lake Pend Oreille" | #gnis_name == "Cabinet Gorge Reservoir" | 
+             gnis_name == "Chatcolet Lake" | gnis_name == "Dworshak Reservoir") %>%
+    dplyr::select(gnis_name)
+  priestrivers <- st_read("./Shapefiles/National Hydrology Database Idaho State/PriestRiver_flowline.shp")
+  pendoreille <- st_read("./Shapefiles/National Hydrology Database Idaho State/Pendoreille_flowline.shp")
+  kootenairiver <- st_read("./Shapefiles/National Hydrology Database Idaho State/KootenaiRiver_flowline.shp")
+  clarkfork <- st_read("./Shapefiles/National Hydrology Database Idaho State/ClarkForkRiver_flowline.shp") 
+  clearwater <- st_read("./Shapefiles/National Hydrology Database Idaho State/NorthForkClearwater_flowline.shp")
+  rivers <- bind_rows(priestrivers, pendoreille, kootenairiver, clarkfork, clearwater) 
+  rivers_clip <- st_intersection(rivers, eoe_gmu_wgs84)
   
   #'  List camera spatial data
   cam_list <- list(cams_20s_wgs84, cams_21s_wgs84, cams_22s_wgs84)
@@ -1192,6 +1210,7 @@
   
   #'  Make one giant faceted plot where rows represent GMU and columns represent years 
   #'  to ensure that the dot sizes are all consistent for at least a single species
+  library(ggh4x)
   map_rn_v2 <- function(sf_rn, spp) {
     #'  Define size of circles
     size_breaks <- c(0, 1, 2, 3, 5, 7, 9, 12)
@@ -1202,77 +1221,72 @@
     #'  Create figure
     spp_rn <- ggplot() +
       geom_sf(data = eoe_gmu_wgs84, fill = NA) + 
+      geom_sf(data = rivers_clip, color = "lightskyblue3") + 
+      geom_sf(data = bigwater_wgs84, fill = "lightskyblue2") +
       geom_sf(data = sf_rn, aes(size = RN.n.rounded, colour = GMU, fill = GMU), shape = 21, alpha = 3/10) +
       scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
       scale_color_manual(values = pal) +
       scale_fill_manual(values = pal) +
-      labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
+      labs(size = "Predicted \nRAI", x = "Longitude", y = "Latitude") +
       theme_classic() +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
             text = element_text(size = 18)) +
-      facet_wrap(~Year) + 
-      labs(title = paste("Estimated local abundance of", spp, "from RN model, rounded to whole number"))
-    # spp_rn_gmu1 <- ggplot() +
-    #   geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "1",], fill = NA) + 
-    #   geom_sf(data = sf_rn[sf_rn$GMU == "GMU1",], aes(size = RN.n.rounded), shape = 21, col = "darkcyan", fill = "darkcyan", alpha = 3/10) +
-    #   scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
-    #   labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
-    #   theme_classic() +
-    #   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    #   facet_wrap(~Year) 
-    # spp_rn_gmu6 <- ggplot() +
-    #   geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "6",], fill = NA) + 
-    #   geom_sf(data = sf_rn[sf_rn$GMU == "GMU6",], aes(size = RN.n.rounded), shape = 21, col = "lightcoral", fill = "lightcoral", alpha = 3/10) +
-    #   scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
-    #   labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
-    #   theme_classic() +
-    #   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    #   facet_wrap(~Year) 
-    # spp_rn_gmu10a <- ggplot() +
-    #   geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) + 
-    #   geom_sf(data = sf_rn[sf_rn$GMU == "GMU10A",], aes(size = RN.n.rounded), shape = 21, col = "darkgoldenrod3", fill = "darkgoldenrod3", alpha = 3/10) +
-    #   scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
-    #   labs(size = "Estimated \nlocal abundance", x = "Longitude", y = "Latitude") +
-    #   theme_classic() +
-    #   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    #   facet_wrap(~Year) 
-    
+      labs(title = paste("Predicted relative abundance indicies for", spp)) + 
+      # facet_grid(rows = vars(Species), cols = vars(Year)) +
+      # force_panelsizes(rows = 2, cols = 1, TRUE)
+      facet_wrap(~Year) 
+      
     #'  Plot each map
     print(spp_rn)
     
     return(spp_rn)
   }
-  rn_maps_bear <- map_rn_v2(rn_bear_all, spp = "black bear")
-  rn_maps_bob <- map_rn_v2(rn_bob_all, spp = "bobcat")
-  rn_maps_coy <- map_rn_v2(rn_coy_all, spp = "coyote")
-  rn_maps_lion <- map_rn_v2(rn_lion_all, spp = "mountain lion")
-  rn_maps_wolf <- map_rn_v2(rn_wolf_all, spp = "wolf")
+  rn_maps_bear <- map_rn_v2(rn_bear_all, spp = "black bears")
+  rn_maps_bob <- map_rn_v2(rn_bob_all, spp = "bobcats")
+  rn_maps_coy <- map_rn_v2(rn_coy_all, spp = "coyotes")
+  rn_maps_lion <- map_rn_v2(rn_lion_all, spp = "mountain lions")
+  rn_maps_wolf <- map_rn_v2(rn_wolf_all, spp = "wolves")
   rn_maps_elk <- map_rn_v2(rn_elk_all, spp = "elk")
   rn_maps_lago <- map_rn_v2(rn_lago_all, spp = "lagomorphs")
   rn_maps_moose <- map_rn_v2(rn_moose_all, spp = "moose")
   rn_maps_wtd <- map_rn_v2(rn_wtd_all, spp = "white-tailed deer")
   
+  #'  Figures with multiple species together (use facet_grid option in function)
+  ungulates <- bind_rows(rn_elk_all, rn_moose_all, rn_wtd_all) %>%
+    mutate(Species = ifelse(Species == "elk", "Elk", Species),
+           Species = ifelse(Species == "moose", "Moose", Species),
+           Species = ifelse(Species == "whitetailed_deer", "White-tailed deer", Species))
+  predators_nowolf <- bind_rows(rn_bear_all, rn_coy_all, rn_lion_all) %>%
+    mutate(Species = ifelse(Species == "bear_black", "Black bear", Species),
+           Species = ifelse(Species == "coyote", "Coyote", Species),
+           Species = ifelse(Species == "mountain_lion", "Mountain lion", Species))
+  rn_maps_ungulates <- map_rn_v2(ungulates, spp = "ungulates")
+  rn_maps_predators_nowolf <- map_rn_v2(predators_nowolf, spp = "predators")
+  
   
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_blackbear.tiff", rn_maps_bear,
-         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_bobcat.tiff", rn_maps_bob,
-         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_coyote.tiff", rn_maps_coy,
-         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_lion.tiff", rn_maps_lion,
-         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_wolf.tiff", rn_maps_wolf,
-         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_elk.tiff", rn_maps_elk,
-         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_lagomorphs.tiff", rn_maps_lago,
-         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_moose.tiff", rn_maps_moose,
-         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_wtd.tiff", rn_maps_wtd,
-         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   
-  
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_ungualtes.tiff", rn_maps_ungulates,
+         units = "in", width = 20, height = 18, dpi = 400, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_predators_nowolf.tiff", rn_maps_predators_nowolf,
+         units = "in", width = 20, height = 18, dpi = 400, device = "tiff", compression = "lzw")
   
 
   
