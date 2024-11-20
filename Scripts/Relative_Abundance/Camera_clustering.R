@@ -433,7 +433,7 @@
   #'    intersection 
   #'    2) If intersection is empty of cameras, assign to cluster polygon with 
   #'    cameras closest to the edge of the intersection
-  #"  ----------------------------
+  #'  ----------------------------
   #'  Turn off spherical geometry (st_union doesn't work with globe type geometry like an S2 object)
   sf::sf_use_s2(FALSE)
   
@@ -871,7 +871,7 @@
     relocate(area_km2, .after = nWolf) %>%
     relocate(GMU, .before = Clusters) %>%
     dplyr::select(-geometry)
-  write_csv(wolf_density_tbl, "./Outputs/Relative_Abundance/RN_model/Cluster_wolf_RAI_density.csv")
+  write_csv(wolf_density_tbl, "./Outputs/Relative_Abundance/RN_model/Tables/Cluster_wolf_RAI_density.csv")
   
   #'  Back to allowing spherical geometry
   sf::sf_use_s2(TRUE)
@@ -885,8 +885,35 @@
   st_write(gmu6_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp")
   st_write(gmu10a_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp")
   
+  #'  -----------------------------------------
+  ####  Cluster summary stats for publication  ####
+  #'  -----------------------------------------
+  #'  Cluster area
+  wolf_cluster_tbl <- read_csv("./Outputs/Relative_Abundance/RN_model/Tables/Cluster_wolf_RAI_density.csv")
+  avg_cluster_area <- wolf_cluster_tbl %>%
+    group_by(GMU) %>%
+    summarize(mean_areakm2 = mean(area_km2),
+              se_areakm2 = sd(area_km2)/sqrt(nrow(.))) %>%
+    ungroup()
+  #'  Mean, min, and max cluster sizes
+  mean(wolf_cluster_tbl$area_km2)
+  min(wolf_cluster_tbl$area_km2); max(wolf_cluster_tbl$area_km2)
+  sd(wolf_cluster_tbl$area_km2)/sqrt(length(wolf_cluster_tbl$area_km2))
   
-  #'  Visualize with ggplot and save
+  #'  Number of cameras per cluster
+  cam_clusters <- bind_rows(cam_clusters_gmu1, cam_clusters_gmu6, cam_clusters_gmu10a) %>%
+    as.data.frame(.) %>% dplyr::select(-geometry) %>%
+    distinct(NwLctID, GMU, Clustrs) %>%
+    group_by(GMU, Clustrs) %>%
+    summarize(ncams = n()) %>%
+    ungroup()
+  min(cam_clusters$ncams); max(cam_clusters$ncams)
+  mean(cam_clusters$ncams)
+  sd(cam_clusters$ncams)/sqrt(length(cam_clusters$ncams))
+  
+  #'  ----------------------------------
+  ####  Visualize with ggplot and save  ####
+  #'  ----------------------------------
   clusters_gmu1 <- clusters_gmu1 %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
   clusters_gmu6 <- clusters_gmu6 %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
   clusters_gmu10a <- clusters_gmu10a %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
@@ -996,122 +1023,109 @@
   
   
   
-  #'  ----------------------
-  ####  Grid cell approach  ####
-  #'  ----------------------
-  #'  How many cells are needed for raster? 
-  #'  Calculate length/width of EoE bbox, divide by length/width of pixel, and round to nearest whole number
-  bbox <- st_bbox(eoe_gmu)
-  pxl_size <- 6400 * 2 # Minimum dist. btwn rendezvous sites of adjacent packs was 6.4km (Ausband et al. 2010)
-  xcells <- round(((bbox[3] - bbox[1]) / pxl_size), 0)
-  ycells <- round(((bbox[4] - bbox[2]) / pxl_size), 0)
-  
-  #'  Create raster with specified pixel size
-  eoe_rast <- rast(ncols = xcells, nrows = ycells, xmin = bbox[1], xmax = bbox[3], ymin = bbox[2], ymax = bbox[4], crs = gmu_proj)#"+init=EPSG:2243" 
-  values(eoe_rast) <- 1:ncell(eoe_rast)
-  names(eoe_rast) <- "grid_id"
-  
-  
-  ####  Visualize  ####
-  #'  Generate spatial vector data from rasters for visualization
-  eoe_poly <- as.polygons(eoe_rast, values = TRUE) 
-  eoe_poly_wgs84 <- terra::project(eoe_poly, wgs84)
-  
-  #'  Plot
-  plot(eoe_poly)
-  plot(eoe_gmu[1], add = TRUE)
-  plot(cams_nad83[[2]], pch = 16, col = "black", cex = 0.8, add = TRUE)
-  plot(eoe_poly, add = TRUE)
-  
-  plot(eoe_poly_wgs84)
-  plot(eoe_gmu_wgs84[1], add = TRUE)
-  plot(cams_wgs84[[2]], pch = 16, col = "black", cex = 0.8, add = TRUE)
-  plot(eoe_poly_wgs84, add = TRUE)
-  
-  #'  Close up of cameras across grid cells in GMU1
-  gmu1 <- gmu[gmu$NAME == "1",][1]
-  gmu1_rast_poly <- crop(eoe_poly, gmu1)
-  plot(gmu1_rast_poly)
-  plot(gmu1, add = TRUE)
-  plot(cams_nad83[[2]], pch = 16, col = "black", cex = 0.8, add = TRUE)
-  plot(gmu1_rast_poly, add = TRUE)
-  
-  
-  ####  Sampling effort per grid cell  ####
-  #'  Mask raster so cell values = NA if outside GMUs 1, 6, 10A 
-  eoe_mask <- mask(eoe_rast, eoe_gmu)
-  
-  #'  Extract area of each cell that is contained within each polygon
-  overlap_area <- exact_extract(eoe_rast, eoe_gmu, coverage_area = TRUE)
-  overlap_area[[1]]$GMU <- "GMU1"; overlap_area[[2]]$GMU <- "GMU6"; overlap_area[[3]]$GMU <- "GMU10A"
-  area_m2 <- rbind(overlap_area[[1]], overlap_area[[2]], overlap_area[[3]])
-  max_cell_size <- max(area_m2$coverage_area)
-  area_m2$prop_cell <- area_m2$coverage_area/max_cell_size
-  area_m2 <- relocate(area_m2, prop_cell, .after = coverage_area)
-  area_m2 <- rename(area_m2, "coverage_area_m2" = "coverage_area")
-
-  #'  Extract grid info for each camera site
-  cams_grid <- list(NA)
-  for(l in 1:2) {
-    #'  Extract grid cell ID for each camera location per year using raster
-    cam_cell_id <- terra::extract(eoe_mask, cams_nad83[[l]])
-    cams_grid[[l]] <- cbind(cams_nad83[[l]], cam_cell_id)
-    
-    #'  Merge cell area with camera cell ID (includes cells with NO cameras)
-    cams_grid[[l]] <- right_join(cams_grid[[l]], area_m2, by = c("grid_id" = "value")) %>%
-      relocate(ID, .before = NewLocationID) 
-  }
-  head(cams_grid[[2]])
-  
-  #'  Summarize sampling effort per grid cell
-  #'  Exclude GMU1 from year 1 (summer 2020) data
-  cams_grid[[1]] <- filter(cams_grid[[1]], GMU != "GMU1")
-  
-  cams_per_monitored_grid <- list(NA)
-  for(l in 1:2) {
-    #'  Count number of cameras per cell EXCLUDING cells with no cameras
-    cams_per_monitored_grid[[l]] <- cams_grid[[l]] %>%
-      filter(!is.na(NewLocationID)) %>%
-      group_by(grid_id) %>%
-      summarise(n = n()) %>%
-      ungroup() %>%
-      st_drop_geometry(.)
-  }
-  chk_it <- cams_per_monitored_grid[[2]]
-  
-  #'  Pull out grid cells with no cameras
-  no_cams20s <- filter(cams_grid[[1]], is.na(NewLocationID)) %>%
-    dplyr::select(grid_id) %>%
-    mutate(n = 0) %>% relocate(n, .after = grid_id) %>%
-    st_drop_geometry(.)
-  no_cams21s <- filter(cams_grid[[2]], is.na(NewLocationID)) %>%
-    dplyr::select(grid_id) %>%
-    mutate(n = 0) %>% relocate(n, .after = grid_id) %>%
-    st_drop_geometry(.)
-  no_cams <- list(no_cams20s, no_cams21s)
-  
-  #'  Combine counts of cameras in monitored cells & cells without cameras
-  cams_per_monitored_grid[[1]] <- rbind(cams_per_monitored_grid[[1]], no_cams20s) %>% arrange(grid_id) %>% rename(n_cams = n)
-  cams_per_monitored_grid[[2]] <- rbind(cams_per_monitored_grid[[2]], no_cams21s) %>% arrange(grid_id) %>% rename(n_cams = n)
-  
-  #'  Average sampling effort per cell
-  mean_effort <- lapply(cams_per_monitored_grid, function(x) {mean(x$n_cams, na.rm = TRUE)}) %>% unlist(.)
-  sd_effort <- lapply(cams_per_monitored_grid, function(x) {sd(x$n_cams, na.rm = TRUE)}) %>% unlist(.)
-  effort_per_grid <- data.frame(year = c("2020", "2021"),
-                                mean_cams = round(c(mean_effort[1], mean_effort[2]), 3),
-                                sd_cams = round(c(sd_effort[1], sd_effort[2]), 3))
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  #' #'  ----------------------
+  #' ####  Grid cell approach  ####
+  #' #'  ----------------------
+  #' #'  How many cells are needed for raster? 
+  #' #'  Calculate length/width of EoE bbox, divide by length/width of pixel, and round to nearest whole number
+  #' bbox <- st_bbox(eoe_gmu)
+  #' pxl_size <- 6400 * 2 # Minimum dist. btwn rendezvous sites of adjacent packs was 6.4km (Ausband et al. 2010)
+  #' xcells <- round(((bbox[3] - bbox[1]) / pxl_size), 0)
+  #' ycells <- round(((bbox[4] - bbox[2]) / pxl_size), 0)
+  #' 
+  #' #'  Create raster with specified pixel size
+  #' eoe_rast <- rast(ncols = xcells, nrows = ycells, xmin = bbox[1], xmax = bbox[3], ymin = bbox[2], ymax = bbox[4], crs = gmu_proj)#"+init=EPSG:2243" 
+  #' values(eoe_rast) <- 1:ncell(eoe_rast)
+  #' names(eoe_rast) <- "grid_id"
+  #' 
+  #' 
+  #' ####  Visualize  ####
+  #' #'  Generate spatial vector data from rasters for visualization
+  #' eoe_poly <- as.polygons(eoe_rast, values = TRUE) 
+  #' eoe_poly_wgs84 <- terra::project(eoe_poly, wgs84)
+  #' 
+  #' #'  Plot
+  #' plot(eoe_poly)
+  #' plot(eoe_gmu[1], add = TRUE)
+  #' plot(cams_nad83[[2]], pch = 16, col = "black", cex = 0.8, add = TRUE)
+  #' plot(eoe_poly, add = TRUE)
+  #' 
+  #' plot(eoe_poly_wgs84)
+  #' plot(eoe_gmu_wgs84[1], add = TRUE)
+  #' plot(cams_wgs84[[2]], pch = 16, col = "black", cex = 0.8, add = TRUE)
+  #' plot(eoe_poly_wgs84, add = TRUE)
+  #' 
+  #' #'  Close up of cameras across grid cells in GMU1
+  #' gmu1 <- gmu[gmu$NAME == "1",][1]
+  #' gmu1_rast_poly <- crop(eoe_poly, gmu1)
+  #' plot(gmu1_rast_poly)
+  #' plot(gmu1, add = TRUE)
+  #' plot(cams_nad83[[2]], pch = 16, col = "black", cex = 0.8, add = TRUE)
+  #' plot(gmu1_rast_poly, add = TRUE)
+  #' 
+  #' 
+  #' ####  Sampling effort per grid cell  ####
+  #' #'  Mask raster so cell values = NA if outside GMUs 1, 6, 10A 
+  #' eoe_mask <- mask(eoe_rast, eoe_gmu)
+  #' 
+  #' #'  Extract area of each cell that is contained within each polygon
+  #' overlap_area <- exact_extract(eoe_rast, eoe_gmu, coverage_area = TRUE)
+  #' overlap_area[[1]]$GMU <- "GMU1"; overlap_area[[2]]$GMU <- "GMU6"; overlap_area[[3]]$GMU <- "GMU10A"
+  #' area_m2 <- rbind(overlap_area[[1]], overlap_area[[2]], overlap_area[[3]])
+  #' max_cell_size <- max(area_m2$coverage_area)
+  #' area_m2$prop_cell <- area_m2$coverage_area/max_cell_size
+  #' area_m2 <- relocate(area_m2, prop_cell, .after = coverage_area)
+  #' area_m2 <- rename(area_m2, "coverage_area_m2" = "coverage_area")
+  #' 
+  #' #'  Extract grid info for each camera site
+  #' cams_grid <- list(NA)
+  #' for(l in 1:2) {
+  #'   #'  Extract grid cell ID for each camera location per year using raster
+  #'   cam_cell_id <- terra::extract(eoe_mask, cams_nad83[[l]])
+  #'   cams_grid[[l]] <- cbind(cams_nad83[[l]], cam_cell_id)
+  #'   
+  #'   #'  Merge cell area with camera cell ID (includes cells with NO cameras)
+  #'   cams_grid[[l]] <- right_join(cams_grid[[l]], area_m2, by = c("grid_id" = "value")) %>%
+  #'     relocate(ID, .before = NewLocationID) 
+  #' }
+  #' head(cams_grid[[2]])
+  #' 
+  #' #'  Summarize sampling effort per grid cell
+  #' #'  Exclude GMU1 from year 1 (summer 2020) data
+  #' cams_grid[[1]] <- filter(cams_grid[[1]], GMU != "GMU1")
+  #' 
+  #' cams_per_monitored_grid <- list(NA)
+  #' for(l in 1:2) {
+  #'   #'  Count number of cameras per cell EXCLUDING cells with no cameras
+  #'   cams_per_monitored_grid[[l]] <- cams_grid[[l]] %>%
+  #'     filter(!is.na(NewLocationID)) %>%
+  #'     group_by(grid_id) %>%
+  #'     summarise(n = n()) %>%
+  #'     ungroup() %>%
+  #'     st_drop_geometry(.)
+  #' }
+  #' chk_it <- cams_per_monitored_grid[[2]]
+  #' 
+  #' #'  Pull out grid cells with no cameras
+  #' no_cams20s <- filter(cams_grid[[1]], is.na(NewLocationID)) %>%
+  #'   dplyr::select(grid_id) %>%
+  #'   mutate(n = 0) %>% relocate(n, .after = grid_id) %>%
+  #'   st_drop_geometry(.)
+  #' no_cams21s <- filter(cams_grid[[2]], is.na(NewLocationID)) %>%
+  #'   dplyr::select(grid_id) %>%
+  #'   mutate(n = 0) %>% relocate(n, .after = grid_id) %>%
+  #'   st_drop_geometry(.)
+  #' no_cams <- list(no_cams20s, no_cams21s)
+  #' 
+  #' #'  Combine counts of cameras in monitored cells & cells without cameras
+  #' cams_per_monitored_grid[[1]] <- rbind(cams_per_monitored_grid[[1]], no_cams20s) %>% arrange(grid_id) %>% rename(n_cams = n)
+  #' cams_per_monitored_grid[[2]] <- rbind(cams_per_monitored_grid[[2]], no_cams21s) %>% arrange(grid_id) %>% rename(n_cams = n)
+  #' 
+  #' #'  Average sampling effort per cell
+  #' mean_effort <- lapply(cams_per_monitored_grid, function(x) {mean(x$n_cams, na.rm = TRUE)}) %>% unlist(.)
+  #' sd_effort <- lapply(cams_per_monitored_grid, function(x) {sd(x$n_cams, na.rm = TRUE)}) %>% unlist(.)
+  #' effort_per_grid <- data.frame(year = c("2020", "2021"),
+  #'                               mean_cams = round(c(mean_effort[1], mean_effort[2]), 3),
+  #'                               sd_cams = round(c(sd_effort[1], sd_effort[2]), 3))
   
   
