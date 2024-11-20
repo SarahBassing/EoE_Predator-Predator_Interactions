@@ -10,7 +10,7 @@
   #'  averaging all pixels within a cluster vs averaging pixel values within
   #'  a buffered area around each camera location.
   #'    2) Importing PRISM data (extracted from Google Earth Engine)
-  #'  and combinging monthly minimum temp and monthly total precip to generate a
+  #'  and combining monthly minimum temp and monthly total precip to generate a
   #'  Winter Severity Index across each cluster
   #'    3) Importing Global Forest Change data (extracted from Google Earth Engine)
   #'  and calculating the accumulated canopy loss over time, the percentage of
@@ -454,23 +454,24 @@
     slice_max(!is.na(s_cell), with_ties = T) %>%
     ungroup() %>%
     arrange(GMU, BGMR) %>%
-    unique(.) %>%
-    filter(Source != "Wildlife Services")
+    unique(.) #%>%
+    #filter(Source != "Wildlife Services")
   
   #' #'  Save BGMR data and use wolf grid cells to help identify general harvest locations, then read in updated dataset
   #' write_csv(bgmr_dat, "./Data/IDFG BGMR data/IDFG Wolf Harvest Data/GMU1_6_10A_filtered.csv")
   #' s_cells <- st_read("./Shapefiles/IDFG spatial data/SCells_Strata.shp")
   #' library(mapview)
   #' mapview::mapview(s_cells, zcol = "SCell")
+  #' mapview::mapview(list(s_cells, cluster_poly))
   
   #'  Read in updated BGMR data with approximate harvest coordinates
-  bgmr_locs <- read_csv("././Data/IDFG BGMR data/IDFG Wolf Harvest Data/GMU1_6_10A_assigned_harvest_locations.csv") %>%
+  bgmr_locs <- read_csv("./Data/IDFG BGMR data/IDFG Wolf Harvest Data/GMU1_6_10A_assigned_harvest_locations.csv") %>%
     mutate(Harvest_date = as.Date(Harvest_date, "%m/%d/%Y"),
            Latitude = as.numeric(Latitude),
            Longitude = as.numeric(Longitude)) %>%
     dplyr::select(c(-s_cell, BGMR)) %>%
-    #'  Remove observations that were not legal harvest
-    filter(Source != "Illegal Kill" & Source != "Depredation Kill") %>%
+    #' #'  Remove observations that were not legal harvest
+    #' filter(Source != "Illegal Kill" & Source != "Depredation Kill") %>%
     #'  Exclude harvest occurring 1 year before study period
     filter(Harvest_date >= "2019-06-01") %>%
     #'  Exclude observations missing location coordinates
@@ -484,12 +485,27 @@
   bgmr_Jun21_Jun22 <- filter(bgmr_locs, Harvest_date > "2021-06-01" & Harvest_date <= "2022-06-01") %>% mutate(ID = seq(1:nrow(.))) %>% st_as_sf(coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
   bgmr_Jun22_Jun23 <- filter(bgmr_locs, Harvest_date > "2022-06-01" & Harvest_date <= "2023-06-01") %>% mutate(ID = seq(1:nrow(.))) %>% st_as_sf(coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
   
+  #'  Visualize
+  mapview::mapview(list(cluster_poly, bgmr_Jun19_Jun20, bgmr_Jun20_Jun21, bgmr_Jun21_Jun22))
+  
+  #'  Note: a handful of reported harvest locations are slightly beyond any cluster boundary
+  #'  Assuming temporary emigration of pack beyond cluster where most of harvest occurred
+  #'  Assigning all Hemlock Butte harvest to GMU6 cluster 1 (harvest split btwn GMU 6 cluster 1 and GMU10A but in area w/o cluster) 
+  hemlock_harvest_Jun21_Jun22 <- filter(bgmr_Jun21_Jun22, Location_Description == "Hemlock Butte" & GMU == "10A") %>%
+    as.data.frame(.) %>%
+    dplyr::select(c(GMU, BGMR, Location_Description, Harvest_date, Source)) %>%
+    #'  Reassign GMU & ClusterID, add area_km of that cluster
+    mutate(GMU = "6",
+           ClusterID = 1,
+           area_km2 = cluster_poly$area_km2[cluster_poly$GMU == "GMU6" & cluster_poly$ClusterID == 1]) 
+  
   #'  Intersect harvest locations with clusters, sum number of wolves harvested per cluster and divide by cluster area (harvest/km2)
   sf_use_s2(FALSE)
-  cluster_harvest <- function(bgmr, season, yr) {
+  cluster_harvest <- function(bgmr, reassigned_harvest, season, yr) {
     clusters <- as.data.frame(cluster_poly) %>% dplyr::select(-geometry) 
     harvest_polygon <- st_intersection(bgmr, cluster_poly) %>% as.data.frame(.) %>%
       dplyr::select(c(GMU, BGMR, Location_Description, Harvest_date, Source, ClusterID, area_km2)) %>%
+      bind_rows(reassigned_harvest) %>%
       mutate(GMU = paste0("GMU", GMU)) %>%
       group_by(GMU, ClusterID) %>%
       reframe(area_km2 = area_km2,
@@ -514,10 +530,10 @@
       dplyr::select(-area_km2)
     return(harvest_polygon)
   }
-  harvest_Jun19_Jun20 <- cluster_harvest(bgmr_Jun19_Jun20, season = "Jun19toJun20", yr = 2019)
-  harvest_Jun20_Jun21 <- cluster_harvest(bgmr_Jun20_Jun21, season = "Jun20toJun21", yr = 2020)
-  harvest_Jun21_Jun22 <- cluster_harvest(bgmr_Jun21_Jun22, season = "Jun21toJun22", yr = 2021)
-  harvest_Jun22_Jun23 <- cluster_harvest(bgmr_Jun22_Jun23, season = "Jun22toJun23", yr = 2022)
+  harvest_Jun19_Jun20 <- cluster_harvest(bgmr_Jun19_Jun20, reassigned_harvest = NULL, season = "Jun19toJun20", yr = 2019)
+  harvest_Jun20_Jun21 <- cluster_harvest(bgmr_Jun20_Jun21, reassigned_harvest = NULL, season = "Jun20toJun21", yr = 2020)
+  harvest_Jun21_Jun22 <- cluster_harvest(bgmr_Jun21_Jun22, reassigned_harvest = hemlock_harvest_Jun21_Jun22, season = "Jun21toJun22", yr = 2021)
+  harvest_Jun22_Jun23 <- cluster_harvest(bgmr_Jun22_Jun23, reassigned_harvest = NULL, season = "Jun22toJun23", yr = 2022)
   sf_use_s2(TRUE)
   harvest_intensity <- bind_rows(harvest_Jun19_Jun20, harvest_Jun20_Jun21, harvest_Jun21_Jun22, harvest_Jun22_Jun23) %>%
     relocate(harvest_season, .before = annual_harvest)
