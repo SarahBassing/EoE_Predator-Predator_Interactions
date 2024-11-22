@@ -95,6 +95,8 @@
   yr <- list("2020", "2021", "2022")
   cluster_density <- mapply(density_per_cluster, rai = RN_abundance_sf, yr = yr, SIMPLIFY = FALSE)
   
+  # save(cluster_density, file = "./Outputs/Relative_Abundance/RN_model/RelativeDensityIndex_per_SppCluster.RData")
+  
   #'  ---------------------------------
   ####  Explore density relationships  ####
   #'  ---------------------------------
