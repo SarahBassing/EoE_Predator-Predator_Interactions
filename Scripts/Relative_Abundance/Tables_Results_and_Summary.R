@@ -5,7 +5,7 @@
   #'  December 2023
   #'  ----------------------------------
   #'  Script to summarize results from species and year specific Royle-Nichols
-  #'  abundance models.
+  #'  abundance models and derived relative density indices.
   #'  ----------------------------------
   
   #'  Clean workspace
@@ -267,7 +267,70 @@
   #'  Save!
   write.csv(DH_summary, "./Outputs/Relative_Abundance/RN_model/Tables/Summary_table_detections.csv")
   
+  #'  -------------------
+  ####  RDI per cluster  ####
+  #'  -------------------
+  #'  Relative Density Index per cluster (loads as cluster_density)
+  load("./Outputs/Relative_Abundance/RN_model/RelativeDensityIndex_per_SppCluster.RData")
+  head(cluster_density[[1]]); head(cluster_density[[2]]); head(cluster_density[[3]])
+  rdi <- bind_rows(cluster_density[[1]], cluster_density[[2]], cluster_density[[3]]) %>%
+    as.data.frame(.) %>%
+    dplyr::select(c(GMU, Year, ClusterID, area_km2, Species, SppDensity.100km2.r)) %>%
+    filter(Species != "bobcat" & Species != "lagomorphs") %>%
+    filter(!is.na(ClusterID))
   
+  #'  Quick visualization of spread of RDI per species across years & GMUs
+  ggplot(rdi, aes(Species, SppDensity.100km2.r, fill=factor(Species))) +
+    geom_boxplot()
   
+  #'  RDI per cluster, year, and species in wide-format for publication
+  rdi_all <- rdi %>%
+    mutate(SppDensity.100km2.r = round(SppDensity.100km2.r, 2),
+           area_km2 = round(area_km2, 2),
+           Species = ifelse(Species == "bear_black", "Black bear RDI", Species),
+           Species = ifelse(Species == "coyote", "Coyote RDI", Species),
+           Species = ifelse(Species == "elk", "Elk RDI", Species),
+           Species = ifelse(Species == "moose", "Moose RDI", Species),
+           Species = ifelse(Species == "mountain_lion", "Mountain lion RDI", Species),
+           Species = ifelse(Species == "whitetailed_deer", "White-tailed deer RDI", Species),
+           Species = ifelse(Species == "wolf", "Wolf RDI", Species),
+           GMU = factor(GMU, levels = c("GMU1", "GMU6", "GMU10A"))) %>%
+    pivot_wider(names_from = Species, values_from = SppDensity.100km2.r) %>%
+    rename("Area (km2)" = "area_km2") %>%
+    rename("Cluster" = "ClusterID") %>%
+    arrange(GMU, Year)
+  
+  write_csv(rdi_all, "./Outputs/Relative_Abundance/RN_model/Tables/Cluster_Relative_Density_all_Spp.csv")
+  
+  #'  Average RDI per species per GMU, across years
+  mean_rdi_per_GMU <- rdi %>%
+    dplyr::select(c(Species, GMU, SppDensity.100km2.r)) %>%
+    group_by(Species, GMU) %>%
+    summarise(mean_RDI = round(mean(SppDensity.100km2.r), 2),
+              se_RDI = round(sd(SppDensity.100km2.r)/sqrt(length(SppDensity.100km2.r)), 2)) %>%
+    ungroup() %>%
+    # arrange(Species, -mean_RDI, GMU) %>%
+    mutate(Species = ifelse(Species == "bear_black", "Black bear", Species),
+           Species = ifelse(Species == "coyote", "Coyote", Species),
+           Species = ifelse(Species == "elk", "Elk", Species),
+           Species = ifelse(Species == "moose", "Moose", Species),
+           Species = ifelse(Species == "mountain_lion", "Mountain lion", Species),
+           Species = ifelse(Species == "whitetailed_deer", "White-tailed deer", Species),
+           Species = ifelse(Species == "wolf", "Wolf", Species),
+           mean_RDI = paste0(mean_RDI, " (", se_RDI, ")"),
+           GMU = factor(GMU, levels = c("GMU1", "GMU6", "GMU10A"))) %>%
+    dplyr::select(-se_RDI) %>%
+    rename("Mean RDI (SE)" = "mean_RDI") 
+
+  write_csv(mean_rdi_per_GMU, "./Outputs/Relative_Abundance/RN_model/Tables/GMU_Average_Relative_Density_all_Spp.csv")
+  
+  #'  Average RDI per species, across years and GMUs
+  (mean_rdi <- rdi %>%
+    dplyr::select(c(Species, SppDensity.100km2.r)) %>%
+    group_by(Species) %>%
+    summarise(mean_RDI = round(mean(SppDensity.100km2.r), 2),
+              se_RDI = round(sd(SppDensity.100km2.r)/sqrt(length(SppDensity.100km2.r)), 2)) %>%
+    ungroup() %>%
+    arrange(-mean_RDI))
   
   
