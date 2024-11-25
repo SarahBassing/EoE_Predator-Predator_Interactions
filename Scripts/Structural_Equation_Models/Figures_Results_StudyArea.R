@@ -23,6 +23,10 @@
   clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp") 
   clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp") 
   clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a.shp") 
+  cameras_per_cluster <- bind_rows(clusters_gmu1, clusters_gmu6, clusters_gmu10a) %>%
+    group_by(NwLctID) %>%
+    slice(1L) %>%
+    ungroup()
   
   #'  Relative Density Index per cluster (loads as cluster_density)
   load("./Outputs/Relative_Abundance/RN_model/RelativeDensityIndex_per_SppCluster.RData")
@@ -202,6 +206,7 @@
       # scale_fill_gradient(low = "#f5f5f5", high = "#1f6f6f", breaks = size_breaks) +
       geom_sf(data = rivers_clip, color = "lightskyblue3") +
       geom_sf(data = bigwater_wgs84, fill = "lightskyblue2") +
+      geom_sf(data = cameras_per_cluster, shape = 19, col = "black", size = 0.25) + 
       # coord_sf(xlim = c(bbox[1], bbox[3]), ylim = c(bbox[2], bbox[4])) +
       labs(fill = "Relative \nDensity \nIndex (RDI)", x = "Longitude", y = "Latitude") +
       theme_classic() +
@@ -223,7 +228,7 @@
          units = "in", width = 12, height = 10, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RDI_lion.tiff", rdi_map_lion,
          units = "in", width = 12, height = 10, dpi = 400, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RDI_wolf.tiff", rdi_map_wolf,
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RDI_wolf_with_cams.tiff", rdi_map_wolf,
          units = "in", width = 12, height = 10, dpi = 400, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RDI_elk.tiff", rdi_map_elk,
          units = "in", width = 12, height = 10, dpi = 400, device = "tiff", compression = "lzw")
