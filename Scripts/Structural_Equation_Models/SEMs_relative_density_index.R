@@ -660,7 +660,7 @@
   coy_mod <- lm(coyote.T ~ coyote.Tminus1 + mountain_lion.T, data = density_wide_1YrLag_20s_22s)
   
   #'  List models
-  regression_list <- list(wtd_mod, elk_mod, moose_mod, lion_mod, wolf_mod, bear_mod, coy_mod)
+  regression_list <- list(wtd_mod, elk_mod, moose_mod, wolf_mod, lion_mod, bear_mod, coy_mod)
   response_var <- list("White-tailed deer t", "Elk t", "Moose t", "Wolf t", "Mountain lion t", "Black bear t", "Coyote t")
   
   #'  Create results table of unstandardized regression coefficients and R2 values
