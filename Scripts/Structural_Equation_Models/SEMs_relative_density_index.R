@@ -661,7 +661,7 @@
   
   #'  List models
   regression_list <- list(wtd_mod, elk_mod, moose_mod, lion_mod, wolf_mod, bear_mod, coy_mod)
-  response_var <- list("White-tailed deer", "Elk", "Moose", "Wolf", "Mountain lion", "Black bear", "Coyote")
+  response_var <- list("White-tailed deer t", "Elk t", "Moose t", "Wolf t", "Mountain lion t", "Black bear t", "Coyote t")
   
   #'  Create results table of unstandardized regression coefficients and R2 values
   SEM_unstandardized_tbl <- function(mod, response_var) {
@@ -674,8 +674,19 @@
     r2 <- round(mod_summary$r.squared, 2)
     
     #'  Merge into a single data frame
-    lm_out <- bind_cols(response_var, Params, coefEst, stdErr, pVal, r2)
+    lm_out <- bind_cols(response_var, Params, coefEst, stdErr, pVal, r2) 
     names(lm_out) <- c("Response", "Parameter", "Estimate", "SE", "p-value", "R2")
+    #'  Clean up parameter names - remove "." and adjust time period indicator
+    lm_out <- lm_out %>%
+      mutate(Parameter = ifelse(Parameter == "bear_black.Tminus1", "bear black.Tminus1", Parameter),
+             Parameter = ifelse(Parameter == "bear_black.T", "bear black.T", Parameter),
+             Parameter = ifelse(Parameter == "mountain_lion.Tminus1", "mountain lion.Tminus1", Parameter),
+             Parameter = ifelse(Parameter == "mountain_lion.T", "mountain lion.T", Parameter),
+             Parameter = ifelse(Parameter == "whitetailed_deer.Tminus1", "white-tailed deer.Tminus1", Parameter),
+             Parameter = ifelse(Parameter == "whitetailed_deer.T", "white-tailed deer.T", Parameter),
+             Parameter = gsub(".Tminus1", " t-1", Parameter),
+             Parameter = gsub(".T", " t", Parameter),
+             Parameter = str_to_sentence(Parameter))
    
     return(lm_out) 
   }
