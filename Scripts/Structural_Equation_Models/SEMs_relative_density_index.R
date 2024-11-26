@@ -396,40 +396,54 @@
   arrange(modSelect, AIC, decreasing = TRUE)
   
   #'  Just the reduced models 
-  modSelect <- AIC(top_down_inter.a, top_down_exploit.a, #top_down_inter_simple.a, top_down_exploit_simple.a, 
-                   bottom_up_inter.a, bottom_up.a, #bottom_up_inter_simple.a, bottom_up_simple.a, 
-                   top_down_bottom_up.a,
+  modSelect <- AIC(#top_down_inter.a, top_down_exploit.a, #top_down_inter_simple.a, top_down_exploit_simple.a, 
+                   #bottom_up_inter.a, bottom_up.a, #bottom_up_inter_simple.a, bottom_up_simple.a, 
+                   #top_down_bottom_up.a,
                    top_down_inter.b, top_down_exploit.b, bottom_up_inter.b, bottom_up.b, top_down_bottom_up.b)  
-  mod_names <- c("top_down_inter_reduced", "top_down_exploit_reduced", #"top_down_inter_simple_reduced", "top_down_exploit_simple_reduced", 
-                 "bottom_up_inter_reduced", "bottom_up_reduced", #"bottom_up_inter_simple_reduced", "bottom_up_simple_reduced", 
-                 "top_down_bottom_up_reduced",
+  mod_names <- c(#"top_down_inter_reduced", "top_down_exploit_reduced", #"top_down_inter_simple_reduced", "top_down_exploit_simple_reduced", 
+                 #"bottom_up_inter_reduced", "bottom_up_reduced", #"bottom_up_inter_simple_reduced", "bottom_up_simple_reduced", 
+                 #"top_down_bottom_up_reduced",
                  "top_down_inter.b", "top_down_exploit.b", "bottom_up_inter.b", "bottom_up.b", "top_down_bottom_up.b") 
   modSelect <- bind_cols(mod_names, modSelect)
-  names(modSelect) <- c("model", "AIC", "K", "n")
-  arrange(modSelect, AIC, decreasing = TRUE)
+  names(modSelect) <- c("Model", "AIC", "K", "n")
+  (sem_aic <- arrange(modSelect, AIC, decreasing = TRUE))
   
   #'  Review Fisher's C and Chi-square test statistics for each model
-  LLchisq(bottom_up.b); fisherC(bottom_up.b)
-  LLchisq(bottom_up_inter.b); fisherC(bottom_up_inter.b)
-  LLchisq(top_down_inter.b); fisherC(top_down_inter.b)
-  LLchisq(top_down_exploit.b); fisherC(top_down_exploit.b)
-  LLchisq(top_down_inter_simple.a); fisherC(top_down_inter_simple.a)
-  LLchisq(top_down_exploit_simple.a); fisherC(top_down_exploit_simple.a)
-  LLchisq(bottom_up_inter.a); fisherC(bottom_up_inter.a)
-  LLchisq(top_down_inter.a); fisherC(top_down_inter.a)
-  LLchisq(top_down_exploit.a ); fisherC(top_down_exploit.a )
+  sem_gof <- function(mod, gof, modname) {
+    model <- modname
+    chisq <- LLchisq(mod)
+    chisq_stat <- round(chisq[[1]], 2)
+    chisq_df <- chisq[[2]]
+    chisq_pval <- round(chisq[[3]], 2)
+    fishers <- fisherC(mod)
+    fishers_stat <- round(fishers[[1]], 2)
+    fishers_df <- fishers[[2]]
+    fishers_pval <- round(fishers[[3]], 2)
+    GoF <- data.frame(model, chisq_stat, chisq_df, chisq_pval, fishers_stat, fishers_df, fishers_pval)
+    names(GoF) <- c("Model", "Chi2", "Chi2 df", "Chi2 p-value", "Fisher's C", "Fisher's C df", "Fisher's C p-value")
+    return(GoF)
+  }
+  mod_list <- list(top_down_inter.b, top_down_exploit.b, bottom_up_inter.b, bottom_up.b, top_down_bottom_up.b) 
+  mod_names <- c("top_down_inter.b", "top_down_exploit.b", "bottom_up_inter.b", "bottom_up.b", "top_down_bottom_up.b")
+  sem_GoF <- mapply(sem_gof, mod_list, modname = mod_names, SIMPLIFY = FALSE) %>% bind_rows()
+  
+  modSel_table <- full_join(sem_aic, sem_GoF, by = "Model") %>%
+    mutate(AIC = round(AIC, 2),
+           deltaAIC = AIC - first(x = AIC),
+           Model = ifelse(Model == "top_down_inter.b", "Top-down, interference competition", Model),
+           Model = ifelse(Model == "top_down_exploit.b", "Top-down, exploitation competition", Model),
+           Model = ifelse(Model == "bottom_up_inter.b", "Bottom-up, interference competition", Model),
+           Model = ifelse(Model == "bottom_up.b", "Bottom-up, exploitation competition", Model),
+           Model = ifelse(Model == "top_down_bottom_up.b", "Top-down, bottom-up", Model)) %>%
+    relocate(deltaAIC, .after = AIC) %>%
+    dplyr::select(-n)
+  write_csv(modSel_table, "./Outputs/SEM/ModSel_GoF_table.csv")
   
   #'  ----------------------
   ####  Dig into top model  ####
   #'  ----------------------
   #'  Dig into top model based on AIC, Fisher's C
   #'  Check for multicollinearity
-  RVIF(top_down_inter_simple.a[[1]]) 
-  RVIF(top_down_inter_simple.a[[2]]) 
-  RVIF(top_down_inter_simple.a[[3]]) 
-  RVIF(top_down_inter_simple.a[[4]]) 
-  RVIF(top_down_inter_simple.a[[5]]) 
-  
   RVIF(bottom_up.b[[1]]) 
   RVIF(bottom_up.b[[2]]) 
   RVIF(bottom_up.b[[3]]) 
@@ -463,7 +477,10 @@
   coy_mod <- lm(coyote.T ~ coyote.Tminus1 + mountain_lion.T, data = density_wide_1YrLag_20s_22s)
   plot(coy_mod)
   
-  #'  Visualize SEM (top but also next top models that are all within 10 deltaAIC)
+  #'  ------------------
+  #####  Visualize SEM  #####
+  #'  ------------------
+  #'  (top but also next top models that are all within 10 deltaAIC)
   piecewiseSEM:::plot.psem(top_down_inter_simple.a, 
                            node_attrs = data.frame(shape = "rectangle", color = "orange", fontcolor = "black"),
                            layout = "circle",
@@ -498,21 +515,23 @@
                            node_attrs = data.frame(shape = "rectangle", fontcolor = "black", fillcolor = "orange"),
                            edge_attrs = data.frame(style = "solid", color = "black"))
   
-  
+  #'  -------------------------------
+  #####  DIRECT vs INDIRECT EFFECTS  #####
+  #'  -------------------------------
   #'  Calculate direct, indirect, total, and mediator effects (SE & 95% CI) for 
   #'  all endogenous (response) variables using semEff package
   #'  https://murphymv.github.io/semEff/articles/semEff.html
-  #'  First bootstrap standardized model coefficients (necessary for calculating SEs)
+  #'  
+  #'  First: bootstrap standardized model coefficients (necessary for calculating SEs)
   #'  THIS TAKES AWHILE! 
-  top_down_inter_simple.a_bootEff <- bootEff(top_down_inter_simple.a, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
-  save(top_down_inter_simple.a_bootEff, file = paste0("./Outputs/SEM/top_down_inter_simple.a_bootEff_", Sys.Date(), ".RData"))
-  
-  bottom_up_inter_simple.a_bootEff <- bootEff(bottom_up_inter_simple.a, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
-  save(bottom_up_inter_simple.a_bootEff, file = paste0("./Outputs/SEM/bottom_up_inter_simple.a_bootEff_", Sys.Date(), ".RData"))
-  
-  
-  
-  bottom_up.b_bootEff <- bootEff(bottom_up.b, R = 5000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  #'  
+  #'  Second: calculate standardized effects for all casual pathways
+  #'  Note, these are standardized unique effects (i.e., adjusted for multicollinearity;
+  #'  i.e., semipartial correlations), allowing us to fully partition effects in the system
+  #'  These tend to be smaller than the unadjusted standardized coefficients
+  #'  If there are large differences btwn the two then consideration should be given
+  #'  to the impact and relevance of multicollinearity in the system (check with RVIF())
+  bottom_up.b_bootEff <- bootEff(bottom_up.b, R = 10000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
   (bottom_up.b_semEff <- semEff(bottom_up.b_bootEff))
   summary(bottom_up.b_semEff)
   save(bottom_up.b_bootEff, file = paste0("./Outputs/SEM/bottom_up.b_bootEff_", Sys.Date(), ".RData"))
@@ -542,78 +561,61 @@
   save(top_down_exploit.b_bootEff, file = paste0("./Outputs/SEM/top_down_exploit.b_bootEff_", Sys.Date(), ".RData"))
   save(top_down_exploit.b_semEff, file = paste0("./Outputs/SEM/top_down_exploit.b_semEff_", Sys.Date(), ".RData"))
   
+  top_down_inter_simple.a_bootEff <- bootEff(top_down_inter_simple.a, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  save(top_down_inter_simple.a_bootEff, file = paste0("./Outputs/SEM/top_down_inter_simple.a_bootEff_", Sys.Date(), ".RData"))
   
+  bottom_up_inter_simple.a_bootEff <- bootEff(bottom_up_inter_simple.a, R = 1000, seed = 13, type = "nonparametric", parallel = "multicore", ncpus = 5) 
+  save(bottom_up_inter_simple.a_bootEff, file = paste0("./Outputs/SEM/bottom_up_inter_simple.a_bootEff_", Sys.Date(), ".RData"))
   
-  #'  Second calculate standardized effects for all casual pathways
-  #'  Note, these are standardized unique effects (i.e., adjusted for multicollinearity;
-  #'  i.e., semipartial correlations), allowing us to fully partition effects in the system
-  #'  These tend to be smaller than the unadjusted standardized coefficients
-  #'  If there are large differences btwn the two then consideration should be given
-  #'  to the impact and relevance of multicollinearity in the system (check with RVIF())
-  (top_down_inter_simple.a_semEff <- semEff(top_down_inter_simple.a_bootEff))
-  summary(top_down_inter_simple.a_semEff)
-  save(top_down_inter_simple.a_semEff, file = paste0("./Outputs/SEM/top_down_inter_simple.a_semEff_", Sys.Date(), ".RData"))
-  
-  (bottom_up_inter_simple.a_semEff <- semEff(bottom_up_inter_simple.a_bootEff))
-  summary(bottom_up_inter_simple.a_semEff)
-  save(bottom_up_inter_simple.a_semEff, file = paste0("./Outputs/SEM/bottom_up_inter_simple.a_semEff_", Sys.Date(), ".RData"))
-  
-  
+  #'  ------------------
+  #####  Result tables  #####
+  #'  ------------------
+  ######  Direct & indirect effects table  ######
+  #'  -------------------------------------
+  #'  Extract standardized direct, indirect, etc. effects from SEMs after bootstrapping
   library(stringi)
   #'  Create results tables
   tbl_std_est <- function(mod, mod_name) {
-    #'  Extract standardized effects
-    std_eff_elk <- mod$Summary$elk.T$Effect
-    std_eff_moose <- mod$Summary$moose.T$Effect
-    std_eff_wolf <- mod$Summary$wolf.T$Effect
-    std_eff_lion <- mod$Summary$mountain.lion.T$Effect
-    std_eff_bear <- mod$Summary$bear.black.T$Effect
-    
-    #'  Extract lower confidence interval
-    lci_elk <- mod$Summary$elk.T$`Lower CI`
-    lci_moose <- mod$Summary$moose.T$`Lower CI`
-    lci_wolf <- mod$Summary$wolf.T$`Lower CI`
-    lci_lion <- mod$Summary$mountain.lion.T$`Lower CI`
-    lci_bear <- mod$Summary$bear.black.T$`Lower CI`
-    
-    #'  Extract upper confidence interval
-    uci_elk <- mod$Summary$elk.T$`Upper CI`
-    uci_moose <- mod$Summary$moose.T$`Upper CI`
-    uci_wolf <- mod$Summary$wolf.T$`Upper CI`
-    uci_lion <- mod$Summary$mountain.lion.T$`Upper CI`
-    uci_bear <- mod$Summary$bear.black.T$`Upper CI`
-    
-    #'  Extract exogenous predictor names
-    predictor_elk <- mod$Summary$elk.T[[2]]
-    predictor_moose <- mod$Summary$moose.T[[2]]
-    predictor_wolf <- mod$Summary$wolf.T[[2]]
-    predictor_lion <- mod$Summary$mountain.lion.T[[2]]
-    predictor_bear <- mod$Summary$bear.black.T[[2]]
+    #'  Extract standardized results
+    predictor_wtd <- mod$Summary$whitetailed.deer.T
+    predictor_elk <- mod$Summary$elk.T
+    predictor_moose <- mod$Summary$moose.T
+    predictor_wolf <- mod$Summary$wolf.T
+    predictor_lion <- mod$Summary$mountain.lion.T
+    predictor_bear <- mod$Summary$bear.black.T
+    predictor_coy <- mod$Summary$coyote.T
     
     #'  Bind into a single data frame and add column for endogenous variable
-    tbl_elk <- as.data.frame(bind_cols(predictor_elk, std_eff_elk, lci_elk, uci_elk)) %>% bind_cols("Elk t")
-    tbl_moose <- as.data.frame(bind_cols(predictor_moose, std_eff_moose, lci_moose, uci_moose)) %>% bind_cols("Moose t")
-    tbl_wolf <- as.data.frame(bind_cols(predictor_wolf, std_eff_wolf, lci_wolf, uci_wolf)) %>% bind_cols("Wolf t")
-    tbl_lion <- as.data.frame(bind_cols(predictor_lion, std_eff_lion, lci_lion, uci_lion)) %>% bind_cols("Mountain lion t")
-    tbl_bear <- as.data.frame(bind_cols(predictor_bear, std_eff_bear, lci_bear, uci_bear)) %>% bind_cols("Black bear t")
+    tbl_wtd <- as.data.frame(predictor_wtd) %>% bind_cols("White-tailed deer t")
+    tbl_elk <- as.data.frame(predictor_elk) %>% bind_cols("Elk t")
+    tbl_moose <- as.data.frame(predictor_moose) %>% bind_cols("Moose t")
+    tbl_wolf <- as.data.frame(predictor_wolf) %>% bind_cols("Wolf t")
+    tbl_lion <- as.data.frame(predictor_lion) %>% bind_cols("Mountain lion t")
+    tbl_bear <- as.data.frame(predictor_bear) %>% bind_cols("Black bear t")
+    tbl_coy <- as.data.frame(predictor_coy) %>% bind_cols("Coyote t")
     
     #'  Rename columns
-    col_names <- c("Exogenous_variable", "Standardized_effect", "lower_CI", "upper_CI", "Endogenous_variable")
+    col_names <- c("Effect type", "Exogenous_variable", "space", "Standardized_effect", "space", "Bias", "space", "Std.Error", "space", "lower_CI", "upper_CI", "space", "Signif", "Endogenous_variable")
+    names(tbl_wtd) <- col_names
     names(tbl_elk) <- col_names
     names(tbl_moose) <- col_names
     names(tbl_wolf) <- col_names
     names(tbl_lion) <- col_names
     names(tbl_bear) <- col_names
+    names(tbl_coy) <- col_names
     
     #'  Bind results together and clean up final table
-    full_tbl <- bind_rows(tbl_elk, tbl_moose, tbl_wolf, tbl_lion, tbl_bear) %>%
+    full_tbl <- bind_rows(tbl_wtd, tbl_elk, tbl_moose, tbl_wolf, tbl_lion, tbl_bear, tbl_coy) %>%
       relocate(Endogenous_variable, .before = Exogenous_variable) %>%
+      dplyr::select(c("Endogenous_variable", "Exogenous_variable", "Standardized_effect", 
+                      "Std.Error", "lower_CI", "upper_CI", "Signif")) %>%
       #'  Remove extra spaces before or end of words
       mutate(across(everything(), ~stri_trim(.))) %>%
       #'  Replace empty cells with NA
       mutate(across(everything(), ~na_if(., ""))) %>%
       #'  Remove any rows with `NA`
-      filter(!if_any(everything(), is.na)) %>%
+      # filter(!if_any(everything(), is.na)) %>%
+      filter(!is.na(Exogenous_variable)) %>%
       filter(Exogenous_variable != "n/a") %>%
       #'  Remove duplicate information
       distinct(.) %>%
@@ -624,18 +626,66 @@
       #'  Add column reporting model name
       mutate(Model = mod_name) %>%
       relocate(Model, .before = Endogenous_variable) %>%
+      relocate(Signif, .after = "95% CI") %>%
       #'  Remove "." and adjust time period indicator
       mutate(Exogenous_variable = ifelse(Exogenous_variable == "bear.black.Tminus1", "bear black.Tminus1", Exogenous_variable),
              Exogenous_variable = ifelse(Exogenous_variable == "mountain.lion.Tminus1", "mountain lion.Tminus1", Exogenous_variable),
+             Exogenous_variable = ifelse(Exogenous_variable == "whitetailed.deer.Tminus1", "white-tailed deer.Tminus1", Exogenous_variable),
              Exogenous_variable = gsub(".Tminus1", " t-1", Exogenous_variable),
              Exogenous_variable = str_to_sentence(Exogenous_variable))
     
     return(full_tbl)
   }
-  result_tbl_top_down_inter_simple.a <- tbl_std_est(top_down_inter_simple.a_semEff, mod_name = "Top model")
-  result_tbl_bottom_up_inter_simple.a <- tbl_std_est(bottom_up_inter_simple.a_semEff, mod_name = "Second top model")
-  result_tbl_top_models <- bind_rows(result_tbl_top_down_inter_simple.a, result_tbl_bottom_up_inter_simple.a)
-  write_csv(result_tbl_top_models, "./Outputs/SEM/result_table_top_models_std_effects.csv")
+  result_tbl_bottom_up.b <- tbl_std_est(bottom_up.b_semEff, mod_name = "Bottom-up, Exploit")
+  write_csv(result_tbl_bottom_up.b, "./Outputs/SEM/result_table_top_model_std_effects.csv")
+  
+  #'  Tables of less supported models
+  result_tbl_bottom_up_inter.b <- tbl_std_est(bottom_up_inter.b_semEff, mod_name = "Bottom-up, Inter")
+  result_tbl_top_down_inter.b <- tbl_std_est(top_down_inter.b_semEff, mod_name = "Top-down, Exploit")
+  result_tbl_top_down_exploit.b <- tbl_std_est(top_down_exploit.b_semEff, mod_name = "Top-down, Inter")
+  result_tbl_top_down_bottom_up.b <- tbl_std_est(top_downbottom_up.b_semEff, mod_name = "Top-down, bottom-up")
+  result_tbl_top_model <- bind_rows(result_tbl_bottom_up.b, result_tbl_bottom_up_inter.b, result_tbl_top_down_inter.b, result_tbl_top_down_bottom_up.b, result_tbl_top_down_exploit.b)
+  write_csv(result_tbl_top_model, "./Outputs/SEM/result_table_top_model_std_effects.csv")
+  
+  #'  --------------------------------------------
+  ######  Unstandardized regression coefficients  ######
+  #'  --------------------------------------------
+  #'  Run linear regression models from best supported SEM
+  wtd_mod <- lm(whitetailed_deer.T ~ whitetailed_deer.Tminus1 + bear_black.T, data = density_wide_1YrLag_20s_22s)
+  elk_mod <- lm(elk.T ~ elk.Tminus1 + whitetailed_deer.Tminus1 + whitetailed_deer.T + bear_black.Tminus1 + wolf.T, data = density_wide_1YrLag_20s_22s)
+  moose_mod <- lm(moose.T ~ moose.Tminus1, data = density_wide_1YrLag_20s_22s)
+  wolf_mod <- lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1, data = density_wide_1YrLag_20s_22s)
+  lion_mod <- lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1, data = density_wide_1YrLag_20s_22s)
+  bear_mod <- lm(bear_black.T ~ bear_black.Tminus1, data = density_wide_1YrLag_20s_22s)
+  coy_mod <- lm(coyote.T ~ coyote.Tminus1 + mountain_lion.T, data = density_wide_1YrLag_20s_22s)
+  
+  #'  List models
+  regression_list <- list(wtd_mod, elk_mod, moose_mod, lion_mod, wolf_mod, bear_mod, coy_mod)
+  response_var <- list("White-tailed deer", "Elk", "Moose", "Wolf", "Mountain lion", "Black bear", "Coyote")
+  
+  #'  Create results table of unstandardized regression coefficients and R2 values
+  SEM_unstandardized_tbl <- function(mod, response_var) {
+    #'  Grab coefficient estimates, SE, and p-value from linear model
+    Params <- rownames(as.data.frame(mod$coefficients))
+    mod_summary <- summary(mod)
+    coefEst <- round(mod_summary$coefficients[,1], 2)
+    stdErr <- round(mod_summary$coefficients[,2], 2)
+    pVal <- round(mod_summary$coefficients[,4], 5)
+    r2 <- round(mod_summary$r.squared, 2)
+    
+    #'  Merge into a single data frame
+    lm_out <- bind_cols(response_var, Params, coefEst, stdErr, pVal, r2)
+    names(lm_out) <- c("Response", "Parameter", "Estimate", "SE", "p-value", "R2")
+   
+    return(lm_out) 
+  }
+  sem_regression_tbl <- mapply(SEM_unstandardized_tbl, regression_list, response_var = response_var, SIMPLIFY = FALSE) %>% bind_rows(.)
+  
+  #'  Save!
+  write_csv(sem_regression_tbl, "./Outputs/SEM/SEM_Regression_coefs_tbl.csv")
+  
+  
+  
   
   #'  Notes:
   #'  Many of the top-down and bottom-up hypothesized networks reduced down to 
