@@ -453,7 +453,7 @@
   #'  Plot each species response to specific covariate together
   plot_margingal_occ_by_cov <- function(predicted, x, ylab, plottitle, ncolor) {
     marg_occ_plot <- ggplot(predicted, aes(x = covs, y = marginal_occ, group = Species)) + 
-      geom_line(aes(color = Species), lwd = 1.25) + 
+      geom_line(aes(color = Species), lwd = 0.5) + 
       scale_color_manual(values = ncolor) + 
       #'  Add confidence intervals
       geom_ribbon(aes(ymin = lowerCRI, ymax = upperCRI, fill = Species), alpha = 0.3) +
@@ -461,17 +461,19 @@
       #'  Get rid of lines and gray background
       theme_bw() +
       theme(panel.border = element_blank()) +
-      theme(axis.line = element_line(color = 'black')) +
-      theme(text = element_text(size = 10)) +
+      theme(axis.line = element_line(color = 'black', size = 0.35),
+            axis.ticks = element_line(colour = "black", size = 0.35)) +
+      theme(text = element_text(size = 10, family = "serif")) +
+      theme(panel.grid.minor = element_line(size = 0.25), 
+            panel.grid.major = element_line(size = 0.25)) +
       #'  Force y-axis from 0 to 1
       ylim(0,1.0) +
       #'  Use list name as X-axis title
       xlab(x) +
       ylab("Marginal occupancy probability") +
       labs(title = plottitle, 
-           fill = "Species", color = "Species") +
-      #facet_wrap(~Setup, scales = "free_y") +
-      theme(legend.position="bottom")
+           fill = "Species", color = "Species") #+
+      # theme(legend.position = "bottom")
     #'  Review figure
     plot(marg_occ_plot)
     
@@ -496,21 +498,29 @@
   
   marginal_pred_patchwork <- marginal_for_pred_plot + elev_pred_guide + tri_pred_guide + 
     plot_annotation(title = "Species-specific marginal occupancy across habitat gradients",
-                    theme = theme(plot.title = element_text(size = 10, vjust = -3))) +
+                    theme = theme(plot.title = element_text(size = 11, vjust = -4, family = "serif"))) + # adjust size and height of title
     plot_annotation(tag_levels = 'a') + plot_layout(axes = "collect") + 
-    plot_layout(guides = "collect") & theme(legend.position = "bottom",
-                                            plot.tag = element_text(size = 8, hjust = 0, vjust = -4))
+    plot_layout(guides = "collect") & theme(legend.position = "bottom", # place legend at bottom of figure
+                                            legend.key.size = unit(0.75, "lines"), # adjust size of lines in legend
+                                            # legend.margin=margin(0,0,0,0), # adjust margins around legend
+                                            legend.box.margin=margin(-5,0,0,0), # adjust location of legend on plot
+                                            plot.margin = unit(c(-0.1,0.3,0.1,0.1), "cm"), # adjust margins around legend
+                                            plot.tag = element_text(size = 10, hjust = 0, vjust = -4)) # adjust size and location of A, B
   marginal_ung_patchwork <- marginal_for_ung_plot + elev_ung_guide + tri_ung_guide + 
     plot_annotation(title = "Species-specific marginal occupancy across percent habitat gradients",
-                    theme = theme(plot.title = element_text(size = 10, vjust = -3))) +
+                    theme = theme(plot.title = element_text(size = 11, vjust = -4, family = "serif"))) +
     plot_annotation(tag_levels = 'a') + plot_layout(axes = "collect") + 
-    plot_layout(guides = "collect") & theme(legend.position = "bottom",
-                                            plot.tag = element_text(size = 8, hjust = 0, vjust = -4))
+    plot_layout(guides = "collect") & theme(legend.position = "bottom", 
+                                            legend.key.size = unit(0.75, "lines"),
+                                            # legend.margin=margin(0,0,0,0),
+                                            legend.box.margin=margin(-5,0,0,0),
+                                            plot.margin = unit(c(-0.1,0.3,0.1,0.1), "cm"),
+                                            plot.tag = element_text(size = 10, hjust = 0, vjust = -4))
   
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_plot_predcams.tiff", marginal_pred_patchwork, 
-         units = "in", width = 6, height = 3.5, dpi = 400, device = 'tiff', compression = 'lzw')
+         units = "cm", width = 18, height = 9.5, dpi = 600, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/marginal_occ_plot_ungcams.tiff", marginal_ung_patchwork, 
-         units = "in", width = 6, height = 3.5, dpi = 400, device = 'tiff', compression = 'lzw')
+         units = "cm", width = 18, height = 9.5, dpi = 600, device = 'tiff', compression = 'lzw')
   
    
   #'  -----------------------------------
@@ -558,7 +568,7 @@
     
     #'  Plot species-specific conditional occupancy probabilities & 95% CRI
     condish_occ_plot <- ggplot(predicted.conditional.occ, aes(x = covs, y = conditional_occ, group = Species_interaction)) + 
-      geom_line(aes(color = Species_interaction), lwd = 1.25) + 
+      geom_line(aes(color = Species_interaction), lwd = 0.5) + 
       scale_color_manual(values = four_colors, labels = c(paste(spp1, "\nabsent"), paste(spp1, "\npresent"), paste(spp2, "\nabsent"), paste(spp2, "\npresent"))) + 
       #'  Add confidence intervals
       geom_ribbon(aes(ymin = lowerCRI, ymax = upperCRI, fill = Species_interaction), alpha = 0.3) +
@@ -566,8 +576,11 @@
       #'  Get rid of lines and gray background
       theme_bw() +
       theme(panel.border = element_blank()) +
-      theme(axis.line = element_line(color = 'black')) +
-      theme(text = element_text(size = 12)) +
+      theme(axis.line = element_line(color = 'black', size = 0.35),
+            axis.ticks = element_line(colour = "black", size = 0.35)) +
+      theme(text = element_text(size = 10, family = "serif")) +
+      theme(panel.grid.minor = element_line(size = 0.25), 
+            panel.grid.major = element_line(size = 0.25)) +
       #'  Force y-axis from 0 to 1
       ylim(0,1.0) +
       #'  Use list name as X-axis title
@@ -575,9 +588,9 @@
       ylab("Conditional probability of occupancy") +
       labs(#title = paste("Conditional occupancy in response to", covname),
            fill = "Species \ninteraction", color = "Species \ninteraction") +
-      facet_wrap(~Species, scales = "free_y") +
-      theme(legend.position="bottom",
-            text = element_text(size = 12)) 
+      facet_wrap(~Species, scales = "free_y") #+
+      # theme(legend.position="bottom",
+      #       text = element_text(size = 12)) 
     #'  Review figure
     plot(condish_occ_plot)
     
@@ -645,31 +658,38 @@
   
   #'  Patchwork of conditional occupancy plots
   patchwork_conditional_coybob_pred <- coy.bob.condish.for.pred +
-    inset_element(p = bobimg, left = 0.25, bottom = 0.91, right = 0.5, top = 1.17, ignore_tag = TRUE) +
+    inset_element(p = bobimg, left = 0.28, bottom = 0.89, right = 0.49, top = 1.11, ignore_tag = TRUE) +
     theme(rect = element_rect(fill = "transparent", linetype = "blank")) +
-    inset_element(p = coyimgGB, left = 0.75, bottom = 0.9, right = 1.09, top = 1.18, ignore_tag = TRUE) +
+    inset_element(p = coyimgGB, left = 0.78, bottom = 0.89, right = 1.07, top = 1.13, ignore_tag = TRUE) +
     theme(rect = element_rect(fill = "transparent", linetype = "blank")) + #coy.bob.condish.elev.pred + 
     coy.bob.condish.tri.pred + 
     plot_layout(nrow = 2) + plot_annotation(tag_levels = 'a',
                                             title = "Habitat effects on co-occurrence probabilities",
-                                            theme = theme(plot.title = element_text(size = 14, vjust = 0))) +
+                                            theme = theme(plot.title = element_text(size = 11, vjust = 0, family = "serif"))) +
     plot_layout(axes = "collect") +
-    plot_layout(guides = "collect") & theme(legend.position = "bottom",
-                                            plot.tag = element_text(size = 12, hjust = 0, vjust = 0)) 
+    plot_layout(guides = "collect") & theme(legend.position = "bottom", 
+                                            legend.key.size = unit(0.75, "lines"),
+                                            legend.margin=margin(0,0,0,0),
+                                            legend.box.margin=margin(0,25,0,0), # adjust location of legend on plot
+                                            plot.tag = element_text(size = 11, hjust = 0, vjust = 0, family = "serif")) 
+  
   patchwork_conditional_coybob_pred
   
   patchwork_conditional_coybob_ung <- coy.bob.condish.for.ung +
-    inset_element(p = bobimg, left = 0.25, bottom = 0.91, right = 0.5, top = 1.17, ignore_tag = TRUE) +
+    inset_element(p = bobimg, left = 0.28, bottom = 0.89, right = 0.49, top = 1.11, ignore_tag = TRUE) +
     theme(rect = element_rect(fill = "transparent", linetype = "blank")) +
-    inset_element(p = coyimgGB, left = 0.75, bottom = 0.9, right = 1.09, top = 1.18, ignore_tag = TRUE) +
+    inset_element(p = coyimgGB, left = 0.78, bottom = 0.89, right = 1.07, top = 1.13, ignore_tag = TRUE) +
     theme(rect = element_rect(fill = "transparent", linetype = "blank")) + #coy.bob.condish.elev.ung + 
     coy.bob.condish.tri.ung + 
     plot_layout(nrow = 2) + plot_annotation(tag_levels = 'a',
                                             title = "Habitat effects on co-occurrence probabilities",
-                                            theme = theme(plot.title = element_text(size = 14, vjust = 0))) +
+                                            theme = theme(plot.title = element_text(size = 11, vjust = 0, family = "serif"))) +
     plot_layout(axes = "collect") +
-    plot_layout(guides = "collect") & theme(legend.position = "bottom",
-                                            plot.tag = element_text(size = 12, hjust = 0, vjust = 0)) 
+    plot_layout(guides = "collect") & theme(legend.position = "bottom", 
+                                            legend.key.size = unit(0.75, "lines"),
+                                            legend.box.margin = margin(0,25,0,0),
+                                            legend.margin=margin(0,0,0,0),
+                                            plot.tag = element_text(size = 11, hjust = 0, vjust = 0, family = "serif")) 
   patchwork_conditional_coybob_ung
   
   
@@ -688,9 +708,9 @@
          units = "in", width = 7, height = 5, dpi = 400, device = 'tiff', compression = 'lzw')
   #'  Co-occurrence plots
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_predcams.tiff", patchwork_conditional_coybob_pred, 
-         units = "in", width = 5, height = 6, dpi = 400, device = 'tiff', compression = 'lzw')
+         units = "cm", width = 15, height = 19, dpi = 600, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/conditional_occ_plots_coybob_ungcams.tiff", patchwork_conditional_coybob_ung, 
-         units = "in", width = 5, height = 6, dpi = 400, device = 'tiff', compression = 'lzw')
+         units = "cm", width = 15, height = 19, dpi = 600, device = 'tiff', compression = 'lzw')
   
     #' #'  Effect of low and high WTD RAI values on coyote-bobcat conditional occupancy
   #' #'  with increasing lagomorph activity

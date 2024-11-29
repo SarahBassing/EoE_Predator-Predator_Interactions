@@ -498,15 +498,17 @@
     predicted <- mutate(predicted, Species = factor(Species, levels = c("Bobcat", "Coyote", "Mountain lion", "Wolf")), 
                         Detection = ifelse(Detection == "detected", "Detected", "Not detected"))
     cond_det_plot <- ggplot(predicted, aes(x = Detection, y = conditional_det, group = Species)) + 
-      geom_errorbar(aes(ymin = lowerCRI, ymax = upperCRI, color = Species), width = 0, position = position_dodge(width = 0.4)) +
+      geom_errorbar(aes(ymin = lowerCRI, ymax = upperCRI, color = Species), width = 0, size = 0.4, position = position_dodge(width = 0.4)) +
       scale_color_manual(values = ncolor) + 
-      geom_point(stat = 'identity', aes(col = Species), size = 2.5, position = position_dodge(width = 0.4)) +   
+      geom_point(stat = 'identity', aes(col = Species), size = 2.15, position = position_dodge(width = 0.4)) +   
       #'  Get rid of lines and gray background
       theme_bw() +
       theme(panel.border = element_blank()) +
-      theme(text = element_text(size = 11),
-            plot.title = element_text(size = 13)) +
-      theme(axis.line = element_line(color = 'black')) +
+      theme(text = element_text(size = 10, family = "serif"),
+            plot.title = element_text(size = 11, family = "serif")) +
+      theme(axis.line = element_line(color = 'black', linewidth = 0.25),
+            panel.grid.minor = element_line(size = 0.25), 
+            panel.grid.major = element_line(size = 0.25)) +
       #'  Force y-axis from 0 to 1
       ylim(0,1.0) +
       #'  Use list name as X-axis title
@@ -625,9 +627,9 @@
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/lion-bob_mean_pred_conditional_det_plots.tiff", lion.bob.condish.plots[[2]], 
          units = "in", width = 7, height = 5, dpi = 600, device = 'tiff', compression = 'lzw')
   ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/all_signif_pairs_mean_pred_conditional_det_plots.tiff", condish_plot, 
-         units = "in", width = 7, height = 4, dpi = 400, device = 'tiff', compression = 'lzw')
-  ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/all_signif_pairs_mean_pred_conditional_det_plots_v2.tiff", condish_det_patchwork, 
-         units = "in", width = 8, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+         units = "cm", width = 18, height = 10, dpi = 600, device = 'tiff', compression = 'lzw')
+  # ggsave("./Outputs/MultiSpp_OccMod_Outputs/Co-Occ_Plots/all_signif_pairs_mean_pred_conditional_det_plots_v2.tiff", condish_det_patchwork, 
+  #        units = "in", width = 8, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
   
