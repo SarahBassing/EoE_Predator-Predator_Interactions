@@ -89,7 +89,7 @@
   #####  Map #1  #####
   #'  Plot USA with Idaho highlighted
   usa_map <- ggplot() +
-    geom_sf(data = usa_wgs84, fill = "white", color = "gray50") +
+    geom_sf(data = usa_wgs84, fill = "white", color = "gray50", linewidth = 0.2) +
     geom_sf(data = id_wgs84, fill = "gray20", color = "gray20") +
     #'  Constrain plot to the lower 48 
     coord_sf(xlim = c(-124.2, -68.2), ylim = c(25, 49)) +
@@ -103,26 +103,32 @@
   #####  Map #2  #####
   #'  Text to label state of Idaho
   grob <- grobTree(textGrob("Idaho, USA", x = 0.45,  y = 0.95, hjust = 0,
-                            gp = gpar(col = "black", fontsize = 18, fontface = "italic")))
+                            gp = gpar(col = "black", fontsize = 10, fontface = "italic"))) #18
   
   #' #'  Order GMUs geographically (N to S)
   #' sa_gmu_wgs84$NAME <- factor(sa_gmu_wgs84$NAME, levels = c("4", "28", "33", "34", "35"))
   
   #'  Plot study areas within Idaho
   ID_study_areas <- ggplot() +
-    geom_sf(data = gmu_wgs84, fill = "gray95", color="gray50", size = 0.5) +
-    geom_sf(data = eoe_gmu_wgs84, aes(fill = NAME, color = NAME), linewidth = 0.75, alpha = 0.7) +
+    geom_sf(data = gmu_wgs84, fill = "gray95", color="gray50", linewidth = 0.2) + #0.5
+    geom_sf(data = eoe_gmu_wgs84, aes(fill = NAME, color = NAME), linewidth = 0.2, alpha = 0.7) + #0.75
     scale_fill_manual(values = eoe_color) +
     scale_color_manual(values = eoe_color) +
     labs(fill = "GMU", color = "GMU") +
-    geom_rect(aes(xmin = -117.3, xmax = -114.15, ymin = 45.75, ymax = 49.25), color = "black", fill = NA, size = 0.5)  +
+    geom_rect(aes(xmin = -117.3, xmax = -114.15, ymin = 45.75, ymax = 49.25), color = "black", fill = NA, size = 0.2) + # 0.5
     theme_minimal() +
     theme(axis.text = element_blank(),
           axis.ticks = element_blank(),
           panel.grid.minor = element_blank(),
           panel.grid.major = element_blank(),
-          legend.title = element_text(size = 18),
-          legend.text = element_text(size = 16)) +
+          legend.title = element_text(size = 6, family = "serif"), #18
+          legend.text = element_text(size = 6, family = "serif"), #16
+          legend.key.size = unit(0.5, "lines")) +
+          # legend.margin=margin(0,0,-10,-10),
+          # legend.box.margin=margin(0,0,0,0),
+          # legend.margin=margin(t = -5, unit='cm'),
+          # legend.spacing.x = unit(-1, "cm"))+
+          # plot.margin = unit(c(0,-1,0,-1), "cm")) + 
     theme(legend.justification = c(1, 0)) 
   
   #####  Map #3  #####
@@ -131,27 +137,34 @@
     geom_sf(data = id_wgs84, fill = "gray85", color = "gray50", linewidth = 0.5) +
     geom_spatraster(data = dem_low_crop) + 
     scale_fill_continuous(low = "gray90", high = "gray25", na.value = "transparent") + 
-    geom_sf(data = eoe_gmu_wgs84, color = "black", fill = c("#364B9A", "#FDB366", "#A50026"), alpha = 0.15, linewidth = 0.75, show.legend = FALSE) + 
-    geom_sf(data = cams2021_wgs84, color = "black", shape = 20, size = 2) +
+    geom_sf(data = eoe_gmu_wgs84, color = "black", fill = c("#364B9A", "#FDB366", "#A50026"), alpha = 0.15, linewidth = 0.25, show.legend = FALSE) +  #0.75
+    geom_sf(data = cams2021_wgs84, color = "black", shape = 20, size = 0.2) + #2
     #'  Constrain plot to study areas plus some room on the side & bottom
     coord_sf(xlim = c(-117.2, -114.25), ylim = c(45.75, 49), expand = TRUE) + 
     theme_bw() +
     theme(panel.grid = element_blank(), 
-          axis.title.x = element_text(size = 18), 
-          axis.title.y = element_text(size = 18),
-          axis.text.x = element_text(size = 16, angle = 45, hjust = 1, colour = "black"), 
-          axis.text.y = element_text(size = 16, colour = "black"), 
-          legend.title = element_text(size = 18),
-          legend.text = element_text(size = 16)) +
+          axis.title.x = element_text(size = 8, family = "serif"), #18 
+          axis.title.y = element_text(size = 8, family = "serif"), #18
+          axis.text.x = element_text(size = 6, angle = 45, hjust = 1, colour = "black", family = "serif"),  #16
+          axis.text.y = element_text(size = 6, colour = "black", family = "serif"),  #16
+          axis.line = element_line(color = 'black', linewidth = 0.2),
+          axis.ticks = element_line(colour = "black", linewidth = 0.2),
+          legend.title = element_text(size = 8, family = "serif"), #18
+          legend.text = element_text(size = 6, family = "serif"),
+          legend.key.size = unit(0.75, "lines")) + #16
     labs(x = "Longitude", y = "Latitude", fill = "Elevation (m)") + 
-    theme(legend.justification = c(1, 0)) + 
+    theme(legend.justification = c(1, 0),
+          plot.margin = unit(c(0.1,0,0,0.1), "cm")) + 
     #'  Add north arrow
-    annotation_north_arrow(location = "bl", which_north = "true", 
-                           pad_x = unit(0.2, "in"), pad_y = unit(0.2, "in"),
+    annotation_north_arrow(location = "bl", which_north = "true",
+                           pad_x = unit(0.05, "cm"), pad_y = unit(0.4, "cm"), #0.2, "in"
+                           height = unit(0.75, "cm"), width = unit(0.75, "cm"),
                            style = north_arrow_fancy_orienteering(fill = c("gray20", "white",
-                                                                           line_col = "gray10"))) +
+                                                                           line_col = "gray10"), 
+                                                                  line_width = 0.5, text_size = 6, text_family = "serif")) +
     #'  Add scale bar (be sure to double check the scale)
-    annotation_scale(location = "bl", width_hint = 0.5, bar_cols = c("gray10", "white"))
+    annotation_scale(location = "bl", width_hint = 0.5, bar_cols = c("gray10", "white"),
+                     height = unit(0.1, "cm"), line_width = 0.5, text_cex = 0.6, text_family = "serif") #0.5
   
   #'  Build plot with map of study areas and inset map of WA
   #'  https://upgo.lab.mcgill.ca/2019/12/13/making-beautiful-maps/
@@ -160,38 +173,44 @@
   #'  Use export option in Plot window and formatting holds
   # tiff(file = "./Outputs/Figures/StudyAreaMap_v1.tiff",
   #      units = "in", width = 7, height = 9, res = 800, compress = 'lzw')
-  StudyArea_Map <- ggdraw(ID_study_areas) + 
+  StudyArea_Map <- ggdraw(ID_study_areas + 
+                            theme(legend.box.margin = margin(0,-8,0,-10))) + 
     draw_plot(
       {
         usa_map 
       },
       #'  Distance along a (0,1) x-axis to draw the left edge of the plot
-      x = 0.40,
+      x = 0.40, 
       #'  Distance along a (0,1) y-axis to draw the bottom edge of the plot
-      y = 0.50,
+      y = 0.50, 
       #'  Width & height of the plot expressed as proportion of the entire ggdraw object
       #'  THIS DEPENDS ON HOW BIG YOUR PLOT WINDOW IS TOO!!!!
-      width = 0.55,
-      height = 0.55) +
-    theme(panel.background = element_rect(fill = "white", color = "black"))
+      width = 0.55, 
+      height = 0.55) + 
+    theme(panel.background = element_rect(fill = "white", color = "black", linewidth = 0.15),
+          plot.margin = unit(c(0.35, 0.5, 0.65, -0.75), "cm")) #c(0.5, 0.5, 1, -0.75), "cm")
   plot(StudyArea_Map)
   # dev.off()
   
+  # tiff(file = "./Outputs/Figures/Map_StudyAreas_CameraSites.tiff",
+  #      units = "in", width = 10, height = 11, res = 800, compress = 'lzw')
   tiff(file = "./Outputs/Figures/Map_StudyAreas_CameraSites.tiff",
-       units = "in", width = 10, height = 11, res = 800, compress = 'lzw')
-  Full_Map <- ggdraw(zoomed_in_gmus) +
+       units = "cm", width = 8.5, height = 10, res = 600, compress = 'lzw')
+  Full_Map <- ggdraw(zoomed_in_gmus + 
+                       theme(legend.key.size = unit(0.55, "lines"),
+                             legend.box.margin=margin(0,0,0,-5))) +
     draw_plot(
       {
         StudyArea_Map #+
       },
       #'  Distance along a (0,1) x-axis to draw the left edge of the plot
-      x = 0.60,
+      x = 0.62,  #0.60
       #'  Distance along a (0,1) y-axis to draw the bottom edge of the plot
-      y = 0.52,
+      y = 0.50, # 0.52
       #'  Width & height of the plot expressed as proportion of the entire ggdraw object
       #'  THIS DEPENDS ON HOW BIG YOUR PLOT WINDOW IS TOO!!!!
-      width = 0.37,
-      height = 0.45) 
+      width = 0.40, #0.37
+      height = 0.52)  #0.45
   plot(Full_Map)
   dev.off()
   
