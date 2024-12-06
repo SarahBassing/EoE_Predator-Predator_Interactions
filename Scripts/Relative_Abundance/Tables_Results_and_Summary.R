@@ -83,7 +83,7 @@
   write_csv(mean_params, "./Outputs/Relative_Abundance/RN_model/Tables/RN_mean_lambda_table.csv")
   
   #'  --------------------------------------------
-  ####  All coefficient estiamtes in long format  ####
+  ####  All coefficient estimates in long format  ####
   #'  --------------------------------------------
   mod_out_summary_table <- function(mod, spp, yr) {
     #'  Retain & reformat model coefficients and mean derived parameters (r, lambda, psi)
