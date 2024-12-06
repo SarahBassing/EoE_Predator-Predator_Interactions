@@ -217,7 +217,7 @@
                                  output = y,
                                  includeEffort = TRUE,
                                  scaleEffort = FALSE,
-                                 outDir = "./Data/MultiSpp_OccMod_Outputs/Detection_Histories")
+                                 outDir = "./Data/Side_quests/Hilger")
     
     #'  Reduce detection histories to sampling occasions of interest (drop extra
     #'  occasions after focal period of interest)
@@ -381,6 +381,9 @@
   save(DH_wtd_list, file = "./Data/Side_quests/Hilger/DH_wtd_RNmod.RData")
   
   #'  Seasonal camera station data
+  save(station_elk_list, file = "./Data/Side_quests/Hilger/stacked_stations_elk_july_aug.RData")
+  save(station_wtd_list, file = "./Data/Side_quests/Hilger/stacked_stations_wtd_july_aug.RData")
+  
   save(stations_elk_eoe20s, file = "./Data/Side_quests/Hilger/stations_elk_eoe20s.RData")
   save(stations_elk_eoe21s, file = "./Data/Side_quests/Hilger/stations_elk_eoe21s.RData")
   save(stations_elk_eoe22s, file = "./Data/Side_quests/Hilger/stations_elk_eoe22s.RData")
@@ -445,11 +448,11 @@
   ninit_wtd <- lapply(DH_wtd_list, initial_n)
   
   #'  Parameters monitored
-  params <- c("beta0", "b.year", "alpha0", "a.setup", "lambda",
+  params <- c("beta0", "b.year", "alpha0", "a.setup", "mu.lambda",
               "b.meanTbio", "b.maxTbio", "b.cvTbio", 
               "b.meanHQ", "b.maxHQ", "b.cvHQ", 
               "b.selected", "b.predicted", "b.prop.selected", 
-              "rSetup", "mu.r", "mean.p", "N", "log_N", "loglike.new")
+              "rSetup", "mu.r", "mean.p", "N", "log_N", "loglike.new", "lambda")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept based on reference category, i.e., mean lambda for 2020 
   #'  mean.r = the intercept based on reference category, i.e., per-individual detection probability at random sites
@@ -525,7 +528,7 @@
   print(RN_elk_july_null$DIC)
   which(RN_elk_july_null$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_null$samples)
-  save(RN_elk_july_null, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_null.RData")
+  save(RN_elk_july_null, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_null2.RData")
   
   ######  Univariate models ######  
   #'  Mean HQ 
@@ -624,7 +627,7 @@
   (RN_elk_july_selected_WAICs <- calc.jointlike(RN_elk_july_selected))
   print(RN_elk_july_selected$DIC)
   which(RN_elk_july_selected$summary[,"Rhat"] > 1.1)
-  save(RN_elk_july_selected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_selected.RData")
+  save(RN_elk_july_selected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_selected2.RData")
   
   #'  Total Predicted 
   start.time = Sys.time()
@@ -716,7 +719,7 @@
   print(RN_elk_july_selected.propSelected$DIC)
   which(RN_elk_july_selected.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_selected.propSelected$samples)
-  save(RN_elk_july_selected.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_selected.propSelected.RData")
+  save(RN_elk_july_selected.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_selected.propSelected2.RData")
   
   #'  Predicted & Proportion Selected  
   start.time = Sys.time()
