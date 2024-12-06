@@ -88,6 +88,9 @@
           lambdaYr[yr] <- exp(beta0 + b.year[yr])
         }
      
+        #'  Mean lambda
+        mu.lambda <- mean(lambda[])  
+      
         #'  Mean per-individual detection probability (r) per camera setup
         for(cam in 1:nsets) {
           rSetup[cam] <- 1/(1 + exp(-(alpha0 + a.setup[cam])))

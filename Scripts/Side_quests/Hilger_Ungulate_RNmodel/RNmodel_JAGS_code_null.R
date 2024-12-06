@@ -70,7 +70,8 @@
           
         #'  Derived parameters
         #'  ------------------
-        #' #'  Mean lambda
+        #'  Mean lambda
+        mu.lambda <- lambda
         #' lambda <- exp(beta0)
   
         #' #'  Mean per-individual detection probability (r) per camera setup
