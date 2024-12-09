@@ -261,6 +261,22 @@
   DH_eoe21s_RNmod <- lapply(DHeff_eoe21s_RNmod, strip_list)
   DH_eoe22s_RNmod <- lapply(DHeff_eoe22s_RNmod, strip_list) 
   
+  #'  Grab effort for each season (will be same for both species)
+  grab_effort <- function(dh) {
+    #'  Keep only effort
+    effort_only <- dh[[2]]
+    effort_july <- effort_only[,1:31]
+    effort_august <- effort_only[,32:62]
+    july_nDays <- rowSums(effort_july, na.rm = TRUE)
+    august_nDays <- rowSums(effort_august, na.rm = TRUE)
+    effort <- bind_cols(july_nDays, august_nDays) %>% as.data.frame(.)
+    names(effort) <- c("July_nDays", "August_nDays")
+    return(effort)
+  }
+  Effort_eoe20s_RNmod <- grab_effort(DHeff_eoe20s_RNmod[[1]])
+  Effort_eoe21s_RNmod <- grab_effort(DHeff_eoe21s_RNmod[[1]])
+  Effort_eoe22s_RNmod <- grab_effort(DHeff_eoe22s_RNmod[[1]])
+  
   #'  Snag rownames per annaul DH for each species (helpful for reporting results later on)
   grab_location_id <- function(dh, yr) {
     locs <- rownames(dh)
@@ -387,10 +403,20 @@
   
   #####  Save!  #####
   #'  ----------
+  #'  Unique detection events
+  save(eoe20s_det_events, file = "./Data/Side_quests/Hilger/DetectionEvents_eoe20s.RData")
+  save(eoe21s_det_events, file = "./Data/Side_quests/Hilger/DetectionEvents_eoe21s.RData")
+  save(eoe22s_det_events, file = "./Data/Side_quests/Hilger/DetectionEvents_eoe22s.RData")
+  
   #'  Seasonal detection histories
   save(DH_eoe20s_RNmod, file = "./Data/Side_quests/Hilger/DH_eoe20s_RNmod.RData")
   save(DH_eoe21s_RNmod, file = "./Data/Side_quests/Hilger/DH_eoe21s_RNmod.RData")
   save(DH_eoe22s_RNmod, file = "./Data/Side_quests/Hilger/DH_eoe22s_RNmod.RData")
+  
+  #'  Save sampling effort
+  save(Effort_eoe20s_RNmod, file = "./Data/Side_quests/Hilger/Effort_eoe20s_RNmod.RData")
+  save(Effort_eoe21s_RNmod, file = "./Data/Side_quests/Hilger/Effort_eoe21s_RNmod.RData")
+  save(Effort_eoe22s_RNmod, file = "./Data/Side_quests/Hilger/Effort_eoe22s_RNmod.RData")
   
   #'  Stacked detection histories (all years per species and month)
   save(DH_elk_list, file = "./Data/Side_quests/Hilger/DH_elk_RNmod.RData")
@@ -473,8 +499,8 @@
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept based on reference category, i.e., mean lambda for 2020 
   #'  mean.r = the intercept based on reference category, i.e., per-individual detection probability at random sites
-  #'  mu.lambda = lambda averaged across all GMUs
-  #'  mu.r = per-individual detection probability averaged across all sites 
+  #'  mu.lambda = lambda averaged across all years (and GMUs)
+  #'  mu.r = per-individual detection probability averaged across all sites and years 
   
   #'  MCMC settings
   nc <- 3
