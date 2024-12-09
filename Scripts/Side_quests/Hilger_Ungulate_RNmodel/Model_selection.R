@@ -107,10 +107,14 @@
   #'  sense to stick with WAIC that focuses on the abundance side of the submodel
   
   #'  Snag most supported models (all models within 2 deltaWAIC of top)
-  elk_july_topmods <- list(elk_july_mods[[5]], elk_july_mods[[1]], elk_july_mods[[4]])
-  elk_aug_topmods <- list(elk_aug_mods[[11]], elk_aug_mods[[15]], elk_aug_mods[[4]], elk_aug_mods[[5]])
-  wtd_july_topmods <- list(wtd_july_mods[[16]])
-  wtd_aug_topmods <- list(wtd_aug_mods[[1]], wtd_aug_mods[[13]])
+  elk_july_topmods <- list(elk_july_mods$RN_elk_july_null, elk_july_mods$RN_elk_july_selected)
+  elk_aug_topmods <- list(elk_aug_mods$RN_elk_aug_null, elk_aug_mods$RN_elk_aug_predicted.propSelected)
+  wtd_july_topmods <- list(wtd_july_mods$RN_wtd_july_global1)
+  wtd_aug_topmods <- list(wtd_aug_mods$RN_wtd_aug_global1, wtd_aug_mods$RN_wtd_aug_predicted.propSelected)
+  # elk_july_topmods <- list(elk_july_mods[[5]], elk_july_mods[[1]], elk_july_mods[[4]])
+  # elk_aug_topmods <- list(elk_aug_mods[[11]], elk_aug_mods[[15]], elk_aug_mods[[4]], elk_aug_mods[[5]])
+  # wtd_july_topmods <- list(wtd_july_mods[[16]])
+  # wtd_aug_topmods <- list(wtd_aug_mods[[1]], wtd_aug_mods[[13]])
   
   #'  Save top models
   save(elk_july_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/elk_july_topmods.RData")
