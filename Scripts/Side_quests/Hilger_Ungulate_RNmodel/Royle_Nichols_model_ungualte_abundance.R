@@ -261,6 +261,22 @@
   DH_eoe21s_RNmod <- lapply(DHeff_eoe21s_RNmod, strip_list)
   DH_eoe22s_RNmod <- lapply(DHeff_eoe22s_RNmod, strip_list) 
   
+  #'  Snag rownames per annaul DH for each species (helpful for reporting results later on)
+  grab_location_id <- function(dh, yr) {
+    locs <- rownames(dh)
+    locs <- as.data.frame(locs)
+    names(locs) <- "NewLocationID"
+    locs$Season <- yr
+    return(locs)
+  }
+  locs_eoe20s <- lapply(DH_eoe20s_RNmod, grab_location_id, yr = "Smr20")#; save(locs_eoe20s, file = "./Data/Side_quests/Hilger/DH_rownames_eoe20s.RData")
+  locs_eoe21s <- lapply(DH_eoe21s_RNmod, grab_location_id, yr = "Smr21")#; save(locs_eoe21s, file = "./Data/Side_quests/Hilger/DH_rownames_eoe21s.RData")
+  locs_eoe22s <- lapply(DH_eoe22s_RNmod, grab_location_id, yr = "Smr22")#; save(locs_eoe22s, file = "./Data/Side_quests/Hilger/DH_rownames_eoe22s.RData")
+  stacked_rownames_elk <- bind_rows(locs_eoe20s[[1]], locs_eoe21s[[1]], locs_eoe22s[[1]])
+  stacked_rownames_wtd <- bind_rows(locs_eoe20s[[2]], locs_eoe21s[[2]], locs_eoe22s[[2]])
+  save(stacked_rownames_elk, file = "./Data/Side_quests/Hilger/stacked_rownames_elk.RData")
+  save(stacked_rownames_wtd, file = "./Data/Side_quests/Hilger/stacked_rownames_wtd.RData")
+  
   #'  Split by month
   split_DH <- function(dh) {
     july <- dh[,1:31]
@@ -448,11 +464,12 @@
   ninit_wtd <- lapply(DH_wtd_list, initial_n)
   
   #'  Parameters monitored
-  params <- c("beta0", "b.year", "alpha0", "a.setup", "mu.lambda",
+  params <- c("beta0", "b.year", "alpha0", "a.setup", 
               "b.meanTbio", "b.maxTbio", "b.cvTbio", 
               "b.meanHQ", "b.maxHQ", "b.cvHQ", 
-              "b.selected", "b.predicted", "b.prop.selected", 
-              "rSetup", "mu.r", "mean.p", "N", "log_N", "loglike.new", "lambda")
+              "b.selected", "b.predicted", "b.prop.selected",
+              "mu.lambda", "lambdaYr", "rSetup", "mu.r", "mean.p", 
+              "N", "log_N", "loglike.new")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept based on reference category, i.e., mean lambda for 2020 
   #'  mean.r = the intercept based on reference category, i.e., per-individual detection probability at random sites
@@ -528,7 +545,7 @@
   print(RN_elk_july_null$DIC)
   which(RN_elk_july_null$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_null$samples)
-  save(RN_elk_july_null, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_null2.RData")
+  save(RN_elk_july_null, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_null.RData")
   
   ######  Univariate models ######  
   #'  Mean HQ 
@@ -627,7 +644,7 @@
   (RN_elk_july_selected_WAICs <- calc.jointlike(RN_elk_july_selected))
   print(RN_elk_july_selected$DIC)
   which(RN_elk_july_selected$summary[,"Rhat"] > 1.1)
-  save(RN_elk_july_selected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_selected2.RData")
+  save(RN_elk_july_selected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_selected.RData")
   
   #'  Total Predicted 
   start.time = Sys.time()
@@ -719,7 +736,7 @@
   print(RN_elk_july_selected.propSelected$DIC)
   which(RN_elk_july_selected.propSelected$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_july_selected.propSelected$samples)
-  save(RN_elk_july_selected.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_selected.propSelected2.RData")
+  save(RN_elk_july_selected.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods/RN_elk_july_selected.propSelected.RData")
   
   #'  Predicted & Proportion Selected  
   start.time = Sys.time()
