@@ -48,14 +48,14 @@
     distinct()
   
   #'  Load forage data for elk
-  file_paths_elk <- list.files(path = "./Data/side_quests/Hilger/Ungulate density covariates kg_ha/Elk", pattern = "\\.rds", full.names = TRUE)
-  file_names_elk <- gsub(pattern = "\\.rds$", replacement = "", x = basename(file_paths_elk))
+  file_paths_elk <- list.files(path = "./Data/side_quests/Hilger/Ungulate density covariates kg_ha/Elk", pattern = "\\.RDS", full.names = TRUE)
+  file_names_elk <- gsub(pattern = "\\.RDS$", replacement = "", x = basename(file_paths_elk))
   forage_list_elk <- lapply(file_paths_elk, readRDS)
   names(forage_list_elk) <- c("Elk2020_kg_ha", "Elk2021_kg_ha", "Elk2022_kg_ha")
   
   #'  Load forage data for white-tailed deer
-  file_paths_wtd <- list.files(path = "./Data/side_quests/Hilger/Ungulate density covariates kg_ha/WTD", pattern = "\\.rds", full.names = TRUE)
-  file_names_wtd <- gsub(pattern = "\\.rds$", replacement = "", x = basename(file_paths_wtd))
+  file_paths_wtd <- list.files(path = "./Data/side_quests/Hilger/Ungulate density covariates kg_ha/WTD", pattern = "\\.RDS", full.names = TRUE)
+  file_names_wtd <- gsub(pattern = "\\.RDS$", replacement = "", x = basename(file_paths_wtd))
   forage_list_wtd <- lapply(file_paths_wtd, readRDS)
   names(forage_list_wtd) <- c("WTD2020_kg_ha", "WTD2021_kg_ha", "WTD2022_kg_ha")
   head(forage_list_wtd[[1]])
@@ -106,7 +106,13 @@
   
   #'  Merge sitecovs and forage data per species and year
   join_covs <- function(sitecovs, numnumcovs) {
-    covs <- full_join(sitecovs, numnumcovs, by = c("NewLocationID" = "original_id"))
+    numnumcovs_by_month <- numnumcovs %>%
+      mutate(Month = ifelse(Month == "07", "july", "august")) %>%
+      pivot_wider(names_from = Month, values_from = c(mean_HQBio_kg, max_HQBio_kg,
+                                                      cv_HQBio_kg, mean_TBio_kg, 
+                                                      max_TBio_kg, cv_TBio_kg, 
+                                                      selected, total, prop_selected))   
+    covs <- full_join(sitecovs, numnumcovs_by_month, by = c("NewLocationID" = "original_id"))
     return(covs)
   }
   covs_elk_20s <- join_covs(sitecovs_20s, forage_list_elk[[1]])
@@ -290,8 +296,8 @@
   locs_eoe22s <- lapply(DH_eoe22s_RNmod, grab_location_id, yr = "Smr22")#; save(locs_eoe22s, file = "./Data/Side_quests/Hilger/DH_rownames_eoe22s.RData")
   stacked_rownames_elk <- bind_rows(locs_eoe20s[[1]], locs_eoe21s[[1]], locs_eoe22s[[1]])
   stacked_rownames_wtd <- bind_rows(locs_eoe20s[[2]], locs_eoe21s[[2]], locs_eoe22s[[2]])
-  save(stacked_rownames_elk, file = "./Data/Side_quests/Hilger/stacked_rownames_elk.RData")
-  save(stacked_rownames_wtd, file = "./Data/Side_quests/Hilger/stacked_rownames_wtd.RData")
+  # save(stacked_rownames_elk, file = "./Data/Side_quests/Hilger/stacked_rownames_elk.RData")
+  # save(stacked_rownames_wtd, file = "./Data/Side_quests/Hilger/stacked_rownames_wtd.RData")
   
   #'  Split by month
   split_DH <- function(dh) {
@@ -360,28 +366,20 @@
   station_stack_wtd <- rbind(stations_wtd_eoe20s, stations_wtd_eoe21s, stations_wtd_eoe22s)
   
   #'  Seasonal stacked data
-  station_stack_elk_july <- station_stack_elk %>% dplyr::select(-c("mean_Tbio_august_kg_ha", "max_Tbio_august_kg_ha", "cv_Tbio_august", "mean_HQ_august", "max_HQ_august", "cv_HQ_august")) %>%
+  station_stack_elk_july <- station_stack_elk %>% dplyr::select(-contains("_august")) %>%
     #'  Remove the month identifier in each column so covariate names are identical across data sets
-    rename_at(vars(matches("_july")), ~ str_remove(., "_july")) %>%
-    rename_at(vars(matches("july")), ~ str_remove(., "july")) %>%
-    rename_at(vars(matches("_elk")), ~ str_remove(., "_elk"))
-  station_stack_elk_aug <- station_stack_elk %>% dplyr::select(-c("mean_Tbio_july_kg_ha", "max_Tbio_july_kg_ha", "cv_Tbio_july", "mean_HQ_july", "max_HQ_july", "cv_HQ_july")) %>%
+    rename_at(vars(matches("_july")), ~ str_remove(., "_july")) 
+  station_stack_elk_aug <- station_stack_elk %>% dplyr::select(-contains("_july")) %>%
     #'  Remove the month identifier in each column so covariate names are identical across data sets
-    rename_at(vars(matches("_august")), ~ str_remove(., "_august")) %>%
-    rename_at(vars(matches("august")), ~ str_remove(., "august")) %>%
-    rename_at(vars(matches("_elk")), ~ str_remove(., "_elk"))
+    rename_at(vars(matches("_august")), ~ str_remove(., "_august")) 
   station_elk_list <- list(station_stack_elk_july, station_stack_elk_aug)
   
-  station_stack_wtd_july <- station_stack_wtd %>% dplyr::select(-c("mean_Tbio_august_kg_ha", "max_Tbio_august_kg_ha", "cv_Tbio_august", "mean_HQ_august", "max_HQ_august", "cv_HQ_august")) %>%
+  station_stack_wtd_july <- station_stack_wtd %>% dplyr::select(-contains("_august")) %>%
     #'  Remove the month identifier in each column so covariate names are identical across data sets
-    rename_at(vars(matches("_july")), ~ str_remove(., "_july")) %>%
-    rename_at(vars(matches("july")), ~ str_remove(., "july"))%>%
-    rename_at(vars(matches("_deer")), ~ str_remove(., "_deer"))
-  station_stack_wtd_aug <- station_stack_wtd %>% dplyr::select(-c("mean_Tbio_july_kg_ha", "max_Tbio_july_kg_ha", "cv_Tbio_july", "mean_HQ_july", "max_HQ_july", "cv_HQ_july")) %>%
+    rename_at(vars(matches("_july")), ~ str_remove(., "_july")) 
+  station_stack_wtd_aug <- station_stack_wtd %>% dplyr::select(-contains("_july")) %>%
     #'  Remove the month identifier in each column so covariate names are identical across data sets
-    rename_at(vars(matches("_august")), ~ str_remove(., "_august")) %>%
-    rename_at(vars(matches("august")), ~ str_remove(., "august"))%>%
-    rename_at(vars(matches("_deer")), ~ str_remove(., "_deer"))
+    rename_at(vars(matches("_august")), ~ str_remove(., "_august")) 
   station_wtd_list <- list(station_stack_wtd_july, station_stack_wtd_aug)
   
   #'  Double check things are ordered correctly!!!!
@@ -397,9 +395,9 @@
     return(corr_all)
   }
   corr_matrix(station_stack_elk_july, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.89), mean & max HQ (0.77), and total predicted & total selected (0.77) 
-  corr_matrix(station_stack_elk_aug, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.90), mean & max HQ (0.74), and total predicted & total selected (0.77) 
-  corr_matrix(station_stack_wtd_july, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.91), mean & max HQ (0.87), cv Tbio & cv HQ (0.69), and total predicted & total selected (0.79) 
-  corr_matrix(station_stack_wtd_aug, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.91), mean & max HQ (0.86), cv Tbio & cv HQ (0.69), and total predicted & total selected (0.79) 
+  corr_matrix(station_stack_elk_aug, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.89), mean & max HQ (0.74), and total predicted & total selected (0.77) 
+  corr_matrix(station_stack_wtd_july, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.92), mean & max HQ (0.86), cv Tbio & cv HQ (0.66), and total predicted & total selected (0.79) 
+  corr_matrix(station_stack_wtd_aug, firstcol = 5, lastcol = 15) # Mean & max Tbio (0.91), mean & max HQ (0.85), cv Tbio & cv HQ (0.68), and total predicted & total selected (0.79) 
   
   #####  Save!  #####
   #'  ----------
