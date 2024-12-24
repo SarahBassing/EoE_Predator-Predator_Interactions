@@ -460,15 +460,15 @@
                     year = as.numeric(cov$Season, levels = c("Smr20", "Smr21", "Smr22")),
                     elev = as.numeric(scale(cov$elev)),
                     forest = as.numeric(scale(cov$perc_forest)),
-                    mean_Tbio = as.numeric(scale(cov$mean_Tbio_kg_ha)),
-                    max_Tbio = as.numeric(scale(cov$max_Tbio_kg_ha)),
-                    cv_Tbio = as.numeric(scale(cov$cv_Tbio)),
-                    mean_HQ = as.numeric(scale(cov$mean_HQ)),
-                    max_HQ = as.numeric(scale(cov$max_HQ)),
-                    cv_HQ = as.numeric(scale(cov$cv_HQ)),
-                    total_selected = as.numeric(scale(cov$total_selected_species)),
-                    total_predicted = as.numeric(scale(cov$total_predicted_species)),
-                    prop_selected = as.numeric(scale(cov$prop_selected_species_weighted)))
+                    mean_Tbio = as.numeric(scale(cov$mean_TBio_kg)),
+                    max_Tbio = as.numeric(scale(cov$max_TBio_kg)),
+                    cv_Tbio = as.numeric(scale(cov$cv_TBio_kg)),
+                    mean_HQ = as.numeric(scale(cov$mean_HQBio_kg)),
+                    max_HQ = as.numeric(scale(cov$max_HQBio_kg)),
+                    cv_HQ = as.numeric(scale(cov$cv_TBio_kg)),
+                    total_selected = as.numeric(scale(cov$selected)),
+                    total_predicted = as.numeric(scale(cov$total)),
+                    prop_selected = as.numeric(scale(cov$prop_selected)))
     str(bundled)
     return(bundled)
   }
