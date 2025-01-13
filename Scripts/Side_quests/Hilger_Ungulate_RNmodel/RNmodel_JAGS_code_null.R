@@ -67,6 +67,25 @@
           loglike.new[i] <- sum(loglike.waic[i,])+log_N[i]
       
         }
+        
+        #' #'  Goodness-of-Fit test (code adapted from Mike Meredith: https://github.com/mikemeredith/AHM_code/blob/main/AHM1_ch06/AHM1_06.08.R)
+        #' #' Posterior predictive distributions of chi2 discrepancy
+        #' for (i in 1:M) {
+        #'   for (j in 1:J) {
+        #'     C.sim[i,j] ~ dbin(p, N[i]) # Create new data set under model
+        #'     e.count[i,j] <- N[i] * p   # Expected datum
+        #'     # Chi-square discrepancy for the actual data
+        #'     chi2.actual[i,j] <- pow((C[i,j]-e.count[i,j]),2) / (e.count[i,j]+e)
+        #'     # Chi-square discrepancy for the simulated ('perfect') data
+        #'     chi2.sim[i,j] <- pow((C.sim[i,j]-e.count[i,j]),2) / (e.count[i,j]+e)
+        #'     # Add small value e to denominator to avoid division by zero
+        #'   }
+        #' }
+        #' # Add up individual chi2 values for overall fit statistic
+        #' fit.actual <- sum(chi2.actual[,])  # Fit statistic for actual data set
+        #' fit.sim <- sum(chi2.sim[,])        # Fit statistic for a fitting model
+        #' c.hat <- fit.actual / fit.sim      # c-hat estimate
+        #' bpv <- step(fit.sim-fit.actual)    # Bayesian p-value
           
         #'  Derived parameters
         #'  ------------------
