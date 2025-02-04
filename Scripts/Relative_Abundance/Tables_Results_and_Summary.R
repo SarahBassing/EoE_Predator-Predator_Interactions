@@ -181,15 +181,27 @@
   mean(ndays)
   sd(ndays)/sqrt(length(ndays))
   
+  #'  Species list
+  spp_list <- names(DH_npp20s_RNmod)
+  
   #'  Average number of detection events per species of interest
-  dets_20s <- mutate(npp20s_det_events, Year = "2020")
-  dets_21s <- mutate(npp21s_det_events, Year = "2021")
-  dets_22s <- mutate(npp22s_det_events, Year = "2022")
+  seasonal_dets <- function(DH, spp, yr) {
+    dh <- DH %>%
+      replace(is.na(.), 0) %>%
+      mutate(ndets = rowSums(across(where(is.numeric))),
+             Species = spp,
+             Year = yr) %>%
+      dplyr::select(Species, Year, ndets)
+    return(dh)
+  }
+  dets_20s <- mapply(seasonal_dets, DH = DH_npp20s_RNmod, spp = spp_list, yr = "2020", SIMPLIFY = FALSE) %>% bind_rows()
+  dets_21s <- mapply(seasonal_dets, DH = DH_npp21s_RNmod, spp = spp_list, yr = "2021", SIMPLIFY = FALSE) %>% bind_rows()
+  dets_22s <- mapply(seasonal_dets, DH = DH_npp22s_RNmod, spp = spp_list, yr = "2022", SIMPLIFY = FALSE) %>% bind_rows()
   dets <- bind_rows(dets_20s, dets_21s, dets_22s) %>%
     filter(Species == "bear_black" | Species == "coyote" | Species == "mountain_lion" | Species == "wolf" | 
              Species == "elk" | Species == "moose" | Species == "whitetaileddeer") %>%
     group_by(Species, Year) %>%
-    summarise(ndets = n()) %>%
+    summarise(ndets = sum(ndets)) %>%
     ungroup() %>%
     mutate(Species = ifelse(Species == "bear_black", "Black bear", Species),
            Species = ifelse(Species == "coyote", "Coyote", Species), 
@@ -198,6 +210,22 @@
            Species = ifelse(Species == "elk", "Elk", Species), 
            Species = ifelse(Species == "moose", "Moose", Species), 
            Species = ifelse(Species == "whitetaileddeer", "White-tailed deer", Species))
+  # dets_20s <- mutate(npp20s_det_events, Year = "2020")
+  # dets_21s <- mutate(npp21s_det_events, Year = "2021")
+  # dets_22s <- mutate(npp22s_det_events, Year = "2022")
+  # dets2 <- bind_rows(dets_20s, dets_21s, dets_22s) %>%
+  #   filter(Species == "bear_black" | Species == "coyote" | Species == "mountain_lion" | Species == "wolf" | 
+  #            Species == "elk" | Species == "moose" | Species == "whitetaileddeer") %>%
+  #   group_by(Species, Year) %>%
+  #   summarise(ndets = n()) %>%
+  #   ungroup() %>%
+  #   mutate(Species = ifelse(Species == "bear_black", "Black bear", Species),
+  #          Species = ifelse(Species == "coyote", "Coyote", Species), 
+  #          Species = ifelse(Species == "mountain_lion", "Mountain lion", Species), 
+  #          Species = ifelse(Species == "wolf", "Wolf", Species),
+  #          Species = ifelse(Species == "elk", "Elk", Species), 
+  #          Species = ifelse(Species == "moose", "Moose", Species), 
+  #          Species = ifelse(Species == "whitetaileddeer", "White-tailed deer", Species))
     
   #'  -----------------------------
   #####  Summarize detection data  ####
@@ -256,12 +284,14 @@
   (mean_dets <- mean(DH_summary$`Total detection events`))
   (se_dets <- sd(DH_summary$`Total detection events`)/sqrt(nrow(DH_summary)))
   
-  DH_pred <- DH_summary[DH_summary$Species == "Black bear" | DH_summary$Species == "Coyote" | DH_summary$Species == "Mountain lion" | DH_summary$Species == "Wolf",]
-  (mean_dets_pred <- mean(DH_pred$`Total detection events`))
-  (se_dets_pred <- sd(DH_pred$`Total detection events`)/sqrt(nrow(DH_pred)))
-  DH_prey <- DH_summary[DH_summary$Species == "Elk" | DH_summary$Species == "Moose" | DH_summary$Species == "White-tailed Deer",]
-  (mean_dets_prey <- mean(DH_prey$`Total detection events`))
-  (se_dets_prey <- sd(DH_prey$`Total detection events`)/sqrt(nrow(DH_prey)))
+  # DH_pred <- DH_summary[DH_summary$Species == "Black bear" | DH_summary$Species == "Coyote" | DH_summary$Species == "Mountain lion" | DH_summary$Species == "Wolf",]
+  DH_pred <- dets[dets$Species == "Black bear" | dets$Species == "Coyote" | dets$Species == "Mountain lion" | dets$Species == "Wolf",]
+  (mean_dets_pred <- mean(DH_pred$ndets)) #`Total detection events`
+  (se_dets_pred <- sd(DH_pred$ndets)/sqrt(nrow(DH_pred))) #`Total detection events`
+  # DH_prey <- DH_summary[DH_summary$Species == "Elk" | DH_summary$Species == "Moose" | DH_summary$Species == "White-tailed Deer",]
+  DH_prey <- dets[dets$Species == "Elk" | dets$Species == "Moose" | dets$Species == "White-tailed deer",]
+  (mean_dets_prey <- mean(DH_prey$ndets)) #`Total detection events`
+  (se_dets_prey <- sd(DH_prey$ndets)/sqrt(nrow(DH_prey))) #`Total detection events`
   
   
   #'  Save!
