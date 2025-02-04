@@ -128,6 +128,8 @@
   
   #####  Map #2  #####
   #'  Study area colors
+  eoe_gmu_wgs84 <- mutate(eoe_gmu_wgs84, NAME = as.factor(NAME),
+                          NAME = factor(NAME, levels = c("1", "6", "10A")))
   eoe_color <- c("darkcyan", "lightcoral", "darkgoldenrod3")
   
   #'  Plot study areas within Idaho
