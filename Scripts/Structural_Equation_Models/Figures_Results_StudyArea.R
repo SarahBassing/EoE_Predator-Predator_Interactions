@@ -219,6 +219,7 @@
   
   
   (rn_maps_wolf_refined <- rn_maps_wolf + 
+      scale_size_continuous(breaks = c(0,1, 2, 5, 7), range = c(0,7)) +
       guides(colour = "none", fill = "none") + ggtitle(NULL) + 
       labs(subtitle = "b") +
       theme(legend.title = element_text(size = 12), 
