@@ -56,7 +56,8 @@
     #'  Filter images to focal species and time period of interest
     clean_dets <- skinny_dets %>%
       filter(Species == "bear_black" | Species == "bobcat" | Species == "coyote" |
-               Species == "mountain_lion" | Species == "wolf") %>%
+               Species == "mountain_lion" | Species == "wolf" | Species == "elk" |
+               Species == "moose" | Species == "muledeer" | Species == "whitetaileddeer") %>%
       #'  Add count = 1 for species missing count data 
       mutate(Count = ifelse(Count == 0, 1, Count),
              Count = ifelse(is.na(Count), 1, Count),
@@ -91,7 +92,9 @@
       #'  Retain only the first image from each unique detection event
       group_by(NewLocationID, Species, det_events) %>%
       slice(1L) %>%
-      ungroup()
+      ungroup() %>%
+      #'  Merge both deer species into single deer category
+      mutate(Species = ifelse(Species == "muledeer" | Species == "whitetaileddeer", "deer", Species))
     
     return(det_events)
   }
@@ -175,7 +178,7 @@
     return(dh_list)
   }
   #'  Create season-specific detection histories for species listed below
-  spp_smr <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf")
+  spp_smr <- list("bear_black", "bobcat", "coyote", "mountain_lion", "wolf", "elk", "moose", "deer")
   DHeff_eoe20s_RNmod <- lapply(spp_smr, DH, dets = eoe20s_det_events, cam_probs = eoe20s_probs, start_date = "2020-06-01", y = "binary", oc = 92) 
   DHeff_eoe21s_RNmod <- lapply(spp_smr, DH, dets = eoe21s_det_events, cam_probs = eoe21s_probs, start_date = "2021-06-01", y = "binary", oc = 92)
   DHeff_eoe22s_RNmod <- lapply(spp_smr, DH, dets = eoe22s_det_events, cam_probs = eoe22s_probs, start_date = "2022-06-01", y = "binary", oc = 92)
@@ -232,9 +235,9 @@
   #####  Save!  #####
   #'  ----------
   #'  Seasonal detection histories
-  save(DH_eoe20s_RNmod, file = "./Data/Side_quests/Painter/DH_eoe20s_RNmod.RData")
-  save(DH_eoe21s_RNmod, file = "./Data/Side_quests/Painter/DH_eoe21s_RNmod.RData")
-  save(DH_eoe22s_RNmod, file = "./Data/Side_quests/Painter/DH_eoe22s_RNmod.RData")
+  save(DH_eoe20s_RNmod, file = "./Data/Side_quests/Painter/DH_eoe20s_RNmod_pred_and_prey.RData")
+  save(DH_eoe21s_RNmod, file = "./Data/Side_quests/Painter/DH_eoe21s_RNmod_pred_and_prey.RData")
+  save(DH_eoe22s_RNmod, file = "./Data/Side_quests/Painter/DH_eoe22s_RNmod_pred_and_prey.RData")
   
   #'  Seasonal camera station data
   save(stations_eoe20s, file = "./Data/Side_quests/Painter/stations_eoe20s.RData")
@@ -375,6 +378,46 @@
   mcmcplot(RN_wolf_20s$samples)
   save(RN_wolf_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_wolf_20s_", Sys.Date(), ".RData")) 
   
+  #'  ELK JUNE-AUG 2020
+  start.time = Sys.time()
+  inits_elk20s <- function(){list(N = ninit_20s[[6]])}
+  RN_elk_20s <- jags(data_JAGS_bundle_20s[[6]], inits = inits_elk20s, params,
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2020.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_20s$summary)
+  which(RN_elk_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_20s$samples)
+  save(RN_elk_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_elk_20s_", Sys.Date(), ".RData")) 
+  
+  #'  MOOSE JUNE-AUG 2020
+  start.time = Sys.time()
+  inits_moose20s <- function(){list(N = ninit_20s[[7]])}
+  RN_moose_20s <- jags(data_JAGS_bundle_20s[[7]], inits = inits_moose20s, params,
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2020.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_moose_20s$summary)
+  which(RN_moose_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_moose_20s$samples)
+  save(RN_moose_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_moose_20s_", Sys.Date(), ".RData")) 
+  
+  #'  DEER JUNE-AUG 2020
+  ni_deer <- 200000
+  start.time = Sys.time()
+  inits_deer20s <- function(){list(N = ninit_20s[[8]])}
+  RN_deer_20s <- jags(data_JAGS_bundle_20s[[8]], inits = inits_deer20s, params,
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2020.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_deer, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_deer_20s$summary)
+  which(RN_deer_20s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_deer_20s$samples)
+  save(RN_deer_20s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_deer_20s_", Sys.Date(), ".RData")) 
+  
   #'  ---------------------------
   ######  2021 & 2022  Analyses  ######
   #'  ---------------------------
@@ -512,16 +555,100 @@
   mcmcplot(RN_wolf_22s$samples)
   save(RN_wolf_22s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_wolf_22s_", Sys.Date(), ".RData"))
   
+  #'  ELK JUNE-AUG 2021
+  start.time = Sys.time()
+  inits_elk21s <- function(){list(N = ninit_21s[[6]])}
+  RN_elk_21s <- jags(data_JAGS_bundle_21s[[6]], inits = inits_elk21s, params,
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_21s$summary)
+  which(RN_elk_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_21s$samples)
+  save(RN_elk_21s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_elk_21s_", Sys.Date(), ".RData"))
+  
+  #'  ELK JUNE-AUG 2022
+  start.time = Sys.time()
+  inits_elk22s <- function(){list(N = ninit_22s[[6]])}
+  RN_elk_22s <- jags(data_JAGS_bundle_22s[[6]], inits = inits_elk22s, params,
+                      "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_22s$summary)
+  which(RN_elk_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_22s$samples)
+  save(RN_elk_22s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_elk_22s_", Sys.Date(), ".RData"))
+  
+  #'  MOOSE JUNE-AUG 2021
+  start.time = Sys.time()
+  inits_moose21s <- function(){list(N = ninit_21s[[7]])}
+  RN_moose_21s <- jags(data_JAGS_bundle_21s[[7]], inits = inits_moose21s, params,
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_moose_21s$summary)
+  which(RN_moose_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_moose_21s$samples)
+  save(RN_moose_21s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_moose_21s_", Sys.Date(), ".RData"))
+  
+  #'  MOOSE JUNE-AUG 2022
+  start.time = Sys.time()
+  inits_moose22s <- function(){list(N = ninit_22s[[7]])}
+  RN_moose_22s <- jags(data_JAGS_bundle_22s[[7]], inits = inits_moose22s, params,
+                     "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_moose_22s$summary)
+  which(RN_moose_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_moose_22s$samples)
+  save(RN_moose_22s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_moose_22s_", Sys.Date(), ".RData"))
+  
+  #'  DEER JUNE-AUG 2021
+  ni_deer <- 200000
+  start.time = Sys.time()
+  inits_deer21s <- function(){list(N = ninit_21s[[8]])}
+  RN_deer_21s <- jags(data_JAGS_bundle_21s[[8]], inits = inits_deer21s, params,
+                       "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
+                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_deer, 
+                       n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_deer_21s$summary)
+  which(RN_deer_21s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_deer_21s$samples)
+  save(RN_deer_21s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_deer_21s_", Sys.Date(), ".RData"))
+  
+  #'  DEER JUNE-AUG 2022
+  start.time = Sys.time()
+  inits_deer22s <- function(){list(N = ninit_22s[[8]])}
+  RN_deer_22s <- jags(data_JAGS_bundle_22s[[8]], inits = inits_deer22s, params,
+                       "./Outputs/Painter_RNmodel/RNmodel_JAGS_code_2021&2022.txt",
+                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_deer, 
+                       n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_deer_22s$summary)
+  which(RN_deer_22s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_deer_22s$samples)
+  save(RN_deer_22s, file = paste0("./Outputs/Painter_RNmodel/JAGS_out/RN_deer_22s_", Sys.Date(), ".RData"))
+  
   #'  List and save model outputs together 
   rn_bear_list <- list(RN_bear_20s, RN_bear_21s, RN_bear_22s)
   rn_bob_list <- list(RN_bob_20s, RN_bob_21s, RN_bob_22s)
   rn_coy_list <- list(RN_coy_20s, RN_coy_21s, RN_coy_22s)
   rn_lion_list <- list(RN_lion_20s, RN_lion_21s, RN_lion_22s)
   rn_wolf_list <- list(RN_wolf_20s, RN_wolf_21s, RN_wolf_22s)
+  rn_elk_list <- list(RN_elk_20s, RN_elk_21s, RN_elk_22s)
+  rn_moose_list <- list(RN_moose_20s, RN_moose_21s, RN_moose_22s)
+  rn_deer_list <- list(RN_deer_20s, RN_deer_21s, RN_deer_22s)
   
   RN_model_outputs <- list(rn_bear_list, rn_bob_list, rn_coy_list, rn_lion_list, rn_wolf_list)
+  RN_model_outputs_ung <- list(rn_elk_list, rn_moose_list, rn_deer_list) 
   
   save(RN_model_outputs, file = "./Outputs/Painter_RNmodel/RN_model_outputs.RData")
+  save(RN_model_outputs_ung, file = "./Outputs/Painter_RNmodel/RN_model_outputs_ungulates.RData")
   
   
   #'  -----------------------------
@@ -563,17 +690,37 @@
   rn_coy_out <- mapply(estimated_N, rn_coy_list, dh = dh_list, spp = "coyote", SIMPLIFY = FALSE)
   rn_lion_out <- mapply(estimated_N, rn_lion_list, dh = dh_list, spp = "mountain_lion", SIMPLIFY = FALSE)
   rn_wolf_out <- mapply(estimated_N, rn_wolf_list, dh = dh_list, spp = "wolf", SIMPLIFY = FALSE)
+  rn_elk_out <- mapply(estimated_N, rn_elk_list, dh = dh_list, spp = "elk", SIMPLIFY = FALSE)
+  rn_moose_out <- mapply(estimated_N, rn_moose_list, dh = dh_list, spp = "moose", SIMPLIFY = FALSE)
+  rn_deer_out <- mapply(estimated_N, rn_deer_list, dh = dh_list, spp = "deer", SIMPLIFY = FALSE)
   
   #'  Create giant data frames of site-specific local abundance estimates
-  rn_2020 <- rbind(rn_bear_out[[1]], rn_bob_out[[1]], rn_coy_out[[1]], rn_lion_out[[1]], rn_wolf_out[[1]]) %>%
+  rn_2020 <- rbind(rn_bear_out[[1]], rn_bob_out[[1]], rn_coy_out[[1]], rn_lion_out[[1]], 
+                   rn_wolf_out[[1]], rn_elk_out[[1]], rn_moose_out[[1]], rn_deer_out[[1]]) %>%
     arrange(NewLocationID, Species) %>%
     mutate(season = "Smr20") %>%
     relocate(season, .after = Setup)
-  rn_2021 <- rbind(rn_bear_out[[2]], rn_bob_out[[2]], rn_coy_out[[2]], rn_lion_out[[2]], rn_wolf_out[[2]]) %>%
+  rn_2021 <- rbind(rn_bear_out[[2]], rn_bob_out[[2]], rn_coy_out[[2]], rn_lion_out[[2]], 
+                   rn_wolf_out[[2]], rn_elk_out[[2]], rn_moose_out[[2]], rn_deer_out[[2]]) %>%
     arrange(NewLocationID, Species) %>%
     mutate(season = "Smr21") %>%
     relocate(season, .after = Setup)
-  rn_2022 <- rbind(rn_bear_out[[3]], rn_bob_out[[3]], rn_coy_out[[3]], rn_lion_out[[3]], rn_wolf_out[[3]]) %>%
+  rn_2022 <- rbind(rn_bear_out[[3]], rn_bob_out[[3]], rn_coy_out[[3]], rn_lion_out[[3]], rn_wolf_out[[3]], 
+                   rn_elk_out[[3]], rn_moose_out[[3]], rn_deer_out[[3]]) %>%
+    arrange(NewLocationID, Species) %>%
+    mutate(season = "Smr22") %>%
+    relocate(season, .after = Setup)
+  
+  #'  Create giant data frames of site-specific local abundance estimates - UNGULATES ONLY
+  rn_2020_ung <- rbind(rn_elk_out[[1]], rn_moose_out[[1]], rn_deer_out[[1]]) %>%
+    arrange(NewLocationID, Species) %>%
+    mutate(season = "Smr20") %>%
+    relocate(season, .after = Setup)
+  rn_2021_ung <- rbind(rn_elk_out[[2]], rn_moose_out[[2]], rn_deer_out[[2]]) %>%
+    arrange(NewLocationID, Species) %>%
+    mutate(season = "Smr21") %>%
+    relocate(season, .after = Setup)
+  rn_2022_ung <- rbind(rn_elk_out[[3]], rn_moose_out[[3]], rn_deer_out[[3]]) %>%
     arrange(NewLocationID, Species) %>%
     mutate(season = "Smr22") %>%
     relocate(season, .after = Setup)
@@ -581,19 +728,23 @@
   #'  Bind into list and data frame formats
   RN_abundance <- list(rn_2020, rn_2021, rn_2022)
   RN_abundance_df <- rbind(rn_2020, rn_2021, rn_2022)
+  RN_abundance_ung <- list(rn_2020_ung, rn_2021_ung, rn_2022_ung)
+  RN_abundance_df_ung <- rbind(rn_2020_ung, rn_2021_ung, rn_2022_ung)
   
   #'  Save final estimates
   save(RN_abundance, file = "./Outputs/Painter_RNmodel/RN_abundance.RData")
   write_csv(RN_abundance_df, file = "./Outputs/Painter_RNmodel/RN_abundance.csv")
+  save(RN_abundance_ung, file = "./Outputs/Painter_RNmodel/RN_abundance_ungulates.RData")
+  write_csv(RN_abundance_df_ung, file = "./Outputs/Painter_RNmodel/RN_abundance_ungulates.csv")
   
   #'  Explore local abundance estimates real quick
-  summary(RN_abundance_df)
-  hist(RN_abundance_df$RN.n)
+  summary(RN_abundance_df_ung)
+  hist(RN_abundance_df_ung$RN.n)
   #'  Review the highest value... is it an outlier?
-  max(RN_abundance_df$RN.n)
-  RN_abundance_df %>% filter(RN_abundance_df$RN.n == max(RN_abundance_df$RN.n))
+  max(RN_abundance_df_ung$RN.n)
+  RN_abundance_df_ung %>% filter(RN_abundance_df_ung$RN.n == max(RN_abundance_df_ung$RN.n))
   #'  Review sites with estimates at or above the 99 quantile of the data
-  RN_abundance_df %>% filter(RN_abundance_df$RN.n >= quantile(RN_abundance_df$RN.n, .99))
+  RN_abundance_df_ung %>% filter(RN_abundance_df_ung$RN.n >= quantile(RN_abundance_df_ung$RN.n, .99))
   
   #'  -----------------------------
   ####  Species diversity metrics  ####
@@ -700,6 +851,9 @@
   spatial_rn_coy <- mapply(rn = rn_coy_out, spatial_rn, spp = "coyote", cams = cam_list, SIMPLIFY = FALSE)
   spatial_rn_lion <- mapply(rn = rn_lion_out, spatial_rn, spp = "mountain_lion", cams = cam_list, SIMPLIFY = FALSE)
   spatial_rn_wolf <- mapply(rn = rn_wolf_out, spatial_rn, spp = "wolf", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_rn_elk <- mapply(rn = rn_elk_out, spatial_rn, spp = "elk", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_rn_moose <- mapply(rn = rn_moose_out, spatial_rn, spp = "moose", cams = cam_list, SIMPLIFY = FALSE)
+  spatial_rn_deer <- mapply(rn = rn_deer_out, spatial_rn, spp = "deer", cams = cam_list, SIMPLIFY = FALSE)
   
   spatial_diversity <- function(div, spp, cams) {
     spatial_div <- div %>%
@@ -717,8 +871,10 @@
   spatial_spp_diversity <- mapply(div = spp_diversity_list, spatial_diversity, spp = "species_diversity", cams = cam_list, SIMPLIFY = FALSE)
   
   #'  List spatial RN abundance data and save
-  spatial_Painter_RNmodel_list <- list(spatial_rn_bear, spatial_rn_bob, spatial_rn_coy, spatial_rn_lion, spatial_rn_wolf, spatial_spp_diversity)
+  spatial_Painter_RNmodel_list <- list(spatial_rn_bear, spatial_rn_bob, spatial_rn_coy, spatial_rn_lion, spatial_rn_wolf, spatial_spp_diversity) 
+  spatial_Painter_RNmodel_list_ungulates <- list(spatial_rn_elk, spatial_rn_moose, spatial_rn_deer)
   save(spatial_Painter_RNmodel_list, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_Painter_RNmodel_list.RData")
+  save(spatial_Painter_RNmodel_list_ungulates, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_Painter_RNmodel_list_ungulates.RData")
   
   year_list <- list("2020", "2021", "2022")
   
@@ -732,6 +888,9 @@
   rn_coy_all <- mapply(add_yr, dat = spatial_rn_coy, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   rn_lion_all <- mapply(add_yr, dat = spatial_rn_lion, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   rn_wolf_all <- mapply(add_yr, dat = spatial_rn_wolf, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_elk_all <- mapply(add_yr, dat = spatial_rn_elk, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_moose_all <- mapply(add_yr, dat = spatial_rn_moose, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_deer_all <- mapply(add_yr, dat = spatial_rn_deer, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   spp_div_all <- mapply(add_yr, dat = spatial_spp_diversity, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   
   #'  Make one giant faceted plot where rows represent GMU and columns represent years 
@@ -767,6 +926,9 @@
   rn_maps_coy <- map_rn(rn_coy_all, spp = "coyote")
   rn_maps_lion <- map_rn(rn_lion_all, spp = "mountain lion")
   rn_maps_wolf <- map_rn(rn_wolf_all, spp = "wolf")
+  rn_maps_elk <- map_rn(rn_elk_all, spp = "elk")
+  rn_maps_moose <- map_rn(rn_moose_all, spp = "moose")
+  rn_maps_deer <- map_rn(rn_deer_all, spp = "deer")
   
   ggsave("./Outputs/Painter_RNmodel/Figures/RN_map_blackbear.tiff", rn_maps_bear,
          units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
@@ -778,6 +940,13 @@
          units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
   ggsave("./Outputs/Painter_RNmodel/Figures/RN_map_wolf.tiff", rn_maps_wolf,
          units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Painter_RNmodel/Figures/RN_map_elk.tiff", rn_maps_elk,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Painter_RNmodel/Figures/RN_map_moose.tiff", rn_maps_moose,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Painter_RNmodel/Figures/RN_map_deer.tiff", rn_maps_deer,
+         units = "in", width = 13, height = 12, dpi = 600, device = "tiff", compression = "lzw")
+  
   
   map_diversity <- function(sf_div, div_metric, div_type, size_breaks) {
     sf_div <- sf_div %>%
