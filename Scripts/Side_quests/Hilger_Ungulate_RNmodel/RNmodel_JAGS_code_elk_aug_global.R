@@ -38,10 +38,11 @@
           
         #'  Continuous effects for HQ biomass, total biomass, and community composition
         b.maxHQ ~ dnorm(0, 0.001)
-        b.cvHQ ~ dnorm(0, 0.001)
+        # b.cvHQ ~ dnorm(0, 0.001)
         b.maxTbio ~ dnorm(0, 0.001)
         b.cvTbio ~ dnorm(0, 0.001)
-        b.selected ~ dnorm(0, 0.001)
+        b.predicted ~ dnorm(0, 0.001)
+        # b.selected ~ dnorm(0, 0.001)
         b.prop.selected ~ dnorm(0, 0.001)
           
         #'  Detection priors
@@ -60,8 +61,8 @@
         #'  Latent state (abundance)
         for(i in 1:nsites){
           N[i] ~ dpois(lambda[i])
-          lambda[i] <- exp(beta0 + b.year[year[i]] + b.maxHQ*max_HQ[i] + b.cvHQ*cv_HQ[i] + 
-                           b.maxTbio*max_Tbio[i] + b.cvTbio*cv_Tbio[i] + b.selected*total_predicted[i] + 
+          lambda[i] <- exp(beta0 + b.year[year[i]] + b.maxHQ*max_HQ[i] + #b.cvHQ*cv_HQ[i] + 
+                           b.maxTbio*max_Tbio[i] + b.cvTbio*cv_Tbio[i] + b.predicted*total_predicted[i] +  #b.selected*total_predicted[i] + 
                            b.prop.selected*prop_selected[i])
             
           #'  Log-likelihood of N for WAICj
