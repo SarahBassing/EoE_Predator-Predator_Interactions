@@ -17,28 +17,28 @@
   #'  ------------------------------------------------
   
   #'  Load top models
-  load("./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/elk_july_topmods.RData")
-  load("./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/elk_aug_topmods.RData")
-  load("./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/wtd_july_topmods.RData")
-  load("./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/wtd_aug_topmods.RData")
+  load("./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Top_models/elk_july_topmods.RData")
+  load("./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Top_models/elk_aug_topmods.RData")
+  load("./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Top_models/wtd_july_topmods.RData")
+  load("./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Top_models/wtd_aug_topmods.RData")
   
   #'  Add names to lists 
-  elk_july_modnames <- c("RN_elk_july_null", "RN_elk_july_selected")
+  elk_july_modnames <- c("RN_elk_july_null", "RN_elk_july_maxHQ")
   names(elk_july_topmods) <- elk_july_modnames
   elk_aug_modnames <- c("RN_elk_aug_null", "RN_elk_aug_predicted.propSelected")
   names(elk_aug_topmods) <- elk_aug_modnames
-  wtd_july_modnames <- c("RN_wtd_july_selected.propSelected", "RN_wtd_july_predicted.propSelected", "RN_wtd_july_global1", "RN_wtd_july_global2")
+  wtd_july_modnames <- c("RN_wtd_july_global1", "RN_wtd_july_HQ_max.cv", "RN_wtd_july_meanHQ")
   names(wtd_july_topmods) <- wtd_july_modnames
-  wtd_aug_modnames <- c("RN_wtd_aug_predicted.propSelected", "RN_wtd_aug_selected.propSelected", "RN_wtd_aug_predicted", "RN_wtd_aug_maxTbio", "RN_wtd_aug_global1", "RN_wtd_aug_selected", "RN_wtd_aug_global2", "RN_wtd_aug_Tbio_max.cv")
+  wtd_aug_modnames <- c("RN_wtd_aug_global1", "RN_wtd_aug_meanHQ", "RN_wtd_aug_HQ_mean.cv", "RN_wtd_aug_HQ_max.cv")
   names(wtd_aug_topmods) <- wtd_aug_modnames
   
   #'  Load saved rownames for annual detection histories
-  load("./Data/Side_quests/Hilger/stacked_rownames_elk.RData")
-  load("./Data/Side_quests/Hilger/stacked_rownames_wtd.RData")
+  load("./Data/Side_quests/Hilger/stacked_rownames_elk_02.03.25.RData")
+  load("./Data/Side_quests/Hilger/stacked_rownames_wtd_02.03.25.RData")
   
   #'  Load saved covariate data (stacked to mirror detection histories)
-  load("./Data/Side_quests/Hilger/stacked_stations_elk_july_aug.RData")
-  load("./Data/Side_quests/Hilger/stacked_stations_wtd_july_aug.RData")
+  load("./Data/Side_quests/Hilger/stacked_stations_elk_july_aug_02.03.25.RData")
+  load("./Data/Side_quests/Hilger/stacked_stations_wtd_july_aug_02.03.25.RData")
   
   #'  Unique detection events
   load("./Data/Side_quests/Hilger/DetectionEvents_eoe20s.RData")
@@ -108,10 +108,10 @@
   rn_wtd_aug_out_top <- rn_wtd_aug_out[[1]]
   
   #'  Save site-specific indices of relative abundances - use for mapping
-  write_csv(rn_elk_july_out_top, "./Outputs/Hilger_RNmodel/Tables/RN_abundance_elk_july_top_mods.csv")
-  write_csv(rn_elk_aug_out_top, "./Outputs/Hilger_RNmodel/Tables/RN_abundance_elk_aug_top_mods.csv")
-  write_csv(rn_wtd_july_out_top, "./Outputs/Hilger_RNmodel/Tables/RN_abundance_wtd_july_top_mods.csv")
-  write_csv(rn_wtd_aug_out_top, "./Outputs/Hilger_RNmodel/Tables/RN_abundance_wtd_aug_top_mods.csv")
+  write_csv(rn_elk_july_out_top, "./Outputs/Hilger_RNmodel/Tables/Tables_02.24.25/RN_abundance_elk_july_top_mods.csv")
+  write_csv(rn_elk_aug_out_top, "./Outputs/Hilger_RNmodel/Tables/Tables_02.24.25/RN_abundance_elk_aug_top_mods.csv")
+  write_csv(rn_wtd_july_out_top, "./Outputs/Hilger_RNmodel/Tables/Tables_02.24.25/RN_abundance_wtd_july_top_mods.csv")
+  write_csv(rn_wtd_aug_out_top, "./Outputs/Hilger_RNmodel/Tables/Tables_02.24.25/RN_abundance_wtd_aug_top_mods.csv")
   
   
   #'  ----------------------------------------------
@@ -152,7 +152,7 @@
   wtd_aug_mean_params <- mapply(params, wtd_aug_topmods, spp = "White-tailed deer, August", modname = wtd_aug_modnames, SIMPLIFY = FALSE) %>% bind_rows(.)
   
   mean_params <- bind_rows(elk_july_mean_params, elk_aug_mean_params, wtd_july_mean_params, wtd_aug_mean_params)
-  write_csv(mean_params, "./Outputs/Hilger_RNmodel/Tables/RN_mean_lambda_table.csv")
+  write_csv(mean_params, "./Outputs/Hilger_RNmodel/Tables/Tables_02.24.25/RN_mean_lambda_table.csv")
   
   
   #'  --------------------------------------------
@@ -218,7 +218,7 @@
   RN_result_tbl <- rbind(elk_july_coef_tbl, elk_aug_coef_tbl, wtd_july_coef_tbl, wtd_aug_coef_tbl) 
   
   #'  Save
-  write_csv(RN_result_tbl, file = "./Outputs/Hilger_RNmodel/Tables/RN_result_tbl.csv")
+  write_csv(RN_result_tbl, file = "./Outputs/Hilger_RNmodel/Tables/Tables_02.24.25/RN_result_tbl.csv")
   
   #'  ---------------------------------
   ####  Summary stats for publication  ####
@@ -302,7 +302,7 @@
   (se_dets_wtd <- sd(DH_WTD$`Total detection events`)/sqrt(nrow(DH_WTD)))
   
   #'  Save!
-  write_csv(DH_summary, "./Outputs/Hilger_RNmodel/Tables/Summary_table_detections.csv")
+  write_csv(DH_summary, "./Outputs/Hilger_RNmodel/Tables/Tables_02.24.25/Summary_table_detections.csv")
   
   
   #'  -----------------------------------------
@@ -339,30 +339,38 @@
   #'  Grab covariates in top models and create new z-transformed observations for 
   #'  each focal covariate (Station list order: July [[1]], August [[2]])
   #'  Intercept = 1; Year = 1 b/c plan to predict lambda for 2022 so need to turn on year effect
-  #'  Top Elk July (non-null) model: intercept, year, *total selected* (3 columns)
-  elk_july_z.selected_matrix <- design_matrix(station_elk_list[[1]]$selected, nobs = nobs, 
+  #'  Top Elk July (non-null) model: intercept, year, *maxHQ* (3 columns)
+  elk_july_z.maxHQ_matrix <- design_matrix(station_elk_list[[1]]$max_HQBio_kg, nobs = nobs, 
                                         lambda_cov = c(1, 1, 0), focal_cov_index = 3)
   #'  Top Elk Aug (non-null) model: intercept, year, *total predicted*, *proportion selected* (4 columns)
   elk_aug_z.predicted_matrix <- design_matrix(station_elk_list[[2]]$total, nobs = nobs, 
                                         lambda_cov = c(1, 1, 0, 0), focal_cov_index = 3)
   elk_aug_z.propSelected_matrix <- design_matrix(station_elk_list[[2]]$prop_selected, nobs = nobs, 
                                            lambda_cov = c(1, 1, 0, 0), focal_cov_index = 4)
-  #'  Top WTD July model: intercept, year, *total selected*, *proportion selected* (4 columns) #mean Tbio, max HQ, *cv HQ*, *total selected*, *proportion selected* (7 columns)
-  # wtd_july_z.cvHQ_matrix <- design_matrix(station_wtd_list[[1]]$cv_HQ, nobs = nobs, 
-  #                                   lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 5)
-  wtd_july_z.selected_matrix <- design_matrix(station_wtd_list[[1]]$selected, nobs = nobs, 
-                                        lambda_cov = c(1, 1, 0, 0), focal_cov_index = 3)
+  #'  Top WTD July model: intercept, year, *maxHQ*, *cvHQ*, *maxTbio*, *selected*, *proportion selected* (7 columns) 
+  wtd_july_z.maxHQ_matrix <- design_matrix(station_wtd_list[[1]]$max_HQBio_kg, nobs = nobs,
+                                    lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 3)
+  wtd_july_z.cvHQ_matrix <- design_matrix(station_wtd_list[[1]]$cv_HQ, nobs = nobs,
+                                          lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 4)
+  wtd_july_z.maxTbio_matrix <- design_matrix(station_wtd_list[[1]]$max_TBio_kg, nobs = nobs,
+                                          lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 5)
+  wtd_july_z.selected_matrix <- design_matrix(station_wtd_list[[1]]$selected, nobs = nobs,
+                                        lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 6)
   wtd_july_z.propSelected_matrix <- design_matrix(station_wtd_list[[1]]$prop_selected, nobs = nobs, 
-                                            lambda_cov = c(1, 1, 0, 0), focal_cov_index = 4)
-  #'  Top WTD Aug model: intercept, year, *total predicted*, *proportion selected* (4 columns) #*mean Tbio*, max HQ, *cv HQ*, *total selected*, *proportion selected* (7 columns)
-  # wtd_aug_z.meanTbio_matrix <- design_matrix(station_wtd_list[[2]]$mean_Tbio_kg_ha, nobs = nobs, 
-  #                                      lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 3)
-  # wtd_aug_z.cvHQ_matrix <- design_matrix(station_wtd_list[[2]]$cv_HQ, nobs = nobs, 
-  #                                  lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 5)
-  wtd_aug_z.predicted_matrix <- design_matrix(station_wtd_list[[2]]$total, nobs = nobs, 
-                                       lambda_cov = c(1, 1, 0, 0), focal_cov_index = 3)
-  wtd_aug_z.propSelected_matrix <- design_matrix(station_wtd_list[[2]]$prop_selected, nobs = nobs, 
-                                           lambda_cov = c(1, 1, 0, 0), focal_cov_index = 4)
+                                            lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 7)
+  #'  Top WTD Aug model: intercept, year, *meanHQ*, *maxTbio*, *cvTbio*, *total predicted*, *proportion selected*  (7 columns) 
+  wtd_aug_z.meanHQ_matrix <- design_matrix(station_wtd_list[[1]]$mean_HQBio_kg, nobs = nobs,
+                                           lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 3)
+  wtd_aug_z.maxTbio_matrix <- design_matrix(station_wtd_list[[1]]$max_TBio_kg, nobs = nobs,
+                                          lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 4)
+  wtd_aug_z.cvTBio_matrix <- design_matrix(station_wtd_list[[1]]$cv_TBio_kg, nobs = nobs,
+                                             lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 5)
+  wtd_aug_z.predicted_matrix <- design_matrix(station_wtd_list[[1]]$total, nobs = nobs,
+                                              lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 6)
+  wtd_aug_z.propSelected_matrix <- design_matrix(station_wtd_list[[1]]$prop_selected, nobs = nobs, 
+                                                  lambda_cov = c(1, 1, 0, 0, 0, 0, 0), focal_cov_index = 7)
+  
+  
   
   #'  Predict effect of focal covariate across each MCMC iterations
   #'  Code adapted from AHM book 1 code by Mike Meredith (https://github.com/mikemeredith/AHM_code/blob/main/AHM1_ch06/AHM1_06.11.R_)
@@ -424,11 +432,11 @@
     
     return(predicted_lambda)
   }
-  #'  Top Elk July model: intercept, year, *total selected* (3 variables)
-  elk_july_lamPred_selected <- predict_parital_effect(elk_july_topmods[[2]], newdata = elk_july_z.selected_matrix,
-                                                      param_names = c("V1", "V2", "V3"), sims_param3 = elk_july_topmods[[2]]$sims.list$b.selected,
+  #'  Top Elk July model: intercept, year, *maxHQ* (3 variables)
+  elk_july_lamPred_maxHQ <- predict_parital_effect(elk_july_topmods[[2]], newdata = elk_july_z.maxHQ_matrix,
+                                                      param_names = c("V1", "V2", "V3"), sims_param3 = elk_july_topmods[[2]]$sims.list$b.maxHQ,
                                                       sims_param4 = NULL, sims_param5 = NULL, sims_param6 = NULL, sims_param7 = NULL,
-                                                      pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", "Intercept", "Year", "Total_Selected.z", "Total_Selected"))
+                                                      pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", "Intercept", "Year", "Max_HQ.z", "Max_HQ"))
   #'  Top Elk Aug model: intercept, year, *total predicted*, *proportion selected* (4 variables)
   elk_aug_lamPred_predicted <- predict_parital_effect(elk_aug_topmods[[2]], newdata = elk_aug_z.predicted_matrix,
                                                       param_names = c("V1", "V2", "V3", "V4"), sims_param3 = elk_aug_topmods[[2]]$sims.list$b.predicted,
@@ -442,142 +450,279 @@
                                                          pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", 
                                                                          "Intercept", "Year", "Total_Predicted.z", "Proportion_Selected.z", "Proportion_Selected"))
   
-  #'  Top WTD July model: intercept, year, *total selected*, *proportion selected* (4 columns) #mean Tbio, max HQ, *cv HQ*, *total selected*, *proportion selected* (7 variables)
-  # wtd_july_lamPred_cvHQ <- predict_parital_effect(wtd_july_topmods[[1]], newdata = wtd_july_z.cvHQ_matrix,
-  #                                                 param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"), 
-  #                                                 sims_param3 = 0, sims_param4 = 0, 
-  #                                                 sims_param5 = wtd_july_topmods[[1]]$sims.list$b.cvHQ, 
-  #                                                 sims_param6 = 0, sims_param7 = 0,
-  #                                                 pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", 
-  #                                                                "Intercept", "Year", "Mean_TBiomass.z", "Max_HQ.z", "CV_HQ.z", 
-  #                                                                "Total_Selected.z", "Proportion_Selected.z", "CV_HQ"))
+  #'  Top WTD July model: intercept, year, *maxHQ*, *cvHQ*, *maxTbio*, *selected*, *proportion selected* (7 columns) 
+  wtd_july_lamPred_maxHQ <- predict_parital_effect(wtd_july_topmods[[1]], newdata = wtd_july_z.maxHQ_matrix,
+                                                  param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"),
+                                                  sims_param3 = wtd_july_topmods[[1]]$sims.list$b.maxHQ, 
+                                                  sims_param4 = 0, sims_param5 = 0, sims_param6 = 0, sims_param7 = 0,
+                                                  pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                 "Intercept", "Year", "Max_HQ.z", "CV_HQ.z","Max_TBio.z", 
+                                                                 "Total_Selected.z", "Proportion_Selected.z", "Max_HQ"))
+  wtd_july_lamPred_cvHQ <- predict_parital_effect(wtd_july_topmods[[1]], newdata = wtd_july_z.cvHQ_matrix,
+                                                  param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"),
+                                                  sims_param3 = 0, sims_param4 = wtd_july_topmods[[1]]$sims.list$b.cvHQ,
+                                                  sims_param5 = 0, sims_param6 = 0, sims_param7 = 0,
+                                                  pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                 "Intercept", "Year", "Max_HQ.z", "CV_HQ.z","Max_TBio.z", 
+                                                                 "Total_Selected.z", "Proportion_Selected.z", "CV_HQ"))
+  wtd_july_lamPred_maxTbio <- predict_parital_effect(wtd_july_topmods[[1]], newdata = wtd_july_z.maxTbio_matrix,
+                                                  param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"),
+                                                  sims_param3 = 0, sims_param4 = 0,
+                                                  sims_param5 = wtd_july_topmods[[1]]$sims.list$b.maxTbio,
+                                                  sims_param6 = 0, sims_param7 = 0,
+                                                  pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                 "Intercept", "Year", "Max_HQ.z", "CV_HQ.z","Max_TBio.z", 
+                                                                 "Total_Selected.z", "Proportion_Selected.z", "Max_TBio"))
   wtd_july_lamPred_selected <- predict_parital_effect(wtd_july_topmods[[1]], newdata = wtd_july_z.selected_matrix,
-                                                      param_names = c("V1", "V2", "V3", "V4"), sims_param3 = wtd_july_topmods[[1]]$sims.list$b.selected, 
-                                                      sims_param4 = 0, sims_param5 = NULL, sims_param6 = NULL, sims_param7 = NULL,
-                                                      pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", 
-                                                                     "Intercept", "Year", "Total_Selected.z", "Proportion_Selected.z", "Total_Selected"))
+                                                      param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"),
+                                                      sims_param3 = 0, sims_param4 = 0, sims_param5 = 0, 
+                                                      sims_param6 = wtd_july_topmods[[1]]$sims.list$b.selected, 
+                                                      sims_param7 = 0,
+                                                      pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                     "Intercept", "Year", "Max_HQ.z", "CV_HQ.z","Max_TBio.z", 
+                                                                     "Total_Selected.z", "Proportion_Selected.z", "Total_Selected"))
   wtd_july_lamPred_propSelected <- predict_parital_effect(wtd_july_topmods[[1]], newdata = wtd_july_z.propSelected_matrix,
-                                                          param_names = c("V1", "V2", "V3", "V4"), sims_param3 = 0, 
-                                                          sims_param4 = wtd_july_topmods[[1]]$sims.list$b.prop.selected, 
-                                                          sims_param5 = NULL, sims_param6 = NULL, sims_param7 = NULL,
-                                                          pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", 
-                                                                         "Intercept", "Year", "Total_Selected.z", "Proportion_Selected.z", "Proportion_Selected"))
+                                                          param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"), 
+                                                          sims_param3 = 0, sims_param4 = 0, sims_param5 = 0, sims_param6 = 0, 
+                                                          sims_param7 = wtd_july_topmods[[1]]$sims.list$b.prop.selected,
+                                                          pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                         "Intercept", "Year", "Max_HQ.z", "CV_HQ.z","Max_TBio.z", 
+                                                                         "Total_Selected.z", "Proportion_Selected.z", "Proportion_Selected"))
   
-  #'  Top WTD Aug model: intercept, year, *total predicted*, *proportion selected* (4 columns) #*mean Tbio*, max HQ, *cv HQ*, *total selected*, *proportion selected* (7 variables)
-  # wtd_aug_lamPred_meanTbio <- predict_parital_effect(wtd_aug_topmods[[1]], newdata = wtd_aug_z.meanTbio_matrix,
-  #                                                    param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"), 
-  #                                                    sims_param3 = wtd_aug_topmods[[1]]$sims.list$b.meanTbio, 
-  #                                                    sims_param4 = 0, sims_param5 = 0, sims_param6 = 0, sims_param7 = 0,
-  #                                                    pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", 
-  #                                                                   "Intercept", "Year", "Mean_TBiomass.z", "Max_HQ.z", "CV_HQ.z", 
-  #                                                                   "Total_Selected.z", "Proportion_Selected.z", "Mean_TBiomass"))
-  # wtd_aug_lamPred_cvHQ <- predict_parital_effect(wtd_aug_topmods[[1]], newdata = wtd_aug_z.cvHQ_matrix,
-  #                                                param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"), 
-  #                                                sims_param3 = 0, sims_param4 = 0, 
-  #                                                sims_param5 = wtd_aug_topmods[[1]]$sims.list$b.cvHQ, 
-  #                                                sims_param6 = 0, sims_param7 = 0,
-  #                                                pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", 
-  #                                                               "Intercept", "Year", "Mean_TBiomass.z", "Max_HQ.z", "CV_HQ.z", 
-  #                                                               "Total_Selected.z", "Proportion_Selected.z", "CV_HQ"))
+  #'  Top WTD Aug model: intercept, year, *mean HQ*, *maxTbio*, *cvTbio*, *total predicted*, *proportion selected* (7 columns) 
+  wtd_aug_lamPred_meanHQ <- predict_parital_effect(wtd_aug_topmods[[1]], newdata = wtd_aug_z.meanHQ_matrix,
+                                                     param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"),
+                                                     sims_param3 = wtd_aug_topmods[[1]]$sims.list$b.meanHQ,
+                                                     sims_param4 = 0, sims_param5 = 0, sims_param6 = 0, sims_param7 = 0,
+                                                     pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                    "Intercept", "Year", "Mean_HQ.z", "Max_TBiomass.z", "CV_TBiomass.z",
+                                                                    "Total_Predicted.z", "Proportion_Selected.z", "Mean_HQ"))
+  wtd_aug_lamPred_maxTbio <- predict_parital_effect(wtd_aug_topmods[[1]], newdata = wtd_aug_z.maxTbio_matrix,
+                                                    param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"),
+                                                    sims_param3 = 0, sims_param4 = wtd_aug_topmods[[1]]$sims.list$b.maxTbio, 
+                                                    sims_param5 = 0, sims_param6 = 0, sims_param7 = 0,
+                                                    pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                   "Intercept", "Year", "Mean_HQ.z", "Max_TBiomass.z", "CV_TBiomass.z",
+                                                                   "Total_Predicted.z", "Proportion_Selected.z", "Max_TBiomass"))
+  wtd_aug_lamPred_cvTbio <- predict_parital_effect(wtd_aug_topmods[[1]], newdata = wtd_aug_z.cvTBio_matrix,
+                                                 param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"),
+                                                 sims_param3 = 0, sims_param4 = 0,
+                                                 sims_param5 = wtd_aug_topmods[[1]]$sims.list$b.cvTbio,
+                                                 sims_param6 = 0, sims_param7 = 0,
+                                                 pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                "Intercept", "Year", "Mean_HQ.z", "Max_TBiomass.z", "CV_TBiomass.z",
+                                                                "Total_Predicted.z", "Proportion_Selected.z",  "CV_TBiomass"))
   wtd_aug_lamPred_predicted <- predict_parital_effect(wtd_aug_topmods[[1]], newdata = wtd_aug_z.predicted_matrix,
-                                                      param_names = c("V1", "V2", "V3", "V4"), sims_param3 = wtd_aug_topmods[[1]]$sims.list$b.predicted,
-                                                      sims_param4 = 0, sims_param5 = NULL, sims_param6 = NULL, sims_param7 = NULL,
-                                                      pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", 
-                                                                     "Intercept", "Year", "Total_Predicted.z", "Proportion_Selected.z", "Total_Predicted"))
+                                                      param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"),
+                                                      sims_param3 = 0, sims_param4 = 0, sims_param5 = 0,
+                                                      sims_param6 = wtd_aug_topmods[[1]]$sims.list$b.predicted, 
+                                                      sims_param7 = 0,
+                                                      pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                     "Intercept", "Year", "Mean_HQ.z", "Max_TBiomass.z", "CV_TBiomass.z",
+                                                                     "Total_Predicted.z", "Proportion_Selected.z", "Total_Predicted"))
   wtd_aug_lamPred_propSelected <- predict_parital_effect(wtd_aug_topmods[[1]], newdata = wtd_aug_z.propSelected_matrix,
-                                                         param_names = c("V1", "V2", "V3", "V4"), sims_param3 = 0, 
-                                                         sims_param4 = wtd_aug_topmods[[1]]$sims.list$b.prop.selected, 
-                                                         sims_param5 = NULL, sims_param6 = NULL, sims_param7 = NULL,
-                                                         pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda", 
-                                                                        "Intercept", "Year", "Total_Predicted.z", "Proportion_Selected.z", "Proportion_Selected"))
+                                                         param_names = c("V1", "V2", "V3", "V4", "V5", "V6", "V7"),
+                                                         sims_param3 = 0, sims_param4 = 0, sims_param5 = 0,
+                                                         sims_param6 = 0, sims_param7 = wtd_aug_topmods[[1]]$sims.list$b.prop.selected,
+                                                         pred_names = c("meanLambda", "sdLambda", "llLambda", "ulLambda",
+                                                                        "Intercept", "Year", "Mean_HQ.z", "Max_TBiomass.z", "CV_TBiomass.z",
+                                                                        "Total_Predicted.z", "Proportion_Selected.z", "Proportion_Selected"))
   #'  SAVE!
-  write_csv(elk_july_lamPred_selected, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_elk_July_TotalSelected.csv")
-  write_csv(elk_aug_lamPred_predicted, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_elk_Aug_TotalPredicted.csv")
-  write_csv(elk_aug_lamPred_propSelected, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_elk_Aug_PropSelected.csv")
-  # write_csv(wtd_july_lamPred_cvHQ, "./Outputs/Hilger_RNmodel/Tables/Predicted_lambda_wtd_July_cvHighQuality.csv")
-  write_csv(wtd_july_lamPred_selected, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_wtd_July_TotalSelected.csv")
-  write_csv(wtd_july_lamPred_propSelected, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_wtd_July_PropSelected.csv")
-  # write_csv(wtd_aug_lamPred_meanTbio, "./Outputs/Hilger_RNmodel/Tables/Predicted_lambda_wtd_Aug_MeanTotalBiomass.csv")
-  # write_csv(wtd_aug_lamPred_cvHQ, "./Outputs/Hilger_RNmodel/Tables/Predicted_lambda_wtd_Aug_cvHighQuality.csv")
-  write_csv(wtd_aug_lamPred_predicted, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_wtd_Aug_TotalPredicted.csv")
-  write_csv(wtd_aug_lamPred_propSelected, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_wtd_Aug_PropSelected.csv")
+  write_csv(elk_july_lamPred_maxHQ, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_elk_July_maxHighQuality.csv")
+  write_csv(elk_aug_lamPred_predicted, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_elk_Aug_TotalPredicted.csv")
+  write_csv(elk_aug_lamPred_propSelected, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_elk_Aug_PropSelected.csv")
+  write_csv(wtd_july_lamPred_maxHQ, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_July_maxHighQuality.csv")
+  write_csv(wtd_july_lamPred_cvHQ, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_July_cvHighQuality.csv")
+  write_csv(wtd_july_lamPred_maxTbio, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_July_maxTotalBiomass.csv")
+  write_csv(wtd_july_lamPred_selected, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_July_TotalSelected.csv")
+  write_csv(wtd_july_lamPred_propSelected, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_July_PropSelected.csv")
+  write_csv(wtd_aug_lamPred_meanHQ, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_Aug_MeanHighQuality.csv")
+  write_csv(wtd_aug_lamPred_maxTbio, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_Aug_MaxTotalBiomass.csv")
+  write_csv(wtd_aug_lamPred_cvTbio, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_Aug_cvTotalBiomass.csv")
+  write_csv(wtd_aug_lamPred_predicted, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_Aug_TotalPredicted.csv")
+  write_csv(wtd_aug_lamPred_propSelected, "./Outputs/Hilger_RNmodel/Tables/Predicted lambda tables/Predicted_lambda_02.24.25/Predicted_lambda_wtd_Aug_PropSelected.csv")
   
   
   #'  -------------------------
   ####  Partial Effects Plots  ####
   #'  -------------------------
-  ggplot(elk_july_lamPred_selected, aes(x = Total_Selected, y = meanLambda)) +
+  plot_elk_july_lambda_maxHQ <- ggplot(elk_july_lamPred_maxHQ, aes(x = Max_HQ, y = meanLambda)) +
     geom_line(lwd = 1) + 
     geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-    theme_classic() +
-    xlab("Total selected forage species present") + 
-    ylab("Predicted lambda (index of relative abundance)") +
-    ggtitle("Partial effect of total selected species on July elk abundance")
-  ggplot(elk_aug_lamPred_predicted, aes(x = Total_Predicted, y = meanLambda)) +
-    geom_line(lwd = 1) + 
-    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-    theme_classic() +
-    xlab("Total predicted forage species present") + 
-    ylab("Predicted lambda (index of relative abundance)") +
-    ggtitle("Partial effect of total predicted species on Aug elk abundance")
-  ggplot(elk_aug_lamPred_propSelected, aes(x = Proportion_Selected, y = meanLambda)) +
-    geom_line(lwd = 1) + 
-    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-    theme_classic() +
-    xlab("Proportion of selected forage species present") + 
-    ylab("Predicted lambda (index of relative abundance)") +
-    ggtitle("Partial effect of proportion of selected species on Aug elk abundance")
-  # ggplot(wtd_july_lamPred_cvHQ, aes(x = CV_HQ, y = meanLambda)) +
-  #   geom_line(lwd = 1) + 
-  #   geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-  #   theme_classic() +
-  #   xlab("CV high quality forage available") + 
-  #   ylab("Predicted lambda (index of relative abundance)") +
-  #   ggtitle("Partial effect of CV high quality forage on July white-tailed deer abundance")
-  ggplot(wtd_july_lamPred_selected, aes(x = Total_Selected, y = meanLambda)) +
-    geom_line(lwd = 1) + 
-    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-    theme_classic() +
-    xlab("Total selected forage species present") + 
-    ylab("Predicted lambda (index of relative abundance)") +
-    ggtitle("Partial effect of total selected species on July white-tailed deer abundance")
-  ggplot(wtd_july_lamPred_propSelected, aes(x = Proportion_Selected, y = meanLambda)) +
-    geom_line(lwd = 1) + 
-    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-    theme_classic() +
-    xlab("Proportion of selected forage species present") + 
-    ylab("Predicted lambda (index of relative abundance)") +
-    ggtitle("Partial effect of proportion of selected species on July white-tailed deer abundance")
-  # ggplot(wtd_aug_lamPred_meanTbio, aes(x = Mean_TBiomass, y = meanLambda)) +
-  #   geom_line(lwd = 1) + 
-  #   geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-  #   theme_classic() +
-  #   xlab("Mean total forage biomass available (kg/ha)") + 
-  #   ylab("Predicted lambda (index of relative abundance)") +
-  #   ggtitle("Partial effect of mean total biomass on August white-tailed deer abundance")
-  # ggplot(wtd_aug_lamPred_cvHQ, aes(x = CV_HQ, y = meanLambda)) +
-  #   geom_line(lwd = 1) + 
-  #   geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-  #   theme_classic() +
-  #   xlab("CV high quality forage available") + 
-  #   ylab("Predicted lambda (index of relative abundance)") +
-  #   ggtitle("Partial effect of CV high quality forage on August white-tailed deer abundance")
-  ggplot(wtd_aug_lamPred_predicted, aes(x = Total_Predicted, y = meanLambda)) +
-    geom_line(lwd = 1) + 
-    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-    theme_classic() +
-    xlab("Total predicted forage species present") + 
-    ylab("Predicted lambda (index of relative abundance)") +
-    ggtitle("Partial effect of total predicted species on August white-tailed deer abundance")
-  ggplot(wtd_aug_lamPred_propSelected, aes(x = Proportion_Selected, y = meanLambda)) +
-    geom_line(lwd = 1) + 
-    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
-    theme_classic() +
-    xlab("Proportion of selected forage species present") + 
-    ylab("Predicted lambda (index of relative abundance)") +
-    ggtitle("Partial effect of proportion of selected species on August white-tailed deer abundance")
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Maximum high quality biomass species present") + 
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of maximum high quality biomass \non July elk relative abundance")
   
+  plot_elk_aug_lambda_predicted <- ggplot(elk_aug_lamPred_predicted, aes(x = Total_Predicted, y = meanLambda)) +
+    geom_line(lwd = 1) + 
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Total predicted forage species present") + 
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of total predicted species \non Aug elk relative abundance")
+  plot_elk_aug_lambda_propSelected <- ggplot(elk_aug_lamPred_propSelected, aes(x = Proportion_Selected, y = meanLambda)) +
+    geom_line(lwd = 1) + 
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Proportion of selected forage species present") + 
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of proportion of selected species \non Aug elk relative abundance")
   
+  plot_wtd_july_lambda_maxHQ <- ggplot(wtd_july_lamPred_maxHQ, aes(x = Max_HQ, y = meanLambda)) +
+    geom_line(lwd = 1) +
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Maximum high quality biomass available") +
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of max high quality biomass \non July white-tailed deer relative abundance")
+  plot_wtd_july_lambda_cvHQ <- ggplot(wtd_july_lamPred_cvHQ, aes(x = CV_HQ, y = meanLambda)) +
+    geom_line(lwd = 1) +
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("CV high quality biomass available") +
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of CV high quality biomass \non July white-tailed deer relative abundance")
+  plot_wtd_july_lambda_maxTbio <- ggplot(wtd_july_lamPred_maxTbio, aes(x = Max_TBio, y = meanLambda)) +
+    geom_line(lwd = 1) +
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Maximum total biomass available") +
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of max total biomass \non July white-tailed deer relative abundance")
+  plot_wtd_july_lambda_selected <- ggplot(wtd_july_lamPred_selected, aes(x = Total_Selected, y = meanLambda)) +
+    geom_line(lwd = 1) + 
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Total selected forage species present") + 
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of total selected species \non July white-tailed deer relative abundance")
+  plot_wtd_july_lambda_propSelected <- ggplot(wtd_july_lamPred_propSelected, aes(x = Proportion_Selected, y = meanLambda)) +
+    geom_line(lwd = 1) + 
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Proportion of selected forage species present") + 
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of proportion of selected species \non July white-tailed deer relative abundance")
+  
+  plot_wtd_aug_lambda_meanHQ <- ggplot(wtd_aug_lamPred_meanHQ, aes(x = Mean_HQ, y = meanLambda)) +
+    geom_line(lwd = 1) +
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Mean high quality biomass available (kg/ha)") +
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of mean high quality biomass \non August white-tailed deer relative abundance")
+  plot_wtd_aug_lambda_maxTbio <- ggplot(wtd_aug_lamPred_maxTbio, aes(x = Max_TBiomass, y = meanLambda)) +
+    geom_line(lwd = 1) +
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Maximum total biomass available (kg/ha)") +
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of maximum total biomass \non August white-tailed deer relative abundance")
+  plot_wtd_aug_lambda_cvTbio <- ggplot(wtd_aug_lamPred_cvTbio, aes(x = CV_TBiomass, y = meanLambda)) +
+    geom_line(lwd = 1) +
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("CV total biomass available") +
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of CV total biomass \non August white-tailed deer relative abundance")
+  plot_wtd_aug_lambda_predicted <- ggplot(wtd_aug_lamPred_predicted, aes(x = Total_Predicted, y = meanLambda)) +
+    geom_line(lwd = 1) + 
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Total predicted forage species present") + 
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of total predicted species \non August white-tailed deer relative abundance")
+  plot_wtd_aug_lambda_propSelected <- ggplot(wtd_aug_lamPred_propSelected, aes(x = Proportion_Selected, y = meanLambda)) +
+    geom_line(lwd = 1) + 
+    geom_ribbon(aes(ymin = llLambda, ymax = ulLambda), alpha = 0.3) +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(colour = "black", linewidth = 0.25),
+          axis.ticks = element_line(colour = "black", linewidth = 0.25)) +
+    theme(text = element_text(size = 8)) +
+    xlab("Proportion of selected forage species present") + 
+    ylab("Predicted lambda \n(index of relative abundance)") +
+    ggtitle("Partial effect of proportion of selected species \non August white-tailed deer relative abundance")
+  
+  #'  Save
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_elk_july_lambda_maxHQ.tiff", plot_elk_july_lambda_maxHQ, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_elk_aug_lambda_predicted.tiff", plot_elk_aug_lambda_predicted, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_elk_aug_lambda_propSelected.tiff", plot_elk_aug_lambda_propSelected, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_july_lambda_maxHQ.tiff", plot_wtd_july_lambda_maxHQ, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_july_lambda_cvHQ.tiff", plot_wtd_july_lambda_cvHQ, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_july_lambda_maxTbio.tiff", plot_wtd_july_lambda_maxTbio, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_july_lambda_selected.tiff", plot_wtd_july_lambda_selected, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_july_lambda_propSelected.tiff", plot_wtd_july_lambda_propSelected, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_aug_lambda_meanHQ.tiff", plot_wtd_aug_lambda_meanHQ, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_aug_lambda_maxTbio.tiff", plot_wtd_aug_lambda_maxTbio, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_aug_lambda_cvTbio.tiff", plot_wtd_aug_lambda_cvTbio, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_aug_lambda_predicted.tiff", plot_wtd_aug_lambda_predicted, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
+  ggsave("./Outputs/Hilger_RNmodel/Figures/plot_wtd_aug_lambda_propSelected.tiff", plot_wtd_aug_lambda_propSelected, 
+         units = "cm", width = 10, height = 7, dpi = 600, device = 'tiff', compression = 'lzw')
   
   
   
