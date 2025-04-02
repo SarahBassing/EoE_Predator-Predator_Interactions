@@ -15,19 +15,19 @@
   library(tidyverse)
   
   #'  Load model outputs into a temporary working environment and list together
-  elk_july_files <- list.files("./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_july_mods", pattern="*.RData", full.names=TRUE)
+  elk_july_files <- list.files("./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_july_mods", pattern="*.RData", full.names=TRUE)
   elk_july_mods <- lapply(elk_july_files, load, temp_env <- new.env())  #.GlobalEnv
   elk_july_mods <- as.list(temp_env)
   
-  elk_aug_files <- list.files("./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Elk_aug_mods", pattern="*.RData", full.names=TRUE)
+  elk_aug_files <- list.files("./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_aug_mods", pattern="*.RData", full.names=TRUE)
   elk_aug_mods <- lapply(elk_aug_files, load, temp_env <- new.env())  
   elk_aug_mods <- as.list(temp_env)
   
-  wtd_july_files <- list.files("./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/WTD_july_mods", pattern="*.RData", full.names=TRUE)
+  wtd_july_files <- list.files("./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_july_mods", pattern="*.RData", full.names=TRUE)
   wtd_july_mods <- lapply(wtd_july_files, load, temp_env <- new.env())  
   wtd_july_mods <- as.list(temp_env)
   
-  wtd_aug_files <- list.files("./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/WTD_aug_mods", pattern="*.RData", full.names=TRUE)
+  wtd_aug_files <- list.files("./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_aug_mods", pattern="*.RData", full.names=TRUE)
   wtd_aug_mods <- lapply(wtd_aug_files, load, temp_env <- new.env())  
   wtd_aug_mods <- as.list(temp_env)
   
@@ -107,24 +107,20 @@
   #'  sense to stick with WAIC that focuses on the abundance side of the submodel
   
   #'  Snag most supported models (all models within 2 deltaWAIC of top)
-  elk_july_topmods <- list(elk_july_mods$RN_elk_july_null, elk_july_mods$RN_elk_july_selected)
+  elk_july_topmods <- list(elk_july_mods$RN_elk_july_null, elk_july_mods$RN_elk_july_maxHQ)
   elk_aug_topmods <- list(elk_aug_mods$RN_elk_aug_null, elk_aug_mods$RN_elk_aug_predicted.propSelected)
-  wtd_july_topmods <- list(wtd_july_mods$RN_wtd_july_selected.propSelected, wtd_july_mods$RN_wtd_july_predicted.propSelected, wtd_july_mods$RN_wtd_july_global1, wtd_july_mods$RN_wtd_july_global2)
-  wtd_aug_topmods <- list(wtd_aug_mods$RN_wtd_aug_predicted.propSelected, wtd_aug_mods$RN_wtd_aug_selected.propSelected, wtd_aug_mods$RN_wtd_aug_predicted, wtd_aug_mods$RN_wtd_aug_maxTbio, wtd_aug_mods$RN_wtd_aug_global1, wtd_aug_mods$RN_wtd_aug_selected, wtd_aug_mods$RN_wtd_aug_global2, wtd_aug_mods$RN_wtd_aug_Tbio_max.cv)
-  # elk_july_topmods <- list(elk_july_mods[[5]], elk_july_mods[[1]], elk_july_mods[[4]])
-  # elk_aug_topmods <- list(elk_aug_mods[[11]], elk_aug_mods[[15]], elk_aug_mods[[4]], elk_aug_mods[[5]])
-  # wtd_july_topmods <- list(wtd_july_mods[[16]])
-  # wtd_aug_topmods <- list(wtd_aug_mods[[1]], wtd_aug_mods[[13]])
+  wtd_july_topmods <- list(wtd_july_mods$RN_wtd_july_global1, wtd_july_mods$RN_wtd_july_HQ_max.cv, wtd_july_mods$RN_wtd_july_meanHQ)
+  wtd_aug_topmods <- list(wtd_aug_mods$RN_wtd_aug_global1, wtd_aug_mods$RN_wtd_aug_meanHQ, wtd_aug_mods$RN_wtd_aug_HQ_mean.cv, wtd_aug_mods$RN_wtd_aug_HQ_max.cv)
   
   #'  Save top models
-  save(elk_july_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/elk_july_topmods.RData")
-  save(elk_aug_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/elk_aug_topmods.RData")
-  save(wtd_july_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/wtd_july_topmods.RData")
-  save(wtd_aug_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/wtd_aug_topmods.RData")
+  save(elk_july_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Top_models/elk_july_topmods.RData")
+  save(elk_aug_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Top_models/elk_aug_topmods.RData")
+  save(wtd_july_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Top_models/wtd_july_topmods.RData")
+  save(wtd_aug_topmods, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Top_models/wtd_aug_topmods.RData")
   
   #'  Save WAIC tables
   WAIC_modSel_tbl <- bind_rows(modSel_elkJuly_WAIC, modSel_elkAug_WAIC, modSel_wtdJuly_WAIC, modSel_wtdAug_WAIC)
-  write_csv(WAIC_modSel_tbl, "./Outputs/Hilger_RNmodel/JAGS_out/Fit_10.26.24/Top_models/WAIC_modSelection_table.csv")
+  write_csv(WAIC_modSel_tbl, "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Top_models/WAIC_modSelection_table.csv")
   
   #'  Results table for top model
   
