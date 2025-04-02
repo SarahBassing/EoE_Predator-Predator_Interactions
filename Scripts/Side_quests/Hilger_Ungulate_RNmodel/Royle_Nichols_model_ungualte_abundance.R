@@ -525,12 +525,14 @@
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_Tbio_max.cv.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_selected.propSelected.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_predicted.propSelected.R")
-  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_elk_july_global.R") 
-  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_elk_aug_global.R")
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_elk_july_global_1.R") 
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_elk_july_global_2.R") 
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_elk_aug_global_1.R")
+  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_elk_aug_global_2.R")
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_wtd_july_global_1.R") 
-  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_wtd_july_global_2.R") 
+  # source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_wtd_july_global_2.R") 
   source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_wtd_aug_global_1.R") 
-  source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_wtd_aug_global_2.R") 
+  # source("./Scripts/Side_quests/Hilger_Ungulate_RNmodel/RNmodel_JAGS_code_wtd_aug_global_2.R") 
   
   #'  Function to calculate WAIC and joint-likelihood approach (WAICj) based on Gaya & Ketz (2024)
   calc.jointlike <- function(x){
@@ -792,22 +794,45 @@
   mcmcplot(RN_elk_july_predicted.propSelected$samples)
   save(RN_elk_july_predicted.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_july_mods/RN_elk_july_predicted.propSelected.RData")
   
-  ######  GLOBAL  ######    ###### COME BACK TO THIS #######
-  #'  Using only most supported non-correlated covariates (based on WAICj from models above)
-  #'  Global: Max HQ, cv HQ, Max Tbio, cv Tbio, Selected, PropSelected
+  ######  GLOBAL 1  ######    
+  #'  Using only most supported non-correlated covariates 
+  #'  Global 1: Max HQ, cv HQ, Mean Tbio, Selected, PropSelected 
+  #'  Univariate models indicate: Max HQ has lower WAIC compared to Mean HQ, 
+  #'  Mean Tbio is statistically meaningful but Max Tbio is not even though lower WAIC, 
+  #'  cv HQ and selected had lower WAIC compared to cv Tbio and predicted (all statistically meaningful)
   start.time = Sys.time()
   inits_elk_July <- function(){list(N = ninit_elk[[1]])}
-  RN_elk_july_global <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
-                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_elk_july_global.txt",
+  RN_elk_july_global1 <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
+                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_elk_july_global_1.txt",
                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                            n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_july_global$summary[1:15,])
-  (RN_elk_july_global_WAICs <- calc.jointlike(RN_elk_july_global))
-  print(RN_elk_july_global$DIC)
-  which(RN_elk_july_global$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_elk_july_global$samples)
-  save(RN_elk_july_global, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_july_mods/RN_elk_july_global.RData")
+  print(RN_elk_july_global1$summary[1:15,])
+  (RN_elk_july_global1_WAICs <- calc.jointlike(RN_elk_july_global1))
+  print(RN_elk_july_global1$DIC)
+  which(RN_elk_july_global1$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_july_global1$samples)
+  save(RN_elk_july_global1, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_july_mods/RN_elk_july_global_maxHQ_cvHQ_meanTbio_sel_propSel.RData")
+  
+  ######  GLOBAL 2  ######    
+  #'  Using only most supported non-correlated covariates 
+  #'  Global 2: Mean HQ, cv HQ, Mean Tbio, Selected, PropSelected 
+  #'  Univariate models indicate: Mean HQ and Mean Tbio are not correlated at all even though MaxHQ has lower WAIC, 
+  #'  Mean Tbio is statistically meaningful but Max Tbio is not even though lower WAIC, 
+  #'  cv HQ and selected had lower WAIC compared to cv Tbio and predicted (all statistically meaningful)
+  start.time = Sys.time()
+  inits_elk_July <- function(){list(N = ninit_elk[[1]])}
+  RN_elk_july_global2 <- jags(data_JAGS_bundle_elk[[1]], inits = inits_elk_July, params,
+                             "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_elk_july_global_2.txt",
+                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                             n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_july_global2$summary[1:15,])
+  (RN_elk_july_global2_WAICs <- calc.jointlike(RN_elk_july_global2))
+  print(RN_elk_july_global2$DIC)
+  which(RN_elk_july_global2$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_july_global2$samples)
+  save(RN_elk_july_global2, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_july_mods/RN_elk_july_global_meanHQ_cvHQ_meanTbio_sel_propSel.RData")
   
   #'  -------------------------
   #####  Elk August RN models  #####
@@ -1039,23 +1064,46 @@
   mcmcplot(RN_elk_aug_predicted.propSelected$samples)
   save(RN_elk_aug_predicted.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_aug_mods/RN_elk_aug_predicted.propSelected.RData")
   
-  ######  GLOBAL  ######    ###### COME BACK TO THIS  ######
-  #'  Using only most supported non-correlated covariates (based on WAICj from models above)
-  #'  Global: Max HQ, cv HQ, Max Tbio, cv Tbio, selected, PropSelected
-  start.time = Sys.time() 
+  ######  GLOBAL 1  ######    
+  #'  Using only most supported non-correlated covariates 
+  #'  Global 1: Mean HQ, Max Tbio, cv Tbio, predicted, PropSelected  
+  #'  Univariate models indicate: Max HQ has slightly lower WAIC compared to Mean HQ but effect size the same, 
+  #'  Max Tbio and predicted had lower WAIC compered to Mean Tbio and selected  
+  #'  cv Tbio had lower WAIC compared to cv HQ though neither are statistically meaningful
   start.time = Sys.time()
   inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
-  RN_elk_aug_global <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
-                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_elk_aug_global.txt",
+  RN_elk_aug_global1 <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
+                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_elk_aug_global_1.txt",
                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                           n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_elk_aug_global$summary[1:15,])
-  (RN_elk_aug_global_WAICj <- calc.jointlike(RN_elk_aug_global))
-  print(RN_elk_aug_global$DIC)
-  which(RN_elk_aug_global$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_elk_aug_global$samples)
-  save(RN_elk_aug_global, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_aug_mods/RN_elk_aug_global.RData")
+  print(RN_elk_aug_global1$summary[1:15,])
+  (RN_elk_aug_global1_WAICj <- calc.jointlike(RN_elk_aug_global1))
+  print(RN_elk_aug_global1$DIC)
+  which(RN_elk_aug_global1$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_aug_global1$samples)
+  save(RN_elk_aug_global1, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_aug_mods/RN_elk_aug_global_meanHQ_maxTbio_cvTbio_pred_propSel.RData")
+  
+  ######  GLOBAL 2  ######    
+  #'  Using only most supported non-correlated covariates 
+  #'  Global 2: Mean HQ, Mean Tbio, cv Tbio, predicted, PropSelected  
+  #'  Univariate models indicate: Mean HQ and Mean Tbio are not correlated at all even though MaxHQ has slightly lower WAIC
+  #'  predicted had lower WAIC compered to selected 
+  #'  cv Tbio had lower WAIC compared to cv HQ though neither are statistically meaningful
+  start.time = Sys.time()
+  inits_elk_Aug <- function(){list(N = ninit_elk[[2]])}
+  RN_elk_aug_global2 <- jags(data_JAGS_bundle_elk[[2]], inits = inits_elk_Aug, params,
+                             "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_elk_aug_global_2.txt",
+                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                             n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_aug_global2$summary[1:15,])
+  (RN_elk_aug_global2_WAICj <- calc.jointlike(RN_elk_aug_global2))
+  print(RN_elk_aug_global2$DIC)
+  which(RN_elk_aug_global2$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_elk_aug_global2$samples)
+  save(RN_elk_aug_global2, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/Elk_aug_mods/RN_elk_aug_global_meanHQ_meanTbio_cvTbio_pred_propSel.RData")
+  
   
   #'  -----------------------
   #####  WTD July RN models  #####
@@ -1287,10 +1335,10 @@
   mcmcplot(RN_wtd_july_predicted.propSelected$samples)
   save(RN_wtd_july_predicted.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_july_mods/RN_wtd_july_predicted.propSelected.RData")
   
-  ######  GLOBAL  ######   #####  COME BACK TO THIS  ###### 
-  #'  Using only most supported non-correlated covariates
-  #'  Global: Max HQ, cv HQ, Mean Tbio, Selected, PropSelected
-  #'  cvHQ & cvTbio are highly correlated so running global model with only one cv biomass variable at a time
+  ######  GLOBAL  ######    
+  #'  Using only most supported non-correlated covariates (based on lowest WAIC from univariate models above)
+  #'  Global: Max HQ, cv HQ, Max Tbio, Selected, PropSelected   
+  #'  Removed Mean HQ, & Mean Tbio, cv Tbio from 2.24.25 run because correlated with max HQ, cvHQ, & max Tbio with updated forage variables
   start.time = Sys.time()
   inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
   RN_wtd_july_global1 <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
@@ -1303,21 +1351,21 @@
   print(RN_wtd_july_global1$DIC)
   which(RN_wtd_july_global1$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_july_global1$samples)
-  save(RN_wtd_july_global1, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_july_mods/RN_wtd_july_global.cvHQ.RData")
+  save(RN_wtd_july_global1, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_july_mods/RN_wtd_july_global_1_redo.RData")
   
-  start.time = Sys.time()
-  inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
-  RN_wtd_july_global2 <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
-                           "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_wtd_july_global_2.txt",
-                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                           n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_july_global2$summary)
-  (RN_wtd_july_global2_WAICj <- calc.jointlike(RN_wtd_july_global2))
-  print(RN_wtd_july_global2$DIC)
-  which(RN_wtd_july_global2$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_wtd_july_global2$samples)
-  save(RN_wtd_july_global2, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_july_mods/RN_wtd_july_global.cvTbio.RData")
+  # start.time = Sys.time()
+  # inits_wtd_July <- function(){list(N = ninit_wtd[[1]])}
+  # RN_wtd_july_global2 <- jags(data_JAGS_bundle_wtd[[1]], inits = inits_wtd_July, params,
+  #                          "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_wtd_july_global_2.txt",
+  #                          n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+  #                          n.burnin = nb, parallel = TRUE)
+  # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  # print(RN_wtd_july_global2$summary)
+  # (RN_wtd_july_global2_WAICj <- calc.jointlike(RN_wtd_july_global2))
+  # print(RN_wtd_july_global2$DIC)
+  # which(RN_wtd_july_global2$summary[,"Rhat"] > 1.1)
+  # mcmcplot(RN_wtd_july_global2$samples)
+  # save(RN_wtd_july_global2, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_july_mods/RN_wtd_july_global.cvTbio.RData")
   
   #'  -------------------------
   #####  WTD August RN models  #####
@@ -1549,10 +1597,10 @@
   mcmcplot(RN_wtd_aug_predicted.propSelected$samples)
   save(RN_wtd_aug_predicted.propSelected, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_aug_mods/RN_wtd_aug_predicted.propSelected.RData")
   
-  ######  GLOBAL  ######   ###### COME BACK TO THIS  #######
+  ######  GLOBAL  ######   
   #'  Using only most supported non-correlated covariates
-  #'  Global: Max HQ, cv HQ, Mean Tbio, cv Tbio, selected, PropSelected
-  #'  cvHQ & cvTbio are highly correlated so running global model with only one cv biomass variable at a time
+  #'  Global: Mean HQ, Max Tbio, cv Tbio, predicted, PropSelected   
+  #'  Max HQ, MeanTbio, cv HQ, selected are highly correlated with Mean HQ, MaxTbio, cvTbio, and predicted 
   start.time = Sys.time()
   inits_wtd_Aug <- function(){list(N = ninit_wtd[[2]])}
   RN_wtd_aug_global1 <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
@@ -1565,19 +1613,19 @@
   print(RN_wtd_aug_global1$DIC)
   which(RN_wtd_aug_global1$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wtd_aug_global1$samples)
-  save(RN_wtd_aug_global1, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_aug_mods/RN_wtd_aug_global.cvHQ.RData")
+  save(RN_wtd_aug_global1, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_aug_mods/RN_wtd_aug_global_1_redo.RData")
   
-  start.time = Sys.time()
-  inits_wtd_July <- function(){list(N = ninit_wtd[[2]])}
-  RN_wtd_aug_global2 <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
-                                  "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_wtd_aug_global_2.txt",
-                                  n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                                  n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_wtd_aug_global2$summary)
-  (RN_wtd_aug_global2_WAICj <- calc.jointlike(RN_wtd_aug_global2))
-  print(RN_wtd_aug_global2$DIC)
-  which(RN_wtd_aug_global2$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_wtd_aug_global2$samples)
-  save(RN_wtd_aug_global2, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_aug_mods/RN_wtd_aug_global.cvTbio.RData")
-  
+  # start.time = Sys.time()
+  # inits_wtd_July <- function(){list(N = ninit_wtd[[2]])}
+  # RN_wtd_aug_global2 <- jags(data_JAGS_bundle_wtd[[2]], inits = inits_wtd_Aug, params,
+  #                                 "./Outputs/Hilger_RNmodel/RNmodel_JAGS_code_wtd_aug_global_2.txt",
+  #                                 n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+  #                                 n.burnin = nb, parallel = TRUE)
+  # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  # print(RN_wtd_aug_global2$summary)
+  # (RN_wtd_aug_global2_WAICj <- calc.jointlike(RN_wtd_aug_global2))
+  # print(RN_wtd_aug_global2$DIC)
+  # which(RN_wtd_aug_global2$summary[,"Rhat"] > 1.1)
+  # mcmcplot(RN_wtd_aug_global2$samples)
+  # save(RN_wtd_aug_global2, file = "./Outputs/Hilger_RNmodel/JAGS_out/Fit_02.24.25/WTD_aug_mods/RN_wtd_aug_global.cvTbio.RData")
+  # 
