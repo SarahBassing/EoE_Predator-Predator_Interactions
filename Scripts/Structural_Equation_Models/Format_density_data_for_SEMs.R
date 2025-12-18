@@ -36,11 +36,11 @@
   }
 
   #'  Read in camera cluster shapefiles and clean up with reformat_clusters() function
-  clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp") %>%
+  clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1_06.30.25.shp") %>%
     reformat_clusters(.)
-  clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp") %>%
+  clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6_06.30.25.shp") %>%
     reformat_clusters(.)
-  clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a.shp") %>%
+  clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a_06.30.25.shp") %>%
     reformat_clusters(.)
 
   #'  Merge spatial camera cluster data together and reduce to one observation per camera
@@ -49,18 +49,18 @@
     slice(1L) %>%
     ungroup()
 
-  #' #'  Read in cluster polygon shapefiles
-  #' gmu1_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp") %>% mutate(GMU = "GMU1")
-  #' gmu6_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp") %>% mutate(GMU = "GMU6")
-  #' gmu10a_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp") %>% mutate(GMU = "GMU10A")
-  #' 
-  #' #'  Merge cluster polygons across GMUs
-  #' cluster_poly <- bind_rows(gmu1_poly, gmu6_poly, gmu10a_poly) %>%
-  #'   rename(ClusterID = Clusters)
-  #' mapview::mapview(list(cluster_poly, clusters_all), zcol = "ClusterID")
+  #'  Read in cluster polygon shapefiles
+  gmu1_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp") %>% mutate(GMU = "GMU1")
+  gmu6_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp") %>% mutate(GMU = "GMU6")
+  gmu10a_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp") %>% mutate(GMU = "GMU10A")
+
+  #'  Merge cluster polygons across GMUs
+  cluster_poly <- bind_rows(gmu1_poly, gmu6_poly, gmu10a_poly) %>%
+    rename(ClusterID = Clusters)
+  mapview::mapview(list(cluster_poly, clusters_all), zcol = "ClusterID")
   
   #' #'  Run script that formats covariate data
-  #' source("./Scripts/Structural_Equation_Models/Format_covariate_data_for_SEMs.R") 
+  #' source("./Scripts/Structural_Equation_Models/Format_covariate_data_for_SEMs.R")
   
   #'  ---------------------------------------------------
   ####  Calculate index of relative density per species  ####
@@ -95,7 +95,7 @@
   yr <- list("2020", "2021", "2022")
   cluster_density <- mapply(density_per_cluster, rai = RN_abundance_sf, yr = yr, SIMPLIFY = FALSE)
   
-  # save(cluster_density, file = "./Outputs/Relative_Abundance/RN_model/RelativeDensityIndex_per_SppCluster.RData")
+  # save(cluster_density, file = "./Outputs/Relative_Abundance/RN_model/RelativeDensityIndex_per_SppCluster_06.30.25.RData")
   
   #'  ---------------------------------
   ####  Explore density relationships  ####
