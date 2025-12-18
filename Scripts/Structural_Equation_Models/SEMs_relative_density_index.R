@@ -94,19 +94,6 @@
   summary(top_down_inter.b)
   
   
-  
-  #'  Latent variable approach
-  library(lavaan)
-  lsem <- sem('p =~ whitetailed_deer.Tminus1 + elk.Tminus1 + moose.Tminus1
-              wolf.T ~ wolf.Tminus1 + p
-              mountain_lion.T ~ mountain_lion.Tminus1 + p
-              bear_black.T ~ bear_black.Tminus1 + whitetailed_deer.Tminus1 + elk.Tminus1
-              coyote.T ~ coyote.Tminus1 + whitetailed_deer.Tminus1',
-              data = density_wide_1YrLag_20s_22s)
-  summary(lsem)
-  pred.sem <- as.numeric(predict(lsem))
-  
-  
   #'  -------------------------------------------
   #####  Top down, interference, simpler system  #####
   #'  -------------------------------------------
@@ -274,9 +261,9 @@
   summary(bottom_up_inter_simple.a)
   
   
-  #'  --------------
-  #####  Bottom up  #####
-  #'  --------------
+  #'  ----------------------------
+  #####  Bottom up, exploitation  #####
+  #'  ----------------------------
   bottom_up <- psem(
     lm(wolf.T ~ wolf.Tminus1 + moose.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = density_wide_1YrLag_20s_22s),
     lm(mountain_lion.T ~ mountain_lion.Tminus1 + elk.Tminus1 + whitetailed_deer.Tminus1, data = density_wide_1YrLag_20s_22s),
