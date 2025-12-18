@@ -60,9 +60,9 @@
   #' load("./Data/IDFG camera data/Split datasets/wolf_motion_skinny.RData")
   #' load("./Data/IDFG camera data/Split datasets/wolf_time_skinny.RData")
   #' 
-  #' #'  Add camera setup info (P/U/O/A) and consistent naming structure to match
-  #' #'  camera location data
-  #' #'  EoE cameras
+  #'  Add camera setup info (P/U/O/A) and consistent naming structure to match
+  #'  camera location data
+  #'  EoE cameras
   #' eoe_deploy_info <- function(dets, season, pred) {
   #'   #'  Filter to specific season and predator setup cameras
   #'   sub_cams <- cams_eoe_long %>%
@@ -82,8 +82,9 @@
   #'     relocate(Setup, .after = NewLocationID)
   #'   return(dets)
   #' }
-  #' #'  Run keeper eoe data sets through function
   #' eoe_seasons <- list("Smr20", "Wtr20", "Smr21", "Smr22")
+  #' 
+  #' #'  Run keeper eoe data sets through function --- needed for generating noon list below
   #' eoe_motion_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_motion_skinny, pred = "predator", SIMPLIFY = FALSE)
   #' #'  Fix NewLocationID info- this was recorded differently for Smr21/Smr22 in
   #' #'  original data set so unnecessary info gets added in this function - need to
@@ -96,7 +97,7 @@
   #'   relocate(NewLocationID, .after = LocationID)
   #' #'  Save for later use
   #' # save(eoe_motion_list, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe_motion_skinny_NewLocationID.RData")
-  #' 
+  #'
   #' eoe_noon_list <- mapply(eoe_deploy_info, season = eoe_seasons, dets = eoe_time_skinny, pred = "predator", SIMPLIFY = FALSE)
   #' #'  Fix NewLocationID info- this was recorded differently for Smr21/Smr22 in
   #' #'  original data set so unnecessary info gets added in this function - need to
@@ -110,7 +111,7 @@
   #' #'  Save for later use
   #' eoe_time_list <- eoe_noon_list
   #' # save(eoe_time_list, file = "./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe_time_skinny_NewLocationID.RData")
-  #' 
+  #'
   #' #'  Double check it worked
   #' eoe21s_noon <- eoe_noon_list[[3]]
   #' 
@@ -355,7 +356,8 @@
     filter(NewLocationID != "GMU6_U_36" | Date != "21-Apr-2020")
   eoe20s_allT <- set_tzone(eoe20s_allT) %>%
     #'  Remove images from GMU6_P_84 with dates in the future
-    filter(NewLocationID != "GMU6_P_84" | Date != "17-May-2025")
+    filter(NewLocationID != "GMU6_P_84" | Date != "17-May-2025") %>%
+    filter(NewLocationID != "GMU6_P_84" | Date != "2025-05-17")
   
   #'  EOE Winter 2020-2021
   load("./Data/IDFG camera data/Split datasets/Updated_EoE_datasets/eoe20w_allM_NewLocationID.RData")
@@ -824,7 +826,7 @@
   ####  Flag gaps in camera data  ####
   #'  ----------------------------
   #'  Calculate length of gaps in data due to NO pictures being taken
-  #'  Based on time trigger images - if missing indicates camera wasn't operating correctly
+  #'  Based on time trigger images - if missing, indicates camera wasn't operating correctly
   no_pix <- function(dat, ntime) {
     gaps <- dat %>%
       dplyr::select(NewLocationID, Lat, Long, Date, Time, posix_date_time, OpState) %>%
@@ -842,7 +844,9 @@
              prob_gap = ifelse(nhrs >= ntime, "Gap", NA))
     return(gaps)
   }
-  eoe_nopix_20s <- no_pix(eoe20s_allT, ntime = 72)
+  #'  Currently flagging 72+ hr gaps just to highlight notable gaps in data but
+  #'  function calculated time between sequential images for any & all gap lengths
+  eoe_nopix_20s <- no_pix(eoe20s_allT, ntime = 72) 
   eoe_nopix_20w <- no_pix(eoe20w_allT, ntime = 72)
   eoe_nopix_21s <- no_pix(eoe21s_allT, ntime = 72)
   eoe_nopix_22s <- no_pix(eoe22s_allT, ntime = 72)
@@ -852,10 +856,10 @@
   wolf_nopix_21s <- no_pix(wolf21s_allT, ntime = 72)
   
   #'  Pull out problem dates based on last image before gap in data and first image
-  #'  after gap in data
+  #'  after gap (>1 day) in data
   missing_days <- function(dat) {
     #'  Label sequential dates from same camera as a single burst
-    #'  If there's a break in the dates, images are labeled as a new burst 
+    #'  If there's a break in the dates (> 1 day), images are labeled as a new burst 
     bursts <- dat %>%
       arrange(NewLocationID, posix_date_time) %>%
       dplyr::select(c(NewLocationID, Date, OpState)) %>%
@@ -957,9 +961,10 @@
     #'  severely misdirected, or the images are nightbad_dayOK
     cond <- expr(dat$OpState == "completely obscured" | dat$OpState == "severely misdirected" | 
                    dat$OpState == "nightbad__dayok")
-    #'  Look through sequential images and if they meet this condition for the
-    #'  defined time (ntime) then flag and filter data set to just these images
+    #'  Look through sequential images and if they meet this condition (bad viewshed/night images) 
+    #'  for the defined time (ntime) then flag and filter data set to just these problem images
     bad_view_pix <- dat %>% 
+      #'  rle: compute length (count) & values (desired conditions) of runs (repeats) equal to values in vector
       mutate(problem_pix = 
                rep(rle(!!cond)$values & rle(!!cond)$lengths >= ntime, 
                    rle(!!cond)$lengths)) %>%
@@ -968,7 +973,9 @@
     
     return(bad_view_pix)
   }
-  #'  Flag problematic images from each full time-trigger data set
+  #'  Flag problematic images from each full time-trigger data set 
+  #'  (also runs thru motion-triggered images but the ntime doesn't really make sense for these data)
+  #'  Time trigger occurred every 10 minutes so a 12 hr gap ==> 72 triggers at 10-min interval
   #'  ntime: 6 = 1 hr, 36 = 6 hrs, 72 = 12 hrs
   eoe_seqprob_20s <- lapply(eoe20s_probs, sequential_probs, ntime = 72) %>% 
     #'  Merge listed motion & time trigger data into one dataframe
