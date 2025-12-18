@@ -813,16 +813,25 @@
     rename("Clusters_original" = "Clusters") %>%
     rename("Clusters" = "Clusters.1") 
   #'  Grab polygon areas
-  c2_area <- unique(cam_clusters_gmu6$area_km2[cam_clusters_gmu6$Clusters == 2])
-  #'  GMU6_U_125 gets left out during intersection 
-  #'  (falls slightly outside of Cluster 2 polygon b/c clusters based on 95% KDE)
-  GMU6_U_125 <- filter(clusters_gmu6, NwLctID == "GMU6_U_125") %>%
+  # c2_area <- unique(cam_clusters_gmu6$area_km2[cam_clusters_gmu6$Clusters == 2])
+  c6_area <- as.data.frame(gmu6_poly) %>% dplyr::select(-geometry)
+  #'  GMU6_U_125, GMU6_P_48, GMU6_P_79, & GMU6_P_80 get left out during intersection 
+  #'  (falls slightly outside of cluster polygons b/c clusters based on 95% KDE)
+  # GMU6_U_125 <- filter(clusters_gmu6, NwLctID == "GMU6_U_125") %>%
+  #   rename("Clusters_original" = "Clusters") %>%
+  #   mutate(Clusters = Clusters_original,
+  #          area_km2 = c2_area) %>%
+  #   relocate(Clusters, .after = Clusters_adjacency) %>%
+  #   relocate(area_km2, .after = Clusters)
+  GMU6_misfits <- filter(clusters_gmu6, NwLctID == "GMU6_U_125" | NwLctID == "GMU6_P_48" | NwLctID == "GMU6_P_79" | NwLctID == "GMU6_P_80") %>%
     rename("Clusters_original" = "Clusters") %>%
     mutate(Clusters = Clusters_original,
-           area_km2 = c2_area) %>%
+           Clusters = ifelse(NwLctID == "GMU6_P_79", 4, Clusters), # Hard coding to match across years and U cams
+           Clusters = ifelse(NwLctID == "GMU6_P_80", 3, Clusters)) %>%
+    left_join(c6_area, by = "Clusters") %>%
     relocate(Clusters, .after = Clusters_adjacency) %>%
     relocate(area_km2, .after = Clusters)
-  cam_clusters_gmu6 <- bind_rows(cam_clusters_gmu6, GMU6_U_125)
+  cam_clusters_gmu6 <- bind_rows(cam_clusters_gmu6, GMU6_misfits)
   mapview(list(gmu6_poly, cam_clusters_gmu6), zcol = "Clusters")
   
   #'  Join GMU10A clusters into single data set
@@ -833,6 +842,15 @@
     st_intersection(gmu10a_poly) %>%
     rename("Clusters_original" = "Clusters") %>%
     rename("Clusters" = "Clusters.1")
+  #'  Grab polygon areas
+  c10a_area <- as.data.frame(gmu10a_poly) %>% dplyr::select(-geometry)
+  GMU10aS_misfits <- filter(clusters_gmu10aS, NwLctID == "GMU10A_P_59") %>%
+    rename("Clusters_original" = "Clusters") %>%
+    mutate(Clusters = 3) %>% # Hard coding to match GMU10A_U_59
+    left_join(c10a_area, by = "Clusters") %>%
+    relocate(Clusters, .after = Clusters_adjacency) %>%
+    relocate(area_km2, .after = Clusters)
+  cam_clusters_gmu10a <- bind_rows(cam_clusters_gmu10a, GMU10aS_misfits)
   mapview(list(gmu10a_poly, cam_clusters_gmu10a), zcol = "Clusters")
   
   #'  -----------------------------------------------------------
@@ -871,16 +889,16 @@
     relocate(area_km2, .after = nWolf) %>%
     relocate(GMU, .before = Clusters) %>%
     dplyr::select(-geometry)
-  write_csv(wolf_density_tbl, "./Outputs/Relative_Abundance/RN_model/Tables/Cluster_wolf_RAI_density.csv")
+  write_csv(wolf_density_tbl, "./Outputs/Relative_Abundance/RN_model/Tables/Cluster_wolf_RAI_density_06.30.25.csv")
   
   #'  Back to allowing spherical geometry
   sf::sf_use_s2(TRUE)
   
   
   #'  Save cluster data as shapefiles
-  st_write(cam_clusters_gmu1, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp")
-  st_write(cam_clusters_gmu6, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp")
-  st_write(cam_clusters_gmu10a, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a.shp")
+  st_write(cam_clusters_gmu1, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1_06.30.25.shp")
+  st_write(cam_clusters_gmu6, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6_06.30.25.shp")
+  st_write(cam_clusters_gmu10a, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a_06.30.25.shp")
   st_write(gmu1_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp")
   st_write(gmu6_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp")
   st_write(gmu10a_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp")
