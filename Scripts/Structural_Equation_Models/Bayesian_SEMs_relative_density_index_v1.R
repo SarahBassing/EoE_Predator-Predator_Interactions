@@ -39,57 +39,47 @@
   #####  Setup data for JAGS  #####
   #'  ------------------------
   #'  Bundle data for JAGS
-  bundle_dat <- function(dh, nsite, nsurvey, cov, effort) {
-    #'  Convert detection history to matrix
-    dh <- as.matrix(dh)
-    dimnames(dh) <- NULL
-    #'  Count number of sites per GMU
-    ncams_perGMU <- cov %>%
-      group_by(GMU) %>%
-      summarise(nsites = n()) %>%
-      ungroup()
-    #'  Split up covariates by GMU
-    covs_GMU10A <- filter(cov, GMU == 1)
-    covs_GMU6 <- filter(cov, GMU == 2)
-    covs_GMU1 <- filter(cov, GMU == 3)
+  bundle_dat <- function(dat, nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
     #'  Bundle data for JAGS
-    bundled <- list(y = dh, 
-                    nsites = dim(dh)[1], 
-                    nsurveys = dim(dh)[2], 
-                    ngmu = max(as.numeric(cov$GMU)),
-                    nsets = max(as.numeric(cov$Setup)),
-                    ncams1 = as.numeric(ncams_perGMU[1,2]), # GMU10A
-                    ncams2 = as.numeric(ncams_perGMU[2,2]), # GMU6
-                    ncams3 = as.numeric(ifelse(is.na(ncams_perGMU[3,2]), 0, ncams_perGMU[3,2])), #GMU1
-                    gmu = as.numeric(cov$GMU), 
-                    setup = as.numeric(cov$Setup),
-                    forest = as.numeric(cov$PercFor), 
-                    elev = as.numeric(cov$Elev), 
-                    ndays = as.numeric(cov$nDays), 
-                    seffort = as.numeric(effort),
-                    #'  GMU-specific covariates for predicting N
-                    forest1 = as.numeric(covs_GMU10A$PercFor),
-                    forest2 = as.numeric(covs_GMU6$PercFor),
-                    forest3 = as.numeric(covs_GMU1$PercFor),
-                    elev1 = as.numeric(covs_GMU10A$Elev),
-                    elev2 = as.numeric(covs_GMU6$Elev),
-                    elev3 = as.numeric(covs_GMU1$Elev),
-                    #'  Area of each (km2)
-                    area1 = as.numeric(8527.31),
-                    area2 = as.numeric(5905.44),
-                    area3 = as.numeric(14648.92))
+    bundled <- list(nWolf = nwolf,
+                    nLion = nlion, 
+                    nBear = nbear, 
+                    nCoy = ncoy, 
+                    nElk = nelk,
+                    nMoose = nmoose, 
+                    nWtd = nwtd, 
+                    nharvest = nharv,
+                    nforest = nfor,
+                    wolf.t = as.numeric(dat$wolf.T),
+                    wolf.t_1 = as.numeric(dat$wolf.Tminus1),
+                    lion.t = as.numeric(dat$mountain_lion.T),
+                    lion.t_1 = as.numeric(dat$mountain_lion.Tminus1),
+                    bear.t = as.numeric(dat$bear_black.T), 
+                    bear.t_1 = as.numeric(dat$bear_black.Tminus1), 
+                    coy.t = as.numeric(dat$coyote.T), 
+                    coy.t_1 = as.numeric(dat$coyote.Tminus1), 
+                    elk.t = as.numeric(dat$elk.T), 
+                    elk.t_1 = as.numeric(dat$elk.Tminus1), 
+                    moose.t = as.numeric(dat$moose.T), 
+                    moose.t_1 = as.numeric(dat$moose.Tminus1), 
+                    wtd.t = as.numeric(dat$whitetailed_deer.T), 
+                    wtd.t_1 = as.numeric(dat$whitetailed_deer.Tminus1), 
+                    harvest.t = as.numeric(dat$annual_harvest.T), 
+                    harvest.t_1 = as.numeric(dat$annual_harvest.Tminus1), 
+                    forest.t = as.numeric(dat$DisturbedForest_last20Yrs.T), 
+                    forest.t_1 = as.numeric(dat$DisturbedForest_last20Yrs.Tminus1))
     str(bundled)
     return(bundled)
   }
-  data_JAGS_bundle_20s <- lapply(DH_npp20s_RNmod, bundle_dat, cov = stations_npp20s, effort = zeffort_RNmod[[1]])
+  data_JAGS_bundle <- bundle_dat(density_wide_1YrLag_20s_22s, nwolf = 7, nlion = 7,
+                                 nbear = 4, ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1,
+                                 nharv = 1, nfor = 1)
   
-  save(data_JAGS_bundle_20s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_20s.RData")
+  # save(data_JAGS_bundle, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_20s.RData")
   
   #'  Initial values
-  #'  Using naive occupancy as a starting point for local abundance
   initial_n <- function(dh) {
-    #'  Max value per row
-    ninit <- apply(dh, 1, max, na.rm = TRUE)
+    ninit <- apply(dh, 1, max, na.rm = TRUE)    # what should this look like???
     ninit <- as.vector(ninit)
     return(ninit)
   }
@@ -97,7 +87,10 @@
   ninit <- lapply(DH_npp20s_RNmod, initial_n)
   
   #'  Parameters monitored
-  params <- c("harvest.t_1", "wolf.t_1", "lion.t_1", "bear.t_1", "coy.t_1", "elk.t_1", "moose.t_1", "wtd.t_1", "sigma.spp")
+  params <- c("wolf.t", "wolf.t_1", "lion.t", "lion.t_1", "bear.t", "bear.t_1", 
+              "coy.t", "coy.t_1", "elk.t", "elk.t_1", "moose.t", "moose.t_1", 
+              "wtd.t", "wtd.t_1", "harvest.t", "harvest.t_1", "forest.t",
+              "forest.t_1", "sigma.spp")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept, i.e., mean lambda for GMU10A 
   #'  mean.r = the intercept, i.e., per-individual detection probability at random sites
@@ -119,8 +112,6 @@
       
       #'  Define priors
       #'  -------------
-      harvest.t_1 ~ dnorm(0, 0.01)
-      
       #'  Priors for species lag effects
       for(w in 1:nWolf) {
         wolf.t_1[w] ~ dnorm(0, 0.01)  # look more into precision value...
@@ -143,6 +134,14 @@
       for(wtd in 1:nWtd) {
         wtd.t_1[wtd] ~ dnorm(0, 0.01)
       }
+      
+      #'  Priors for anthropogenic & landscape effects
+      for(h in 1:nharvest) {
+        harvest.t_1[h] ~ dnorm(0, 0.01)
+      }
+      # for(f in 1:nforest) {
+      #   forest.t_1[f] ~ dnorm(0, 0.01)
+      # }
       
       #'  SD prior for each regression
       for(k in 1:nSpp) {
