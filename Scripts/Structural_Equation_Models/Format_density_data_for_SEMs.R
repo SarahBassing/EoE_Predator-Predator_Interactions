@@ -77,11 +77,14 @@
   density_per_cluster <- function(rai, yr) {
     relative_density <- rai %>%
       group_by(GMU, ClusterID, Species) %>%
-      reframe(SppN = sum(RN.n),
-              SppDensity.km2 = SppN/area_km2,
+      reframe(nCam = length(RN.n),
+              SppN = sum(RN.n),
+              meanSppN = SppN / nCam,
+              SppDensity.km2 = meanSppN/area_km2,
               SppDensity.100km2 = SppDensity.km2*100,
               SppN.r = sum(round(RN.n, 0)),
-              SppDensity.km2.r = SppN.r/area_km2,
+              meanSppN.r = SppN.r / nCam,
+              SppDensity.km2.r = meanSppN.r/area_km2,
               SppDensity.100km2.r = SppDensity.km2.r*100) %>% #,
       # NewLocationID = NewLocationID,
       # RN.n = RN.n) %>%
