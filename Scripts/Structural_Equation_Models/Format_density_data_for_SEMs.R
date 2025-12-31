@@ -281,6 +281,52 @@
            harvest_sqKm_quad.yr2 = harvest_sqKm.yr2^2)
   head(density_wide_annual_20s_22s); tail(density_wide_annual_20s_22s)
   
+  #'  Grab GMU1 data from year2
+  gmu1_yr2 <- density_wide[[2]] %>%
+    filter(GMU == "GMU1") %>%
+    #'  Force Year to 2020 (year1)
+    mutate(Year = 2020,
+           year = "yr1") 
+  
+  gmu1_yr2[,c(5:length(gmu1_yr2))] <- NA  
+  
+  density_wide[[1]] <- rbind(density_wide[[1]], gmu1_yr2)
+  
+  #'  Annual data with timestep in long format
+  data_long_cross_lag <- function(dat, yr) {
+    data_by_yr <- dat %>%
+      mutate(timestep = substr(year, 3, nchar(year))) %>%
+      dplyr::select(-c(Year, year)) %>%
+      relocate(timestep, .after = ClusterID)
+    return(data_by_yr)
+  }
+  density_long_annual <- mapply(data_long_cross_lag, dat = density_wide, yr = list("yr1", "yr2", "yr3"), SIMPLIFY = FALSE) 
+  #'  Sneak peak of each year
+  head(density_long_annual[[1]])
+  head(density_long_annual[[2]])
+  head(density_long_annual[[3]])
+  
+  #'  Merge annual long data into a single dataframe, arranged by GMU, then cluster,
+  #'  then timestep
+  density_long_annual_combo <- rbind(density_long_annual[[1]], density_long_annual[[2]], density_long_annual[[3]]) %>%
+    arrange(GMU, ClusterID, timestep)
+  
+  #'  All years in long format with 1-yr lagged data (good way to visualize the
+  #'  cross lag but will not fit model to this data format)
+  density_long_timesteps <- rbind(density_long_annual[[1]], density_long_annual[[2]], density_long_annual[[3]]) %>%
+    arrange(GMU, ClusterID, timestep) %>%
+    group_by(GMU, ClusterID) %>%
+    mutate(bear_black_lag = lag(bear_black),
+           coyote_lag = lag(coyote),
+           elk_lag = lag(elk),
+           moose_lag = lag(moose),
+           mountain_lion_lag = lag(mountain_lion),
+           whitetailed_deer_lag = lag(whitetailed_deer),
+           wolf_lag = lag(wolf),
+           DisturbedForest_last20Yrs_lag = lag(DisturbedForest_last20Yrs),
+           annual_harvest_lag = lag(annual_harvest)) %>%
+    ungroup()
+  
   #'  Z-transform local abundance estimates (per year b/c annual estimates are stand alone variables)
   localN_z <- density_wide_annual_20s_22s %>%
     mutate(across(where(is.numeric), ~(.x - mean(.x, na.rm = TRUE))/sd(.x, na.rm = TRUE))) 
