@@ -94,37 +94,64 @@
     str(bundled)
     return(bundled)
   }
-  data_JAGS_bundle <- bundle_dat(dat_final, nwolf = 4, nlion = 2, nbear = 3, ncoy = 1, 
-                                 nelk = 0, nmoose = 0, nwtd = 0, nharv = 1, nfor = 0)
-                                 #nwolf = 7, nlion = 7, nbear = 4, ncoy = 2, 
-                                 #nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
+  data_JAGS_bundle_topint <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, 
+                                        nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 0)
+  # data_JAGS_bundle_topexp <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, 
+  #                                       nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 0)
+  # data_JAGS_bundle_bottomint <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, 
+  #                                          nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 0)
+  # data_JAGS_bundle_bottomexp <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, 
+  #                                          nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 0)
+                                 
   
   
   # save(data_JAGS_bundle, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_20s.RData")
   
-  #'  Initial values
-  initial_n <- function(nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv) { #spp #nfor
-    ninit <- list(
-      # sigma.spp <- as.numeric(runif(spp, -1, 1))
-      # beta.wolf = runif(nwolf, -0.5, 0.5),
-      # beta.lion = runif(nlion, -0.5, 0.5),
-      # beta.bear = runif(nbear, -0.5, 0.5),
-      # beta.coy = runif(ncoy, -0.5, 0.5),
-      # beta.elk = runif(nelk, -0.5, 0.5),
-      # beta.moose = runif(nmoose, -0.5, 0.5),
-      # beta.wtd = runif(nwtd, -0.5, 0.5),
-      # beta.harvest = runif(nharv, -0.5, 0.5)
-      # beta.forest = runif(nfor, -0.5, 0.5)
+  #'  Generate initial values for each parameter (random node)
+  generate_inits <- function(nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
+    
+    #'  Generate random values for each species-specific beta (nwolf, nlion, etc.
+    #'  based on number of species-specific betas to be estimated)
+    beta.wolf = runif(nwolf, -0.5, 0.5)
+    beta.lion = runif(nlion, -0.5, 0.5)
+    beta.bear = runif(nbear, -0.5, 0.5)
+    beta.coy = runif(ncoy, -0.5, 0.5)
+    beta.elk = runif(nelk, -0.5, 0.5)
+    beta.moose = runif(nmoose, -0.5, 0.5)
+    beta.wtd = runif(nwtd, -0.5, 0.5)
+    beta.harvest = runif(nharv, -0.5, 0.5)
+    beta.forest = runif(nfor, -0.5, 0.5)
+    
+    list(
+      beta.wolf = beta.wolf,
+      beta.lion = beta.lion,
+      beta.bear = beta.bear,
+      beta.coy = beta.coy,
+      beta.elk = beta.elk,
+      beta.moose = beta.moose,
+      beta.wtd = beta.wtd,
+      beta.harvest = beta.harvest,
+      beta.forest = beta.forest,
+      #'  Fix random number generator and seed for every run of this function
+      .RNG.name = "base::Wichmann-Hill",
+      .RNG.seed = 182
     )
-    return(ninit)
   }
-  #'  Apply function per species for each year
-  ninit <- initial_n()#spp = 7, nwolf = 7, nlion = 7, nbear = 4, ncoy = 2, nelk = 1, 
-  #nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
+  #'  Define number of chains
+  num.chains <- 3
+  #'  Create empty list
+  initsList_topint <- vector('list', num.chains)
+  #'  Setting seed for reproducibility
+  set.seed(9983)
+  #'  Loop through generate_inits function 3 times (1 for each chain) 
+  for(i in 1:num.chains){
+    initsList_topint[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, nelk = 1, 
+                              nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
+  }
   
   #'  Parameters monitored
-  params <- c("beta.wolf", "beta.lion", "beta.bear") #"beta.coy", "beta.elk", "beta.moose", 
-              #"beta.wtd", "beta.harvest", "beta.forest", "sigma.spp", "sigma.cluster") 
+  params <- c("beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", "beta.moose", 
+              "beta.wtd", "beta.harvest", "beta.forest", "sigma.spp", "sigma.cluster") 
   
   
   #'  MCMC settings
@@ -137,8 +164,8 @@
   
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_crosslag.R")
   start.time = Sys.time()
-  inits_sem_tst <- function(){list(sppinits = ninit)}
-  SEM_tst <- jags(data_JAGS_bundle, inits = NULL, params,
+  # inits_sem <- function(){list(beta.wtd = ninit)}
+  SEM_tst <- jags(data_JAGS_bundle_topint, params, inits = initsList_topint, 
                   "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_crosslag.txt",
                   n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                   n.burnin = nb, parallel = TRUE)
