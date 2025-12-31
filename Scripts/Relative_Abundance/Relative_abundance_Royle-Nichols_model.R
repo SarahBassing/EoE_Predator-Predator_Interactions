@@ -491,9 +491,9 @@
   data_JAGS_bundle_21s <- lapply(DH_npp21s_RNmod, bundle_dat, cov = clustered_cams[[2]], effort = zeffort_RNmod[[2]], cluster_indicator = cluster_index[[2]]) #cov = stations_npp21s
   data_JAGS_bundle_22s <- lapply(DH_npp22s_RNmod, bundle_dat, cov = clustered_cams[[3]], effort = zeffort_RNmod[[3]], cluster_indicator = cluster_index[[3]]) #cov = stations_npp22s
   
-  save(data_JAGS_bundle_20s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_20s.RData")
-  save(data_JAGS_bundle_21s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_21s.RData")
-  save(data_JAGS_bundle_22s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_22s.RData")
+  save(data_JAGS_bundle_20s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_20s_12.26.25.RData")
+  save(data_JAGS_bundle_21s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_21s_12.26.25.RData")
+  save(data_JAGS_bundle_22s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_22s_12.26.25.RData")
   
   #'  Initial values
   #'  Using naive occupancy as a starting point for local abundance
@@ -528,8 +528,8 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 500#00
-  nb <- 100#00
+  ni <- 5000#0
+  nb <- 1000#0
   nt <- 1#0
   na <- 500#0
   
