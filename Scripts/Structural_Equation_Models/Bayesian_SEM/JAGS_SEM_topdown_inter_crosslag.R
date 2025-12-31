@@ -15,7 +15,7 @@
         }
       }
       
-      #'  SD prior for each timestep and species-specific regression
+      #'  SD prior for each timestep and species-specific regression  #  DO I REALLY WANT THIS TO VARY WITH TIMESTEP TOO????
       for(k in 1:nSpp) {
         for(t in 1:nTimestep) {
           sigma.spp[k,t] ~ dunif(0, 10)
@@ -79,9 +79,12 @@
         
         bear[i,1] ~ dnorm(mu.bear[i,1], tau.spp[3,1])
         mu.bear[i,1] <- beta.int[3,1] + tau.cluster[3,i]
+        
+        coy[i,1] ~ dnorm(mu.coy[i,1], tau.spp[4,1])
+        mu.coy[i,1] <- beta.int[4,1] + tau.cluster[4,i]
           
           
-        #'  If t > 1
+        #'  If t > 1                      #### NOTE!!!!!!!!!!!: holding spp-specific effects constant across years here (same beta.wolf influencing lion rdi in yr2 and yr3, i.e., however lag wolves affect lions, the relationship is the same across years)
         for(t in 2:nTimestep) {
           wolf[i,t] ~ dnorm(mu.wolf[i,t], tau.spp[1,t])
           mu.wolf[i,t] <- beta.int[1,2] + beta.wolf[1] * wolf[i,t-1] + beta.harvest[1] * harv[i,t-1] + tau.cluster[1,i]
@@ -90,7 +93,10 @@
           mu.lion[i,t] <- beta.int[2,2] + beta.lion[1] * lion[i,t-1] + beta.wolf[2] * wolf[i,t-1] + beta.bear[2] * bear[i,t-1] + tau.cluster[2,i]
 
           bear[i,t] ~ dnorm(mu.bear[i,t], tau.spp[3,t])
-          mu.bear[i,t] <- beta.int[3,2] + beta.bear[1] * bear[i,t-1] + beta.wolf[3] * wolf[i,t-1]
+          mu.bear[i,t] <- beta.int[3,2] + beta.bear[1] * bear[i,t-1] + beta.wolf[3] * wolf[i,t-1] + tau.cluster[3,i]
+          
+          coy[i,t] ~ dnorm(mu.coy[i,t], tau.spp[4,t])
+          mu.coy[i,t] <- beta.int[4,2] + beta.coy[1] * coy[i,t-1] + beta.wolf[4] * wolf[i,t-1] + beta.lion[2] * lion[i,t-1] + beta.bear[3] * bear[i,t-1] + tau.cluster[4,i]
         
         }
         
