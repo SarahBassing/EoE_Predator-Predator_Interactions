@@ -94,7 +94,7 @@
     str(bundled)
     return(bundled)
   }
-  data_JAGS_bundle <- bundle_dat(dat_final, nwolf = 3, nlion = 1, nbear = 2, ncoy = 0, 
+  data_JAGS_bundle <- bundle_dat(dat_final, nwolf = 4, nlion = 2, nbear = 3, ncoy = 1, 
                                  nelk = 0, nmoose = 0, nwtd = 0, nharv = 1, nfor = 0)
                                  #nwolf = 7, nlion = 7, nbear = 4, ncoy = 2, 
                                  #nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
@@ -129,10 +129,10 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 500
-  nb <- 100
+  ni <- 5000
+  nb <- 1000
   nt <- 1
-  na <- 500
+  na <- 5000
   
   
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_crosslag.R")
