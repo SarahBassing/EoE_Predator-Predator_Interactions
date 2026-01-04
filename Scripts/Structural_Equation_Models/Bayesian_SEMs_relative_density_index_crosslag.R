@@ -81,6 +81,7 @@
                     nCluster = as.numeric(length(unique(dat$uniqueCluster))),
                     nTimestep = as.numeric(length(unique(dat$timestep))),
                     nSpp = 7,
+                    nGMU = 3,
                     #'  Standardize and set to numeric for each variable
                     wolf = as.matrix(wolf.matrix), #as.numeric(scale(dat$wolf)),  # THINK ABOUT SCALING!!!
                     lion = as.matrix(lion.matrix), #as.numeric(scale(dat$mountain_lion)),
@@ -108,21 +109,23 @@
   # save(data_JAGS_bundle, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_20s.RData")
   
   #'  Generate initial values for each parameter (random node)
-  generate_inits <- function(nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
+  generate_inits <- function(nint, nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
     
     #'  Generate random values for each species-specific beta (nwolf, nlion, etc.
     #'  based on number of species-specific betas to be estimated)
-    beta.wolf = runif(nwolf, -0.5, 0.5)
-    beta.lion = runif(nlion, -0.5, 0.5)
-    beta.bear = runif(nbear, -0.5, 0.5)
-    beta.coy = runif(ncoy, -0.5, 0.5)
-    beta.elk = runif(nelk, -0.5, 0.5)
-    beta.moose = runif(nmoose, -0.5, 0.5)
-    beta.wtd = runif(nwtd, -0.5, 0.5)
-    beta.harvest = runif(nharv, -0.5, 0.5)
-    beta.forest = runif(nfor, -0.5, 0.5)
+    # beta.int = runif(nint, -1, 1)
+    beta.wolf = runif(nwolf, -1, 1)
+    beta.lion = runif(nlion, -1, 1)
+    beta.bear = runif(nbear, -1, 1)
+    beta.coy = runif(ncoy, -1, 1)
+    beta.elk = runif(nelk, -1, 1)
+    beta.moose = runif(nmoose, -1, 1)
+    beta.wtd = runif(nwtd, -1, 1)
+    beta.harvest = runif(nharv, -1, 1)
+    beta.forest = runif(nfor, -1, 1)
     
     list(
+      # beta.int = beta.int,
       beta.wolf = beta.wolf,
       beta.lion = beta.lion,
       beta.bear = beta.bear,
@@ -131,10 +134,10 @@
       beta.moose = beta.moose,
       beta.wtd = beta.wtd,
       beta.harvest = beta.harvest,
-      beta.forest = beta.forest,
-      #'  Fix random number generator and seed for every run of this function
-      .RNG.name = "base::Wichmann-Hill",
-      .RNG.seed = 182
+      beta.forest = beta.forest#,
+      #' #'  Fix random number generator and seed for every run of this function
+      #' .RNG.name = "base::Wichmann-Hill",
+      #' .RNG.seed = 182
     )
   }
   #'  Define number of chains
@@ -145,13 +148,14 @@
   set.seed(9983)
   #'  Loop through generate_inits function 3 times (1 for each chain) 
   for(i in 1:num.chains){
-    initsList_topint[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, nelk = 1, 
+    initsList_topint[[i]] <- generate_inits(nint = 14, nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, nelk = 1, 
                               nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
   }
   
   #'  Parameters monitored
-  params <- c("beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", "beta.moose", 
-              "beta.wtd", "beta.harvest", "beta.forest", "sigma.spp", "sigma.cluster") 
+  params <- c("beta.int", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", 
+              "beta.moose", "beta.wtd", "beta.harvest", "beta.forest", "sigma.spp", "sigma.cluster") 
+              # "sigma.gmu"
   
   
   #'  MCMC settings
@@ -159,20 +163,19 @@
   ni <- 5000
   nb <- 1000
   nt <- 1
-  na <- 5000
+  na <- 500
   
   
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_crosslag.R")
   start.time = Sys.time()
-  # inits_sem <- function(){list(beta.wtd = ninit)}
-  SEM_tst <- jags(data_JAGS_bundle_topint, params, inits = initsList_topint, 
-                  "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_crosslag.txt",
-                  n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                  n.burnin = nb, parallel = TRUE)
+  SEM_top_inter <- jags(data_JAGS_bundle_topint, params, inits = initsList_topint, 
+                        "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_crosslag.txt",
+                        n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                        n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(SEM_tst$summary)
-  which(SEM_tst$summary[,"Rhat"] > 1.1)
-  mcmcplot(SEM_tst$samples)
-  save(SEM_tst, file = paste0("./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_crosslag_", Sys.Date(), ".RData"))
+  print(SEM_top_inter$summary)
+  which(SEM_top_inter$summary[,"Rhat"] > 1.1)
+  mcmcplot(SEM_top_inter$samples)
+  save(SEM_top_inter, file = paste0("./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_crosslag_", Sys.Date(), ".RData"))
   
   
