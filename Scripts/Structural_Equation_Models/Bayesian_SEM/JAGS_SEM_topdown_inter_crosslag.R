@@ -51,7 +51,7 @@
       #'  Need two per species because regressions differ between t1 and t>1
       for(k in 1:nSpp) {
         for(mod in 1:2) {
-          beta.int[k,mod] ~ dnorm(0, 0.1)  # look more into precision value... I think FSP review commented on this?
+          beta.int[k,mod] ~ dnorm(0, 0.01)  # precision = 0.01 --> sqrt(0.01^-1) --> SD = 10
         }
       }
       
@@ -74,44 +74,56 @@
       
       #'  Slopes representing species-specific, human, and landscape lag effects
       for(w in 1:nWolf) {
-        beta.wolf[w] ~ dnorm(0, 0.1)  # look more into precision value... I think FSP review commented on this?
+        beta.wolf[w] ~ dnorm(0, 0.01)  # Don't use 0.1 
       }
       for(l in 1:nLion) {
-        beta.lion[l] ~ dnorm(0, 0.1)  # 0.01 originally
+        beta.lion[l] ~ dnorm(0, 0.01)  
       }
       for(b in 1:nBear) {
-        beta.bear[b] ~ dnorm(0, 0.1)
+        beta.bear[b] ~ dnorm(0, 0.01)
       }
       for(c in 1:nCoy) {
-        beta.coy[c] ~ dnorm(0, 0.1)
+        beta.coy[c] ~ dnorm(0, 0.01)
       }
       for(e in 1:nElk) {
-        beta.elk[e] ~ dnorm(0, 0.1)
+        beta.elk[e] ~ dnorm(0, 0.01)
       }
       for(m in 1:nMoose) {
-        beta.moose[m] ~ dnorm(0, 0.1)
+        beta.moose[m] ~ dnorm(0, 0.01)
       }
       for(d in 1:nDeer) {
-        beta.wtd[d] ~ dnorm(0, 0.1)
+        beta.wtd[d] ~ dnorm(0, 0.01)
       }
       for(h in 1:nharvest) {
-        beta.harvest[h] ~ dnorm(0, 0.1)
+        beta.harvest[h] ~ dnorm(0, 0.01)
       }
       for(f in 1:nforest) {
-        beta.forest[f] ~ dnorm(0, 0.1)
+        beta.forest[f] ~ dnorm(0, 0.01)
       }
       
-      #'  Standard deviation for among-cluster random intercept term for each species 
+      #'  Standard deviation for among-cluster random intercept term for each species
       for(k in 1:nSpp) {
         for(cl in 1:nCluster) {
-          sigma.cluster[k,cl] ~ dnorm(0, 0.1) T(0,)     #dunif(0, 10)       
-          tau.cluster[k,cl] <- 1 / pow(sigma.cluster[k,cl], 2)    
+          sigma.cluster[k,cl] ~ dnorm(0, 0.01) T(0,)    #dunif(0, 10)
+          tau.cluster[k,cl] <- 1 / pow(sigma.cluster[k,cl], 2)
         }
       }
+      
+      #'  dnorm(0,0.01) converge better than dunif, even if hitting a boundary (dunif tends to just
+      #'  return the prior for most random effects), some convergence issues, esp 
+      #'  with some intercepts, no matter what. precision = 0.01 better than precision = 0.1!
+      
+      #' #'  Standard deviation for random intercept term 
+      #' for(cl in 1:nCluster) {
+      #'   sigma.cluster[cl] ~ dnorm(0, 0.01) T(0,)   #dunif(0, 10) 
+      #'   tau.cluster[cl] <- 1 / pow(sigma.cluster[cl], 2)
+      #' }
+      #' #'  Intercepts become unestimable with the cluster random effect with dnorm(0, 0.1) T(0,)
       
       #### DO I WANT A RANDOM EFFECT FOR EACH SPP AND CLUSTER OR JUST ONE PER CLUSTER??? 
       #### I mainly want to account for repeat measure of clusters across years, right?
       #### Do I expect the impact of repeart measures vary by species?
+      #### Seems weird to apply the same cluster random effect to all species though
       
       
       
@@ -120,7 +132,7 @@
       for(i in 1:nCluster) {
         #'  If t = 1
         wolf[i,1] ~ dnorm(mu.wolf[i,1], tau.spp[1,1])      # Note mu.wolf[i,1] & beta.wolf[1] are different from those in later timesteps
-        mu.wolf[i,1] <- beta.int[1,1] + tau.cluster[1,i]   # Double check indexing on tau.cluster[spp,cluster]
+        mu.wolf[i,1] <- beta.int[1,1] + tau.cluster[1,i]   
           
         lion[i,1] ~ dnorm(mu.lion[i,1], tau.spp[2,1])
         mu.lion[i,1] <- beta.int[2,1] + tau.cluster[2,i]
