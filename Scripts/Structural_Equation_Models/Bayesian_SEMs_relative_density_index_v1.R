@@ -31,6 +31,15 @@
   #'  Set options so all no rows are omitted in model output
   options(max.print = 9999)
   
+  # dat_final <- density_wide_1YrLag_20s_22s %>%
+  #   mutate(GMU_cluster = paste0(GMU, "_", ClusterID)) %>%
+  #   group_by(GMU_cluster) %>%
+  #   mutate(uniqueCluster = cur_group_id()) %>%
+  #   ungroup() %>%
+  #   relocate(uniqueCluster, .after = ClusterID) %>%
+  #   dplyr::select(-GMU_cluster) %>%
+  #   arrange(uniqueCluster, timestep)
+  
   dat_final <- density_wide_1YrLag_20s_22s %>%
     mutate(obs = seq(1:nrow(.)),
            GMU_cluster = paste0(GMU, "_", ClusterID)) %>%
@@ -55,7 +64,7 @@
                     nWtd = nwtd, 
                     nharvest = nharv,
                     nforest = nfor,
-                    nCluster = as.numeric(length(dat$obs)), #as.numeric(length(unique(dat$uniqueCluster))),
+                    nCluster = as.numeric(length(unique(dat$uniqueCluster))), #as.numeric(length(dat$obs)), 
                     nSpp = 7,
                     #'  Standardize and set to numeric for each variable
                     wolf.t = as.numeric(scale(dat$wolf.T)),
@@ -79,57 +88,76 @@
     str(bundled)
     return(bundled)
   }
-  data_JAGS_bundle <- bundle_dat(dat_final, nwolf = 7, nlion = 7, nbear = 4, ncoy = 2, 
+  data_JAGS_bundle <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, 
                                  nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
                                  
   
   # save(data_JAGS_bundle, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_20s.RData")
   
-  #'  Initial values
-  initial_n <- function(spp) {
-    ninit <- list(
-      # sigma.spp <- as.numeric(runif(spp, -1, 1))
-      wolf.t = runif(1, -0.5, 0.5),
-      lion.t = runif(1, -0.5, 0.5),
-      bear.t = runif(1, -0.5, 0.5),
-      coy.t = runif(1, -0.5, 0.5),
-      elk.t = runif(1, -0.5, 0.5),
-      moose.t = runif(1, -0.5, 0.5),
-      wtd.t = runif(1, -0.5, 0.5),
-      harvest.t = runif(1, -0.5, 0.5)
-      # forest.t = runif(1, -0.5, 0.5)
+  #'  Generate initial values for each parameter (random node)
+  generate_inits <- function(nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
+    
+    #'  Generate random values for each species-specific beta (nwolf, nlion, etc.
+    #'  based on number of species-specific betas to be estimated)
+    list(
+      wolf.t_1 = runif(nwolf, -0.5, 0.5),
+      lion.t_1 = runif(nlion, -0.5, 0.5),
+      bear.t_1 = runif(nbear, -0.5, 0.5),
+      coy.t_1 = runif(ncoy, -0.5, 0.5),
+      elk.t_1 = runif(nelk, -0.5, 0.5),
+      moose.t_1 = runif(nmoose, -0.5, 0.5),
+      wtd.t_1 = runif(nwtd, -0.5, 0.5),
+      harvest.t_1 = runif(nharv, -0.5, 0.5),
+      forest.t_1 = runif(nfor, -0.5, 0.5)#,
+      #' #'  Fix random number generator and seed for every run of this function
+      #' .RNG.name = "base::Wichmann-Hill",
+      #' .RNG.seed = 182  
+      #' #'  Setting RNG seed leads to the same random number stream during
+      #' #'  adaptation and sampling, causing different inits to be rapidly erased
+      #' #'  and all chains to follow the same deterministic path. This does not 
+      #' #'  appear to happen with the cross lag model though.
     )
-    return(ninit)
   }
-  #'  Apply function per species for each year
-  ninit <- initial_n()#spp = 7, nwolf = 7, nlion = 7, nbear = 4, ncoy = 2, nelk = 1, 
-                     #nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
+  #'  Define number of chains
+  num.chains <- 3
+  #'  Create empty list
+  initsList <- vector('list', num.chains)
+  #'  Setting seed for reproducibility
+  set.seed(9983)
+  #'  Loop through generate_inits function 3 times (1 for each chain) 
+  for(i in 1:num.chains){
+    initsList[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, nelk = 1, 
+                                     nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
+  }
+  
   
   #'  Parameters monitored
-  params <- c("wolf.t_1", "lion.t_1", "bear.t_1", "coy.t_1", "elk.t_1", "moose.t_1", 
-              "wtd.t_1", "harvest.t_1", "forest.t_1", "sigma.spp") 
-  #"wolf.t", "lion.t", "bear.t", "coy.t", "elk.t", "moose.t", "wtd.t", "harvest.t", "forest.t",
-   
+  params <- c("beta.int", "wolf.t_1", "lion.t_1", "bear.t_1", "coy.t_1", "elk.t_1", "moose.t_1", 
+              "wtd.t_1", "harvest.t_1", "forest.t_1", "sigma.spp", "sigma.cluster") 
   
   #'  MCMC settings
   nc <- 3
-  ni <- 500
-  nb <- 100
+  ni <- 50000
+  nb <- 10000
   nt <- 1
-  na <- 500
+  na <- 5000
   
   
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter.R")
   start.time = Sys.time()
-  inits_sem_tst <- function(){list(sppinits = ninit)}
-  SEM_tst <- jags(data_JAGS_bundle, inits = NULL, params,
+  SEM_topinter <- jags(data_JAGS_bundle, params, inits = initsList, #initsList_topint, 
                       "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(SEM_tst$summary)
-  which(SEM_tst$summary[,"Rhat"] > 1.1)
-  mcmcplot(SEM_tst$samples)
-  save(SEM_tst, file = paste0("./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_", Sys.Date(), ".RData"))
+  print(SEM_topinter$summary)
+  which(SEM_topinter$summary[,"Rhat"] > 1.1)
+  mcmcplot(SEM_topinter$samples)
+  save(SEM_topinter, file = paste0("./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_", Sys.Date(), ".RData"))
+  
+  
+  
+  
+  
   
   
