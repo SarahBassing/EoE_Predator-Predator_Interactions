@@ -152,8 +152,8 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 50000
-  nb <- 10000
+  ni <- 100000
+  nb <- 50000
   nt <- 10
   na <- 5000
   
@@ -169,11 +169,30 @@
                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(SEM_topdown_inter$summary)
-  which(SEM_topdown_inter$summary[,"Rhat"] > 1.1)
+  print(SEM_topdown_inter$summary)  
+  which(SEM_topdown_inter$summary[,"Rhat"] > 1.1)    
   mcmcplot(SEM_topdown_inter$samples)
   save(SEM_topdown_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_inter_", Sys.Date(), ".RData"))
   
+  #'  Notes: 
+  #'  Black bear intercept & auto-regressive term struggle to converge w <75000 iterations
+  #'  sigma.clusters struggle to converge w <100000 iterations & 50000 burnin
+  #'  sigma.clusters seem large compared to sigma.spp and betas (mostly ranging 7 - 9 vs 0.1 - 0.9)
+  
+  #' #'  Same model but no random effect for cluster
+  #' source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_no_clusterRE.R")
+  #' start.time = Sys.time()
+  #' SEM_topdown_inter <- jags(data_JAGS_bundle_topinter, inits = initsList_topinter, params, 
+  #'                           "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_no_clusterRE.txt",
+  #'                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+  #'                           n.burnin = nb, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(SEM_topdown_inter$summary)  
+  #' which(SEM_topdown_inter$summary[,"Rhat"] > 1.1)    
+  #' mcmcplot(SEM_topdown_inter$samples)
+  #' save(SEM_topdown_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_inter_no_clusterRE_", Sys.Date(), ".RData"))
+  
+
   #####  Top-down, exploitative model  #####  
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_exploit.R")
   start.time = Sys.time()
