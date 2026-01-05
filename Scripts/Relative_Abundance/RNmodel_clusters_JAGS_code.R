@@ -27,27 +27,27 @@
       #'  Define priors
       #'  -------------
       #'  Abundance priors
-      beta0 ~ dunif(-10, 10)      # Abundance intercept
+      beta0 ~ dunif(-3, 3)        # Abundance intercept
       mean.lambda <- exp(beta0)   # Mean lambda for GMU10A
-      beta1 ~ dnorm(0, 0.01) #0.001
-      beta2 ~ dnorm(0, 0.01) #0.001
-      beta3 ~ dnorm(0, 0.01) #0.001
+      # beta1 ~ dnorm(0, 0.01) 
+      # beta2 ~ dnorm(0, 0.01) 
+      # beta3 ~ dnorm(0, 0.01) 
       
       #'  Categorical effect for GMU needs multiple beta4 coefficients
       beta4[1] <- 0
       for(gmu in 2:ngmu) {
-        beta4[gmu] ~ dnorm(0, 0.01) #0.001
+        beta4[gmu] ~ dnorm(0, 0.01) 
       }
       
       #'  Detection priors
       mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
       alpha0 <- logit(mean.r)     # Detection intercept (on logit scale)
-      # alpha1 ~ dnorm(0, 0.01) #0.001
+      # alpha1 ~ dnorm(0, 0.01) 
       
       #'  Categorical effect for camera setup needs multiple alpha2 coefficients
       alpha2[1] <- 0
       for(cam in 2:nsets) {
-        alpha2[cam] ~ dnorm(0,0.01) #0.001
+        alpha2[cam] ~ dnorm(0,0.01) 
       }
       
       
@@ -123,9 +123,10 @@
       }
       
       #'  Estimate relative abundance index by summing N per cluster, dividing
-      #'  the sum of camera cluster indices to estimate the average abundance/camera
-      #'  then divide by the area of each cluster to estimate relative density 
-      #'  index (per sq-km) and finally multiply by 100 so RDI per 100 sq-km
+      #'  the sum of camera cluster indicators (i.e., number of cameras in a cluster) 
+      #'  to estimate the average abundance/camera, then dividing by the area of 
+      #'  each cluster to estimate relative density index (per sq-km) and finally 
+      #'  multiplying by 100 so RDI per 100 sq-km
       rdi.cl1 <- ((sum(N.cl1) / sum(cluster_matrix[,1])) / cluster_area[1]) * 100
       rdi.cl2 <- ((sum(N.cl2) / sum(cluster_matrix[,2])) / cluster_area[2]) * 100
       rdi.cl3 <- ((sum(N.cl3) / sum(cluster_matrix[,3])) / cluster_area[3]) * 100
@@ -164,14 +165,14 @@
       #' densitykm2.gmu1 <- totalN.gmu1/area3
       #' density100km2.gmu1 <- densitykm2.gmu1 * 100
       
-      #'  Total sites occupied (N > 0)
-      for(i in 1:nsites) {
-        occupied[i] <- ifelse(N[i] > 0, 1, 0)
-      }
-      occSites <- sum(occupied[])
-
-      #'  Mean occupancy probability
-      mean.psi <- 1 - exp(-mu.lambda)
+      #' #'  Total sites occupied (N > 0)
+      #' for(i in 1:nsites) {
+      #'   occupied[i] <- ifelse(N[i] > 0, 1, 0)
+      #' }
+      #' occSites <- sum(occupied[])
+      #' 
+      #' #'  Mean occupancy probability
+      #' mean.psi <- 1 - exp(-mu.lambda)
  
       #'  Mean per-individual detection probability (r) per camera setup
       for(cam in 1:nsets) {
