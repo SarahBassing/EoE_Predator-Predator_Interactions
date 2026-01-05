@@ -21,6 +21,7 @@
   library(jagsUI)
   library(mcmcplots)
   library(tidyverse)
+  library(sf)
   
   #'  ------------------------------
   ####  Load and format image data  ####
@@ -395,7 +396,9 @@
   #'  Create indicator matrix for each camera per cluster
   cluster_indicator_matrix <- function(clust_cams) {
     cluster_indicator <- clust_cams %>%
+      #'  Focus on each camera and which unique cluster it was assigned to
       dplyr::select(c("NewLocationID", "uniqueCluster")) %>%
+      #'  If row (camera) was assigned to uniqueCluster X, mark as 1, else, mark as 0
       mutate(cluster.1 = ifelse(uniqueCluster == 1, 1, 0),
              cluster.2 = ifelse(uniqueCluster == 2, 1, 0),
              cluster.3 = ifelse(uniqueCluster == 3, 1, 0),
@@ -470,8 +473,8 @@
                     #'  Cluster-specific data for estimating relative density/cluster
                     ncams = as.numeric(cov$ncams),
                     cluster_area = as.numeric(cov$area_km2),
-                    cl1 = cluster_indicator[,1],
-                    cl2 = cluster_indicator[,2],
+                    # cl1 = cluster_indicator[,1],
+                    # cl2 = cluster_indicator[,2],
                     cluster_matrix = cluster_indicator)
                     #' #'  GMU-specific covariates for predicting N
                     #' forest1 = as.numeric(covs_GMU10A$PercFor),
@@ -509,17 +512,17 @@
   ninit_22s <- lapply(DH_npp22s_RNmod, initial_n)
   
   #'  Parameters monitored
-  params <- c("beta0", "beta1", "beta2", "beta3", "beta4", #"mean.lambda", 
+  params <- c("beta0", "beta1", #"beta2", "beta3", "beta4", #"mean.lambda", 
               "alpha0", "alpha2", "rSetup", "mu.r", "mean.p", #"alpha1" #"mean.r", 
-              "mu.lambda", "totalN", "occSites", "mean.psi", "rdi.cl1", "rdi.cl2",
-              "rdi.cl3", "rdi.cl4", "rdi.cl5", "rdi.cl6", "rdi.cl7", "rdi.cl8", 
-              "rdi.cl9", "rdi.cl10", "rdi.cl11", "rdi.cl12", "rdi.cl13", "rdi.cl14", 
-              "rdi.cl15", "rdi.cl16", "rdi.cl17", "rdi.cl18", "rdi.cl19", "rdi.cl20",
-              "rdi.cl21", "rdi.cl22", "rdi.cl23", "rdi.cl24",
+              "mu.lambda", "totalN", "rdi.cl1", "rdi.cl2", "rdi.cl3", "rdi.cl4", 
+              "rdi.cl5", "rdi.cl6", "rdi.cl7", "rdi.cl8", "rdi.cl9", "rdi.cl10", 
+              "rdi.cl11", "rdi.cl12", "rdi.cl13", "rdi.cl14", "rdi.cl15", "rdi.cl16", 
+              "rdi.cl17", "rdi.cl18", "rdi.cl19", "rdi.cl20", "rdi.cl21", "rdi.cl22", 
+              "rdi.cl23", "rdi.cl24") #, #"occSites", "mean.psi", 
               # "totalN.gmu10a", "densitykm2.gmu10a", "density100km2.gmu10a", 
               # "totalN.gmu6", "densitykm2.gmu6", "density100km2.gmu6", 
               # "totalN.gmu1", "densitykm2.gmu1", "density100km2.gmu1",
-              "N")
+              #"N")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept, i.e., mean lambda for GMU10A 
   #'  mean.r = the intercept, i.e., per-individual detection probability at random sites
@@ -528,10 +531,10 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 5000#0
-  nb <- 1000#0
-  nt <- 1#0
-  na <- 500#0
+  ni <- 50000
+  nb <- 10000
+  nt <- 10
+  na <- 5000
   
   #'  ---------------------------
   #####  Run RN model with JAGS  #####
