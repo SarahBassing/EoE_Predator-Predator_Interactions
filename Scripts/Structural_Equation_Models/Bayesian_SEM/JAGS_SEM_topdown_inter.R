@@ -91,7 +91,7 @@
       for(k in 1:nSpp) {
         for(i in 1:nCluster) {
           sigma.cluster[k,i] ~ dnorm(0, 0.01) T(0,)      #dunif(0, 10)      
-          tau.cluster[k,i] <- 1 / pow(sigma.cluster[k,cl], 2)    
+          tau.cluster[k,i] <- 1 / pow(sigma.cluster[k,i], 2)    
         }
       }
       #'  dnorm(0, 0.01) T(0,) some seem to hitting boundary at 0 and a few not converging well 
