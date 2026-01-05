@@ -518,11 +518,11 @@
               "rdi.cl5", "rdi.cl6", "rdi.cl7", "rdi.cl8", "rdi.cl9", "rdi.cl10", 
               "rdi.cl11", "rdi.cl12", "rdi.cl13", "rdi.cl14", "rdi.cl15", "rdi.cl16", 
               "rdi.cl17", "rdi.cl18", "rdi.cl19", "rdi.cl20", "rdi.cl21", "rdi.cl22", 
-              "rdi.cl23", "rdi.cl24") #, #"occSites", "mean.psi", 
+              "rdi.cl23", "rdi.cl24", #"occSites", "mean.psi", 
               # "totalN.gmu10a", "densitykm2.gmu10a", "density100km2.gmu10a", 
               # "totalN.gmu6", "densitykm2.gmu6", "density100km2.gmu6", 
               # "totalN.gmu1", "densitykm2.gmu1", "density100km2.gmu1",
-              #"N")
+              "N")
   #'  NOTE about mean vs mu lambda and r: 
   #'  mean.lambda = the intercept, i.e., mean lambda for GMU10A 
   #'  mean.r = the intercept, i.e., per-individual detection probability at random sites
