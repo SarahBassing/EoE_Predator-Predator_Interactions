@@ -77,9 +77,9 @@
       for(h in 1:nharvest) {
         beta.harvest[h] ~ dnorm(0, 0.01)
       }
-      for(f in 1:nforest) {
-        beta.forest[f] ~ dnorm(0, 0.01)
-      }
+      # for(f in 1:nforest) {
+      #   beta.forest[f] ~ dnorm(0, 0.01)
+      # }
       
       #'  SD prior for each regression
       for(k in 1:nSpp) {
@@ -117,7 +117,7 @@
         mu.elk.t[i] <- beta.int[5] + beta.elk[1] * elk.tmin1[i] + beta.wolf[5] * wolf.tmin1[i] + beta.lion[3] * lion.tmin1[i] + beta.bear[4] * bear.tmin1[i] + tau.cluster[5,i]
 
         moose.t[i] ~ dnorm(mu.moose.t[i], tau.spp[6])
-        mu.moose.t[i] <- beta.int[5] + beta.moose[1] * moose.tmin1[i] + beta.wolf[6] * wolf.tmin1[i] + tau.cluster[6,i]
+        mu.moose.t[i] <- beta.int[6] + beta.moose[1] * moose.tmin1[i] + beta.wolf[6] * wolf.tmin1[i] + tau.cluster[6,i]
 
         wtd.t[i] ~ dnorm(mu.wtd.t[i], tau.spp[7])
         mu.wtd.t[i] <- beta.int[7] + beta.wtd[1] * wtd.tmin1[i] + beta.wolf[7] * wolf.tmin1[i] + beta.lion[4] * lion.tmin1[i] + beta.bear[5] * bear.tmin1[i] + beta.coy[2] * coy.tmin1[i] + tau.cluster[7,i]
