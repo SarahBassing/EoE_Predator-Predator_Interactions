@@ -52,7 +52,7 @@
     
   
   #'  ------------------------
-  #####  Setup data for JAGS  #####
+  ####  Setup data for JAGS  ####
   #'  ------------------------
   #'  Bundle data for JAGS
   bundle_dat <- function(dat, nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
@@ -99,7 +99,6 @@
   data_JAGS_bundle_bottomexploit <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, 
                                                ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
                                  
-  
   # save(data_JAGS_bundle_topinter, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_topinter.RData")
   # save(data_JAGS_bundle_topexploit, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_topexploit.RData")
   # save(data_JAGS_bundle_bottominter, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_bottominter.RData")
@@ -147,7 +146,6 @@
                                               nmoose = 2, nwtd = 5, nharv = 0, nfor = 1)
   }
   
-  
   #'  Parameters monitored
   params <- c("beta.int", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", 
               "beta.moose", "beta.wtd", "beta.harvest", "beta.forest", "sigma.spp", "sigma.cluster") 
@@ -159,12 +157,14 @@
   nt <- 10
   na <- 5000
   
-  #'  Fit Bayesian SEMs
-  #'  ------------------
-  ####  Top-down, interference model  ####
+  
+  #'  ---------------------------------
+  ####  Call JAGS & Fit Bayesian SEMs  ####
+  #'  ---------------------------------
+  #####  Top-down, interference model  #####
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter.R")
   start.time = Sys.time()
-  SEM_topdown_inter <- jags(data_JAGS_bundle, params, inits = initsList_topinter, 
+  SEM_topdown_inter <- jags(data_JAGS_bundle_topinter, inits = initsList_topinter, params, 
                             "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter.txt",
                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                             n.burnin = nb, parallel = TRUE)
@@ -174,10 +174,10 @@
   mcmcplot(SEM_topdown_inter$samples)
   save(SEM_topdown_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_inter_", Sys.Date(), ".RData"))
   
-  ####  Top-down, exploitative model  ####
+  #####  Top-down, exploitative model  #####  
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_exploit.R")
   start.time = Sys.time()
-  SEM_topdown_exploit <- jags(data_JAGS_bundle, params, inits = initsList_topexploit, 
+  SEM_topdown_exploit <- jags(data_JAGS_bundle_topexploit, inits = initsList_topexploit, params, 
                               "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_exploit.txt",
                               n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                               n.burnin = nb, parallel = TRUE)
@@ -187,10 +187,10 @@
   mcmcplot(SEM_topdown_exploit$samples)
   save(SEM_topdown_exploit, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_exploit_", Sys.Date(), ".RData"))
   
-  ####  Bottom-up, interference model  ####
+  #####  Bottom-up, interference model  #####  
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_inter.R")
   start.time = Sys.time()
-  SEM_bottomup_inter <- jags(data_JAGS_bundle, params, inits = initsList_bottominter, 
+  SEM_bottomup_inter <- jags(data_JAGS_bundle_bottominter, inits = initsList_bottominter, params, 
                              "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_inter.txt",
                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                              n.burnin = nb, parallel = TRUE)
@@ -200,10 +200,10 @@
   mcmcplot(SEM_bottomup_inter$samples)
   save(SEM_bottomup_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_inter_", Sys.Date(), ".RData"))
   
-  ####  Bottom-up, exploitative model  ####
+  #####  Bottom-up, exploitative model  #####  
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_exploit.R")
   start.time = Sys.time()
-  SEM_bottomup_exploit <- jags(data_JAGS_bundle, params, inits = initsList_bottomexploit, 
+  SEM_bottomup_exploit <- jags(data_JAGS_bundle_bottomexploit, inits = initsList_bottomexploit, params, 
                                "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_exploit.txt",
                                n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                n.burnin = nb, parallel = TRUE)
