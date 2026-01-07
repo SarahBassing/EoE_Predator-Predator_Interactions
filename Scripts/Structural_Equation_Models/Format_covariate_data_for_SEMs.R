@@ -55,11 +55,11 @@
   }
   
   #'  Read in camera cluster shapefiles and clean up with reformat_clusters() function
-  clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp") %>% 
+  clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1_06.30.25.shp") %>% 
     reformat_clusters(.)
-  clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6.shp") %>% 
+  clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6_06.30.25.shp") %>% 
     reformat_clusters(.)
-  clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a.shp") %>% 
+  clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a_06.30.25.shp") %>% 
     reformat_clusters(.)
   
   #'  Merge spatial camera cluster data together and reduce to one observation per camera
@@ -86,9 +86,9 @@
   ####  NLCD Percent Forest Cover Covariate  ####
   #'  ---------------------------------------
   #'  Read in forested landcover
-  perc_forest <- rast("./Shapefiles/National Land Cover Database (NCLD)/PercentForest_100m.tif")
-  forest <- rast("./Shapefiles/National Land Cover Database (NCLD)/Forested_landcover.tif")
-  notforest <- rast("./Shapefiles/National Land Cover Database (NCLD)/NonForested_landcover.tif")
+  perc_forest <- rast("./Shapefiles/National Land Cover Database (NLCD)/PercentForest_100m.tif")
+  forest <- rast("./Shapefiles/National Land Cover Database (NLCD)/Forested_landcover.tif")
+  notforest <- rast("./Shapefiles/National Land Cover Database (NLCD)/NonForested_landcover.tif")
   forest_proj <- crs(forest)
   
   #'  Calculate average percent forested habitat across cameras in each cluster
