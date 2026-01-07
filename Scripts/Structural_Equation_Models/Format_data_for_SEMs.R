@@ -4,7 +4,7 @@
   #'  Sarah Bassing
   #'  January 2024
   #'  --------------------------------
-  #'  Run SEMs
+  #'  Format estimated relative abundance data for SEMs
   
   #'  Clean workspace
   rm(list = ls())
