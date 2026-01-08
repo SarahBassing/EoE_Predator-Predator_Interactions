@@ -732,7 +732,7 @@
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_coy_21s$summary)
-  which(RN_coy_21s$summary[,"Rhat"] > 1.1)
+  which(RN_coy_21s$summary[,"Rhat"] > 1.1)  # a few N had r>1.1
   mcmcplot(RN_coy_21s$samples)
   save(RN_coy_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_coy_21s_", Sys.Date(), ".RData"))
   
@@ -827,7 +827,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_22s$summary)
-  which(RN_elk_22s$summary[,"Rhat"] > 1.1)
+  which(RN_elk_22s$summary[,"Rhat"] > 1.1)  # a few N had r>1.1
   mcmcplot(RN_elk_22s$samples)
   save(RN_elk_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_elk_22s_", Sys.Date(), ".RData"))
   
@@ -869,7 +869,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_21s$summary)
-  which(RN_wtd_21s$summary[,"Rhat"] > 1.1) 
+  which(RN_wtd_21s$summary[,"Rhat"] > 1.1) # a handful of N had r>1.1
   mcmcplot(RN_wtd_21s$samples)
   save(RN_wtd_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wtd_21s_", Sys.Date(), ".RData"))
   
@@ -882,7 +882,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_22s$summary)
-  which(RN_wtd_22s$summary[,"Rhat"] > 1.1) 
+  which(RN_wtd_22s$summary[,"Rhat"] > 1.1) # a good handful of N had r>1.1
   mcmcplot(RN_wtd_22s$samples)
   save(RN_wtd_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wtd_22s_", Sys.Date(), ".RData"))
   
