@@ -75,9 +75,9 @@
   print(posteriors_20s[[1]][, 1:10]) # wolf (2020)
   RN_wolf_20s$sims.list$rdi.cl1[1:10]; RN_wolf_20s$sims.list$rdi.cl9[1:10]
   print(posteriors_21s[[3]][, 1:10]) # bear (2021)
-  RN_bear_21s$sims.list$rdi.cl1[1:10]; RN_bear_21s$sims.list$rdi.cl9[1:10]
+  RN_bear_21s$sims.list$rdi.cl1[1:10]; RN_bear_21s$sims.list$rdi.cl24[1:10]
   print(posteriors_22s[[7]][, 1:10]) # white-tailed deer (2022)
-  RN_wtd_22s$sims.list$rdi.cl1[1:10]; RN_wtd_22s$sims.list$rdi.cl9[1:10]
+  RN_wtd_22s$sims.list$rdi.cl1[1:10]; RN_wtd_22s$sims.list$rdi.cl24[1:10]
   
   #'  Stack species-specific estimated posteriors across iterations 
   #'  (e.g., time t = wolf 2021 and 2022 vs. time t-1 = wolf 2020 and 2021)
@@ -101,10 +101,13 @@
   wtd_timelag <- stacked_posteriors(posteriors_20s[[7]], posteriors_21s[[7]], posteriors_22s[[7]])
   
   #'  Double check everything looks right
+  #'  [[1]] = time t (yr2 and yr3); [[2]] = time t-1 (yr1 and yr2)
   print(wolf_timelag[[1]][,1:10])
   print(wolf_timelag[[2]][,1:10])
   print(elk_timelag[[1]][,1:10])
   print(elk_timelag[[2]][,1:10])
+  
+  #'  Need to drop 2021 GMU 1 data from time t (because no 2020 (t-1) data for GMU 1)
   
   
   
