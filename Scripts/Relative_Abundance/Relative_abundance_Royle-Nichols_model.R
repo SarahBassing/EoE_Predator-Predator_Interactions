@@ -451,19 +451,16 @@
       group_by(GMU) %>%
       summarise(nsites = n()) %>%
       ungroup()
-    #' #'  Split up covariates by GMU
-    #' covs_GMU10A <- filter(cov, GMU == 1)
-    #' covs_GMU6 <- filter(cov, GMU == 2)
-    #' covs_GMU1 <- filter(cov, GMU == 3)
+    
     #'  Bundle data for JAGS
     bundled <- list(y = dh, 
                     nsites = dim(dh)[1], 
                     nsurveys = dim(dh)[2], 
                     ngmu = max(as.numeric(cov$GMU)),
                     nsets = max(as.numeric(cov$Setup)),
-                    ncams1 = as.numeric(ncams_perGMU[1,2]), # GMU10A
-                    ncams2 = as.numeric(ncams_perGMU[2,2]), # GMU6
-                    ncams3 = as.numeric(ifelse(is.na(ncams_perGMU[3,2]), 0, ncams_perGMU[3,2])), #GMU1
+                    # ncams1 = as.numeric(ncams_perGMU[1,2]), # GMU10A
+                    # ncams2 = as.numeric(ncams_perGMU[2,2]), # GMU6
+                    # ncams3 = as.numeric(ifelse(is.na(ncams_perGMU[3,2]), 0, ncams_perGMU[3,2])), #GMU1
                     gmu = as.numeric(cov$GMU), 
                     setup = as.numeric(cov$Setup),
                     forest = as.numeric(cov$PercFor), 
@@ -473,20 +470,8 @@
                     #'  Cluster-specific data for estimating relative density/cluster
                     ncams = as.numeric(cov$ncams),
                     cluster_area = as.numeric(cov$area_km2),
-                    # cl1 = cluster_indicator[,1],
-                    # cl2 = cluster_indicator[,2],
                     cluster_matrix = cluster_indicator)
-                    #' #'  GMU-specific covariates for predicting N
-                    #' forest1 = as.numeric(covs_GMU10A$PercFor),
-                    #' forest2 = as.numeric(covs_GMU6$PercFor),
-                    #' forest3 = as.numeric(covs_GMU1$PercFor),
-                    #' elev1 = as.numeric(covs_GMU10A$Elev),
-                    #' elev2 = as.numeric(covs_GMU6$Elev),
-                    #' elev3 = as.numeric(covs_GMU1$Elev),
-                    #' #'  Area of each (km2)
-                    #' area1 = as.numeric(8527.31),
-                    #' area2 = as.numeric(5905.44),
-                    #' area3 = as.numeric(14648.92))
+              
     str(bundled)
     return(bundled)
   }
