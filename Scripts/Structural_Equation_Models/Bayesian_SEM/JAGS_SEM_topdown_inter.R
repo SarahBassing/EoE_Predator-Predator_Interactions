@@ -94,7 +94,7 @@
           tau.cluster[k,i] <- 1 / pow(sigma.cluster[k,i], 2)    
         }
       }
-      #'  dnorm(0, 0.01) T(0,) some seem to hitting boundary at 0 and a few not converging well 
+      #'  dnorm(0, 0.01) T(0,) a few not converging well; posteriors quite large compared to beta coefficients
       #'  dunif(0, 10) most are just returning the prior, a few have poor convergence
       #'  dnorm seems to be the better prior if sticking with a species - cluster random effect
       
@@ -127,6 +127,8 @@
       
       #'  Derived parameters
       #'  ------------------
+      #'  d-Separation...
       
+      #'  Total and indirect effects...
       
       }")
