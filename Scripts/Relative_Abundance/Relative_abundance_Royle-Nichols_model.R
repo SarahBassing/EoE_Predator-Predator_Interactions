@@ -564,7 +564,7 @@
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_coy_20s$summary)
-  which(RN_coy_20s$summary[,"Rhat"] > 1.1)
+  which(RN_coy_20s$summary[,"Rhat"] > 1.1)   # a few r-hat >1.1
   mcmcplot(RN_coy_20s$samples)
   save(RN_coy_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_coy_20s_", Sys.Date(), ".RData"))
   
