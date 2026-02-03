@@ -110,8 +110,8 @@
         # N.cl17[i] <- N[i] * cluster_matrix[i,17] 
         # N.cl18[i] <- N[i] * cluster_matrix[i,18] 
         # N.cl19[i] <- N[i] * cluster_matrix[i,19] 
-        N.cl20[i] <- N[i] * cluster_matrix[i,20] # GMU6 cams
-        N.cl21[i] <- N[i] * cluster_matrix[i,21] 
+        # N.cl20[i] <- N[i] * cluster_matrix[i,20] 
+        N.cl21[i] <- N[i] * cluster_matrix[i,21] # GMU6 cams
         N.cl22[i] <- N[i] * cluster_matrix[i,22] 
         N.cl23[i] <- N[i] * cluster_matrix[i,23] 
         N.cl24[i] <- N[i] * cluster_matrix[i,24] 
