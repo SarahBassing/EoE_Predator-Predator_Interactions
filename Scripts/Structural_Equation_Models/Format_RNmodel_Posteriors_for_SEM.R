@@ -39,7 +39,10 @@
     }
     
     #'  Bind mu and sd outputs into a matrix
-    cluster_posteriors <- cbind(posterior_mu, posterior_sd)
+    cluster_posteriors <- as.data.frame(cbind(posterior_mu, posterior_sd)) %>%
+      cbind(cluster_out) %>%
+      rename(cluster = cluster_out) 
+      
     return(cluster_posteriors)
   }
   #'  Names of estimated posteriors of interest per year
@@ -90,11 +93,13 @@
     #'  NOTE: yr2 for time_t excludes GMU 1 posteriors because there were no
     #'  posteriors for GMU 1 in the corresponding time_tmin1 (yr1, 2020)
     time_t <- rbind(yr2_noGMU1, yr3)
+    rownames(time_t) <- NULL
     
     #'  Posteriors from time t-1, given an annual lag from time 
     #'  NOTE: yr2 for time_tmin1 includes GMU 1 posteriors because the corresponding 
     #'  yr3 posteriors in time_t also include GMU 1
     time_tmin1 <- rbind(yr1, yr2)
+    rownames(time_tmin1) <- NULL
     
     #'  List posteriors from time t and t-1
     timelag_list <- list(time_t, time_tmin1)
