@@ -23,10 +23,11 @@
   source("./Scripts/Structural_Equation_Models/Format_covariate_data_for_SEMs.R") 
   
   #'  Run script that formats density data for SEMs
-  source("./Scripts/Structural_Equation_Models/Format_density_data_for_SEMs.R")
+  # source("./Scripts/Structural_Equation_Models/Format_density_data_for_SEMs.R")
+  source("./Scripts/Structural_Equation_Models/Format_RNmodel_Posteriors_for_SEM.R")
   
-  #'  Take a quick look
-  head(density_wide_1YrLag_20s_22s)
+  #' #'  Take a quick look
+  #' head(density_wide_1YrLag_20s_22s)
   
   #'  Set options so all no rows are omitted in model output
   options(max.print = 9999)
@@ -40,16 +41,16 @@
   #   dplyr::select(-GMU_cluster) %>%
   #   arrange(uniqueCluster, timestep)
   
-  dat_final <- density_wide_1YrLag_20s_22s %>%
-    mutate(obs = seq(1:nrow(.)),
-           GMU_cluster = paste0(GMU, "_", ClusterID)) %>%
-    group_by(GMU_cluster) %>%
-    mutate(uniqueCluster = cur_group_id()) %>%
-    ungroup() #%>%
-    # arrange(obs)
+  # dat_final <- density_wide_1YrLag_20s_22s %>%
+  #   mutate(obs = seq(1:nrow(.)),
+  #          GMU_cluster = paste0(GMU, "_", ClusterID)) %>%
+  #   group_by(GMU_cluster) %>%
+  #   mutate(uniqueCluster = cur_group_id()) %>%
+  #   ungroup() #%>%
+  #   # arrange(obs)
+  # 
+  # head(dat_final)
   
-  head(dat_final)
-    
   
   #'  ------------------------
   ####  Setup data for JAGS  ####
@@ -69,20 +70,34 @@
                     nCluster = as.numeric(length(unique(dat$uniqueCluster))), 
                     nSpp = 7,
                     #'  Standardize and set to numeric for each variable
-                    wolf.t = as.numeric(scale(dat$wolf.T)),
-                    wolf.tmin1 = as.numeric(scale(dat$wolf.Tminus1)),
-                    lion.t = as.numeric(scale(dat$mountain_lion.T)),
-                    lion.tmin1 = as.numeric(scale(dat$mountain_lion.Tminus1)),
-                    bear.t = as.numeric(scale(dat$bear_black.T)), 
-                    bear.tmin1 = as.numeric(scale(dat$bear_black.Tminus1)), 
-                    coy.t = as.numeric(scale(dat$coyote.T)), 
-                    coy.tmin1 = as.numeric(scale(dat$coyote.Tminus1)), 
-                    elk.t = as.numeric(scale(dat$elk.T)), 
-                    elk.tmin1 = as.numeric(scale(dat$elk.Tminus1)), 
-                    moose.t = as.numeric(scale(dat$moose.T)), 
-                    moose.tmin1 = as.numeric(scale(dat$moose.Tminus1)), 
-                    wtd.t = as.numeric(scale(dat$whitetailed_deer.T)), 
-                    wtd.tmin1 = as.numeric(scale(dat$whitetailed_deer.Tminus1)), 
+                    wolf.t_hat = wolf_timelag[[1]],
+                    wolf.tmin1_hat = wolf_timelag[[2]],
+                    lion.t_hat = lion_timelag[[1]],
+                    lion.tmin1_hat = lion_timelag[[2]],
+                    bear.t_hat = bear_timelag[[1]],
+                    bear.tmin1_hat = bear_timelag[[2]],
+                    coy.t_hat = coy_timelag[[1]],
+                    coy.tmin1_hat = coy_timelag[[2]],
+                    elk.t_hat = elk_timelag[[1]],
+                    elk.tmin1_hat = elk_timelag[[2]],
+                    moose.t_hat = moose_timelag[[1]],
+                    moose.tmin1_hat = moose_timelag[[2]],
+                    wtd.t_hat = wtd_timelag[[1]],
+                    wtd.tmin1_hat = wtd_timelag[[2]],
+                    # wolf.t = as.numeric(scale(dat$wolf.T)),
+                    # wolf.tmin1 = as.numeric(scale(dat$wolf.Tminus1)),
+                    # lion.t = as.numeric(scale(dat$mountain_lion.T)),
+                    # lion.tmin1 = as.numeric(scale(dat$mountain_lion.Tminus1)),
+                    # bear.t = as.numeric(scale(dat$bear_black.T)), 
+                    # bear.tmin1 = as.numeric(scale(dat$bear_black.Tminus1)), 
+                    # coy.t = as.numeric(scale(dat$coyote.T)), 
+                    # coy.tmin1 = as.numeric(scale(dat$coyote.Tminus1)), 
+                    # elk.t = as.numeric(scale(dat$elk.T)), 
+                    # elk.tmin1 = as.numeric(scale(dat$elk.Tminus1)), 
+                    # moose.t = as.numeric(scale(dat$moose.T)), 
+                    # moose.tmin1 = as.numeric(scale(dat$moose.Tminus1)), 
+                    # wtd.t = as.numeric(scale(dat$whitetailed_deer.T)), 
+                    # wtd.tmin1 = as.numeric(scale(dat$whitetailed_deer.Tminus1)), 
                     harvest.t = as.numeric(scale(dat$annual_harvest.T)), 
                     harvest.tmin1 = as.numeric(scale(dat$annual_harvest.Tminus1)), 
                     forest.t = as.numeric(scale(dat$DisturbedForest_last20Yrs.T)), 
