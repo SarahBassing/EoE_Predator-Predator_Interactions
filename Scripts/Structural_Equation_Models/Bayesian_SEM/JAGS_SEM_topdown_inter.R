@@ -100,6 +100,48 @@
       
       #'  Likelihood
       #'  ----------
+      #'  Measurement error from RN models for each species and cluster-level RDI
+      #'  Posterior summaries (mean & sigma) treated as noisy observations [data] 
+      #'  conditional on cluster-level latent parameter 
+      for(i in 1:nCluster) {
+        #'  RN model posterior means (spp.t_hat) arise from latent true RDI (spp.t)
+        wolf.t_hat[i] ~ dnorm(wolf.t[i], wolf.t.tau_hat[i])
+        wolf.tmin1_hat[i] ~ dnorm(wolf.tmin1[i], wolf.tmin1.tau_hat[i])
+        lion.t_hat[i] ~ dnorm(lion.t[i], lion.t.tau_hat[i])
+        lion.tmin1_hat[i] ~ dnorm(lion.tmin1[i], lion.tmin1.tau_hat[i])
+        bear.t_hat[i] ~ dnorm(bear.t[i], bear.t.tau_hat[i])
+        bear.tmin1_hat[i] ~ dnorm(bear.tmin1[i], bear.tmin1.tau_hat[i])
+        coy.t_hat[i] ~ dnorm(coy.t[i], coy.t.tau_hat[i])
+        coy.tmin1_hat[i] ~ dnorm(coy.tmin1[i], coy.tmin1.tau_hat[i])
+        elk.t_hat[i] ~ dnorm(elk.t[i], elk.t.tau_hat[i])
+        elk.tmin1_hat[i] ~ dnorm(elk.tmin1[i], elk.tmin1.tau_hat[i])
+        moose.t_hat[i] ~ dnorm(moose.t[i], moose.t.tau_hat[i])
+        moose.tmin1_hat[i] ~ dnorm(moose.tmin1[i], moose.tmin1.tau_hat[i])
+        wtd.t_hat[i] ~ dnorm(wtd.t[i], wtd.t.tau_hat[i])
+        wtd.tmin1_hat[i] ~ dnorm(wtd.tmin1[i], wtd.tmin1.tau_hat[i])
+        
+        #'  RN model posterior SD (spp.t.sigma_hat) used to calculate spp.t.tau_hat
+        #'  tau_hat are known constraints
+        wolf.t.tau_hat[i] <- 1 / pow(wolf.t.sigma_hat[i], 2)
+        wolf.tmin1.tau_hat[i] <- 1 / pow(wolf.tmin1.sigma_hat[i], 2)
+        lion.t.tau_hat[i] <- 1 / pow(lion.t.sigma_hat[i], 2)
+        lion.tmin1.tau_hat[i] <- 1 / pow(lion.tmin1.sigma_hat[i], 2)
+        bear.t.tau_hat[i] <- 1 / pow(bear.t.sigma_hat[i], 2)
+        bear.tmin1.tau_hat[i] <- 1 / pow(bear.tmin1.sigma_hat[i], 2)
+        coy.t.tau_hat[i] <- 1 / pow(coy.t.sigma_hat[i], 2)
+        coy.tmin1.tau_hat[i] <- 1 / pow(coy.tmin1.sigma_hat[i], 2)
+        elk.t.tau_hat[i] <- 1 / pow(elk.t.sigma_hat[i], 2)
+        elk.tmin1.tau_hat[i] <- 1 / pow(elk.tmin1.sigma_hat[i], 2)
+        moose.t.tau_hat[i] <- 1 / pow(moose.t.sigma_hat[i], 2)
+        moose.tmin1.tau_hat[i] <- 1 / pow(moose.tmin1.sigma_hat[i], 2)
+        wtd.t.tau_hat[i] <- 1 / pow(wtd.t.sigma_hat[i], 2)
+        wtd.tmin1.tau_hat[i] <- 1 / pow(wtd.tmin1.sigma_hat[i], 2)
+      }
+      
+      #'  Ecological process model
+      #'  Latent cluster-level RDIs (spp.t) govern RN posterior summaries (spp.t_hat 
+      #'  and spp.t.sigma_hat) and are in turn governed by mu.spp.t (and tau.spp), 
+      #'  which are influenced by other species RDIs and variables
       for(i in 1:nCluster) {
         wolf.t[i] ~ dnorm(mu.wolf.t[i], tau.spp[1])
         mu.wolf.t[i] <- beta.int[1] + beta.wolf[1] * wolf.tmin1[i] + beta.harvest[1] * harvest.tmin1[i] + tau.cluster[1,i] 
