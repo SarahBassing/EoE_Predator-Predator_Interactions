@@ -6,7 +6,7 @@
   #'  Source data formatting script and run structural equation models (SEM) in
   #'  a Bayesian framework to test hypotheses about how predator-prey and predator- 
   #'  predator interactions influence wildlife populations in northern Idaho. This
-  #'  formulation relies on original data structure (stacking 2020/2021 and 
+  #'  formulation relies on stacked data structure (stacking 2020/2021 and 
   #'  2021/2022 for Yr1 --> Yr2 effect).
   #'  Species index order: 
   #'    1 = wolf; 2 = cougar; 3 = black bear; 4 = coyote; 5 = elk; 6 = moose; 7 = wtd
@@ -16,7 +16,7 @@
   rm(list = ls())
 
   library(jagsUI)
-  library(mcmcplots)
+  # library(mcmcplots)
   library(tidyverse)
   
   #'  Run script that formats covariate data
@@ -56,7 +56,7 @@
   ####  Setup data for JAGS  ####
   #'  ------------------------
   #'  Bundle data for JAGS
-  bundle_dat <- function(dat, nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
+  bundle_dat <- function(dat, covs, nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
     #'  Bundle data for JAGS
     bundled <- list(nWolf = nwolf,
                     nLion = nlion, 
@@ -67,51 +67,52 @@
                     nWtd = nwtd, 
                     nharvest = nharv,
                     nforest = nfor,
-                    nCluster = as.numeric(length(unique(dat$uniqueCluster))), 
+                    nCluster = as.numeric(length(unique(dat[[1]][[1]]$cluster))), 
                     nSpp = 7,
-                    #'  Standardize and set to numeric for each variable
-                    wolf.t_hat = wolf_timelag[[1]],
-                    wolf.tmin1_hat = wolf_timelag[[2]],
-                    lion.t_hat = lion_timelag[[1]],
-                    lion.tmin1_hat = lion_timelag[[2]],
-                    bear.t_hat = bear_timelag[[1]],
-                    bear.tmin1_hat = bear_timelag[[2]],
-                    coy.t_hat = coy_timelag[[1]],
-                    coy.tmin1_hat = coy_timelag[[2]],
-                    elk.t_hat = elk_timelag[[1]],
-                    elk.tmin1_hat = elk_timelag[[2]],
-                    moose.t_hat = moose_timelag[[1]],
-                    moose.tmin1_hat = moose_timelag[[2]],
-                    wtd.t_hat = wtd_timelag[[1]],
-                    wtd.tmin1_hat = wtd_timelag[[2]],
-                    # wolf.t = as.numeric(scale(dat$wolf.T)),
-                    # wolf.tmin1 = as.numeric(scale(dat$wolf.Tminus1)),
-                    # lion.t = as.numeric(scale(dat$mountain_lion.T)),
-                    # lion.tmin1 = as.numeric(scale(dat$mountain_lion.Tminus1)),
-                    # bear.t = as.numeric(scale(dat$bear_black.T)), 
-                    # bear.tmin1 = as.numeric(scale(dat$bear_black.Tminus1)), 
-                    # coy.t = as.numeric(scale(dat$coyote.T)), 
-                    # coy.tmin1 = as.numeric(scale(dat$coyote.Tminus1)), 
-                    # elk.t = as.numeric(scale(dat$elk.T)), 
-                    # elk.tmin1 = as.numeric(scale(dat$elk.Tminus1)), 
-                    # moose.t = as.numeric(scale(dat$moose.T)), 
-                    # moose.tmin1 = as.numeric(scale(dat$moose.Tminus1)), 
-                    # wtd.t = as.numeric(scale(dat$whitetailed_deer.T)), 
-                    # wtd.tmin1 = as.numeric(scale(dat$whitetailed_deer.Tminus1)), 
-                    harvest.t = as.numeric(scale(dat$annual_harvest.T)), 
-                    harvest.tmin1 = as.numeric(scale(dat$annual_harvest.Tminus1)), 
-                    forest.t = as.numeric(scale(dat$DisturbedForest_last20Yrs.T)), 
-                    forest.tmin1 = as.numeric(scale(dat$DisturbedForest_last20Yrs.Tminus1)))
+                    #'  Standardized posterior means and SD for each species and time step
+                    wolf.t_hat = dat[[1]][[1]]$posterior_mu_z,
+                    wolf.t.sigma_hat = dat[[1]][[1]]$posterior_sd_z,
+                    wolf.tmin1_hat = dat[[1]][[2]]$posterior_mu_z,
+                    wolf.tmin1.sigma_hat = dat[[1]][[2]]$posterior_sd_z,
+                    lion.t_hat = dat[[2]][[1]]$posterior_mu_z,
+                    lion.t.sigma_hat = dat[[2]][[1]]$posterior_sd_z,
+                    lion.tmin1_hat = dat[[2]][[2]]$posterior_mu_z,
+                    lion.tmin1.sigma_hat = dat[[2]][[2]]$posterior_sd_z,
+                    bear.t_hat = dat[[3]][[1]]$posterior_mu_z,
+                    bear.t.sigma_hat = dat[[3]][[1]]$posterior_sd_z,
+                    bear.tmin1_hat = dat[[3]][[2]]$posterior_mu_z,
+                    bear.tmin1.sigma_hat = dat[[3]][[2]]$posterior_sd_z,
+                    coy.t_hat = dat[[4]][[1]]$posterior_mu_z,
+                    coy.t.sigma_hat = dat[[4]][[1]]$posterior_sd_z,
+                    coy.tmin1_hat = dat[[4]][[2]]$posterior_mu_z,
+                    coy.tmin1.sigma_hat = dat[[4]][[2]]$posterior_sd_z,
+                    elk.t_hat = dat[[5]][[1]]$posterior_mu_z,
+                    elk.t.sigma_hat = dat[[5]][[1]]$posterior_sd_z,
+                    elk.tmin1_hat = dat[[5]][[2]]$posterior_mu_z,
+                    elk.tmin1.sigma_hat = dat[[5]][[2]]$posterior_sd_z,
+                    moose.t_hat = dat[[6]][[1]]$posterior_mu_z,
+                    moose.t.sigma_hat = dat[[6]][[1]]$posterior_sd_z,
+                    moose.tmin1_hat = dat[[6]][[2]]$posterior_mu_z,
+                    moose.tmin1.sigma_hat = dat[[6]][[2]]$posterior_sd_z,
+                    wtd.t_hat = dat[[7]][[1]]$posterior_mu_z,
+                    wtd.t.sigma_hat = dat[[7]][[1]]$posterior_sd_z,
+                    wtd.tmin1_hat = dat[[7]][[2]]$posterior_mu_z,
+                    wtd.tmin1.sigma_hat = dat[[7]][[2]]$posterior_sd_z,
+                    #'  Standardize harvest and habitat variables
+                    harvest.t = as.numeric(scale(covs[[1]]$annual_harvest)),
+                    harvest.tmin1 = as.numeric(scale(covs[[2]]$annual_harvest)),
+                    forest.t = as.numeric(scale(covs[[1]]$DisturbedForest_last20Yrs)),
+                    forest.tmin1 = as.numeric(scale(covs[[2]]$DisturbedForest_last20Yrs)))
     str(bundled)
     return(bundled)
   }
-  data_JAGS_bundle_topinter <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, 
+  data_JAGS_bundle_topinter <- bundle_dat(post_summaries, covs = covs_stacked, nwolf = 7, nlion = 4, nbear = 5, 
                                           ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
-  data_JAGS_bundle_topexploit <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, 
+  data_JAGS_bundle_topexploit <- bundle_dat(post_summaries, covs = covs_stacked, nwolf = 7, nlion = 4, nbear = 5, 
                                             ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
-  data_JAGS_bundle_bottominter <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, 
+  data_JAGS_bundle_bottominter <- bundle_dat(post_summaries, covs = covs_stacked, nwolf = 7, nlion = 4, nbear = 5, 
                                              ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
-  data_JAGS_bundle_bottomexploit <- bundle_dat(dat_final, nwolf = 7, nlion = 4, nbear = 5, 
+  data_JAGS_bundle_bottomexploit <- bundle_dat(post_summaries, covs = covs_stacked, nwolf = 7, nlion = 4, nbear = 5, 
                                                ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
                                  
   # save(data_JAGS_bundle_topinter, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_topinter.RData")
@@ -167,10 +168,10 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 100000
-  nb <- 50000
-  nt <- 10
-  na <- 5000
+  ni <- 1000#00
+  nb <- 500#00
+  nt <- 1#0
+  na <- 500#0
   
   
   #'  ---------------------------------
