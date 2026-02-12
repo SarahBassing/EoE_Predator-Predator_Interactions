@@ -121,7 +121,46 @@
   print(elk_timelag[[1]])
   print(elk_timelag[[2]])
   
+  #'  Standardize posterior means and SD
+  z_transform_posteriors <- function(post_summary) {
+    #'  Find the empirical mean and SD of the posterior means
+    post_mean_mu <- mean(post_summary$posterior_mu)
+    post_mean_sd <- sd(post_summary$posterior_mu)
+    
+    #'  Standardize the posterior means AND standard deviations
+    #'  Standardizing posterior SD ensures variance scales with the variable
+    posterior_mu_z <- (post_summary$posterior_mu - post_mean_mu) / post_mean_sd
+    posterior_sd_z <- post_summary$posterior_sd / post_mean_sd
+    
+    #'  Add standardized posterior summaries to the posterior summary data set
+    post_summary$posterior_mu_z <- posterior_mu_z
+    post_summary$posterior_sd_z <- posterior_sd_z
+    
+    return(post_summary)
+  }
+  wolf_timelag_z <- lapply(wolf_timelag, z_transform_posteriors)
+  lion_timelag_z <- lapply(lion_timelag, z_transform_posteriors)
+  bear_timelag_z <- lapply(bear_timelag, z_transform_posteriors)
+  coy_timelag_z <- lapply(coy_timelag, z_transform_posteriors)
+  elk_timelag_z <- lapply(elk_timelag, z_transform_posteriors)
+  moose_timelag_z <- lapply(moose_timelag, z_transform_posteriors)
+  wtd_timelag_z <- lapply(wtd_timelag, z_transform_posteriors)
+ 
+  #'  Take a look
+  #'  Note: standardized values will be different between t and t-1 for same raw
+  #'  posterior means because different years are stacked together, leading to 
+  #'  different emperical means and SD for t vs t-1
+  print(wolf_timelag_z[[1]])
+  print(wolf_timelag_z[[2]])
+  print(wtd_timelag_z[[1]])
+  print(wtd_timelag_z[[2]])
   
+  
+  #'  List species-specific lists 
+  #'  First list indexes by species (wolf [[1]] .... wtd [[7]])
+  #'  Second list (per species) indexes by time step (time_t [[1]] & time_tmin1 [[2]])
+  post_summaries <- list(wolf_timelag_z, lion_timelag_z, bear_timelag_z, coy_timelag_z, 
+                         elk_timelag_z, moose_timelag_z, wtd_timelag_z)
   
   
   #' ####  Save full posteriors (all iterations)  ####
