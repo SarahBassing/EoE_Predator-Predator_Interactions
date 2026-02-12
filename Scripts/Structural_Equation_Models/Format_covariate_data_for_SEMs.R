@@ -538,11 +538,31 @@
   harvest_intensity <- bind_rows(harvest_Jun19_Jun20, harvest_Jun20_Jun21, harvest_Jun21_Jun22, harvest_Jun22_Jun23) %>%
     relocate(harvest_season, .before = annual_harvest)
   
-  #'  Merge forest and WSI data together
+  #'  Merge forest and harvest data together
   covs <- full_join(percDisturbedForest, wsi, by = c("GMU", "ClusterID", "Year")) %>%
     full_join(harvest_intensity, by = c("GMU", "ClusterID", "Year")) %>%
-    filter(GMU != "GMU1" | Year != 2020)
+    filter(GMU != "GMU1" | Year != 2020) %>% 
+    #'  Generate unique cluster value across all GMUs that matches RDI clustering
+    mutate(GMU_cluster = paste0(GMU, "_", ClusterID)) %>%
+    as.data.frame(.) %>%
+    group_by(GMU_cluster) %>%
+    mutate(uniqueCluster = cur_group_id()) %>%
+    ungroup()
+
+  #'  Grab year-specific covariates and rearrange to match cluster order used in RN model
+  covs_2020 <- covs %>% filter(Year == 2020) %>% arrange(uniqueCluster)
+  covs_2021 <- covs %>% filter(Year == 2021) %>% arrange(uniqueCluster)
+  covs_2022 <- covs %>% filter(Year == 2022) %>% arrange(uniqueCluster)
+  #'  Remove GMU 1 from 2021 data for time t
+  covs_2021_noGMU1 <- covs %>% filter(Year == 2021 & GMU != "GMU1") %>% arrange(uniqueCluster)
   
+  #'  Stack covariates data for time t (2021 and 2022) and t-1 (2020 and 2021)
+  covs_time_t <- rbind(covs_2021_noGMU1, covs_2022)
+  covs_time_tmin1 <- rbind(covs_2020, covs_2021)
+  
+  #'  Create list of stacked covariates for SEM
+  #'  [[1]] = time t (yr2 and yr3); [[2]] = time t-1 (yr1 and yr2)
+  covs_stacked <- list(covs_time_t, covs_time_tmin1)
   
   
   ####  SCRAPPED  ####
