@@ -2,7 +2,7 @@
   #'  Royle-Nichols abundance model
   #'  ID CRU - Predator Interactions
   #'  Sarah B. Bassing
-  #'  November 2023
+  #'  December 2025
   #'  -------------------------------
   #'  RN model to estimate relative abundance from binary detection/non-detection,
   #'  assuming heterogeneous abundance affects detection probability.
@@ -19,6 +19,12 @@
   #'  p[i,j], is a function of the per-individual detection probability, r[i,j], 
   #'  a binomial sampling probability that a particular individual is detected at 
   #'  site i during occasion j, and the number of individuals at site i, N[i].
+  #'  
+  #'  cluster_matrix[i,cl]: camera[i] by cluster[cl] matrix where 0 indicates the
+  #'  camera[i] was not included in cluster[cl] and 1 indicates the camera[i] was
+  #'  included in cluster[cl]. Multiplying N by cluster_matrix forces RAI for all
+  #'  cameras but those in the cluster[cl] to 0. Summing across cluster_matrix 
+  #'  for cluster[cl] calculated the number of cameras included in that cluster.
   #'  -------------------------------
   
   cat(file = './Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters_2020.txt', "
@@ -29,10 +35,7 @@
       #'  Abundance priors
       beta0 ~ dunif(-3, 3)        # Abundance intercept
       mean.lambda <- exp(beta0)   # Mean lambda for GMU10A
-      # beta1 ~ dnorm(0, 0.01) 
-      # beta2 ~ dnorm(0, 0.01) 
-      # beta3 ~ dnorm(0, 0.01) 
-      
+       
       #'  Categorical effect for GMU needs multiple beta4 coefficients
       beta4[1] <- 0
       for(gmu in 2:ngmu) {
@@ -42,7 +45,6 @@
       #'  Detection priors
       mean.r ~ dunif(0, 1)        # Detection intercept (on probability scale)
       alpha0 <- logit(mean.r)     # Detection intercept (on logit scale)
-      #alpha1 ~ dnorm(0, 0.01) 
       
       #'  Categorical effect for camera setup needs multiple alpha2 coefficients
       alpha2[1] <- 0
@@ -75,16 +77,6 @@
       
       #'  Mean lambda averaged across GMUs
       mu.lambda <- mean(lambdaGMU[])
-      
-      #' #'  Predicted site-level abundance per GMU 
-      #' for(i in 1:ncams1) {
-      #'   # Ngmu1[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[1]])
-      #'   Ngmu1[i] <- exp(beta0 + beta4[gmu[1]])
-      #' }
-      #' for(i in 1:ncams2) {
-      #'   # Ngmu2[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[2]])
-      #'   Ngmu2[i] <- exp(beta0 + beta4[gmu[2]])
-      #' }
       
       #'  Total abundance across camera sites
       totalN <- sum(N[])
@@ -148,23 +140,6 @@
       rdi.cl24 <- ((sum(N.cl24) / sum(cluster_matrix[,24])) / cluster_area[24]) * 100
        
       
-      # totalN.gmu10a <- sum(Ngmu1[])
-      # densitykm2.gmu10a <- totalN.gmu10a/area1
-      # density100km2.gmu10a <- densitykm2.gmu10a * 100
-      # 
-      # totalN.gmu6 <- sum(Ngmu2[])
-      # densitykm2.gmu6 <- totalN.gmu6/area2
-      # density100km2.gmu6 <- densitykm2.gmu6 * 100
-
-      #' #'  Total sites occupied (N > 0)
-      #' for(i in 1:nsites) {
-      #'   occupied[i] <- ifelse(N[i] > 0, 1, 0)
-      #' }
-      #' occSites <- sum(occupied[])
-      #' 
-      #' #'  Mean occupancy probability
-      #' mean.psi <- 1 - exp(-mu.lambda)
- 
       #'  Mean per-individual detection probability (r) per camera setup
       for(cam in 1:nsets) {
         rSetup[cam] <- 1/(1 + exp(-(alpha0 + alpha2[cam])))
