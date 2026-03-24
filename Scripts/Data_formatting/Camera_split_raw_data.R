@@ -10,6 +10,9 @@
   #'  separately because data sets are so large.
   #'  ------------------------------
   
+  #'  Set working directory (if needed)
+  setwd("E:/UI Files/Repositories/EoE_Predator-Predator_Interactions")
+  
   #'  Clean workspace
   rm(list = ls())  
 
