@@ -242,31 +242,40 @@
   
   #'  Fill in NAs where no data were recorded for Smr21 using Smr20 height values
   heights20_for_21 <- cams_s20_eoe %>% dplyr::select(c(NewLocationID, Season, CameraHeight_M)) %>%
-    full_join(camheight2021, by = "NewLocationID") %>%
+    full_join(camheight2021, by = "NewLocationID", relationship = "many-to-many") %>% # many-to-many relationship between `x` and `y` warning silenced
     #'  If missing height measurement, fill in with Smr20 height
     mutate(CameraHeight_M2 = ifelse(is.na(CameraHeight_M2), coalesce(CameraHeight_M2, CameraHeight_M.x), CameraHeight_M2)) %>%
     dplyr::select(c(NewLocationID, CameraHeight_M2)) %>%
+    #'  Drop GMU6_P/U_61 sites b/c not present in cams_s21_eoe
     filter(NewLocationID != "GMU6_P_61" & NewLocationID != "GMU6_U_61") %>%
+    #'  Remove duplicates (8 are created during join)
     distinct()
   
   #'  Swap bad/missing CameraHeight_M data with adjusted values
   cams_s21_eoe <- arrange(cams_s21_eoe, NewLocationID) %>%
-    full_join(heights20_for_21, by = "NewLocationID") %>%
-    relocate(CameraHeight_M2, .after = "Area_M2") %>%  ######### NOTE duplicates are introduced here for some reason!
+    full_join(heights20_for_21, by = "NewLocationID", relationship = "many-to-many") %>% # ignore many-to-many warning
+    relocate(CameraHeight_M2, .after = "Area_M2") %>%  # NOTE duplicates are introduced here! (see next actions)
     dplyr::select(-CameraHeight_M) %>%
-    rename(CameraHeight_M = CameraHeight_M2)
+    rename(CameraHeight_M = CameraHeight_M2) 
+  #' #'  Find where duplicates occur - most are due to redeploying new cams at same site (ignore these)
+  #' #'  GMU6_U_160 is duplicated during join b/c heights20_for_21 has 2 different heights for same site
+  #' duplicated(cams_s21_eoe$NewLocationID)
+  #' cams_s21_eoe2 <- cams_s21_eoe %>%
+  #'   filter(NewLocationID != "GMU6_U_160" | CameraHeight_M != 1.2)
   
   #'  Replace Smr22 NA heights with Smr21 heights
   all_heights <- tibble(CameraHeight_M = sort(union(cams_s21_eoe$CameraHeight_M, cams_s22_eoe$CameraHeight_M))) %>%
     left_join(cams_s21_eoe, by = "CameraHeight_M") %>%
     dplyr::select(c(Gmu, Setup, NewLocationID, CameraHeight_M)) 
-  cams_s22_eoe <- left_join(cams_s22_eoe, all_heights, by = c("Gmu", "Setup", "NewLocationID")) %>%
+  cams_s22_eoe <- left_join(cams_s22_eoe, all_heights, 
+                            by = c("Gmu", "Setup", "NewLocationID"), relationship = "many-to-many") %>% #' 10 duplicates introduced
     mutate(CameraHeight_M = coalesce(CameraHeight_M.x, CameraHeight_M.y)) %>%
     dplyr::select(-c(CameraHeight_M.x, CameraHeight_M.y)) %>%
     relocate(CameraHeight_M, .after = Area_M2)
+  # duplicated(cams_s22_eoe$NewLocationID)
   
   #'  Merge all deployment data together
-  eoe_cams <- rbind(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe, cams_s22_eoe)
+  eoe_cams <- rbind(cams_s20_eoe, cams_s21_eoe, cams_s22_eoe) #cams_w20_eoe, 
   length(unique(eoe_cams$LocationID))
   summary(eoe_cams)
   wolf_cams <- rbind(cams_s19_wolf, cams_s20_wolf, cams_s21_wolf)
@@ -385,7 +394,7 @@
   #'  Reformat data in wide format
   #'  Resulting data frame is bananas b/c so many repeat columns
   #'  Join isn't perfect and lots of NAs introduced but ignoring for now
-  eoe_list <- list(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe, cams_s22_eoe)
+  eoe_list <- list(cams_s20_eoe, cams_w20_eoe, cams_s21_eoe, cams_s22_eoe)   
   eoe_trim <- lapply(eoe_list, organize_cols)
   eoe_cams_wide <- full_join(eoe_trim[[1]][,1:18], eoe_trim[[2]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%
     full_join(eoe_trim[[3]][,1:18], by = c("Region", "Gmu", "Setup", "Target", "NewLocationID", "AreaType")) %>%
@@ -419,23 +428,23 @@
   #### NEED TO FINISH CLEANING WOLF CAMERAS TO IDENTIFY POTENTIAL PROBLEMS & MAKE SKINNY VERSION  ####
   
   
-  #'  Reduced camera location data set to something more usable
-  #'  For simplicity, retain each unique camera location with first lat/long coordinates
-  #'  associated with the location. Only retaining Smr20 & Smr21 (GMU1 only) sites
-  #'  since the sames sites were sampled each following year (e.g., Smr22) 
-  eoe_cams_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "NewLocationID", "Lat", "Long_smr20", "CameraHeight_M_smr20", "CameraFacing_smr20")) %>%
-    #'  Drop data from GMU1 b/c these weren't deployed in 2020
-    filter(Gmu != "1")
-  names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Lat_smr20"] <- "Lat"
-  names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Long_smr20"] <- "Long"
-  names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraHeight_M_smr20"] <- "CameraHeight_M"
-  names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraFacing_smr20"] <- "CameraFacing"
-  eoe_cams_s21_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "NewLocationID", "Lat_smr21", "Long_smr21", "CameraHeight_M_smr21", "CameraFacing_smr21")) %>%
-    #'  Retain only data from GMU1 to match data from cameras deployed in GMU6 & GMU10A in 2020
-    filter(Gmu == "1")
-  eoe_cams_skinny <- rbind(eoe_cams_skinny, eoe_cams_s21_skinny) %>%
-    arrange(LocationID)
-  # write.csv(eoe_cams_skinny, file = "./Data/IDFG camera data/cams_eoe_skinny.csv")
+  #' #'  Reduced camera location data set to something more usable
+  #' #'  For simplicity, retain each unique camera location with first lat/long coordinates
+  #' #'  associated with the location. Only retaining Smr20 & Smr21 (GMU1 only) sites
+  #' #'  since the sames sites were sampled each following year (e.g., Smr22) 
+  #' eoe_cams_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "NewLocationID", "Lat", "Long_smr20", "CameraHeight_M_smr20", "CameraFacing_smr20")) %>%
+  #'   #'  Drop data from GMU1 b/c these weren't deployed in 2020
+  #'   filter(Gmu != "1")
+  #' names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Lat_smr20"] <- "Lat"
+  #' names(eoe_cams_skinny)[names(eoe_cams_skinny) == "Long_smr20"] <- "Long"
+  #' names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraHeight_M_smr20"] <- "CameraHeight_M"
+  #' names(eoe_cams_skinny)[names(eoe_cams_skinny) == "CameraFacing_smr20"] <- "CameraFacing"
+  #' eoe_cams_s21_skinny <- dplyr::select(eoe_cams_wide, c("Region", "Gmu", "Setup", "Target", "NewLocationID", "Lat_smr21", "Long_smr21", "CameraHeight_M_smr21", "CameraFacing_smr21")) %>%
+  #'   #'  Retain only data from GMU1 to match data from cameras deployed in GMU6 & GMU10A in 2020
+  #'   filter(Gmu == "1")
+  #' eoe_cams_skinny <- rbind(eoe_cams_skinny, eoe_cams_s21_skinny) %>%
+  #'   arrange(LocationID)
+  #' # write.csv(eoe_cams_skinny, file = "./Data/IDFG camera data/cams_eoe_skinny.csv")
   
   
   ####  Visualize these locations  ####
