@@ -40,6 +40,11 @@
   DH_npp23s_RNmod <- DH_smr2023
   # save(DH_npp23s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp23s_RNmod.RData")
   
+  #'  Problem cameras
+  load("./Data/IDFG camera data/Problem cams/eoe20s_problem_cams.RData")
+  load("./Data/IDFG camera data/Problem cams/eoe21s_problem_cams.RData")
+  load("./Data/IDFG camera data/Problem cams/eoe22s_problem_cams.RData")
+  
   #'  ---------------------------------
   #####  Format site-level covariates  #####
   #'  ---------------------------------
@@ -85,10 +90,10 @@
     #'  to detection data
     camsites <- row.names(dets)
     cam_covs <- cams[(cams$NewLocationID %in% camsites),]
-    #'  Grab total number of days each camera was operable during season
-    cam_operable <- effort %>% dplyr::select(c(NewLocationID, ndays))
-    #'  Add total number of operable camera days to camera covariate dataset
-    cam_covs <- full_join(cam_covs, cam_operable, by = "NewLocationID")
+    #' #'  Grab total number of days each camera was operable during season
+    #' cam_operable <- effort %>% dplyr::select(c(NewLocationID, ndays))
+    #' #'  Add total number of operable camera days to camera covariate dataset
+    #' cam_covs <- full_join(cam_covs, cam_operable, by = "NewLocationID")
     #'  Rename, format, and scale as needed
     formatted <- cam_covs %>%
       mutate(GMUs = ifelse(GMU == "GMU10A", 1, 2),  # GMU10A represents the intercept!
@@ -106,14 +111,12 @@
     
     return(formatted)
   }
-  stations_npp20s <- format_covs(cams_eoe20s, dets = DH_npp20s_RNmod[[1]], effort = effort_20s_RNmod) 
-  stations_npp21s <- format_covs(cams_eoe21s, dets = DH_npp21s_RNmod[[1]], effort = effort_21s_RNmod) 
-  stations_npp22s <- format_covs(cams_eoe22s, dets = DH_npp22s_RNmod[[1]], effort = effort_22s_RNmod) 
+  stations_npp20s <- format_covs(cams_eoe20s, dets = DH_npp20s_RNmod[[1]]) #, effort = effort_20s_RNmod) 
+  stations_npp21s <- format_covs(cams_eoe21s, dets = DH_npp21s_RNmod[[1]]) #, effort = effort_21s_RNmod) 
+  stations_npp22s <- format_covs(cams_eoe22s, dets = DH_npp22s_RNmod[[1]]) #, effort = effort_22s_RNmod) 
   #'  2023 camera stations
   load("./Data/IDFG camera data/IDFG 2023 detection data/Detection_Histories_RNmodel/stations_smr2023.RData")
   stations_npp23s <- stations_smr2023
-  # save(stations_npp23s, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/stations_npp23s.RData")
-  
   
   #'  Double check things are ordered correctly!!!!
   stations_npp20s[82:90,1:4]; DH_npp20s_RNmod[[1]][82:90,1:3]; nrow(stations_npp20s); nrow(DH_npp20s_RNmod[[1]])
