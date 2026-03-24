@@ -29,9 +29,9 @@
       #'  Abundance priors
       beta0 ~ dunif(-10, 10)      # Abundance intercept
       mean.lambda <- exp(beta0)   # Mean lambda for GMU10A
-      beta1 ~ dnorm(0, 0.001)
-      beta2 ~ dnorm(0, 0.001)
-      beta3 ~ dnorm(0, 0.001)
+      # beta1 ~ dnorm(0, 0.001)
+      # beta2 ~ dnorm(0, 0.001)
+      # beta3 ~ dnorm(0, 0.001)
       
       #'  Categorical effect for GMU needs multiple beta4 coefficients
       beta4[1] <- 0
@@ -77,44 +77,44 @@
       #'  Mean lambda averaged across GMUs
       mu.lambda <- mean(lambdaGMU[])
       
-      #'  Predicted site-level abundance per GMU 
-      for(i in 1:ncams1) {
-        # Ngmu1[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[1]])
-        Ngmu1[i] <- exp(beta0 + beta4[gmu[1]])
-      }
-      for(i in 1:ncams2) {
-        # Ngmu2[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[2]])
-        Ngmu2[i] <- exp(beta0 + beta4[gmu[2]])
-      }
-      for(i in 1:ncams3) {
-        # Ngmu3[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[3]])
-        Ngmu3[i] <- exp(beta0 + beta4[gmu[3]])
-      }
+      #' #'  Predicted site-level abundance per GMU
+      #' for(i in 1:ncams1) {
+      #'   # Ngmu1[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[1]])
+      #'   Ngmu1[i] <- exp(beta0 + beta4[gmu[1]])
+      #' }
+      #' for(i in 1:ncams2) {
+      #'   # Ngmu2[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[2]])
+      #'   Ngmu2[i] <- exp(beta0 + beta4[gmu[2]])
+      #' }
+      #' for(i in 1:ncams3) {
+      #'   # Ngmu3[i] <- exp(beta0 + beta1 * forest[i] + beta2 * elev[i] + beta3 * pow(elev[i],2) + beta4[gmu[3]])
+      #'   Ngmu3[i] <- exp(beta0 + beta4[gmu[3]])
+      #' }
       
       #'  Total abundance across camera sites
       totalN <- sum(N[])
       
-      #'  Mean density per GMU
-      totalN.gmu10a <- sum(Ngmu1[])
-      densitykm2.gmu10a <- totalN.gmu10a/area1
-      density100km2.gmu10a <- densitykm2.gmu10a * 100
-
-      totalN.gmu6 <- sum(Ngmu2[])
-      densitykm2.gmu6 <- totalN.gmu6/area2
-      density100km2.gmu6 <- densitykm2.gmu6 * 100
-
-      totalN.gmu1 <- sum(Ngmu3[])
-      densitykm2.gmu1 <- totalN.gmu1/area3
-      density100km2.gmu1 <- densitykm2.gmu1 * 100
-      
-      #'  Total sites occupied (N > 0)
-      for(i in 1:nsites) {
-        occupied[i] <- ifelse(N[i] > 0, 1, 0)
-      }
-      occSites <- sum(occupied[])
-
-      #'  Mean occupancy probability
-      mean.psi <- 1 - exp(-mu.lambda)
+      #' #'  Mean density per GMU
+      #' totalN.gmu10a <- sum(Ngmu1[])
+      #' densitykm2.gmu10a <- totalN.gmu10a/area1
+      #' density100km2.gmu10a <- densitykm2.gmu10a * 100
+      #' 
+      #' totalN.gmu6 <- sum(Ngmu2[])
+      #' densitykm2.gmu6 <- totalN.gmu6/area2
+      #' density100km2.gmu6 <- densitykm2.gmu6 * 100
+      #' 
+      #' totalN.gmu1 <- sum(Ngmu3[])
+      #' densitykm2.gmu1 <- totalN.gmu1/area3
+      #' density100km2.gmu1 <- densitykm2.gmu1 * 100
+      #' 
+      #' #'  Total sites occupied (N > 0)
+      #' for(i in 1:nsites) {
+      #'   occupied[i] <- ifelse(N[i] > 0, 1, 0)
+      #' }
+      #' occSites <- sum(occupied[])
+      #' 
+      #' #'  Mean occupancy probability
+      #' mean.psi <- 1 - exp(-mu.lambda)
  
       #'  Mean per-individual detection probability (r) per camera setup
       for(cam in 1:nsets) {
