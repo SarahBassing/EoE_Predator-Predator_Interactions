@@ -8,6 +8,14 @@
   #'  abundance at each camera site.
   #'  
   #'  Camera operations table generated in Detection_data_cleaning.R
+  #'  
+  #'  2020 - 2022 detection history list order: 
+  #'  [[1]] bear_black, [[2]] bobcat, [[3]] coyote, [[4]] mountain_lion, [[5]] wolf, 
+  #'  [[6]] elk, [[7]] moose, [[8]] muledeer, [[9]] whitetaileddeer, [[10]] rabbit_hare
+  #'  
+  #'  2023 detection history list order: 
+  #'  [[1]] bear_black, [[2]] coyote, [[3]] mountain_lion, [[4]] wolf, 
+  #'  [[5]] elk, [[6]] moose, [[7]] whitetaileddeer
   #'  -------------------------------
   
   #'  Clean workspace
@@ -228,6 +236,11 @@
   save(effort_21s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp21s_RNmod.RData")
   save(effort_22s_RNmod, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp22s_RNmod.RData")
 
+  #'  Load 2023 detection histories prepared by M. Parsons IDFG (NOTE THE INDEXING DIFFERS FROM OTHER YEARS)
+  # load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp20s_RNmod.RData")
+  # load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp21s_RNmod.RData")
+  # load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp22s_RNmod.RData")
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp23s_RNmod.RData")
 
   #'  ---------------------------------
   #####  Format site-level covariates  #####
@@ -274,10 +287,10 @@
     #'  to detection data
     camsites <- row.names(dets)
     cam_covs <- cams[(cams$NewLocationID %in% camsites),]
-    #'  Grab total number of days each camera was operable during season
-    cam_operable <- effort %>% dplyr::select(c(NewLocationID, ndays))
-    #'  Add total number of operable camera days to camera covariate dataset
-    cam_covs <- full_join(cam_covs, cam_operable, by = "NewLocationID")
+    #' #'  Grab total number of days each camera was operable during season
+    #' cam_operable <- effort %>% dplyr::select(c(NewLocationID, ndays))
+    #' #'  Add total number of operable camera days to camera covariate dataset
+    #' cam_covs <- full_join(cam_covs, cam_operable, by = "NewLocationID")
     #'  Rename, format, and scale as needed
     formatted <- cam_covs %>%
       mutate(GMUs = ifelse(GMU == "GMU10A", 1, 2),  # GMU10A represents the intercept!
@@ -286,59 +299,65 @@
       transmute(NewLocationID = as.factor(NewLocationID),
                 Season = as.factor(Season),
                 GMU = as.factor(GMUs),
-                Setup = as.factor(Setup),
-                nDays = scale(ndays),
-                PercFor = scale(perc_forest),
-                Elev = scale(Elevation__10m2)) #%>%
+                Setup = as.factor(Setup))#,
+                # nDays = scale(ndays),
+                # PercFor = scale(perc_forest),
+                # Elev = scale(Elevation__10m2)) #%>%
       #' #'  Arrange by camera location -- NECESSARY TO MATCH DH's CAMERA LOCATION ORDER
       #' arrange(NewLocationID) 
     
     return(formatted)
   }
-  stations_npp20s <- format_covs(cams_eoe20s, dets = DH_npp20s_RNmod[[1]], effort = effort_20s_RNmod) 
-  stations_npp21s <- format_covs(cams_eoe21s, dets = DH_npp21s_RNmod[[1]], effort = effort_21s_RNmod) 
-  stations_npp22s <- format_covs(cams_eoe22s, dets = DH_npp22s_RNmod[[1]], effort = effort_22s_RNmod) 
+  stations_npp20s <- format_covs(cams_eoe20s, dets = DH_npp20s_RNmod[[1]]) #, effort = effort_20s_RNmod
+  stations_npp21s <- format_covs(cams_eoe21s, dets = DH_npp21s_RNmod[[1]]) #, effort = effort_21s_RNmod
+  stations_npp22s <- format_covs(cams_eoe22s, dets = DH_npp22s_RNmod[[1]]) #, effort = effort_22s_RNmod
+  #'  2023 camera stations
+  load("./Data/IDFG camera data/IDFG 2023 detection data/Detection_Histories_RNmodel/stations_smr2023.RData")
+  stations_npp23s <- stations_smr2023
+  # save(stations_npp23s, file = "./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/stations_npp23s.RData")
+  
   
   #'  Double check things are ordered correctly!!!!
   stations_npp20s[82:90,1:4]; DH_npp20s_RNmod[[1]][82:90,1:3]; nrow(stations_npp20s); nrow(DH_npp20s_RNmod[[1]])
   stations_npp21s[82:90,1:4]; DH_npp21s_RNmod[[1]][82:90,1:3]; nrow(stations_npp21s); nrow(DH_npp21s_RNmod[[1]])
   stations_npp22s[82:90,1:4]; DH_npp22s_RNmod[[1]][82:90,1:3]; nrow(stations_npp22s); nrow(DH_npp22s_RNmod[[1]])
+  stations_npp23s[82:90,1:4]; DH_npp23s_RNmod[[1]][82:90,1:3]; nrow(stations_npp23s); nrow(DH_npp23s_RNmod[[1]])
   
-  #'  Double check percent forested habitat and elevation aren't too correlated
-  cor(stations_npp20s$PercFor, stations_npp20s$Elev)
-  cor(stations_npp21s$PercFor, stations_npp21s$Elev)
-  cor(stations_npp22s$PercFor, stations_npp22s$Elev)
+  #' #'  Double check percent forested habitat and elevation aren't too correlated
+  #' cor(stations_npp20s$PercFor, stations_npp20s$Elev)
+  #' cor(stations_npp21s$PercFor, stations_npp21s$Elev)
+  #' cor(stations_npp22s$PercFor, stations_npp22s$Elev)
   
-  #'  -----------------------------------
-  #####  Format survey-level covariates  #####
-  #'  -----------------------------------
-  #'  Scale survey-level covariates (really only relevant if using 7-day sampling occasions)
-  scale_srvy_cov <- function(srvy_covs) {
-    #'  Reduce to just number of days per sampling occasion camera was operating
-    skinny_srvy_covs <- srvy_covs %>% dplyr::select(-c(NewLocationID, ndays, nhrs))
-    
-    #'  Replace NAs with 0 - these sites truly not surveyed so effort is 0
-    srvy_covs <- replace(skinny_srvy_covs, is.na(skinny_srvy_covs), 0)
-  
-    #'  Find mean & standard deviation of covariates across all sites & occasions
-    mu <- mean(as.matrix(srvy_covs), na.rm = TRUE)
-    sd <- sd(as.matrix(srvy_covs), na.rm = TRUE)
-    
-    #'  Z-transform (center observations around mean & scale by 1 SD)
-    scaled <- ((srvy_covs - mu) / sd)
-    scaled <- round(scaled, 3)
-    
-    scaled <- as.matrix(scaled)
-    
-    return(scaled)
-  }
-  effort_list <- list(effort_20s_RNmod, effort_21s_RNmod, effort_22s_RNmod)  
-  zeffort_RNmod <- lapply(effort_list, scale_srvy_cov)
-  
-  #'  Create list of survey level covariates for unmarked (one list per year)
-  srvy_covs_20s <- list(effort = zeffort_RNmod[[1]])
-  srvy_covs_21s <- list(effort = zeffort_RNmod[[2]])
-  srvy_covs_22s <- list(effort = zeffort_RNmod[[3]])
+  #' #'  -----------------------------------
+  #' #####  Format survey-level covariates  #####
+  #' #'  -----------------------------------
+  #' #'  Scale survey-level covariates (really only relevant if using 7-day sampling occasions)
+  #' scale_srvy_cov <- function(srvy_covs) {
+  #'   #'  Reduce to just number of days per sampling occasion camera was operating
+  #'   skinny_srvy_covs <- srvy_covs %>% dplyr::select(-c(NewLocationID, ndays, nhrs))
+  #'   
+  #'   #'  Replace NAs with 0 - these sites truly not surveyed so effort is 0
+  #'   srvy_covs <- replace(skinny_srvy_covs, is.na(skinny_srvy_covs), 0)
+  #' 
+  #'   #'  Find mean & standard deviation of covariates across all sites & occasions
+  #'   mu <- mean(as.matrix(srvy_covs), na.rm = TRUE)
+  #'   sd <- sd(as.matrix(srvy_covs), na.rm = TRUE)
+  #'   
+  #'   #'  Z-transform (center observations around mean & scale by 1 SD)
+  #'   scaled <- ((srvy_covs - mu) / sd)
+  #'   scaled <- round(scaled, 3)
+  #'   
+  #'   scaled <- as.matrix(scaled)
+  #'   
+  #'   return(scaled)
+  #' }
+  #' effort_list <- list(effort_20s_RNmod, effort_21s_RNmod, effort_22s_RNmod)  
+  #' zeffort_RNmod <- lapply(effort_list, scale_srvy_cov)
+  #' 
+  #' #'  Create list of survey level covariates for unmarked (one list per year)
+  #' srvy_covs_20s <- list(effort = zeffort_RNmod[[1]])
+  #' srvy_covs_21s <- list(effort = zeffort_RNmod[[2]])
+  #' srvy_covs_22s <- list(effort = zeffort_RNmod[[3]])
   
   #'  -----------------------
   ####  Append cluster info  ####
@@ -390,7 +409,7 @@
       ungroup()
     return(clustered_cams)
   }
-  stations <- list(stations_npp20s, stations_npp21s, stations_npp22s)
+  stations <- list(stations_npp20s, stations_npp21s, stations_npp22s, stations_npp23s)
   clustered_cams <- lapply(stations, cluster_cams, clusters = clusters_all)
   
   #'  Create indicator matrix for each camera per cluster
@@ -446,11 +465,11 @@
     #'  Convert detection history to matrix
     dh <- as.matrix(dh)
     dimnames(dh) <- NULL
-    #'  Count number of sites per GMU
-    ncams_perGMU <- cov %>%
-      group_by(GMU) %>%
-      summarise(nsites = n()) %>%
-      ungroup()
+    #' #'  Count number of sites per GMU
+    #' ncams_perGMU <- cov %>%
+    #'   group_by(GMU) %>%
+    #'   summarise(nsites = n()) %>%
+    #'   ungroup()
     
     #'  Bundle data for JAGS
     bundled <- list(y = dh, 
@@ -463,10 +482,10 @@
                     # ncams3 = as.numeric(ifelse(is.na(ncams_perGMU[3,2]), 0, ncams_perGMU[3,2])), #GMU1
                     gmu = as.numeric(cov$GMU), 
                     setup = as.numeric(cov$Setup),
-                    forest = as.numeric(cov$PercFor), 
-                    elev = as.numeric(cov$Elev), 
-                    ndays = as.numeric(cov$nDays), 
-                    seffort = as.numeric(effort),
+                    # forest = as.numeric(cov$PercFor), 
+                    # elev = as.numeric(cov$Elev), 
+                    # ndays = as.numeric(cov$nDays), 
+                    # seffort = as.numeric(effort),
                     #'  Cluster-specific data for estimating relative density/cluster
                     ncams = as.numeric(cov$ncams),
                     cluster_area = as.numeric(cov$area_km2),
@@ -475,13 +494,16 @@
     str(bundled)
     return(bundled)
   }
-  data_JAGS_bundle_20s <- lapply(DH_npp20s_RNmod, bundle_dat, cov = clustered_cams[[1]], effort = zeffort_RNmod[[1]], cluster_indicator = cluster_index[[1]]) #cov = stations_npp20s
-  data_JAGS_bundle_21s <- lapply(DH_npp21s_RNmod, bundle_dat, cov = clustered_cams[[2]], effort = zeffort_RNmod[[2]], cluster_indicator = cluster_index[[2]]) #cov = stations_npp21s
-  data_JAGS_bundle_22s <- lapply(DH_npp22s_RNmod, bundle_dat, cov = clustered_cams[[3]], effort = zeffort_RNmod[[3]], cluster_indicator = cluster_index[[3]]) #cov = stations_npp22s
+  data_JAGS_bundle_20s <- lapply(DH_npp20s_RNmod, bundle_dat, cov = clustered_cams[[1]], cluster_indicator = cluster_index[[1]]) #cov = stations_npp20s, effort = zeffort_RNmod[[1]]
+  data_JAGS_bundle_21s <- lapply(DH_npp21s_RNmod, bundle_dat, cov = clustered_cams[[2]], cluster_indicator = cluster_index[[2]]) #cov = stations_npp21s, effort = zeffort_RNmod[[2]]
+  data_JAGS_bundle_22s <- lapply(DH_npp22s_RNmod, bundle_dat, cov = clustered_cams[[3]], cluster_indicator = cluster_index[[3]]) #cov = stations_npp22s, effort = zeffort_RNmod[[3]]
+  data_JAGS_bundle_23s <- lapply(DH_npp23s_RNmod, bundle_dat, cov = clustered_cams[[3]], cluster_indicator = cluster_index[[3]]) #cov = stations_npp23s, effort = zeffort_RNmod[[3]]
   
-  save(data_JAGS_bundle_20s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_20s_12.26.25.RData")
-  save(data_JAGS_bundle_21s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_21s_12.26.25.RData")
-  save(data_JAGS_bundle_22s, file = "./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_22s_12.26.25.RData")
+  #'  Save
+  save(data_JAGS_bundle_20s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_20s_", Sys.Date, ".RData")) #12.26.25
+  save(data_JAGS_bundle_21s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_21s_", Sys.Date, ".RData"))
+  save(data_JAGS_bundle_22s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_22s_", Sys.Date, ".RData"))
+  save(data_JAGS_bundle_23s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_23s_", Sys.Date, ".RData"))
   
   #'  Initial values
   #'  Using naive occupancy as a starting point for local abundance
@@ -495,9 +517,10 @@
   ninit_20s <- lapply(DH_npp20s_RNmod, initial_n)
   ninit_21s <- lapply(DH_npp21s_RNmod, initial_n)
   ninit_22s <- lapply(DH_npp22s_RNmod, initial_n)
+  ninit_23s <- lapply(DH_npp23s_RNmod, initial_n)
   
   #'  Parameters monitored
-  params <- c("beta0", "beta1", #"beta2", "beta3", "beta4", #"mean.lambda", 
+  params <- c("beta0", "beta4", #"beta1", "beta2", "beta3", #"mean.lambda", 
               "alpha0", "alpha2", "rSetup", "mu.r", "mean.p", #"alpha1" #"mean.r", 
               "mu.lambda", "totalN", "rdi.cl1", "rdi.cl2", "rdi.cl3", "rdi.cl4", 
               "rdi.cl5", "rdi.cl6", "rdi.cl7", "rdi.cl8", "rdi.cl9", "rdi.cl10", 
@@ -525,7 +548,6 @@
   #####  Run RN model with JAGS  #####
   #'  ---------------------------
   ######  2020  Analyses  ######
-  # source("./Scripts/Relative_Abundance/RNmodel_JAGS_code_2020.R")
   source("./Scripts/Relative_Abundance/RNmodel_clusters_JAGS_code_2020.R")
   
   ######  Black bear  ######
@@ -538,22 +560,23 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_bear_20s$summary)
+  which(RN_bear_20s$summary[,"Rhat"] < 0.9)
   which(RN_bear_20s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_bear_20s$samples)
   save(RN_bear_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bear_20s_", Sys.Date(), ".RData"))
 
-  ######  Bobcat  ######
-  start.time = Sys.time()
-  inits_bob20s <- function(){list(N = ninit_20s[[2]])}
-  RN_bob_20s <- jags(data_JAGS_bundle_20s[[2]], inits = inits_bob20s, params,
-                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters_2020.txt",
-                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                     n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_bob_20s$summary)
-  which(RN_bob_20s$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_bob_20s$samples)
-  save(RN_bob_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bob_20s_", Sys.Date(), ".RData")) 
+  # ######  Bobcat  ######
+  # start.time = Sys.time()
+  # inits_bob20s <- function(){list(N = ninit_20s[[2]])}
+  # RN_bob_20s <- jags(data_JAGS_bundle_20s[[2]], inits = inits_bob20s, params,
+  #                    "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters_2020.txt",
+  #                    n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+  #                    n.burnin = nb, parallel = TRUE)
+  # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  # print(RN_bob_20s$summary)
+  # which(RN_bob_20s$summary[,"Rhat"] > 1.1)
+  # mcmcplot(RN_bob_20s$samples)
+  # save(RN_bob_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bob_20s_", Sys.Date(), ".RData")) 
   
   ######  Coyote  ######
   start.time = Sys.time()
@@ -564,6 +587,7 @@
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_coy_20s$summary)
+  which(RN_coy_20s$summary[,"Rhat"] < 0.9)
   which(RN_coy_20s$summary[,"Rhat"] > 1.1)   # a few r-hat >1.1
   mcmcplot(RN_coy_20s$samples)
   save(RN_coy_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_coy_20s_", Sys.Date(), ".RData"))
@@ -577,6 +601,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_lion_20s$summary)
+  which(RN_lion_20s$summary[,"Rhat"] < 0.9)
   which(RN_lion_20s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_lion_20s$samples)
   save(RN_lion_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lion_20s_", Sys.Date(), ".RData")) 
@@ -591,6 +616,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wolf_20s$summary)
+  which(RN_wolf_20s$summary[,"Rhat"] < 0.9)
   which(RN_wolf_20s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wolf_20s$samples)
   save(RN_wolf_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wolf_20s_", Sys.Date(), ".RData")) 
@@ -604,6 +630,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_20s$summary)
+  which(RN_elk_20s$summary[,"Rhat"] < 0.9)
   which(RN_elk_20s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_20s$samples)
   save(RN_elk_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_elk_20s_", Sys.Date(), ".RData"))
@@ -617,6 +644,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_moose_20s$summary)
+  which(RN_moose_20s$summary[,"Rhat"] < 0.9)
   which(RN_moose_20s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_moose_20s$samples)
   save(RN_moose_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_moose_20s_", Sys.Date(), ".RData"))
@@ -631,26 +659,28 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_20s$summary)
+  which(RN_wtd_20s$summary[,"Rhat"] < 0.9)
   which(RN_wtd_20s$summary[,"Rhat"] > 1.1) #' several r-hat >1.1
   mcmcplot(RN_wtd_20s$samples)
   save(RN_wtd_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wtd_20s_", Sys.Date(), ".RData"))
   
-  ######  Lagomorphs  ######
-  ni_lag <- 100000
-  start.time = Sys.time()
-  inits_lago20s <- function(){list(N = ninit_20s[[10]])}
-  RN_lago_20s <- jags(data_JAGS_bundle_20s[[10]], inits = inits_lago20s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters_2020.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_lag, 
-                      n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_lago_20s$summary)
-  which(RN_lago_20s$summary[,"Rhat"] > 1.1) 
-  mcmcplot(RN_lago_20s$samples)
-  save(RN_lago_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lagomorphs_20s_", Sys.Date(), ".RData"))
+  # ######  Lagomorphs  ######
+  # ni_lag <- 100000
+  # start.time = Sys.time()
+  # inits_lago20s <- function(){list(N = ninit_20s[[10]])}
+  # RN_lago_20s <- jags(data_JAGS_bundle_20s[[10]], inits = inits_lago20s, params,
+  #                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters_2020.txt",
+  #                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_lag, 
+  #                     n.burnin = nb, parallel = TRUE)
+  # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  # print(RN_lago_20s$summary)
+  # which(RN_lago_20s$summary[,"Rhat"] < 0.9)
+  # which(RN_lago_20s$summary[,"Rhat"] > 1.1) 
+  # mcmcplot(RN_lago_20s$samples)
+  # save(RN_lago_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lagomorphs_20s_", Sys.Date(), ".RData"))
   
   
-  ######  2021 & 2022  Analyses  ######
+  ######  2021 - 2023  Analyses  ######
   source("./Scripts/Relative_Abundance/RNmodel_clusters_JAGS_code.R")
   
   ######  Black bear  ######
@@ -680,32 +710,47 @@
   mcmcplot(RN_bear_22s$samples)
   save(RN_bear_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bear_22s_", Sys.Date(), ".RData"))
   
-  ######  Bobcat  ######
-  #'  Summer 2021
+  #'  Summer 2023
   start.time = Sys.time()
-  inits_bob21s <- function(){list(N = ninit_21s[[2]])}
-  RN_bob_21s <- jags(data_JAGS_bundle_21s[[2]], inits = inits_bob21s, params,
+  inits_bear23s <- function(){list(N = ninit_23s[[1]])}  # NOTE same indexing for 2023 bears
+  RN_bear_23s <- jags(data_JAGS_bundle_23s[[1]], inits = inits_bear23s, params,
                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_bob_21s$summary)
-  which(RN_bob_21s$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_bob_21s$samples)
-  save(RN_bob_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bob_21s_", Sys.Date(), ".RData"))
+  print(RN_bear_23s$summary)
+  which(RN_bear_23s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_bear_23s$samples)
+  save(RN_bear_23s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bear_23s_", Sys.Date(), ".RData"))
   
-  #'  Summer 2022
-  start.time = Sys.time()
-  inits_bob22s <- function(){list(N = ninit_22s[[2]])}
-  RN_bob_22s <- jags(data_JAGS_bundle_22s[[2]], inits = inits_bob22s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                      n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_bob_22s$summary)
-  which(RN_bob_22s$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_bob_22s$samples)
-  save(RN_bob_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bob_22s_", Sys.Date(), ".RData"))
+  
+  #' ######  Bobcat  ######
+  #' #'  Summer 2021
+  #' start.time = Sys.time()
+  #' inits_bob21s <- function(){list(N = ninit_21s[[2]])}
+  #' RN_bob_21s <- jags(data_JAGS_bundle_21s[[2]], inits = inits_bob21s, params,
+  #'                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+  #'                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+  #'                     n.burnin = nb, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(RN_bob_21s$summary)
+  #' which(RN_bob_21s$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(RN_bob_21s$samples)
+  #' save(RN_bob_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bob_21s_", Sys.Date(), ".RData"))
+  #' 
+  #' #'  Summer 2022
+  #' start.time = Sys.time()
+  #' inits_bob22s <- function(){list(N = ninit_22s[[2]])}
+  #' RN_bob_22s <- jags(data_JAGS_bundle_22s[[2]], inits = inits_bob22s, params,
+  #'                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+  #'                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+  #'                     n.burnin = nb, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(RN_bob_22s$summary)
+  #' which(RN_bob_22s$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(RN_bob_22s$samples)
+  #' save(RN_bob_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bob_22s_", Sys.Date(), ".RData"))
+
   
   ######  Coyote  ######
   #'  Summer 2021
@@ -717,6 +762,7 @@
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_coy_21s$summary)
+  which(RN_coy_21s$summary[,"Rhat"] < 0.9)
   which(RN_coy_21s$summary[,"Rhat"] > 1.1)  # a few N had r>1.1
   mcmcplot(RN_coy_21s$samples)
   save(RN_coy_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_coy_21s_", Sys.Date(), ".RData"))
@@ -730,9 +776,25 @@
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_coy_22s$summary)
+  which(RN_coy_22s$summary[,"Rhat"] < 0.9)
   which(RN_coy_22s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_coy_22s$samples)
   save(RN_coy_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_coy_22s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2023
+  start.time = Sys.time()
+  inits_coy23s <- function(){list(N = ninit_23s[[2]])}  #  NOTE the different indexing
+  RN_coy_23s <- jags(data_JAGS_bundle_23s[[2]], inits = inits_coy23s, params,
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_coy_23s$summary)
+  which(RN_coy_23s$summary[,"Rhat"] < 0.9)
+  which(RN_coy_23s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_coy_23s$samples)
+  save(RN_coy_23s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_coy_23s_", Sys.Date(), ".RData"))
+  
   
   ######  Mountain lion  ######
   #'  Summer 2021
@@ -744,6 +806,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_lion_21s$summary)
+  which(RN_lion_21s$summary[,"Rhat"] < 0.9)
   which(RN_lion_21s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_lion_21s$samples)
   save(RN_lion_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lion_21s_", Sys.Date(), ".RData"))
@@ -757,9 +820,25 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_lion_22s$summary)
+  which(RN_lion_22s$summary[,"Rhat"] < 0.9)
   which(RN_lion_22s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_lion_22s$samples)
   save(RN_lion_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lion_22s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2023
+  start.time = Sys.time()
+  inits_lion23s <- function(){list(N = ninit_23s[[3]])}  #NOTE the different indexing
+  RN_lion_23s <- jags(data_JAGS_bundle_23s[[3]], inits = inits_lion23s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_lion_23s$summary)
+  which(RN_lion_23s$summary[,"Rhat"] < 0.9)
+  which(RN_lion_23s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_lion_23s$samples)
+  save(RN_lion_23s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lion_23s_", Sys.Date(), ".RData"))
+  
   
   ######  Wolf  ######
   ni_wolf <- 100000 
@@ -772,6 +851,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wolf_21s$summary)
+  which(RN_wolf_21s$summary[,"Rhat"] < 0.9)
   which(RN_wolf_21s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wolf_21s$samples)
   save(RN_wolf_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wolf_21s_", Sys.Date(), ".RData"))
@@ -785,10 +865,26 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wolf_22s$summary)
+  which(RN_wolf_22s$summary[,"Rhat"] < 0.9)
   which(RN_wolf_22s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_wolf_22s$samples)
   save(RN_wolf_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wolf_22s_", Sys.Date(), ".RData"))
+
+  #'  Summer 2023
+  start.time = Sys.time()
+  inits_wolf23s <- function(){list(N = ninit_23s[[4]])}  # NOTE the different indexing
+  RN_wolf_23s <- jags(data_JAGS_bundle_23s[[4]], inits = inits_wolf23s, params,
+                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_wolf, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_wolf_23s$summary)
+  which(RN_wolf_23s$summary[,"Rhat"] < 0.9)
+  which(RN_wolf_23s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_wolf_23s$samples)
+  save(RN_wolf_23s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wolf_23s_", Sys.Date(), ".RData"))
   
+    
   ######  Elk  ######
   #'  Summer 2021
   start.time = Sys.time()
@@ -799,6 +895,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_21s$summary)
+  which(RN_elk_21s$summary[,"Rhat"] < 0.9)  
   which(RN_elk_21s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_elk_21s$samples)
   save(RN_elk_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_elk_21s_", Sys.Date(), ".RData"))
@@ -812,9 +909,25 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_elk_22s$summary)
+  which(RN_elk_22s$summary[,"Rhat"] < 0.9)  
   which(RN_elk_22s$summary[,"Rhat"] > 1.1)  # a few N had r>1.1
   mcmcplot(RN_elk_22s$samples)
   save(RN_elk_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_elk_22s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2023
+  start.time = Sys.time()
+  inits_elk23s <- function(){list(N = ninit_23s[[5]])}  # NOTE the different indexing
+  RN_elk_23s <- jags(data_JAGS_bundle_23s[[5]], inits = inits_elk23s, params,
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_elk_23s$summary)
+  which(RN_elk_23s$summary[,"Rhat"] < 0.9)  
+  which(RN_elk_23s$summary[,"Rhat"] > 1.1)  
+  mcmcplot(RN_elk_23s$samples)
+  save(RN_elk_23s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_elk_23s_", Sys.Date(), ".RData"))
+  
   
   ######  Moose  ######
   #'  Summer 2021
@@ -826,6 +939,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_moose_21s$summary)
+  which(RN_moose_21s$summary[,"Rhat"] < 0.9)  
   which(RN_moose_21s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_moose_21s$samples)
   save(RN_moose_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_moose_21s_", Sys.Date(), ".RData"))
@@ -839,9 +953,25 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_moose_22s$summary)
+  which(RN_moose_22s$summary[,"Rhat"] < 0.9)  
   which(RN_moose_22s$summary[,"Rhat"] > 1.1)
   mcmcplot(RN_moose_22s$samples)
   save(RN_moose_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_moose_22s_", Sys.Date(), ".RData"))
+  
+  #'  Summer 2023
+  start.time = Sys.time()
+  inits_moose23s <- function(){list(N = ninit_23s[[6]])}  # NOTE the different indexing
+  RN_moose_23s <- jags(data_JAGS_bundle_23s[[6]], inits = inits_moose23s, params,
+                       "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                       n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(RN_moose_23s$summary)
+  which(RN_moose_23s$summary[,"Rhat"] < 0.9)  
+  which(RN_moose_23s$summary[,"Rhat"] > 1.1)
+  mcmcplot(RN_moose_23s$samples)
+  save(RN_moose_23s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_moose_23s_", Sys.Date(), ".RData"))
+  
   
   ######  White-tailed Deer  ######
   ni_wtd <- 100000
@@ -854,6 +984,7 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_21s$summary)
+  which(RN_wtd_21s$summary[,"Rhat"] < 0.9) 
   which(RN_wtd_21s$summary[,"Rhat"] > 1.1) # a handful of N had r>1.1
   mcmcplot(RN_wtd_21s$samples)
   save(RN_wtd_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wtd_21s_", Sys.Date(), ".RData"))
@@ -867,37 +998,53 @@
                       n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_wtd_22s$summary)
+  which(RN_wtd_22s$summary[,"Rhat"] < 0.9) 
   which(RN_wtd_22s$summary[,"Rhat"] > 1.1) # a good handful of N had r>1.1
   mcmcplot(RN_wtd_22s$samples)
   save(RN_wtd_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wtd_22s_", Sys.Date(), ".RData"))
   
-  ######  Lagomorphs  ######
-  ni_lag <- 100000
-  #'  Summer 2021
+  #'  Summer 2023
   start.time = Sys.time()
-  inits_lago21s <- function(){list(N = ninit_21s[[10]])}
-  RN_lago_21s <- jags(data_JAGS_bundle_21s[[10]], inits = inits_lago21s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_lag, 
-                      n.burnin = nb, parallel = TRUE)
+  inits_wtd23s <- function(){list(N = ninit_23s[[7]])}
+  RN_wtd_23s <- jags(data_JAGS_bundle_23s[[7]], inits = inits_wtd23s, params,
+                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_wtd, 
+                     n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_lago_21s$summary)
-  which(RN_lago_21s$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_lago_21s$samples)
-  save(RN_lago_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lagomorphs_21s_", Sys.Date(), ".RData"))
+  print(RN_wtd_23s$summary)
+  which(RN_wtd_23s$summary[,"Rhat"] < 0.9) 
+  which(RN_wtd_23s$summary[,"Rhat"] > 1.1) 
+  mcmcplot(RN_wtd_23s$samples)
+  save(RN_wtd_23s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_wtd_23s_", Sys.Date(), ".RData"))
   
-  #'  Summer 2022
-  start.time = Sys.time()
-  inits_lago22s <- function(){list(N = ninit_22s[[10]])}
-  RN_lago_22s <- jags(data_JAGS_bundle_22s[[10]], inits = inits_lago22s, params,
-                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
-                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_lag, 
-                      n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(RN_lago_22s$summary)
-  which(RN_lago_22s$summary[,"Rhat"] > 1.1)
-  mcmcplot(RN_lago_22s$samples)
-  save(RN_lago_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lagomorphs_22s_", Sys.Date(), ".RData"))
+  
+  #' ######  Lagomorphs  ######
+  #' ni_lag <- 100000
+  #' #'  Summer 2021
+  #' start.time = Sys.time()
+  #' inits_lago21s <- function(){list(N = ninit_21s[[10]])}
+  #' RN_lago_21s <- jags(data_JAGS_bundle_21s[[10]], inits = inits_lago21s, params,
+  #'                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+  #'                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_lag, 
+  #'                     n.burnin = nb, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(RN_lago_21s$summary)
+  #' which(RN_lago_21s$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(RN_lago_21s$samples)
+  #' save(RN_lago_21s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lagomorphs_21s_", Sys.Date(), ".RData"))
+  #' 
+  #' #'  Summer 2022
+  #' start.time = Sys.time()
+  #' inits_lago22s <- function(){list(N = ninit_22s[[10]])}
+  #' RN_lago_22s <- jags(data_JAGS_bundle_22s[[10]], inits = inits_lago22s, params,
+  #'                     "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
+  #'                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_lag, 
+  #'                     n.burnin = nb, parallel = TRUE)
+  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
+  #' print(RN_lago_22s$summary)
+  #' which(RN_lago_22s$summary[,"Rhat"] > 1.1)
+  #' mcmcplot(RN_lago_22s$samples)
+  #' save(RN_lago_22s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_lagomorphs_22s_", Sys.Date(), ".RData"))
   
   
   #'  --------------------------
