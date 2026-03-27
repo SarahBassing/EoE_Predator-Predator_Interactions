@@ -264,33 +264,15 @@
   save(RN_wolf_23s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_RAI_wolf_2020_2023/RN_RAI_wolf_23s_", Sys.Date(), ".RData"))
   
   
-  #####  Visualize local abundance data  #####
-  #'  -----------------------------------
-  #'  Map relative density data per species, study area and year
+  #####  Make wolf relative abundance data spatial  #####
+  #'  ----------------------------------------------
   library(sf)
-  library(ggplot2)
-  library(patchwork)
-  
+
   #'  Load spatial data
-  eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
-    st_transform("+proj=longlat +datum=WGS84 +no_defs")
   cams_20s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp")
   cams_21s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_21s_wgs84.shp")
   cams_22s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_22s_wgs84.shp")
   cams_23s_wgs84 <- st_read("./Shapefiles/IDFG spatial data 2023 additional/cams_23s_wgs84.shp")
-  bigwater <- st_read("./Shapefiles/National Hydrology Database Idaho State/Idaho_waterbodies_1km2.shp")
-  bigwater_wgs84 <- st_transform(bigwater, crs = "+proj=longlat +datum=WGS84 +no_defs") %>%
-    filter(gnis_name == "Priest Lake" | gnis_name == "Upper Priest Lake" | 
-             gnis_name == "Lake Pend Oreille" | #gnis_name == "Cabinet Gorge Reservoir" | 
-             gnis_name == "Chatcolet Lake" | gnis_name == "Dworshak Reservoir") %>%
-    dplyr::select(gnis_name)
-  priestrivers <- st_read("./Shapefiles/National Hydrology Database Idaho State/PriestRiver_flowline.shp")
-  pendoreille <- st_read("./Shapefiles/National Hydrology Database Idaho State/Pendoreille_flowline.shp")
-  kootenairiver <- st_read("./Shapefiles/National Hydrology Database Idaho State/KootenaiRiver_flowline.shp")
-  clarkfork <- st_read("./Shapefiles/National Hydrology Database Idaho State/ClarkForkRiver_flowline.shp") 
-  clearwater <- st_read("./Shapefiles/National Hydrology Database Idaho State/NorthForkClearwater_flowline.shp")
-  rivers <- bind_rows(priestrivers, pendoreille, kootenairiver, clarkfork, clearwater) 
-  rivers_clip <- st_intersection(rivers, eoe_gmu_wgs84)
   
   #' #'  Load wolf RN model outputs, if needed
   #' load("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_RAI_wolf_2020_2023/RN_RAI_wolf_20s_2026-03-24.RData")
@@ -353,4 +335,5 @@
   #'  Merge wolf results into single large spatial dataframe and save as a shapefile
   spatial_rn_wolf_locs <- bind_rows(spatial_rn_wolf[[1]], spatial_rn_wolf[[2]], spatial_rn_wolf[[3]], spatial_rn_wolf[[4]])
   st_write(spatial_rn_wolf_locs, "./Shapefiles/IDFG spatial data/Camera_locations/spatial_rn_wolf_locs_2020_2023.shp")
+  
   
