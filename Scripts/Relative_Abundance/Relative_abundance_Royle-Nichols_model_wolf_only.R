@@ -115,8 +115,12 @@
   stations_npp21s <- format_covs(cams_eoe21s, dets = DH_npp21s_RNmod[[1]]) #, effort = effort_21s_RNmod) 
   stations_npp22s <- format_covs(cams_eoe22s, dets = DH_npp22s_RNmod[[1]]) #, effort = effort_22s_RNmod) 
   #'  2023 camera stations
-  load("./Data/IDFG camera data/IDFG 2023 detection data/Detection_Histories_RNmodel/stations_smr2023.RData")
+  load("./Data/IDFG camera data/IDFG 2023 detection data/Detection_Histories_RNmodel/stations_smr2023_withcoords.RData")
   stations_npp23s <- stations_smr2023
+  # cams_23s <- dplyr::select(stations_smr2023, c("NewLocationID", "Lat", "Long")) %>%
+  #   rename("NwLctID" = "NewLocationID")
+  # cams_23s_wgs84 <- st_as_sf(cams_23s, coords = c("Long", "Lat"), crs = "+proj=longlat +datum=WGS84 +no_defs")
+  # write_sf(cams_23s_wgs84, "./Shapefiles/IDFG spatial data 2023 additional/cams_23s_wgs84.shp")
   
   #'  Double check things are ordered correctly!!!!
   stations_npp20s[82:90,1:4]; DH_npp20s_RNmod[[1]][82:90,1:3]; nrow(stations_npp20s); nrow(DH_npp20s_RNmod[[1]])
@@ -260,4 +264,93 @@
   save(RN_wolf_23s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_RAI_wolf_2020_2023/RN_RAI_wolf_23s_", Sys.Date(), ".RData"))
   
   
+  #####  Visualize local abundance data  #####
+  #'  -----------------------------------
+  #'  Map relative density data per species, study area and year
+  library(sf)
+  library(ggplot2)
+  library(patchwork)
+  
+  #'  Load spatial data
+  eoe_gmu_wgs84 <- st_read("./Shapefiles/IDFG_Game_Management_Units/EoE_GMUs.shp") %>%
+    st_transform("+proj=longlat +datum=WGS84 +no_defs")
+  cams_20s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp")
+  cams_21s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_21s_wgs84.shp")
+  cams_22s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_22s_wgs84.shp")
+  cams_23s_wgs84 <- st_read("./Shapefiles/IDFG spatial data 2023 additional/cams_23s_wgs84.shp")
+  bigwater <- st_read("./Shapefiles/National Hydrology Database Idaho State/Idaho_waterbodies_1km2.shp")
+  bigwater_wgs84 <- st_transform(bigwater, crs = "+proj=longlat +datum=WGS84 +no_defs") %>%
+    filter(gnis_name == "Priest Lake" | gnis_name == "Upper Priest Lake" | 
+             gnis_name == "Lake Pend Oreille" | #gnis_name == "Cabinet Gorge Reservoir" | 
+             gnis_name == "Chatcolet Lake" | gnis_name == "Dworshak Reservoir") %>%
+    dplyr::select(gnis_name)
+  priestrivers <- st_read("./Shapefiles/National Hydrology Database Idaho State/PriestRiver_flowline.shp")
+  pendoreille <- st_read("./Shapefiles/National Hydrology Database Idaho State/Pendoreille_flowline.shp")
+  kootenairiver <- st_read("./Shapefiles/National Hydrology Database Idaho State/KootenaiRiver_flowline.shp")
+  clarkfork <- st_read("./Shapefiles/National Hydrology Database Idaho State/ClarkForkRiver_flowline.shp") 
+  clearwater <- st_read("./Shapefiles/National Hydrology Database Idaho State/NorthForkClearwater_flowline.shp")
+  rivers <- bind_rows(priestrivers, pendoreille, kootenairiver, clarkfork, clearwater) 
+  rivers_clip <- st_intersection(rivers, eoe_gmu_wgs84)
+  
+  #' #'  Load wolf RN model outputs, if needed
+  #' load("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_RAI_wolf_2020_2023/RN_RAI_wolf_20s_2026-03-24.RData")
+  #' load("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_RAI_wolf_2020_2023/RN_RAI_wolf_21s_2026-03-24.RData")
+  #' load("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_RAI_wolf_2020_2023/RN_RAI_wolf_22s_2026-03-25.RData")
+  #' load("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_RAI_wolf_2020_2023/RN_RAI_wolf_23s_2026-03-25.RData")
+  
+  #'  List RN outputs
+  rn_wolf_list <- list(RN_wolf_20s, RN_wolf_21s, RN_wolf_22s, RN_wolf_23s)
+    
+  #'  List one detection history per year (doesn't matter which species it relates to)
+  dh_list <- list(DH_npp20s_RNmod[[1]], DH_npp21s_RNmod[[1]], DH_npp22s_RNmod[[1]], DH_npp23s_RNmod[[1]])
+  
+  #'  Save estimated N per site
+  estimated_N <- function(mod, dh, spp) {
+    #'  Grab estimated N and SD per site
+    RN.n <- mod$mean$N
+    RN.sd <- mod$sd$N
+    #'  Grab camera location
+    locs <- rownames(dh)
+    #'  Merge and format into single data frame with corresponding N & SD per site
+    out <- cbind(locs, RN.n, RN.sd)
+    RN_est <- as.data.frame(out) %>%
+      mutate(NewLocationID = locs, 
+             Species = spp,
+             RN.n = as.numeric(RN.n),
+             RN.sd = as.numeric(RN.sd)) %>%
+      separate(locs, c("GMU", "Setup", "site"), sep = "_") %>%
+      mutate(CellID = paste0(GMU, "_", site)) %>%
+      dplyr::select(-site) %>%
+      relocate(NewLocationID, .before = "GMU") %>%
+      relocate(Species, .after = "Setup") %>%
+      relocate(CellID, .after = "NewLocationID")
+    return(RN_est)
+  }
+  rn_wolf_out <- mapply(estimated_N, rn_wolf_list, dh = dh_list, spp = "wolf", SIMPLIFY = FALSE)
+  
+  #'  List camera spatial data
+  cam_list <- list(cams_20s_wgs84, cams_21s_wgs84, cams_22s_wgs84, cams_23s_wgs84)
+  
+  #'  Append RN abundance estimates to spatial data
+  spatial_rn <- function(rn, spp, cams) {
+    #'  Filter data to single species
+    single_spp_rn <- rn %>%
+      filter(Species == spp) %>%
+      #'  Rename camera location column to match spatial data
+      rename("NwLctID" = "NewLocationID") %>%
+      mutate(RN.n.rounded = round(RN.n, 0))
+    
+    #'  Join spatial data with rn data
+    rn_shp <- full_join(cams, single_spp_rn, by = "NwLctID") %>%
+      filter(!is.na(Species)) %>%
+      #'  Change camera location column back to something less awkward
+      rename("NewLocationID" = "NwLctID")
+    
+    return(rn_shp)
+  }
+  spatial_rn_wolf <- mapply(rn = rn_wolf_out, spatial_rn, spp = "wolf", cams = cam_list, SIMPLIFY = FALSE)
+  
+  #'  Merge wolf results into single large spatial dataframe and save as a shapefile
+  spatial_rn_wolf_locs <- bind_rows(spatial_rn_wolf[[1]], spatial_rn_wolf[[2]], spatial_rn_wolf[[3]], spatial_rn_wolf[[4]])
+  st_write(spatial_rn_wolf_locs, "./Shapefiles/IDFG spatial data/Camera_locations/spatial_rn_wolf_locs_2020_2023.shp")
   
