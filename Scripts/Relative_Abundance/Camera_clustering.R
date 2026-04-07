@@ -380,8 +380,6 @@
   #'  and GMU 1 W split by Priest Lake and Upper / Lower Priest Rivers
   #'  Reminder: alpha = 0 all weight on D0 (RAI differences), alpha = 1 all weight on  (geographic dist)
   #'  Choosing alpha where Q0 & Q1 intersect 
-  # clusters_gmu1E <- ward_like_cluster(wolf_cams_gmu1_E, k = 8, a = 0.8, nndist = 11, a2 = 0.4) 
-  # mapview::mapview(clusters_gmu1E, zcol = "Clusters")
   clusters_gmu1NE <- ward_like_cluster(wolf_cams_gmu1_NE, k = 3, a = 0.5, nndist = 9, a2 = 0.175) 
   map_RAI(cams = wolf_cams[wolf_cams$GMU == "GMU1",], gmu = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,], water = bigwater_wgs84[bigwater_wgs84$gnis_name == "Lake Pend Oreille" | bigwater_wgs84$gnis_name == "Upper Priest Lake" | bigwater_wgs84$gnis_name == "Priest Lake" | bigwater_wgs84$gnis_name == "kootenairiver" | bigwater_wgs84$gnis_name == "Cabinet Gorge Reservoir",])
   mapview::mapview(clusters_gmu1NE, zcol = "Clusters")
@@ -432,7 +430,6 @@
     return(buff_mcps)
   }
   starter_hulls_gmu1W <- starter_hull(clusters_gmu1W, buff = mean(kDsort_byGMU[[1]])) # buff based on avg. nearest neighbor (m) distance from k-distance function
-  # starter_hulls_gmu1E <- starter_hull(clusters_gmu1E, buff = mean(kDsort_byGMU[[1]]))
   starter_hulls_gmu1NE <- starter_hull(clusters_gmu1NE, buff = mean(kDsort_byGMU[[1]]))
   starter_hulls_gmu1C <- starter_hull(clusters_gmu1C, buff = mean(kDsort_byGMU[[1]]))
   starter_hulls_gmu6 <- starter_hull(clusters_gmu6, buff = mean(kDsort_byGMU[[2]])) 
@@ -492,9 +489,7 @@
   ######  GMU1 Cluster Polygons  ######
   #'  ---------------------------
   #'  Drop UDs where all points are also contained within other UDs
-  # UDs_gmu1E <- UDs_gmu1E %>% filter(Clusters != 5)
   UDs_gmu1C <- UDs_gmu1C[[1]] %>% filter(Clusters != 1 & Clusters != 5)
-  # mapview::mapview(list(clusters_gmu1E, UDs_gmu1E), zcol = "Clusters")
   mapview::mapview(list(clusters_gmu1NE, UDs_gmu1NE[[2]]), zcol = "Clusters")
   mapview::mapview(list(clusters_gmu1C, UDs_gmu1C), zcol = "Clusters")
   mapview::mapview(list(clusters_gmu1W, UDs_gmu1W[[1]]), zcol = "Clusters")  
