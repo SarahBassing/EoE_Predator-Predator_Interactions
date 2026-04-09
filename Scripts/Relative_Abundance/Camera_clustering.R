@@ -472,24 +472,26 @@
 
   #'  Reprojecting all spatial data to metric coordinates work with sf functions better
   #'  Using State-wide projection, Idaho Transverse Mercator IDTM (EPSG:8826)
-  planar_reproject <- function(sf_obj, new_proj) {
+  coord_reproject <- function(sf_obj, new_proj) {
     sf_obj_nad83 <- st_transform(sf_obj, crs = new_proj) 
     return(sf_obj_nad83)
   }
-  UDs_gmu1NE_90 <- planar_reproject(UDs_gmu1NE[[2]], new_proj = crs("+init=EPSG:8826"))
-  UDs_gmu1NE <- planar_reproject(UDs_gmu1NE[[1]], new_proj = crs("+init=EPSG:8826"))
-  UDs_gmu1W <- planar_reproject(UDs_gmu1W[[1]], new_proj = crs("+init=EPSG:8826"))
-  UDs_gmu1C <- planar_reproject(UDs_gmu1C[[1]], new_proj = crs("+init=EPSG:8826"))
-  UDs_gmu6 <- planar_reproject(UDs_gmu6[[1]], new_proj = crs("+init=EPSG:8826"))
-  UDs_gmu10aN <- planar_reproject(UDs_gmu10aN[[1]], new_proj = crs("+init=EPSG:8826"))
-  UDs_gmu10aS <- planar_reproject(UDs_gmu10aS[[1]], new_proj = crs("+init=EPSG:8826"))
-  eoe_gmu_utm <- planar_reproject(eoe_gmu_wgs84, new_proj = crs("+init=EPSG:8826"))
-  kootenairiver <- planar_reproject(kootenairiver, new_proj = crs("+init=EPSG:8826"))
-  longer_kootenairiver <- planar_reproject(longer_kootenairiver, new_proj = crs("+init=EPSG:8826"))
-  priestlakes <- planar_reproject(priestlakes, new_proj = crs("+init=EPSG:8826"))
-  longer_priestriver <- planar_reproject(longer_priestriver, new_proj = crs("+init=EPSG:8826"))
-  lakependoreille <- planar_reproject(lakependoreille, new_proj = crs("+init=EPSG:8826"))
-  clarkfork <- planar_reproject(clarkfork, new_proj = crs("+init=EPSG:8826"))
+  UDs_gmu1NE_90 <- coord_reproject(UDs_gmu1NE[[2]], new_proj = crs("+init=EPSG:8826"))
+  UDs_gmu1NE <- coord_reproject(UDs_gmu1NE[[1]], new_proj = crs("+init=EPSG:8826"))
+  UDs_gmu1W <- coord_reproject(UDs_gmu1W[[1]], new_proj = crs("+init=EPSG:8826"))
+  UDs_gmu1C <- coord_reproject(UDs_gmu1C[[1]], new_proj = crs("+init=EPSG:8826"))
+  UDs_gmu6 <- coord_reproject(UDs_gmu6[[1]], new_proj = crs("+init=EPSG:8826"))
+  UDs_gmu10aN <- coord_reproject(UDs_gmu10aN[[1]], new_proj = crs("+init=EPSG:8826"))
+  UDs_gmu10aS <- coord_reproject(UDs_gmu10aS[[1]], new_proj = crs("+init=EPSG:8826"))
+  eoe_gmu_utm <- coord_reproject(eoe_gmu_wgs84, new_proj = crs("+init=EPSG:8826"))
+  kootenairiver <- coord_reproject(kootenairiver, new_proj = crs("+init=EPSG:8826"))
+  longer_kootenairiver <- coord_reproject(longer_kootenairiver, new_proj = crs("+init=EPSG:8826"))
+  priestlakes <- coord_reproject(priestlakes, new_proj = crs("+init=EPSG:8826"))
+  longer_priestriver <- coord_reproject(longer_priestriver, new_proj = crs("+init=EPSG:8826"))
+  lakependoreille <- coord_reproject(lakependoreille, new_proj = crs("+init=EPSG:8826"))
+  clarkfork <- coord_reproject(clarkfork, new_proj = crs("+init=EPSG:8826"))
+  dworshak <- coord_reproject(dworshak, new_proj = crs("+init=EPSG:8826"))
+  clearwater <- coord_reproject(clearwater, new_proj = crs("+init=EPSG:8826"))
   
   #'  ----------------------------
   #####  Adjust cluster polygons  #####
@@ -716,10 +718,10 @@
   mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS), zcol = "Clusters")
     
   #'  Remove portions of clusters that extend beyond GMU boundary
-  UDs_gmu10aN_clip <- st_intersection(UDs_gmu10aN, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",])
+  UDs_gmu10aN_clip <- st_intersection(UDs_gmu10aN, eoe_gmu_utm[eoe_gmu_utm$NAME == "10A",])
   mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN_clip), zcol = "Clusters")
   UDs_gmu10aN <- UDs_gmu10aN_clip
-  UDs_gmu10aS_clip <- st_intersection(UDs_gmu10aS, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",])
+  UDs_gmu10aS_clip <- st_intersection(UDs_gmu10aS, eoe_gmu_utm[eoe_gmu_utm$NAME == "10A",])
   mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_clip), zcol = "Clusters")
   UDs_gmu10aS <- UDs_gmu10aS_clip
   
@@ -734,65 +736,53 @@
   mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_intersect), zcol = "Clusters")
   
   #'  Snag individual cluster polygons that are stand alone
-  ud_gmu10aN_c1 <- filter(UDs_gmu10aN, Clusters == 1)
-  ud_gmu10aS_c4 <- filter(UDs_gmu10aS, Clusters == 4)
-  ud_gmu10aS_c6 <- filter(UDs_gmu10aS, Clusters == 6) %>% st_cast("POLYGON") 
-  
-  #' #'  Intersect GMU10A cluster 1 with GMU10A boundary b/c currently overlaps with GMU6 cluster 3
-  #' ud_gmu10aN_c1_nooverlap <- st_intersection(ud_gmu10aN_c1, eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",]) %>%
-  #'   mutate(NewClusters = row.names(.)) %>%
-  #'   dplyr::select(c(Clusters, NewClusters))
-  #' mapview::mapview(list(clusters_gmu10a, ud_gmu10aN_c1_nooverlap), zcol = "Clusters")
-  #' ud_gmu10aN_c1 <- ud_gmu10aN_c1_nooverlap
+  ud_gmu10aN_c1 <- filter(UDs_gmu10aN, Clusters == 1) %>% st_as_sf(.) %>% dplyr::select(c(Clusters, geometry)) %>% mutate(Clusters = as.numeric(Clusters))
+  ud_gmu10aS_c3 <- filter(UDs_gmu10aS, Clusters == 3) %>% st_as_sf(.) %>% dplyr::select(c(Clusters, geometry)) %>% mutate(Clusters = as.numeric(Clusters))
+  row.names(ud_gmu10aS_c3) <- 3
   
   #'  Create individual polygons for places where two cluster polygons intersect
-  ud_gmu10aN_c2 <- filter(UDs_gmu10aN_intersect, NewClusters == 2)
-  ud_gmu10aS_c1 <- filter(UDs_gmu10aS_intersect, NewClusters == 1 | NewClusters == 1.1 | NewClusters == 1.4) %>% 
-    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c1[c(1,5:6),])
-  ud_gmu10aS_c2 <- filter(UDs_gmu10aS_intersect, NewClusters == 2 | NewClusters == 2.1 | NewClusters == 2.2 | NewClusters == 1.2) %>% 
-    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c2)
-  ud_gmu10aS_c3 <- filter(UDs_gmu10aS_intersect, NewClusters == 3 | NewClusters == 3.1 | NewClusters == 1.3) %>% 
-    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c3)
-  ud_gmu10aS_c5 <- filter(UDs_gmu10aS_intersect, NewClusters == 5) %>% dplyr::select(Clusters)
-  ud_gmu10aS_c7 <- filter(UDs_gmu10aS_intersect, NewClusters == 7 | NewClusters == 1.5) %>% 
-    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON"); mapview(ud_gmu10aS_c7)
-  
-  #'  Create new polygons by joining specific intersections
-  ud_gmu10aS_c1 <- st_union(ud_gmu10aS_c1[1,], ud_gmu10aS_c1[5,]) %>% st_union(., ud_gmu10aS_c1[6,]) %>% 
-    dplyr::select(Clusters) %>% st_cast(., "GEOMETRYCOLLECTION") %>% 
-    st_collection_extract("POLYGON")
-  mapview(ud_gmu10aS_c1)
+  ud_gmu10aN_c2 <- filter(UDs_gmu10aN_intersect, NewClusters == 2) %>% st_as_sf(.) %>% 
+    dplyr::select(c(Clusters, geometry)) %>% mutate(Clusters = as.numeric(Clusters)); mapview(ud_gmu10aN_c2)
+  ud_gmu10aS_c1 <- filter(UDs_gmu10aS_intersect, NewClusters == 1) %>% 
+    st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON") %>%
+    dplyr::select(c(Clusters, geometry)) %>% mutate(Clusters = as.numeric(Clusters)); mapview(ud_gmu10aS_c1[1,])
+  ud_gmu10aS_c1 <- ud_gmu10aS_c1[1,]
   row.names(ud_gmu10aS_c1) <- 1
-  ud_gmu10aS_c2 <- st_union(ud_gmu10aS_c2[1,], ud_gmu10aS_c2[2,]) %>% st_union(., ud_gmu10aS_c2[3,]) %>% 
-    st_union(., ud_gmu10aS_c2[4,]) %>% st_union(., ud_gmu10aS_c2[6,]) %>% 
-    # st_cast(., "GEOMETRYCOLLECTION") %>% st_collection_extract("POLYGON") %>% 
-    dplyr::select(Clusters); mapview(ud_gmu10aS_c2)
-  ud_gmu10aS_c3 <- st_union(ud_gmu10aS_c3[3,], ud_gmu10aS_c3[2,]) %>% st_union(., ud_gmu10aS_c3[4,]) %>% 
-    st_union(., ud_gmu10aS_c3[1,]) %>% st_cast("POLYGON") %>%
-    dplyr::select(Clusters)
-  ud_gmu10aS_c3 <- ud_gmu10aS_c3[1,]; mapview(ud_gmu10aS_c3)
-  row.names(ud_gmu10aS_c3) <- 3
-  ud_gmu10aS_c7 <- st_union(ud_gmu10aS_c7[2,], ud_gmu10aS_c7[1,]) %>% 
-    dplyr::select(Clusters); mapview(ud_gmu10aS_c7)
+  ud_gmu10aS_c2 <- filter(UDs_gmu10aS_intersect, NewClusters == 2 | NewClusters == 2.2 | NewClusters == 2.3 | NewClusters == 2.4 | NewClusters == 1.1) %>% 
+    st_union(.) %>% st_as_sf(.) %>% mutate(Clusters = 2) %>% mutate(Clusters = as.numeric(Clusters)) %>% 
+    rename(geometry = x); mapview(ud_gmu10aS_c2)
+  row.names(ud_gmu10aS_c2) <- 2
+  ud_gmu10aS_c4 <- filter(UDs_gmu10aS_intersect, NewClusters == 4) %>% dplyr::select(c(Clusters, geometry)) %>% 
+    mutate(Clusters = as.numeric(Clusters)); mapview(ud_gmu10aS_c4)
+  ud_gmu10aS_c5 <- filter(UDs_gmu10aS_intersect, NewClusters == 5 | NewClusters == 4.1) %>% 
+    st_union(.) %>% st_as_sf(.) %>% st_collection_extract("POLYGON") %>% mutate(Clusters = 5) %>% 
+    mutate(Clusters = as.numeric(Clusters)) %>% 
+    rename(geometry = x); mapview(ud_gmu10aS_c5)
+  row.names(ud_gmu10aS_c5) <- 5
+  ud_gmu10aS_c6 <- filter(UDs_gmu10aS_intersect, NewClusters == 6) %>% st_cast("MULTILINESTRING") %>% 
+    st_cast("LINESTRING") %>% st_cast("POLYGON") %>% dplyr::select(c(Clusters, geometry)) %>% 
+    mutate(Clusters = as.numeric(Clusters)); mapview(ud_gmu10aS_c6[1,])
+  ud_gmu10aS_c6 <- ud_gmu10aS_c6[1,]
+  row.names(ud_gmu10aS_c6) <- 6
   
   #'  Remove large waterbodies from to GMU10A UDs
   ud_gmu10aN_c2_dworsak_split <- ud_gmu10aN_c2 %>% lwgeom::st_split(dworshak) %>% 
-    st_collection_extract("POLYGON") 
+    st_collection_extract("POLYGON"); mapview(ud_gmu10aN_c2_dworsak_split)
   ud_gmu10aN_c2 <- ud_gmu10aN_c2_dworsak_split[1,]; mapview(ud_gmu10aN_c2)
-  UDs_gmu10aS_poly_nowater <- bind_rows(ud_gmu10aS_c3, ud_gmu10aS_c4, ud_gmu10aS_c7) %>% 
-    st_cast("MULTIPOLYGON") %>% dplyr::select(Clusters) %>% 
-    lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON") %>% 
-    lwgeom::st_split(clearwater) %>% st_collection_extract("POLYGON"); mapview(UDs_gmu10aS_poly_nowater)
-  UDs_gmu10aS_poly_nowater <- bind_rows(UDs_gmu10aS_poly_nowater[164,], UDs_gmu10aS_poly_nowater[5,], UDs_gmu10aS_poly_nowater[29,])
-  row.names(UDs_gmu10aS_poly_nowater) <- c(7, 3, 4)
+  UDs_gmu10aS_poly_nowater <- bind_rows(ud_gmu10aS_c3, ud_gmu10aS_c4) %>% 
+    lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON"); mapview(UDs_gmu10aS_poly_nowater)
+  UDs_gmu10aS_poly_nowater <- bind_rows(UDs_gmu10aS_poly_nowater[3,], UDs_gmu10aS_poly_nowater[6,]) 
+  row.names(UDs_gmu10aS_poly_nowater) <- c(3, 4)
   mapview(UDs_gmu10aS_poly_nowater, zcol = "Clusters")
+  
+  ### WHY DOES CLUSTER 4 DISAPPEAR ?!?!?!?!
   
   #'  Spatial data frame of new cluster polygons
   UDs_gmu10aN_poly <- bind_rows(ud_gmu10aN_c1, ud_gmu10aN_c2) %>%
     dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN_poly), zcol = "Clusters")
-  UDs_gmu10aS_poly <- bind_rows(UDs_gmu10aS_poly_nowater, ud_gmu10aS_c1, ud_gmu10aS_c2, ud_gmu10aS_c5, ud_gmu10aS_c6) %>%
-    dplyr::select(Clusters) %>% arrange(Clusters)
+  UDs_gmu10aS_poly <- bind_rows(ud_gmu10aS_c1, ud_gmu10aS_c2, UDs_gmu10aS_poly_nowater, ud_gmu10aS_c5, ud_gmu10aS_c6) %>%
+    dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_poly), zcol = "Clusters")
   
   #'  Calculate area (km^2) for each cluster polygon
@@ -867,43 +857,47 @@
   cam_clusters_gmu10a <- bind_rows(cam_clusters_gmu10a, GMU10aS_misfits)
   mapview(list(gmu10a_poly, cam_clusters_gmu10a), zcol = "Clusters")
   
-  #'  -----------------------------------------------------------
-  ####  Calculate Relative Density Index for wolves per cluster  ####
-  #'  -----------------------------------------------------------
-  #  Calculate density per species per year per cluster
-  wolf_density_gmu1 <- cam_clusters_gmu1 %>%
-    group_by(Clusters) %>%
-    reframe(nWolf = sum(RN_n_rn),
-            `Wolf density` = nWolf/area_km2) %>%
-    unique() %>%
-    mutate(GMU = "GMU1") %>%
-    full_join(gmu1_poly, by = "Clusters") %>%
-    st_as_sf()
-  wolf_density_gmu6 <- cam_clusters_gmu6 %>%
-    group_by(Clusters) %>%
-    reframe(nWolf = sum(RN_n_rn),
-            `Wolf density` = nWolf/area_km2) %>%
-    unique() %>%
-    mutate(GMU = "GMU6") %>%
-    full_join(gmu6_poly, by = "Clusters") %>%
-    st_as_sf()
-  wolf_density_gmu10a <- cam_clusters_gmu10a %>%
-    group_by(Clusters) %>%
-    reframe(nWolf = sum(RN_n_rn),
-            `Wolf density` = nWolf/area_km2) %>%
-    unique() %>%
-    mutate(GMU = "GMU10A") %>%
-    full_join(gmu10a_poly, by = "Clusters") %>%
-    st_as_sf()
+  #'  Reproject clusters and cameras back to WGS84
+  #  use coord_reproject function or st_transform
   
-  wolf_density_tbl <- bind_rows(wolf_density_gmu1, wolf_density_gmu6, wolf_density_gmu10a) %>%
-    as.data.frame(.) %>% 
-    mutate(area_km2 = round(area_km2, 2),
-           `Wolf density` = round(`Wolf density`, 3)) %>%
-    relocate(area_km2, .after = nWolf) %>%
-    relocate(GMU, .before = Clusters) %>%
-    dplyr::select(-geometry)
-  write_csv(wolf_density_tbl, "./Outputs/Relative_Abundance/RN_model/Tables/Cluster_wolf_RAI_density_06.30.25.csv")
+  
+  #' #'  -----------------------------------------------------------
+  #' ####  Calculate Relative Density Index for wolves per cluster  ####
+  #' #'  -----------------------------------------------------------
+  #' #  Calculate density per species per year per cluster
+  #' wolf_density_gmu1 <- cam_clusters_gmu1 %>%
+  #'   group_by(Clusters) %>%
+  #'   reframe(nWolf = sum(RN_n_rn),
+  #'           `Wolf density` = nWolf/area_km2) %>%
+  #'   unique() %>%
+  #'   mutate(GMU = "GMU1") %>%
+  #'   full_join(gmu1_poly, by = "Clusters") %>%
+  #'   st_as_sf()
+  #' wolf_density_gmu6 <- cam_clusters_gmu6 %>%
+  #'   group_by(Clusters) %>%
+  #'   reframe(nWolf = sum(RN_n_rn),
+  #'           `Wolf density` = nWolf/area_km2) %>%
+  #'   unique() %>%
+  #'   mutate(GMU = "GMU6") %>%
+  #'   full_join(gmu6_poly, by = "Clusters") %>%
+  #'   st_as_sf()
+  #' wolf_density_gmu10a <- cam_clusters_gmu10a %>%
+  #'   group_by(Clusters) %>%
+  #'   reframe(nWolf = sum(RN_n_rn),
+  #'           `Wolf density` = nWolf/area_km2) %>%
+  #'   unique() %>%
+  #'   mutate(GMU = "GMU10A") %>%
+  #'   full_join(gmu10a_poly, by = "Clusters") %>%
+  #'   st_as_sf()
+  #' 
+  #' wolf_density_tbl <- bind_rows(wolf_density_gmu1, wolf_density_gmu6, wolf_density_gmu10a) %>%
+  #'   as.data.frame(.) %>% 
+  #'   mutate(area_km2 = round(area_km2, 2),
+  #'          `Wolf density` = round(`Wolf density`, 3)) %>%
+  #'   relocate(area_km2, .after = nWolf) %>%
+  #'   relocate(GMU, .before = Clusters) %>%
+  #'   dplyr::select(-geometry)
+  #' write_csv(wolf_density_tbl, "./Outputs/Relative_Abundance/RN_model/Tables/Cluster_wolf_RAI_density_06.30.25.csv")
   
   #'  Back to allowing spherical geometry
   sf::sf_use_s2(TRUE)
