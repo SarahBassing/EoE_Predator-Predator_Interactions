@@ -83,7 +83,7 @@
       
       #'  Mean density per cluster
       for(i in 1:nsites) {
-        N.cl1[i] <- N[i] * cluster_matrix[i,1] # GMU10A cams
+        N.cl1[i] <- N[i] * cluster_matrix[i,1]     # GMU10A cams
         N.cl2[i] <- N[i] * cluster_matrix[i,2] 
         N.cl3[i] <- N[i] * cluster_matrix[i,3] 
         N.cl4[i] <- N[i] * cluster_matrix[i,4] 
@@ -91,8 +91,8 @@
         N.cl6[i] <- N[i] * cluster_matrix[i,6] 
         N.cl7[i] <- N[i] * cluster_matrix[i,7] 
         N.cl8[i] <- N[i] * cluster_matrix[i,8] 
-        N.cl9[i] <- N[i] * cluster_matrix[i,9] 
-        # N.cl10[i] <- N[i] * cluster_matrix[i,10] # GMU1 cams
+        # N.cl9[i] <- N[i] * cluster_matrix[i,9]   # GMU1 cams
+        # N.cl10[i] <- N[i] * cluster_matrix[i,10] 
         # N.cl11[i] <- N[i] * cluster_matrix[i,11] 
         # N.cl12[i] <- N[i] * cluster_matrix[i,12] 
         # N.cl13[i] <- N[i] * cluster_matrix[i,13] 
@@ -101,12 +101,12 @@
         # N.cl16[i] <- N[i] * cluster_matrix[i,16] 
         # N.cl17[i] <- N[i] * cluster_matrix[i,17] 
         # N.cl18[i] <- N[i] * cluster_matrix[i,18] 
-        # N.cl19[i] <- N[i] * cluster_matrix[i,19] 
-        # N.cl20[i] <- N[i] * cluster_matrix[i,20] 
-        N.cl21[i] <- N[i] * cluster_matrix[i,21] # GMU6 cams
+        N.cl19[i] <- N[i] * cluster_matrix[i,19]   # GMU6 cams
+        N.cl20[i] <- N[i] * cluster_matrix[i,20] 
+        N.cl21[i] <- N[i] * cluster_matrix[i,21] 
         N.cl22[i] <- N[i] * cluster_matrix[i,22] 
         N.cl23[i] <- N[i] * cluster_matrix[i,23] 
-        N.cl24[i] <- N[i] * cluster_matrix[i,24] 
+        # N.cl24[i] <- N[i] * cluster_matrix[i,24] 
       }
       
       #'  Estimate relative abundance index by summing N per cluster, dividing
@@ -122,8 +122,8 @@
       rdi.cl6 <- ((sum(N.cl6) / sum(cluster_matrix[,6])) / cluster_area[6]) * 100
       rdi.cl7 <- ((sum(N.cl7) / sum(cluster_matrix[,7])) / cluster_area[7]) * 100
       rdi.cl8 <- ((sum(N.cl8) / sum(cluster_matrix[,8])) / cluster_area[8]) * 100
-      rdi.cl9 <- ((sum(N.cl9) / sum(cluster_matrix[,9])) / cluster_area[9]) * 100
-      # rdi.cl10 <- ((sum(N.cl10) / sum(cluster_matrix[,10])) / cluster_area[10]) * 100 # GMU 1 clusters
+      # rdi.cl9 <- ((sum(N.cl9) / sum(cluster_matrix[,9])) / cluster_area[9]) * 100 # GMU 1 clusters
+      # rdi.cl10 <- ((sum(N.cl10) / sum(cluster_matrix[,10])) / cluster_area[10]) * 100 
       # rdi.cl11 <- ((sum(N.cl11) / sum(cluster_matrix[,11])) / cluster_area[11]) * 100
       # rdi.cl12 <- ((sum(N.cl12) / sum(cluster_matrix[,12])) / cluster_area[12]) * 100
       # rdi.cl13 <- ((sum(N.cl13) / sum(cluster_matrix[,13])) / cluster_area[13]) * 100
@@ -132,12 +132,12 @@
       # rdi.cl16 <- ((sum(N.cl16) / sum(cluster_matrix[,16])) / cluster_area[16]) * 100
       # rdi.cl17 <- ((sum(N.cl17) / sum(cluster_matrix[,17])) / cluster_area[17]) * 100
       # rdi.cl18 <- ((sum(N.cl18) / sum(cluster_matrix[,18])) / cluster_area[18]) * 100
-      # rdi.cl19 <- ((sum(N.cl19) / sum(cluster_matrix[,19])) / cluster_area[19]) * 100
-      # rdi.cl20 <- ((sum(N.cl20) / sum(cluster_matrix[,20])) / cluster_area[20]) * 100
-      rdi.cl21 <- ((sum(N.cl21) / sum(cluster_matrix[,21])) / cluster_area[21]) * 100 # GMU6 clusters
+      rdi.cl19 <- ((sum(N.cl19) / sum(cluster_matrix[,19])) / cluster_area[19]) * 100  # GMU6 clusters
+      rdi.cl20 <- ((sum(N.cl20) / sum(cluster_matrix[,20])) / cluster_area[20]) * 100
+      rdi.cl21 <- ((sum(N.cl21) / sum(cluster_matrix[,21])) / cluster_area[21]) * 100 
       rdi.cl22 <- ((sum(N.cl22) / sum(cluster_matrix[,22])) / cluster_area[22]) * 100
       rdi.cl23 <- ((sum(N.cl23) / sum(cluster_matrix[,23])) / cluster_area[23]) * 100
-      rdi.cl24 <- ((sum(N.cl24) / sum(cluster_matrix[,24])) / cluster_area[24]) * 100
+      # rdi.cl24 <- ((sum(N.cl24) / sum(cluster_matrix[,24])) / cluster_area[24]) * 100
        
       
       #'  Mean per-individual detection probability (r) per camera setup
