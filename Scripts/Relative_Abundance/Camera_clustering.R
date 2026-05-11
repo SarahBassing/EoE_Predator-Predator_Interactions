@@ -941,38 +941,37 @@
   
   
   #'  Save cluster data as shapefiles
-  st_write(cam_clusters_gmu1, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1_06.30.25.shp")
-  st_write(cam_clusters_gmu6, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6_06.30.25.shp")
-  st_write(cam_clusters_gmu10a, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a_06.30.25.shp")
-  st_write(gmu1_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp")
-  st_write(gmu6_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp")
-  st_write(gmu10a_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp")
+  st_write(cam_clusters_gmu1, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1_05.11.26.shp")
+  st_write(cam_clusters_gmu6, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6_05.11.26.shp")
+  st_write(cam_clusters_gmu10a, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a_05.11.26.shp")
+  st_write(gmu1_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1_05.11.26.shp")
+  st_write(gmu6_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6_05.11.26.shp")
+  st_write(gmu10a_poly, "./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a_05.11.26.shp")
   
   #'  -----------------------------------------
   ####  Cluster summary stats for publication  ####
   #'  -----------------------------------------
-  #'  Cluster area
-  wolf_cluster_tbl <- read_csv("./Outputs/Relative_Abundance/RN_model/Tables/Cluster_wolf_RAI_density.csv")
-  avg_cluster_area <- wolf_cluster_tbl %>%
-    group_by(GMU) %>%
-    summarize(mean_areakm2 = mean(area_km2),
-              se_areakm2 = sd(area_km2)/sqrt(nrow(.))) %>%
-    ungroup()
-  #'  Mean, min, and max cluster sizes
-  mean(wolf_cluster_tbl$area_km2)
-  min(wolf_cluster_tbl$area_km2); max(wolf_cluster_tbl$area_km2)
-  sd(wolf_cluster_tbl$area_km2)/sqrt(length(wolf_cluster_tbl$area_km2))
-  
   #'  Number of cameras per cluster
   cam_clusters <- bind_rows(cam_clusters_gmu1, cam_clusters_gmu6, cam_clusters_gmu10a) %>%
     as.data.frame(.) %>% dplyr::select(-geometry) %>%
-    distinct(NwLctID, GMU, Clustrs) %>%
-    group_by(GMU, Clustrs) %>%
+    distinct(NwLctID, GMU, Clusters, area_km2) %>%
+    group_by(GMU, Clusters, area_km2) %>%
     summarize(ncams = n()) %>%
     ungroup()
   min(cam_clusters$ncams); max(cam_clusters$ncams)
   mean(cam_clusters$ncams)
   sd(cam_clusters$ncams)/sqrt(length(cam_clusters$ncams))
+  
+  #'  Cluster area
+  avg_cluster_area <- cam_clusters %>%
+    group_by(GMU) %>%
+    summarize(mean_areakm2 = round(mean(area_km2),2),
+              se_areakm2 = round(sd(area_km2)/sqrt(nrow(.)),3)) %>%
+    ungroup()
+  #'  Mean, min, and max cluster area
+  mean(cam_clusters$area_km2)
+  min(cam_clusters$area_km2); max(cam_clusters$area_km2)
+  sd(cam_clusters$area_km2)/sqrt(length(cam_clusters$area_km2))
   
   #'  ----------------------------------
   ####  Visualize with ggplot and save  ####
@@ -980,7 +979,7 @@
   clusters_gmu1 <- clusters_gmu1 %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
   clusters_gmu6 <- clusters_gmu6 %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
   clusters_gmu10a <- clusters_gmu10a %>% dplyr::select(Clusters) %>% mutate(Clusters = as.character(Clusters))
-  gmu1_clusters_og <- ggplot() +
+  (gmu1_clusters_og <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,], fill = NA) +
     geom_sf(data = UDs_gmu1W, aes(fill = Clusters), alpha = 0.2) +
     geom_sf(data = UDs_gmu1C, aes(fill = Clusters), alpha = 0.2) +
@@ -990,8 +989,8 @@
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU1 Camera clusters, original")
-  gmu1_clusters_final <- ggplot() +
+    ggtitle("GMU1 Camera clusters, original"))
+  (gmu1_clusters_final <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,], fill = NA) +
     geom_sf(data = gmu1_poly, aes(fill = Clusters), alpha = 0.2) +
     geom_sf(data = cam_clusters_gmu1, aes(col = Clusters, fill = Clusters), 
@@ -999,16 +998,18 @@
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU1 Camera clusters, final")
+    ggtitle("GMU1 Camera clusters, final"))
   (gmu1_wolf_density <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 1,], fill = NA) +
-    geom_sf(data = wolf_density_gmu1, aes(fill = `Wolf density`), alpha = 0.2) +
+    geom_sf(data = gmu1_poly, aes(fill = Clusters), alpha = 0.2) +
+    geom_sf(data = cam_clusters_gmu1, aes(size = RN_n_rn), shape  = 21, 
+            col = "darkblue", fill = "darkblue", alpha = 3/10) +
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("GMU1 relative wolf density index (wolves/km^2)"))
   
-  gmu6_clusters_og <- ggplot() +
+  (gmu6_clusters_og <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
     geom_sf(data = UDs_gmu6, aes(fill = Clusters), alpha = 0.2) +
     geom_sf(data = clusters_gmu6, aes(col = Clusters, fill = Clusters), 
@@ -1016,8 +1017,8 @@
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU6 Camera clusters, original")
-  gmu6_clusters_final <- ggplot() +
+    ggtitle("GMU6 Camera clusters, original"))
+  (gmu6_clusters_final <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
     geom_sf(data = gmu6_poly, aes(fill = Clusters), alpha = 0.2) +
     geom_sf(data = cam_clusters_gmu6, aes(col = Clusters, fill = Clusters), 
@@ -1025,16 +1026,18 @@
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU6 Camera clusters, final")
+    ggtitle("GMU6 Camera clusters, final"))
   (gmu6_wolf_density <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == 6,], fill = NA) +
-    geom_sf(data = wolf_density_gmu6, aes(fill = `Wolf density`), alpha = 0.2) +
+    geom_sf(data = gmu6_poly, aes(fill = Clusters), alpha = 0.2) +
+    geom_sf(data = cam_clusters_gmu6, aes(size = RN_n_rn), shape  = 21, 
+            col = "darkblue", fill = "darkblue", alpha = 3/10) +
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("GMU6 relative wolf density index (wolves/km^2)"))
   
-  gmu10a_clusters_og <- ggplot() +
+  (gmu10a_clusters_og <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
     geom_sf(data = UDs_gmu10aN, aes(fill = Clusters), alpha = 0.2) +
     geom_sf(data = UDs_gmu10aS, aes(fill = Clusters), alpha = 0.2) +
@@ -1043,8 +1046,8 @@
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU10A Camera clusters, original")
-  gmu10a_clusters_final <- ggplot() +
+    ggtitle("GMU10A Camera clusters, original"))
+  (gmu10a_clusters_final <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
     geom_sf(data = gmu10a_poly, aes(fill = Clusters), alpha = 0.2) +
     geom_sf(data = cam_clusters_gmu10a, aes(col = Clusters, fill = Clusters), 
@@ -1052,11 +1055,12 @@
     labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
-    ggtitle("GMU10A Camera clusters, final")
+    ggtitle("GMU10A Camera clusters, final"))
   (gmu10a_wolf_density <- ggplot() +
     geom_sf(data = eoe_gmu_wgs84[eoe_gmu_wgs84$NAME == "10A",], fill = NA) +
-    geom_sf(data = wolf_density_gmu10a, aes(fill = `Wolf density`), alpha = 0.2) +
-    labs(x = "Longitude", y = "Latitude") +
+    geom_sf(data = gmu10a_poly, aes(fill = Clusters), alpha = 0.2) +
+    geom_sf(data = cam_clusters_gmu10a, aes(size = RN_n_rn), shape  = 21, 
+            col = "darkblue", fill = "darkblue", alpha = 3/10) +labs(x = "Longitude", y = "Latitude") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     ggtitle("GMU10A relative wolf density index (wolves/km^2)"))
