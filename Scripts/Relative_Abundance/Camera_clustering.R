@@ -720,68 +720,76 @@
   #'  Remove portions of clusters that extend beyond GMU boundary
   UDs_gmu10aN_clip <- st_intersection(UDs_gmu10aN, eoe_gmu_utm[eoe_gmu_utm$NAME == "10A",])
   mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN_clip), zcol = "Clusters")
-  UDs_gmu10aN <- UDs_gmu10aN_clip
+  # UDs_gmu10aN <- UDs_gmu10aN_clip
   UDs_gmu10aS_clip <- st_intersection(UDs_gmu10aS, eoe_gmu_utm[eoe_gmu_utm$NAME == "10A",])
   mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_clip), zcol = "Clusters")
-  UDs_gmu10aS <- UDs_gmu10aS_clip
+  # UDs_gmu10aS <- UDs_gmu10aS_clip
   
   #'  Intersect overlapping UDs
-  UDs_gmu10aN_intersect <- st_intersection(UDs_gmu10aN) %>%
+  UDs_gmu10aN_intersect <- st_intersection(UDs_gmu10aN_clip) %>%
     mutate(NewClusters = row.names(.)) %>%
     dplyr::select(c(Clusters, NewClusters)) 
   mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN_intersect), zcol = "Clusters")
-  UDs_gmu10aS_intersect <- st_intersection(UDs_gmu10aS) %>%
+  UDs_gmu10aS_intersect <- st_intersection(UDs_gmu10aS_clip) %>%
     mutate(NewClusters = row.names(.)) %>%
     dplyr::select(c(Clusters, NewClusters)) 
   mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_intersect), zcol = "Clusters")
   
   #'  Snag individual cluster polygons that are stand alone
   ud_gmu10aN_c1 <- filter(UDs_gmu10aN, Clusters == 1) %>% st_as_sf(.) %>% dplyr::select(c(Clusters, geometry)) %>% mutate(Clusters = as.numeric(Clusters))
+  row.names(ud_gmu10aN_c1) <- 1
   ud_gmu10aS_c3 <- filter(UDs_gmu10aS, Clusters == 3) %>% st_as_sf(.) %>% dplyr::select(c(Clusters, geometry)) %>% mutate(Clusters = as.numeric(Clusters))
-  row.names(ud_gmu10aS_c3) <- 3
   
   #'  Create individual polygons for places where two cluster polygons intersect
   ud_gmu10aN_c2 <- filter(UDs_gmu10aN_intersect, NewClusters == 2) %>% st_as_sf(.) %>% 
     dplyr::select(c(Clusters, geometry)) %>% mutate(Clusters = as.numeric(Clusters)); mapview(ud_gmu10aN_c2)
+  ud_gmu10aN_c2_split <- ud_gmu10aN_c2 %>% lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON")
+  mapview::mapview(ud_gmu10aN_c2_split[1,])
+  ud_gmu10aN_c2 <- ud_gmu10aN_c2_split[1,]
+  row.names(ud_gmu10aN_c2) <- 2
+  
   ud_gmu10aS_c1 <- filter(UDs_gmu10aS_intersect, NewClusters == 1) %>% 
     st_cast("MULTILINESTRING") %>% st_cast("LINESTRING") %>% st_cast("POLYGON") %>%
     dplyr::select(c(Clusters, geometry)) %>% mutate(Clusters = as.numeric(Clusters)); mapview(ud_gmu10aS_c1[1,])
   ud_gmu10aS_c1 <- ud_gmu10aS_c1[1,]
   row.names(ud_gmu10aS_c1) <- 1
+  
   ud_gmu10aS_c2 <- filter(UDs_gmu10aS_intersect, NewClusters == 2 | NewClusters == 2.2 | NewClusters == 2.3 | NewClusters == 2.4 | NewClusters == 1.1) %>% 
     st_union(.) %>% st_as_sf(.) %>% mutate(Clusters = 2) %>% mutate(Clusters = as.numeric(Clusters)) %>% 
     rename(geometry = x); mapview(ud_gmu10aS_c2)
   row.names(ud_gmu10aS_c2) <- 2
+  
+  ud_gmu10aS_c3_split <- ud_gmu10aS_c3 %>% lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON")
+  mapview::mapview(ud_gmu10aS_c3_split[3,])
+  ud_gmu10aS_c3 <- ud_gmu10aS_c3_split[3,]
+  row.names(ud_gmu10aS_c3) <- 3
+  
   ud_gmu10aS_c4 <- filter(UDs_gmu10aS_intersect, NewClusters == 4) %>% dplyr::select(c(Clusters, geometry)) %>% 
     mutate(Clusters = as.numeric(Clusters)); mapview(ud_gmu10aS_c4)
+  ud_gmu10aS_c4_split <- ud_gmu10aS_c4 %>% lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON")
+  mapview::mapview(ud_gmu10aS_c4_split[2,])
+  ud_gmu10aS_c4 <- ud_gmu10aS_c4_split[2,]
+  row.names(ud_gmu10aS_c4) <- 4
+  
   ud_gmu10aS_c5 <- filter(UDs_gmu10aS_intersect, NewClusters == 5 | NewClusters == 4.1) %>% 
     st_union(.) %>% st_as_sf(.) %>% st_collection_extract("POLYGON") %>% mutate(Clusters = 5) %>% 
     mutate(Clusters = as.numeric(Clusters)) %>% 
     rename(geometry = x); mapview(ud_gmu10aS_c5)
   row.names(ud_gmu10aS_c5) <- 5
+  
   ud_gmu10aS_c6 <- filter(UDs_gmu10aS_intersect, NewClusters == 6) %>% st_cast("MULTILINESTRING") %>% 
     st_cast("LINESTRING") %>% st_cast("POLYGON") %>% dplyr::select(c(Clusters, geometry)) %>% 
     mutate(Clusters = as.numeric(Clusters)); mapview(ud_gmu10aS_c6[1,])
   ud_gmu10aS_c6 <- ud_gmu10aS_c6[1,]
   row.names(ud_gmu10aS_c6) <- 6
   
-  #'  Remove large waterbodies from to GMU10A UDs
-  ud_gmu10aN_c2_dworsak_split <- ud_gmu10aN_c2 %>% lwgeom::st_split(dworshak) %>% 
-    st_collection_extract("POLYGON"); mapview(ud_gmu10aN_c2_dworsak_split)
-  ud_gmu10aN_c2 <- ud_gmu10aN_c2_dworsak_split[1,]; mapview(ud_gmu10aN_c2)
-  UDs_gmu10aS_poly_nowater <- bind_rows(ud_gmu10aS_c3, ud_gmu10aS_c4) %>% 
-    lwgeom::st_split(dworshak) %>% st_collection_extract("POLYGON"); mapview(UDs_gmu10aS_poly_nowater)
-  UDs_gmu10aS_poly_nowater <- bind_rows(UDs_gmu10aS_poly_nowater[3,], UDs_gmu10aS_poly_nowater[6,]) 
-  row.names(UDs_gmu10aS_poly_nowater) <- c(3, 4)
-  mapview(UDs_gmu10aS_poly_nowater, zcol = "Clusters")
-  
-  ### WHY DOES CLUSTER 4 DISAPPEAR ?!?!?!?!
+  mapview::mapview(list(ud_gmu10aS_c1, ud_gmu10aS_c2, ud_gmu10aS_c3, ud_gmu10aS_c4, ud_gmu10aS_c5, ud_gmu10aS_c6))
   
   #'  Spatial data frame of new cluster polygons
   UDs_gmu10aN_poly <- bind_rows(ud_gmu10aN_c1, ud_gmu10aN_c2) %>%
     dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu10aN, UDs_gmu10aN_poly), zcol = "Clusters")
-  UDs_gmu10aS_poly <- bind_rows(ud_gmu10aS_c1, ud_gmu10aS_c2, UDs_gmu10aS_poly_nowater, ud_gmu10aS_c5, ud_gmu10aS_c6) %>%
+  UDs_gmu10aS_poly <- bind_rows(ud_gmu10aS_c1, ud_gmu10aS_c2, ud_gmu10aS_c3, ud_gmu10aS_c4, ud_gmu10aS_c5, ud_gmu10aS_c6) %>%
     dplyr::select(Clusters)
   mapview::mapview(list(clusters_gmu10aS, UDs_gmu10aS_poly), zcol = "Clusters")
   
@@ -799,42 +807,58 @@
   #'  ------------------------------------------------------
   ####  Relabel camera clusters based on adjusted polygons  ####
   #'  ------------------------------------------------------
+  #'  Re-project clusters to match planar coordinates
+  clusters_gmu1NE_IDTM <- coord_reproject(clusters_gmu1NE, new_proj = crs("+init=EPSG:8826"))
+  clusters_gmu1C_IDTM <- coord_reproject(clusters_gmu1C, new_proj = crs("+init=EPSG:8826"))
+  clusters_gmu1W_IDTM <- coord_reproject(clusters_gmu1W, new_proj = crs("+init=EPSG:8826"))
+  clusters_gmu6_IDTM <- coord_reproject(clusters_gmu6, new_proj = crs("+init=EPSG:8826"))
+  clusters_gmu10aN_IDTM <- coord_reproject(clusters_gmu10aN, new_proj = crs("+init=EPSG:8826"))
+  clusters_gmu10aS_IDTM <- coord_reproject(clusters_gmu10aS, new_proj = crs("+init=EPSG:8826"))
+  
   #'  Join GMU1 clusters into single data set
   gmu1_poly <- bind_rows(UDs_gmu1NE_poly, UDs_gmu1C_poly, UDs_gmu1W_poly) %>%
     mutate(Clusters = seq(1:nrow(.))); mapview(gmu1_poly, zcol = "Clusters")
   #'  Relabel GMU1 camera clusters
-  cam_clusters_gmu1 <- bind_rows(clusters_gmu1NE, clusters_gmu1C, clusters_gmu1W) %>%
+  cam_clusters_gmu1 <- bind_rows(clusters_gmu1NE_IDTM, clusters_gmu1C_IDTM, clusters_gmu1W_IDTM) %>%
     st_intersection(gmu1_poly) %>%
     rename("Clusters_original" = "Clusters") %>%
     rename("Clusters" = "Clusters.1") 
   mapview(list(gmu1_poly, cam_clusters_gmu1), zcol = "Clusters")
   
+  #'  Double check no cams got left out in the cluster polygon cleaning process
+  GMU1NE_misfits <- clusters_gmu1NE_IDTM[!lengths(st_intersects(clusters_gmu1NE_IDTM, gmu1_poly)) > 0, ]
+  # View(GMU1NE_misfits)
+  GMU1C_misfits <- clusters_gmu1C_IDTM[!lengths(st_intersects(clusters_gmu1C_IDTM, gmu1_poly)) > 0, ]
+  # View(GMU1C_misfits)
+  GMU1W_misfits <- clusters_gmu1W_IDTM[!lengths(st_intersects(clusters_gmu1W_IDTM, gmu1_poly)) > 0, ]
+  # View(GMU1W_misfits)
+  
   #'  Join GMU6 clusters into single data set
   gmu6_poly <- UDs_gmu6_poly %>%
     mutate(Clusters = seq(1:nrow(.))); mapview(gmu6_poly, zcol = "Clusters")
   #'  Relabel GMU6 camera clusters
-  cam_clusters_gmu6 <- st_intersection(clusters_gmu6, gmu6_poly) %>%
+  cam_clusters_gmu6 <- st_intersection(clusters_gmu6_IDTM, gmu6_poly) %>%
     rename("Clusters_original" = "Clusters") %>%
     rename("Clusters" = "Clusters.1") 
+  mapview(list(gmu6_poly, cam_clusters_gmu6), zcol = "Clusters")
   #'  Grab polygon areas
   # c2_area <- unique(cam_clusters_gmu6$area_km2[cam_clusters_gmu6$Clusters == 2])
   c6_area <- as.data.frame(gmu6_poly) %>% dplyr::select(-geometry)
-  #'  GMU6_U_125, GMU6_P_48, GMU6_P_79, & GMU6_P_80 get left out during intersection 
-  #'  (falls slightly outside of cluster polygons b/c clusters based on 95% KDE)
-  # GMU6_U_125 <- filter(clusters_gmu6, NwLctID == "GMU6_U_125") %>%
-  #   rename("Clusters_original" = "Clusters") %>%
-  #   mutate(Clusters = Clusters_original,
-  #          area_km2 = c2_area) %>%
-  #   relocate(Clusters, .after = Clusters_adjacency) %>%
-  #   relocate(area_km2, .after = Clusters)
-  GMU6_misfits <- filter(clusters_gmu6, NwLctID == "GMU6_U_125" | NwLctID == "GMU6_P_48" | NwLctID == "GMU6_P_79" | NwLctID == "GMU6_P_80") %>%
+  
+  #'  Double check no cams got left out in the cluster polygon cleaning process
+  GMU6_misfits <- clusters_gmu6_IDTM[!lengths(st_intersects(clusters_gmu6_IDTM, gmu6_poly)) > 0, ] 
+  View(GMU6_misfits)
+  
+  GMU6_misfits <- GMU6_misfits %>%
     rename("Clusters_original" = "Clusters") %>%
     mutate(Clusters = Clusters_original,
            Clusters = ifelse(NwLctID == "GMU6_P_79", 4, Clusters), # Hard coding to match across years and U cams
-           Clusters = ifelse(NwLctID == "GMU6_P_80", 3, Clusters)) %>%
+           Clusters = ifelse(NwLctID == "GMU6_P_80", 5, Clusters),
+           Clusters = ifelse(NwLctID == "GMU6_U_114", 4, Clusters)) %>%
     left_join(c6_area, by = "Clusters") %>%
     relocate(Clusters, .after = Clusters_adjacency) %>%
     relocate(area_km2, .after = Clusters)
+  #'  Add misfit locations to larger camera cluster data set
   cam_clusters_gmu6 <- bind_rows(cam_clusters_gmu6, GMU6_misfits)
   mapview(list(gmu6_poly, cam_clusters_gmu6), zcol = "Clusters")
   
@@ -842,24 +866,37 @@
   gmu10a_poly <- bind_rows(UDs_gmu10aN_poly, UDs_gmu10aS_poly) %>%
     mutate(Clusters = seq(1:nrow(.))); mapview(gmu10a_poly, zcol = "Clusters")
   #'  Relabel GMU10A camera clusters
-  cam_clusters_gmu10a <- bind_rows(clusters_gmu10aN, clusters_gmu10aS) %>%
+  cam_clusters_gmu10a <- bind_rows(clusters_gmu10aN_IDTM, clusters_gmu10aS_IDTM) %>%
     st_intersection(gmu10a_poly) %>%
     rename("Clusters_original" = "Clusters") %>%
     rename("Clusters" = "Clusters.1")
   #'  Grab polygon areas
   c10a_area <- as.data.frame(gmu10a_poly) %>% dplyr::select(-geometry)
-  GMU10aS_misfits <- filter(clusters_gmu10aS, NwLctID == "GMU10A_P_59") %>%
+  
+  #'  Double check no cams got left out in the cluster polygon cleaning process
+  GMU10aN_misfits <- clusters_gmu10aN_IDTM[!lengths(st_intersects(clusters_gmu10aN_IDTM, gmu10a_poly)) > 0, ]
+  # View(GMU10aN_misfits)
+  GMU10aS_misfits <- clusters_gmu10aS_IDTM[!lengths(st_intersects(clusters_gmu10aS_IDTM, gmu10a_poly)) > 0, ]
+  View(GMU10aS_misfits)
+  mapview(list(GMU10aS_misfits, gmu10a_poly))
+  
+  GMU10aS_misfits <- GMU10aS_misfits %>%
     rename("Clusters_original" = "Clusters") %>%
     mutate(Clusters = 3) %>% # Hard coding to match GMU10A_U_59
     left_join(c10a_area, by = "Clusters") %>%
     relocate(Clusters, .after = Clusters_adjacency) %>%
     relocate(area_km2, .after = Clusters)
+  #'  Add misfit locations to larger camera cluster data set
   cam_clusters_gmu10a <- bind_rows(cam_clusters_gmu10a, GMU10aS_misfits)
   mapview(list(gmu10a_poly, cam_clusters_gmu10a), zcol = "Clusters")
   
-  #'  Reproject clusters and cameras back to WGS84
-  #  use coord_reproject function or st_transform
-  
+  #'  Re-project clusters and cameras back to WGS84
+  cam_clusters_gmu1 <- coord_reproject(cam_clusters_gmu1, wgs84)
+  cam_clusters_gmu6 <- coord_reproject(cam_clusters_gmu6, wgs84)
+  cam_clusters_gmu10a <- coord_reproject(cam_clusters_gmu10a, wgs84)
+  gmu1_poly <- coord_reproject(gmu1_poly, wgs84)
+  gmu6_poly <- coord_reproject(gmu6_poly, wgs84)
+  gmu10a_poly <- coord_reproject(gmu10a_poly, wgs84)
   
   #' #'  -----------------------------------------------------------
   #' ####  Calculate Relative Density Index for wolves per cluster  ####
