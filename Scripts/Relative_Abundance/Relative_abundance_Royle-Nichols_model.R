@@ -380,11 +380,11 @@
   }
   
   #'  Read in camera cluster shapefiles and clean up with reformat_clusters() function
-  clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1_06.30.25.shp") %>%
+  clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1_05.11.26.shp") %>% #06.30.25
     reformat_clusters(.)
-  clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6_06.30.25.shp") %>%
+  clusters_gmu6 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu6_05.11.26.shp") %>%
     reformat_clusters(.)
-  clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a_06.30.25.shp") %>%
+  clusters_gmu10a <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu10a_05.11.26.shp") %>%
     reformat_clusters(.)
   
   #'  Merge spatial camera cluster data together and reduce to one observation per camera
@@ -398,6 +398,8 @@
     group_by(GMU_cluster) %>%
     mutate(uniqueCluster = cur_group_id()) %>%
     ungroup()
+  #'  How many unique clusters are there?
+  max(clusters_all$uniqueCluster)
   
   #'  Join camera stations with camera cluster info
   cluster_cams <- function(stations, clusters) {
@@ -418,7 +420,7 @@
       #'  Focus on each camera and which unique cluster it was assigned to
       dplyr::select(c("NewLocationID", "uniqueCluster")) %>%
       #'  If row (camera) was assigned to uniqueCluster X, mark as 1, else, mark as 0
-      mutate(cluster.1 = ifelse(uniqueCluster == 1, 1, 0),
+      mutate(cluster.1 = ifelse(uniqueCluster == 1, 1, 0),    #'  GMU10A
              cluster.2 = ifelse(uniqueCluster == 2, 1, 0),
              cluster.3 = ifelse(uniqueCluster == 3, 1, 0),
              cluster.4 = ifelse(uniqueCluster == 4, 1, 0),
@@ -426,7 +428,7 @@
              cluster.6 = ifelse(uniqueCluster == 6, 1, 0),
              cluster.7 = ifelse(uniqueCluster == 7, 1, 0), 
              cluster.8 = ifelse(uniqueCluster == 8, 1, 0),
-             cluster.9 = ifelse(uniqueCluster == 9, 1, 0), 
+             cluster.9 = ifelse(uniqueCluster == 9, 1, 0),    #'  GMU1
              cluster.10 = ifelse(uniqueCluster == 10, 1, 0),
              cluster.11 = ifelse(uniqueCluster == 11, 1, 0), 
              cluster.12 = ifelse(uniqueCluster == 12, 1, 0),
@@ -436,12 +438,12 @@
              cluster.16 = ifelse(uniqueCluster == 16, 1, 0),
              cluster.17 = ifelse(uniqueCluster == 17, 1, 0),
              cluster.18 = ifelse(uniqueCluster == 18, 1, 0),
-             cluster.19 = ifelse(uniqueCluster == 19, 1, 0),
+             cluster.19 = ifelse(uniqueCluster == 19, 1, 0),   #'  GMU6
              cluster.20 = ifelse(uniqueCluster == 20, 1, 0),
              cluster.21 = ifelse(uniqueCluster == 21, 1, 0),
              cluster.22 = ifelse(uniqueCluster == 22, 1, 0),
-             cluster.23 = ifelse(uniqueCluster == 23, 1, 0),
-             cluster.24 = ifelse(uniqueCluster == 24, 1, 0)) %>%
+             cluster.23 = ifelse(uniqueCluster == 23, 1, 0)) %>%#,
+             # cluster.24 = ifelse(uniqueCluster == 24, 1, 0)) %>%
       dplyr::select(-c(NewLocationID, uniqueCluster)) %>%
       as.matrix(.)
     return(cluster_indicator)
@@ -450,6 +452,7 @@
   head(cluster_index[[1]])
   head(cluster_index[[2]])
   head(cluster_index[[3]])
+  head(cluster_index[[4]])
   
   #'  -----------------------
   ####  Royle-Nichols model  ####
@@ -500,10 +503,10 @@
   data_JAGS_bundle_23s <- lapply(DH_npp23s_RNmod, bundle_dat, cov = clustered_cams[[3]], cluster_indicator = cluster_index[[3]]) #cov = stations_npp23s, effort = zeffort_RNmod[[3]]
   
   #'  Save
-  save(data_JAGS_bundle_20s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_20s_", Sys.Date, ".RData")) #12.26.25
-  save(data_JAGS_bundle_21s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_21s_", Sys.Date, ".RData"))
-  save(data_JAGS_bundle_22s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_22s_", Sys.Date, ".RData"))
-  save(data_JAGS_bundle_23s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_23s_", Sys.Date, ".RData"))
+  save(data_JAGS_bundle_20s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_20s_", Sys.Date(), ".RData")) #12.26.25
+  save(data_JAGS_bundle_21s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_21s_", Sys.Date(), ".RData"))
+  save(data_JAGS_bundle_22s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_22s_", Sys.Date(), ".RData"))
+  save(data_JAGS_bundle_23s, file = paste0("./Data/Relative abundance data/RAI Phase 2/data_JAGS_bundle_23s_", Sys.Date(), ".RData"))
   
   #'  Initial values
   #'  Using naive occupancy as a starting point for local abundance
@@ -526,7 +529,7 @@
               "rdi.cl5", "rdi.cl6", "rdi.cl7", "rdi.cl8", "rdi.cl9", "rdi.cl10", 
               "rdi.cl11", "rdi.cl12", "rdi.cl13", "rdi.cl14", "rdi.cl15", "rdi.cl16", 
               "rdi.cl17", "rdi.cl18", "rdi.cl19", "rdi.cl20", "rdi.cl21", "rdi.cl22", 
-              "rdi.cl23", "rdi.cl24", #"occSites", "mean.psi", 
+              "rdi.cl23", # "rdi.cl24", #"occSites", "mean.psi", 
               # "totalN.gmu10a", "densitykm2.gmu10a", "density100km2.gmu10a", 
               # "totalN.gmu6", "densitykm2.gmu6", "density100km2.gmu6", 
               # "totalN.gmu1", "densitykm2.gmu1", "density100km2.gmu1",
