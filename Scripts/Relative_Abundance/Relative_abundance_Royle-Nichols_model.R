@@ -582,11 +582,12 @@
   # save(RN_bob_20s, file = paste0("./Outputs/Relative_Abundance/RN_model/JAGS_out/RN_clusterRDI_bob_20s_", Sys.Date(), ".RData")) 
   
   ######  Coyote  ######
+  ni_coy <-  100000
   start.time = Sys.time()
   inits_coy20s <- function(){list(N = ninit_20s[[3]])}
   RN_coy_20s <- jags(data_JAGS_bundle_20s[[3]], inits = inits_coy20s, params,
                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters_2020.txt",
-                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_coy, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_coy_20s$summary)
@@ -756,12 +757,13 @@
 
   
   ######  Coyote  ######
+  ni_coy <-  100000
   #'  Summer 2021
   start.time = Sys.time()
   inits_coy21s <- function(){list(N = ninit_21s[[3]])}
   RN_coy_21s <- jags(data_JAGS_bundle_21s[[3]], inits = inits_coy21s, params,
                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
-                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_coy, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_coy_21s$summary)
@@ -775,7 +777,7 @@
   inits_coy22s <- function(){list(N = ninit_22s[[3]])}
   RN_coy_22s <- jags(data_JAGS_bundle_22s[[3]], inits = inits_coy22s, params,
                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
-                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_coy, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_coy_22s$summary)
@@ -789,7 +791,7 @@
   inits_coy23s <- function(){list(N = ninit_23s[[2]])}  #  NOTE the different indexing
   RN_coy_23s <- jags(data_JAGS_bundle_23s[[2]], inits = inits_coy23s, params,
                      "./Outputs/Relative_Abundance/RN_model/JAGS_RNmod_clusters.txt",
-                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                     n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni_coy, 
                      n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(RN_coy_23s$summary)
