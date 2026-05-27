@@ -1531,98 +1531,99 @@
          units = "in", width = 20, height = 18, dpi = 400, device = "tiff", compression = "lzw")
   
 
+  #'  Next step is reformatting posterior RDI estimates for SEM with
+  #'  Format_RNmodel_Posterior_for_SEM.R script
   
-  
-  #'  -----------------------
-  ####  LIKELIHOOD APPROACH  ####
-  #'  -----------------------
-  #'  ----------------------------
-  #####  Setup data for unmarked  #####
-  #'  ----------------------------
-  #'  Create list of survey level covariates for unmarked (one list per year)
-  srvy_covs_20s <- list(effort = zeffort_RNmod[[1]])
-  srvy_covs_21s <- list(effort = zeffort_RNmod[[2]])
-  srvy_covs_22s <- list(effort = zeffort_RNmod[[3]])
-  
-  #'  Function to create unmarked dataframes for Royle-Nichols occupancy models
-  #'  Single-season, single-species occupancy unmarkedDF --> unmarkedFrameOccu 
-  umf_setup <- function(dh, listnames, sitecovs, srvycovs, plotit = T) {
-    
-    #'  Create array with detection histories, site-level and survey-level covariates
-    UMF <- unmarkedFrameOccu(y = dh, siteCovs = sitecovs)#, obsCovs = srvycovs)
-    
-    #'  Plot detection histories
-    print(plot(UMF))
-    #'  Summarize data
-    summary(UMF)
-    
-    return(UMF)
-  }
-  bear_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[1]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
-  bear_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[1]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
-  bear_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[1]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
-  
-  bob_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[2]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
-  bob_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[2]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
-  bob_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[2]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
-  
-  coy_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[3]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
-  coy_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[3]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
-  coy_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[3]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
-  
-  lion_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[4]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
-  lion_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[4]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
-  lion_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[4]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
-  
-  wolf_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[5]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
-  wolf_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[5]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
-  wolf_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[5]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
-
-  #'  -------------------------------
-  #####  Run RN model with unmarked  #####  
-  #'  -------------------------------
-  #'  Fit Royle-Nichles model (RN model) to detection/non-detection data to estimate
-  #'  relative abundance and detection probability per species and season
-  #'  ~ covariates affecting per-individual detection probability ~ covariates affecting abundance
-  #'  Use "effort" covariate if sampling occasion = 7 days, "nDays" if sampling occasion = 1 day
-  #'  Including all variables (even if not significant for all spp/years) to make as predictive as possible
-  #'  Not using model selection here b/c testing competing models with SEM stage of analysis,
-  #'  this is simply to derive a predicted representation of variation in predator abundance
-  (bear20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bear_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (bear21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bear_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (bear22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bear_22s_umf, se = TRUE, engine = "C", threads = 4))
-  bear_rn_list <- list(bear20s.rn, bear21s.rn, bear22s.rn)
-  
-  (bob20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bob_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (bob21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bob_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (bob22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bob_22s_umf, se = TRUE, engine = "C", threads = 4))
-  bob_rn_list <- list(bob20s.rn, bob21s.rn, bob22s.rn)
-  
-  (coy20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), coy_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (coy21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), coy_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (coy22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), coy_22s_umf, se = TRUE, engine = "C", threads = 4))
-  coy_rn_list <- list(coy20s.rn, coy21s.rn, coy22s.rn)
-  
-  (lion20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), lion_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (lion21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), lion_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (lion22s.rn <- occuRN(~ Setu + nDays ~ GMU + PercFor + Elev + I(Elev^2), lion_22s_umf, se = TRUE, engine = "C", threads = 4)) 
-  lion_rn_list <- list(lion20s.rn, lion21s.rn, lion22s.rn)
-  
-  (wolf20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), wolf_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
-  (wolf21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), wolf_21s_umf, se = TRUE, engine = "C", threads = 4)) 
-  (wolf22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), wolf_22s_umf, se = TRUE, engine = "C", threads = 4))
-  wolf_rn_list <- list(wolf20s.rn, wolf21s.rn, wolf22s.rn)
-  
-  #'  Empirical Bayes estimates of abundance at each site
-  bear20s_re <- ranef(bear20s.rn, K = 50)
-  plot(bear20s_re)
-  
-  # Estimates of conditional abundance distribution at each site
-  (re <- ranef(bear20s.rn))
-  # Best Unbiased Predictors
-  bup(re, stat="mean") # Posterior mean
-  bup(re, stat="mode") # Posterior mode
-  confint(re, level=0.95) # 90% CI
-  plot(re, subset=site %in% c(1:10), layout=c(5, 2), xlim=c(-1,20))
+  #' #'  -----------------------
+  #' ####  LIKELIHOOD APPROACH  ####
+  #' #'  -----------------------
+  #' #'  ----------------------------
+  #' #####  Setup data for unmarked  #####
+  #' #'  ----------------------------
+  #' #'  Create list of survey level covariates for unmarked (one list per year)
+  #' srvy_covs_20s <- list(effort = zeffort_RNmod[[1]])
+  #' srvy_covs_21s <- list(effort = zeffort_RNmod[[2]])
+  #' srvy_covs_22s <- list(effort = zeffort_RNmod[[3]])
+  #' 
+  #' #'  Function to create unmarked dataframes for Royle-Nichols occupancy models
+  #' #'  Single-season, single-species occupancy unmarkedDF --> unmarkedFrameOccu 
+  #' umf_setup <- function(dh, listnames, sitecovs, srvycovs, plotit = T) {
+  #'   
+  #'   #'  Create array with detection histories, site-level and survey-level covariates
+  #'   UMF <- unmarkedFrameOccu(y = dh, siteCovs = sitecovs)#, obsCovs = srvycovs)
+  #'   
+  #'   #'  Plot detection histories
+  #'   print(plot(UMF))
+  #'   #'  Summarize data
+  #'   summary(UMF)
+  #'   
+  #'   return(UMF)
+  #' }
+  #' bear_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[1]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  #' bear_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[1]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  #' bear_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[1]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
+  #' 
+  #' bob_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[2]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  #' bob_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[2]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  #' bob_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[2]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
+  #' 
+  #' coy_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[3]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  #' coy_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[3]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  #' coy_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[3]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
+  #' 
+  #' lion_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[4]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  #' lion_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[4]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  #' lion_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[4]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
+  #' 
+  #' wolf_20s_umf <- umf_setup(dh = DH_npp20s_RNmod[[5]][[1]], sitecovs = stations_npp20s)#, srvycovs = srvy_covs_20s)
+  #' wolf_21s_umf <- umf_setup(dh = DH_npp21s_RNmod[[5]][[1]], sitecovs = stations_npp21s)#, srvycovs = srvy_covs_21s)
+  #' wolf_22s_umf <- umf_setup(dh = DH_npp22s_RNmod[[5]][[1]], sitecovs = stations_npp22s)#, srvycovs = srvy_covs_22s)
+  #' 
+  #' #'  -------------------------------
+  #' #####  Run RN model with unmarked  #####  
+  #' #'  -------------------------------
+  #' #'  Fit Royle-Nichles model (RN model) to detection/non-detection data to estimate
+  #' #'  relative abundance and detection probability per species and season
+  #' #'  ~ covariates affecting per-individual detection probability ~ covariates affecting abundance
+  #' #'  Use "effort" covariate if sampling occasion = 7 days, "nDays" if sampling occasion = 1 day
+  #' #'  Including all variables (even if not significant for all spp/years) to make as predictive as possible
+  #' #'  Not using model selection here b/c testing competing models with SEM stage of analysis,
+  #' #'  this is simply to derive a predicted representation of variation in predator abundance
+  #' (bear20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bear_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  #' (bear21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bear_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  #' (bear22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bear_22s_umf, se = TRUE, engine = "C", threads = 4))
+  #' bear_rn_list <- list(bear20s.rn, bear21s.rn, bear22s.rn)
+  #' 
+  #' (bob20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bob_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  #' (bob21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bob_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  #' (bob22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), bob_22s_umf, se = TRUE, engine = "C", threads = 4))
+  #' bob_rn_list <- list(bob20s.rn, bob21s.rn, bob22s.rn)
+  #' 
+  #' (coy20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), coy_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  #' (coy21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), coy_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  #' (coy22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), coy_22s_umf, se = TRUE, engine = "C", threads = 4))
+  #' coy_rn_list <- list(coy20s.rn, coy21s.rn, coy22s.rn)
+  #' 
+  #' (lion20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), lion_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  #' (lion21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), lion_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  #' (lion22s.rn <- occuRN(~ Setu + nDays ~ GMU + PercFor + Elev + I(Elev^2), lion_22s_umf, se = TRUE, engine = "C", threads = 4)) 
+  #' lion_rn_list <- list(lion20s.rn, lion21s.rn, lion22s.rn)
+  #' 
+  #' (wolf20s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), wolf_20s_umf, se = TRUE, engine = "C", threads = 4)) #effort
+  #' (wolf21s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), wolf_21s_umf, se = TRUE, engine = "C", threads = 4)) 
+  #' (wolf22s.rn <- occuRN(~ Setup ~ GMU + PercFor + Elev + I(Elev^2), wolf_22s_umf, se = TRUE, engine = "C", threads = 4))
+  #' wolf_rn_list <- list(wolf20s.rn, wolf21s.rn, wolf22s.rn)
+  #' 
+  #' #'  Empirical Bayes estimates of abundance at each site
+  #' bear20s_re <- ranef(bear20s.rn, K = 50)
+  #' plot(bear20s_re)
+  #' 
+  #' # Estimates of conditional abundance distribution at each site
+  #' (re <- ranef(bear20s.rn))
+  #' # Best Unbiased Predictors
+  #' bup(re, stat="mean") # Posterior mean
+  #' bup(re, stat="mode") # Posterior mode
+  #' confint(re, level=0.95) # 90% CI
+  #' plot(re, subset=site %in% c(1:10), layout=c(5, 2), xlim=c(-1,20))
   
   
