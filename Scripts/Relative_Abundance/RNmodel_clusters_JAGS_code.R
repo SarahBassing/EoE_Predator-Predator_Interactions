@@ -78,16 +78,16 @@
       #'  Mean lambda averaged across GMUs
       mu.lambda <- mean(lambdaGMU[])
       
-      #'  Predicted site-level abundance per GMU 
-      for(i in 1:ncams1) {
-        Ngmu1[i] <- exp(beta0 + beta4[gmu[1]])
-      }
-      for(i in 1:ncams2) {
-        Ngmu2[i] <- exp(beta0 + beta4[gmu[2]])
-      }
-      for(i in 1:ncams3) {
-        Ngmu3[i] <- exp(beta0 + beta4[gmu[3]])
-      }
+      #' #'  Predicted site-level abundance per GMU 
+      #' for(i in 1:ncams1) {
+      #'   Ngmu1[i] <- exp(beta0 + beta4[gmu[1]])
+      #' }
+      #' for(i in 1:ncams2) {
+      #'   Ngmu2[i] <- exp(beta0 + beta4[gmu[2]])
+      #' }
+      #' for(i in 1:ncams3) {
+      #'   Ngmu3[i] <- exp(beta0 + beta4[gmu[3]])
+      #' }
       
       #'  Total abundance across camera sites
       totalN <- sum(N[])
