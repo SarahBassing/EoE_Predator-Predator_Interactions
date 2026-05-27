@@ -26,79 +26,92 @@
   mods_yr1 <- list(RN_wolf_20s, RN_lion_20s, RN_bear_20s, RN_coy_20s, RN_elk_20s, RN_moose_20s, RN_wtd_20s)
   mods_yr2 <- list(RN_wolf_21s, RN_lion_21s, RN_bear_21s, RN_coy_21s, RN_elk_21s, RN_moose_21s, RN_wtd_21s)
   mods_yr3 <- list(RN_wolf_22s, RN_lion_22s, RN_bear_22s, RN_coy_22s, RN_elk_22s, RN_moose_22s, RN_wtd_22s)
-  
+  mods_yr4 <- list(RN_wolf_23s, RN_lion_23s, RN_bear_23s, RN_coy_23s, RN_elk_23s, RN_moose_23s, RN_wtd_23s)
   
   #'  Function to save posterior means and SD for each site per species, cluster, and year
   cluster_posterior_summary <- function(mod_post, cluster_out) {
-    #'  Empty lists to hold model outputs of interest
-    posterior_mu <- posterior_sd <- c()
-    #'  Loop through posteriors and save outputs of interest that match cluster names
-    for(i in 1:length(cluster_out)) {
-      posterior_mu[i] <- unlist(mod_post$mean[names(mod_post$mean) %in% cluster_out[i]])
-      posterior_sd[i] <- unlist(mod_post$sd[names(mod_post$sd) %in% cluster_out[i]])
-    }
+    #' #'  Empty lists to hold model outputs of interest
+    #' posterior_mu <- posterior_sd <- c()
+    #' #'  Loop through posteriors and save outputs of interest that match cluster names
+    #' for(i in 1:length(cluster_out)) {
+    #'   posterior_mu[i] <- unlist(mod_post$mean[names(mod_post$mean) %in% cluster_out[i]])
+    #'   posterior_sd[i] <- unlist(mod_post$sd[names(mod_post$sd) %in% cluster_out[i]])
+    #' }
+    #' 
+    #' #'  Bind mu and sd outputs into a matrix
+    #' cluster_posteriors <- as.data.frame(cbind(posterior_mu, posterior_sd)) %>%
+    #'   cbind(cluster_out) %>%
+    #'   rename(cluster = cluster_out)
     
-    #'  Bind mu and sd outputs into a matrix
-    cluster_posteriors <- as.data.frame(cbind(posterior_mu, posterior_sd)) %>%
-      cbind(cluster_out) %>%
-      rename(cluster = cluster_out) 
+    cluster_posteriors <- data.frame(
+      posterior_mu = unlist(mod_post$mean[cluster_out]),
+      posterior_sd = unlist(mod_post$sd[cluster_out]),
+      cluster = cluster_out,
+      row.names = NULL
+    )
       
     return(cluster_posteriors)
   }
   #'  Names of estimated posteriors of interest per year
-  rdi.cl_2020 <- c("rdi.cl1", "rdi.cl2", "rdi.cl3", "rdi.cl4", "rdi.cl5", "rdi.cl6", "rdi.cl7", "rdi.cl8", "rdi.cl9",
-                   "rdi.cl21", "rdi.cl22", "rdi.cl23", "rdi.cl24")
-  rdi.cl_2021.2022 <- c("rdi.cl1", "rdi.cl2", "rdi.cl3", "rdi.cl4", "rdi.cl5", "rdi.cl6", "rdi.cl7", "rdi.cl8", "rdi.cl9", "rdi.cl10", 
+  rdi.cl_2020 <- c("rdi.cl1", "rdi.cl2", "rdi.cl3", "rdi.cl4", "rdi.cl5", "rdi.cl6", "rdi.cl7", "rdi.cl8", #"rdi.cl9",
+                   "rdi.cl19", "rdi.cl20","rdi.cl21", "rdi.cl22", "rdi.cl23") # , "rdi.cl24"
+  rdi.cl_2021.2023 <- c("rdi.cl1", "rdi.cl2", "rdi.cl3", "rdi.cl4", "rdi.cl5", "rdi.cl6", "rdi.cl7", "rdi.cl8", "rdi.cl9", "rdi.cl10", 
                         "rdi.cl11", "rdi.cl12", "rdi.cl13", "rdi.cl14", "rdi.cl15", "rdi.cl16", "rdi.cl17", "rdi.cl18", "rdi.cl19", "rdi.cl20", 
-                        "rdi.cl21", "rdi.cl22", "rdi.cl23", "rdi.cl24")
+                        "rdi.cl21", "rdi.cl22", "rdi.cl23") #, "rdi.cl24"
   
   #'  Run function for each year and species
   posteriors_20s <- lapply(mods_yr1, cluster_posterior_summary, cluster_out = rdi.cl_2020)
-  posteriors_21s <- lapply(mods_yr2, cluster_posterior_summary, cluster_out = rdi.cl_2021.2022)
-  posteriors_22s <- lapply(mods_yr3, cluster_posterior_summary, cluster_out = rdi.cl_2021.2022)
+  posteriors_21s <- lapply(mods_yr2, cluster_posterior_summary, cluster_out = rdi.cl_2021.2023)
+  posteriors_22s <- lapply(mods_yr3, cluster_posterior_summary, cluster_out = rdi.cl_2021.2023)
+  posteriors_23s <- lapply(mods_yr4, cluster_posterior_summary, cluster_out = rdi.cl_2021.2023)
   
   #'  Name lists by species
   spp <- c("wolf", "mountain_lion", "bear_black", "coyote", "elk", "moose", "whitetailed_deer")
   names(posteriors_20s) <- spp
   names(posteriors_21s) <- spp
   names(posteriors_22s) <- spp
+  names(posteriors_23s) <- spp
   
   #'  Double check these look right
   #'  Mean and SD matrix vs cluster specific summary outputs
   print(posteriors_20s[[1]]) # wolf (2020)
-  RN_wolf_20s$mean[9:10]; RN_wolf_20s$sd[9:10]  # 1st two clusters
+  RN_wolf_20s$mean[10:11]; RN_wolf_20s$sd[10:11]  # 1st two clusters
   print(posteriors_21s[[3]]) # bear (2021)
-  RN_bear_21s$mean[9:10]; RN_bear_21s$sd[9:10]  # 1st two clusters
-  print(posteriors_22s[[7]]) # white-tailed deer (2022)
-  RN_wtd_22s$mean[31:32]; RN_wtd_22s$sd[31:32]  # last two clusters
+  RN_bear_21s$mean[10:11]; RN_bear_21s$sd[10:11]  # 1st two clusters
+  print(posteriors_22s[[5]]) # elk (2022)
+  RN_elk_22s$mean[31:32]; RN_elk_22s$sd[31:32]  # last two clusters
+  print(posteriors_23s[[7]]) # white-tailed deer (2023)
+  RN_wtd_23s$mean[31:32]; RN_wtd_23s$sd[31:32]  # last two clusters
   
   #'  Create new posteriors for 2021 that exclude GMU 1 RDI posteriors 
   #'  Needed below when stacking data for time t vs t-1
-  #'  posteriors_21s[[i]][10:20,] needs to go (corresponds to GMU 1 clusters)
-  drop_gmu1 <- function(post_rdi) {
-    #'  Snag posteriors from GMU 10A and GMU 6
-    gmu10a_rdi <- post_rdi[1:9,]
-    gmu6_rdi <- post_rdi[21:24,]
-    
-    #'  Bind into a single matrix that no long includes posteriors from GMU 1
-    rdi_2021_no_gmu1 <- rbind(gmu10a_rdi, gmu6_rdi)
-    return(rdi_2021_no_gmu1)
+  drop_gmu1 <- function(post_rdi, gmu1) {  
+    #'  Filter out GMU1 clusters
+    noGMU1 <- post_rdi %>%
+      filter(!cluster %in% gmu1)
+
+    return(noGMU1)
   }
-  posteriors_21s_noGMU1 <- lapply(posteriors_21s, drop_gmu1)
+  gmu1 <- c("rdi.cl9", "rdi.cl10", "rdi.cl11", "rdi.cl12", "rdi.cl13", "rdi.cl14", 
+            "rdi.cl15", "rdi.cl16", "rdi.cl17", "rdi.cl18")
+  posteriors_21s_noGMU1 <- lapply(posteriors_21s, drop_gmu1, gmu = gmu1) 
   
   #'  Stack species-specific estimated posterior summaries across iterations 
-  #'  (e.g., time t = wolf 2021 and 2022 vs. time t-1 = wolf 2020 and 2021)
-  stacked_posteriors <- function(yr1, yr2, yr3, yr2_noGMU1) {
-    #'  Posteriors from time t 
+  #'  (e.g., time t-1 = wolf 2020, 2021, 2022 affects time t = wolf 2021, 2022, 2023)
+  #'  yr1 2020 --> yr2 2021
+  #'  yr2 2021 --> yr3 2022
+  #'  yr3 2022 --> yr4 2023
+  stacked_posteriors <- function(yr1, yr2, yr3, yr4, yr2_noGMU1) {
+    #'  Posteriors from time t (yr2, yr3, yr4)
     #'  NOTE: yr2 for time_t excludes GMU 1 posteriors because there were no
     #'  posteriors for GMU 1 in the corresponding time_tmin1 (yr1, 2020)
-    time_t <- rbind(yr2_noGMU1, yr3)
+    time_t <- rbind(yr2_noGMU1, yr3, yr4)
     rownames(time_t) <- NULL
     
-    #'  Posteriors from time t-1, given an annual lag from time 
+    #'  Posteriors from time t-1 (yr1, yr2, yr3)
     #'  NOTE: yr2 for time_tmin1 includes GMU 1 posteriors because the corresponding 
     #'  yr3 posteriors in time_t also include GMU 1
-    time_tmin1 <- rbind(yr1, yr2)
+    time_tmin1 <- rbind(yr1, yr2, yr3)
     rownames(time_tmin1) <- NULL
     
     #'  List posteriors from time t and t-1
@@ -106,17 +119,19 @@
     return(timelag_list)
   }
   #'  Run function for each species
-  wolf_timelag <- stacked_posteriors(posteriors_20s[[1]], posteriors_21s[[1]], posteriors_22s[[1]], posteriors_21s_noGMU1[[1]])
-  lion_timelag <- stacked_posteriors(posteriors_20s[[2]], posteriors_21s[[2]], posteriors_22s[[2]], posteriors_21s_noGMU1[[2]])
-  bear_timelag <- stacked_posteriors(posteriors_20s[[3]], posteriors_21s[[3]], posteriors_22s[[3]], posteriors_21s_noGMU1[[3]])
-  coy_timelag <- stacked_posteriors(posteriors_20s[[4]], posteriors_21s[[4]], posteriors_22s[[4]], posteriors_21s_noGMU1[[4]])
-  elk_timelag <- stacked_posteriors(posteriors_20s[[5]], posteriors_21s[[5]], posteriors_22s[[5]], posteriors_21s_noGMU1[[5]])
-  moose_timelag <- stacked_posteriors(posteriors_20s[[6]], posteriors_21s[[6]], posteriors_22s[[6]], posteriors_21s_noGMU1[[6]])
-  wtd_timelag <- stacked_posteriors(posteriors_20s[[7]], posteriors_21s[[7]], posteriors_22s[[7]], posteriors_21s_noGMU1[[7]])
+  #'  NOTE: indexing is non-intuitive here (does not follow chronological time)
+  #'  List order: time_t [[1]], time_tmin1 [[2]] even thought time_tmin1 --> time_t
+  wolf_timelag <- stacked_posteriors(posteriors_20s[[1]], posteriors_21s[[1]], posteriors_22s[[1]], posteriors_23s[[1]], posteriors_21s_noGMU1[[1]])
+  lion_timelag <- stacked_posteriors(posteriors_20s[[2]], posteriors_21s[[2]], posteriors_22s[[2]], posteriors_23s[[2]], posteriors_21s_noGMU1[[2]])
+  bear_timelag <- stacked_posteriors(posteriors_20s[[3]], posteriors_21s[[3]], posteriors_22s[[3]], posteriors_23s[[3]], posteriors_21s_noGMU1[[3]])
+  coy_timelag <- stacked_posteriors(posteriors_20s[[4]], posteriors_21s[[4]], posteriors_22s[[4]], posteriors_23s[[4]], posteriors_21s_noGMU1[[4]])
+  elk_timelag <- stacked_posteriors(posteriors_20s[[5]], posteriors_21s[[5]], posteriors_22s[[5]], posteriors_23s[[5]], posteriors_21s_noGMU1[[5]])
+  moose_timelag <- stacked_posteriors(posteriors_20s[[6]], posteriors_21s[[6]], posteriors_22s[[6]], posteriors_23s[[6]], posteriors_21s_noGMU1[[6]])
+  wtd_timelag <- stacked_posteriors(posteriors_20s[[7]], posteriors_21s[[7]], posteriors_22s[[7]], posteriors_23s[[7]], posteriors_21s_noGMU1[[7]])
   
   #'  Double check everything looks right (both time steps should have 37 rows)
-  #'  [[1]] = time t (yr2 and yr3); [[2]] = time t-1 (yr1 and yr2)
-  print(wolf_timelag[[1]]) # observations [1:13,] in [[1]] should be observations [c(14:22, 34:37)] in [[2]]
+  #'  [[1]] = time t (yr2, yr3, yr4); [[2]] = time t-1 (yr1, yr2, yr3)
+  print(wolf_timelag[[1]]) # observations [c(1:8, 9:13),] in [[1]] should be observations [c(14:21, 32:36),] in [[2]]
   print(wolf_timelag[[2]]) 
   print(elk_timelag[[1]])
   print(elk_timelag[[2]])
@@ -129,12 +144,9 @@
     
     #'  Standardize the posterior means AND standard deviations
     #'  Standardizing posterior SD ensures variance scales with the variable
-    posterior_mu_z <- (post_summary$posterior_mu - post_mean_mu) / post_mean_sd
-    posterior_sd_z <- post_summary$posterior_sd / post_mean_sd
-    
-    #'  Add standardized posterior summaries to the posterior summary data set
-    post_summary$posterior_mu_z <- posterior_mu_z
-    post_summary$posterior_sd_z <- posterior_sd_z
+    post_summary <- post_summary %>%
+      mutate(posterior_mu_z = (posterior_mu - post_mean_mu) / post_mean_sd,
+             posterior_sd_z = posterior_sd / post_mean_sd)
     
     return(post_summary)
   }
@@ -149,7 +161,7 @@
   #'  Take a look
   #'  Note: standardized values will be different between t and t-1 for same raw
   #'  posterior means because different years are stacked together, leading to 
-  #'  different emperical means and SD for t vs t-1
+  #'  different empirical means and SD for t vs t-1
   print(wolf_timelag_z[[1]])
   print(wolf_timelag_z[[2]])
   print(wtd_timelag_z[[1]])
@@ -158,7 +170,7 @@
   
   #'  List species-specific lists 
   #'  First list indexes by species (wolf [[1]] .... wtd [[7]])
-  #'  Second list (per species) indexes by time step (time_t [[1]] & time_tmin1 [[2]])
+  #'  Second list (per species) indexes by time (time_t [[1]] & time_tmin1 [[2]])
   post_summaries <- list(wolf_timelag_z, lion_timelag_z, bear_timelag_z, coy_timelag_z, 
                          elk_timelag_z, moose_timelag_z, wtd_timelag_z)
   
