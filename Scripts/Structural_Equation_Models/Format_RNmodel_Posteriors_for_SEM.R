@@ -6,6 +6,7 @@
   #'  ----------------------------------------------------
   #'  Load posterior distributions from RN models and format for as input for
   #'  Bayesian structural equation models
+  #'  This script is sourced by Bayesian_SEMs_relative_density_index_1yLag.R
   #'  ----------------------------------------------------
   
   #' #'  Clean workspace
