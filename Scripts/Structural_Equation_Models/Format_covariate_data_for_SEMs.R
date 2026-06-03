@@ -69,9 +69,9 @@
     ungroup()
   
   #'  Read in cluster polygon shapefiles
-  gmu1_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp") %>% mutate(GMU = "GMU1")
-  gmu6_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp") %>% mutate(GMU = "GMU6")
-  gmu10a_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp") %>% mutate(GMU = "GMU10A")
+  gmu1_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1_05.11.26.shp") %>% mutate(GMU = "GMU1")
+  gmu6_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6_05.11.26.shp") %>% mutate(GMU = "GMU6")
+  gmu10a_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a_05.11.26.shp") %>% mutate(GMU = "GMU10A")
   
   #'  Merge cluster polygons across GMUs
   cluster_poly <- bind_rows(gmu1_poly, gmu6_poly, gmu10a_poly) %>%
@@ -90,7 +90,7 @@
   forest <- rast("./Shapefiles/National Land Cover Database (NLCD)/Forested_landcover.tif")
   notforest <- rast("./Shapefiles/National Land Cover Database (NLCD)/NonForested_landcover.tif")
   forest_proj <- crs(forest)
-  
+
   #'  Calculate average percent forested habitat across cameras in each cluster
   extract_forest <- function(cams, gmu) {
     #'  Transform and reduce to a single observation per camera (don't need to
@@ -117,12 +117,12 @@
 
   percforest_cluster <- bind_rows(forest_gmu1, forest_gmu6, forest_gmu10a) %>%
     dplyr::select(c(GMU, ClusterID, percent_forest))
-  
+
   #' #'  Vectorize polygons
   #' gmu1_vect <- st_transform(gmu1_poly, forest_proj) %>% vect(.)
   #' gmu6_vect <- st_transform(gmu6_poly, forest_proj) %>% vect(.)
   #' gmu10a_vect <- st_transform(gmu10a_poly, forest_proj) %>% vect(.)
-  
+
   #'  Zonal statistics: sum amount of forest and non-forested land cover per cluster
   #'  and calculate % forested
   percent_forested <- function(polygon) {
@@ -147,11 +147,11 @@
   cluster_perc_forest_gmu1 <- percent_forested(gmu1_poly)
   cluster_perc_forest_gmu6 <- percent_forested(gmu6_poly)
   cluster_perc_forest_gmu10a <- percent_forested(gmu10a_poly)
-  
+
   perc_forest <- bind_rows(cluster_perc_forest_gmu1, cluster_perc_forest_gmu6, cluster_perc_forest_gmu10a) %>%
     dplyr::select(c(GMU, ClusterID, percent_forest))
-  
-  
+
+
   #'  ---------------------------------
   ####  Google Earth Engine data sets  ####
   #'  ---------------------------------
@@ -159,29 +159,29 @@
   #####  PRISM weather data  #####
   #'  -----------------------
   #'  Source script to load & format average monthly precip & temp data
-  #'  Produces standardized average monthly total precipitation and standardized 
+  #'  Produces standardized average monthly total precipitation and standardized
   #'  average monthly minimum temp for each winter and GMU for past 50 years
-  # source("./Scripts/Structural_Equation_Models/Format_weather_data.R")   
-  
-  #'  Load 50 years of monthly PRISM weather data, reformat and generate 
+  # source("./Scripts/Structural_Equation_Models/Format_weather_data.R")
+
+  #'  Load 50 years of monthly PRISM weather data, reformat and generate
   #'  standardized monthly averages per winter from Dec. 1972 - Feb. 2023.
-  #'  Standardizing across 50 years of data means each monthly average is 
+  #'  Standardizing across 50 years of data means each monthly average is
   #'  represented relative to the 50-year average and 50-year variability.
   #'  Winter months = December, January, February
-  
+
   #'  PRISM total monthly precipitation (averaged per GMU) per cluster
-  precip <- read_csv("./Data/GEE outputs/PRISM_ClusterAvg_monthly_total_precip_1972_2023.csv") %>%  
+  precip <- read_csv("./Data/GEE outputs/PRISM_ClusterAvg_monthly_total_precip_1972_2023.csv") %>%
     dplyr::select(c(featureID, Clusters, date, meanMonthlyValue)) %>%
     mutate(GMU = ifelse(str_detect(featureID, "1_1_"), "GMU1", featureID),
            GMU = ifelse(str_detect(GMU, "1_2_"), "GMU10A", GMU),
            GMU = ifelse(str_detect(GMU, "2_"), "GMU6", GMU))
   #'  PRISM minimum monthly temperature (averaged per GMU) per cluster
-  temp <- read_csv("./Data/GEE outputs/PRISM_ClusterAvg_monthly_min_temp_1972_2023.csv") %>%  
+  temp <- read_csv("./Data/GEE outputs/PRISM_ClusterAvg_monthly_min_temp_1972_2023.csv") %>%
     dplyr::select(c(featureID, Clusters, date, meanMonthlyValue)) %>%
     mutate(GMU = ifelse(str_detect(featureID, "1_1_"), "GMU1", featureID),
            GMU = ifelse(str_detect(GMU, "1_2_"), "GMU10A", GMU),
            GMU = ifelse(str_detect(GMU, "2_"), "GMU6", GMU))
-  
+
   #'  Function to add season column to weather data
   add_season <- function(prism) {
     annual_winter_season <- prism %>%
@@ -244,12 +244,12 @@
              Season = ifelse(date >= "2020-12-01" & date <= "2021-02-01", "Wtr2021", Season),
              Season = ifelse(date >= "2021-12-01" & date <= "2022-02-01", "Wtr2122", Season),
              Season = ifelse(date >= "2022-12-01" & date <= "2023-02-01", "Wtr2223", Season))
-    
+
     return(annual_winter_season)
   }
   precip_season <- add_season(precip)
   temp_season <- add_season(temp)
-  
+
   #'  Function to reformat and summarize weather data
   format_weather <- function(prism) {
     avg_winter_weather <- prism %>%
@@ -268,11 +268,11 @@
       #'  Standardize average monthly weather (mean = 0, SD = 1)
       #'  This represents the monthly mean relative to the 50 year average and SD
       mutate(DecFeb_meanWeather_z = as.numeric(scale(DecFeb_meanWeather)))
-    
+
     #'  Double check standardized data
     print(mean(avg_winter_weather$DecFeb_meanWeather_z))
     print(sd(avg_winter_weather$DecFeb_meanWeather_z))
-    
+
     return(avg_winter_weather)
   }
   wtr_totalPrecip <- format_weather(precip_season) %>%
@@ -282,8 +282,8 @@
   wtr_minTemp <- format_weather(temp_season) %>%
     rename("DecFeb_meanMinTemp_C" = "DecFeb_meanWeather") %>%
     rename("DecFeb_meanMinTemp_se" = "DecFeb_meanWeather_se") %>%
-    rename("DecFeb_meanMinTemp_z" = "DecFeb_meanWeather_z") 
-  
+    rename("DecFeb_meanMinTemp_z" = "DecFeb_meanWeather_z")
+
   #'  Generate Winter Severity Index (WSI) per year and Cluster
   wsi <- full_join(wtr_totalPrecip, wtr_minTemp, by = c("GMU", "Clusters", "Season")) %>%
     #'  Multiply standardized precip by standardized temp data
@@ -294,7 +294,7 @@
     rename("Winter" = "Season") %>%
     #'  Add column that references year of the previous summer (i.e., Wtr1920 follows summer 2019)
     #'  This ensures that data from most recent winter affects current summer RAI
-    #'  (6-mo lag between WSI and summer RAI) based how data are stacked and lagged 
+    #'  (6-mo lag between WSI and summer RAI) based how data are stacked and lagged
     #'  in SEM analyses (e.g., WSI Wtr2021 is hypothesized to affect Summer 2021 RAI)
     mutate(Year = ifelse(Winter == "Wtr1920", 2019, 2022),
            Year = ifelse(Winter == "Wtr2021", 2020, Year),
