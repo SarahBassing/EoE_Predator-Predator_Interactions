@@ -20,7 +20,7 @@
   library(tidyverse)
   
   #'  Run script that formats covariate data
-  source("./Scripts/Structural_Equation_Models/Format_covariate_data_for_SEMs.R") 
+  source("./Scripts/Structural_Equation_Models/Format_spatial_covariates_for_SEMs.R") 
   
   #'  Run script that formats density data for SEMs
   # source("./Scripts/Structural_Equation_Models/Format_density_data_for_SEMs.R")
@@ -56,7 +56,7 @@
   ####  Setup data for JAGS  ####
   #'  ------------------------
   #'  Bundle data for JAGS
-  bundle_dat <- function(dat, covs, nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
+  bundle_dat <- function(dat, covs, nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor, nwsi) {
     #'  Bundle data for JAGS
     bundled <- list(nWolf = nwolf,
                     nLion = nlion, 
@@ -67,61 +67,68 @@
                     nWtd = nwtd, 
                     nharvest = nharv,
                     nforest = nfor,
-                    nCluster = as.numeric(length(unique(dat[[1]][[1]]$cluster))), 
+                    nWSI = nwsi,
+                    nCluster = as.numeric(length(unique(dat$wolf$time_t$cluster))),
                     nSpp = 7,
                     #'  Standardized posterior means and SD for each species and time step
-                    wolf.t_hat = dat[[1]][[1]]$posterior_mu_z,
-                    wolf.t.sigma_hat = dat[[1]][[1]]$posterior_sd_z,
-                    wolf.tmin1_hat = dat[[1]][[2]]$posterior_mu_z,
-                    wolf.tmin1.sigma_hat = dat[[1]][[2]]$posterior_sd_z,
-                    lion.t_hat = dat[[2]][[1]]$posterior_mu_z,
-                    lion.t.sigma_hat = dat[[2]][[1]]$posterior_sd_z,
-                    lion.tmin1_hat = dat[[2]][[2]]$posterior_mu_z,
-                    lion.tmin1.sigma_hat = dat[[2]][[2]]$posterior_sd_z,
-                    bear.t_hat = dat[[3]][[1]]$posterior_mu_z,
-                    bear.t.sigma_hat = dat[[3]][[1]]$posterior_sd_z,
-                    bear.tmin1_hat = dat[[3]][[2]]$posterior_mu_z,
-                    bear.tmin1.sigma_hat = dat[[3]][[2]]$posterior_sd_z,
-                    coy.t_hat = dat[[4]][[1]]$posterior_mu_z,
-                    coy.t.sigma_hat = dat[[4]][[1]]$posterior_sd_z,
-                    coy.tmin1_hat = dat[[4]][[2]]$posterior_mu_z,
-                    coy.tmin1.sigma_hat = dat[[4]][[2]]$posterior_sd_z,
-                    elk.t_hat = dat[[5]][[1]]$posterior_mu_z,
-                    elk.t.sigma_hat = dat[[5]][[1]]$posterior_sd_z,
-                    elk.tmin1_hat = dat[[5]][[2]]$posterior_mu_z,
-                    elk.tmin1.sigma_hat = dat[[5]][[2]]$posterior_sd_z,
-                    moose.t_hat = dat[[6]][[1]]$posterior_mu_z,
-                    moose.t.sigma_hat = dat[[6]][[1]]$posterior_sd_z,
-                    moose.tmin1_hat = dat[[6]][[2]]$posterior_mu_z,
-                    moose.tmin1.sigma_hat = dat[[6]][[2]]$posterior_sd_z,
-                    wtd.t_hat = dat[[7]][[1]]$posterior_mu_z,
-                    wtd.t.sigma_hat = dat[[7]][[1]]$posterior_sd_z,
-                    wtd.tmin1_hat = dat[[7]][[2]]$posterior_mu_z,
-                    wtd.tmin1.sigma_hat = dat[[7]][[2]]$posterior_sd_z,
-                    #'  Standardize harvest and habitat variables
-                    harvest.t = as.numeric(scale(covs[[1]]$annual_harvest)),
-                    harvest.tmin1 = as.numeric(scale(covs[[2]]$annual_harvest)),
-                    forest.t = as.numeric(scale(covs[[1]]$DisturbedForest_last20Yrs)),
-                    forest.tmin1 = as.numeric(scale(covs[[2]]$DisturbedForest_last20Yrs)))
+                    wolf.t_hat = dat$wolf$time_t$posterior_mu_z,
+                    wolf.t.sigma_hat = dat$wolf$time_t$posterior_sd_z,
+                    wolf.tmin1_hat = dat$wolf$time_tmin1$posterior_mu_z,
+                    wolf.tmin1.sigma_hat = dat$wolf$time_tmin1$posterior_sd_z,
+                    lion.t_hat = dat$lion$time_t$posterior_mu_z,
+                    lion.t.sigma_hat = dat$lion$time_t$posterior_sd_z,
+                    lion.tmin1_hat = dat$lion$time_tmin1$posterior_mu_z,
+                    lion.tmin1.sigma_hat = dat$lion$time_tmin1$posterior_sd_z,
+                    bear.t_hat = dat$bear$time_t$posterior_mu_z,
+                    bear.t.sigma_hat = dat$bear$time_t$posterior_sd_z,
+                    bear.tmin1_hat = dat$bear$time_tmin1$posterior_mu_z,
+                    bear.tmin1.sigma_hat = dat$bear$time_tmin1$posterior_sd_z,
+                    coy.t_hat = dat$coy$time_t$posterior_mu_z,
+                    coy.t.sigma_hat = dat$coy$time_t$posterior_sd_z, 
+                    coy.tmin1_hat = dat$coy$time_tmin1$posterior_mu_z,
+                    coy.tmin1.sigma_hat = dat$coy$time_tmin1$posterior_sd_z,
+                    elk.t_hat = dat$elk$time_t$posterior_mu_z,
+                    elk.t.sigma_hat = dat$elk$time_t$posterior_sd_z,
+                    elk.tmin1_hat = dat$elk$time_tmin1$posterior_mu_z,
+                    elk.tmin1.sigma_hat = dat$elk$time_tmin1$posterior_sd_z,
+                    moose.t_hat = dat$moose$time_t$posterior_mu_z,
+                    moose.t.sigma_hat = dat$moose$time_t$posterior_sd_z,
+                    moose.tmin1_hat = dat$moose$time_tmin1$posterior_mu_z,
+                    moose.tmin1.sigma_hat = dat$moose$time_tmin1$posterior_sd_z,
+                    wtd.t_hat = dat$wtd$time_t$posterior_mu_z,
+                    wtd.t.sigma_hat = dat$wtd$time_t$posterior_sd_z,
+                    wtd.tmin1_hat = dat$wtd$time_tmin1$posterior_mu_z,
+                    wtd.tmin1.sigma_hat = dat$wtd$time_tmin1$posterior_sd_z,
+                    #'  Standardized harvest and habitat variables for 1 year time lag
+                    wolfHarv.tmin1 = covs$wolf_harv$time_tmin1$wolf_harv_z,
+                    lionHarv.tmin1 = covs$lion_harv$time_tmin1$lion_harv_z,
+                    bearHarv.tmin1 = covs$bear_harv$time_tmin1$bear_harv_z,
+                    elkHarv.tmin1 = covs$elk_harv$time_tmin1$elk_harv_z,
+                    mooseHarv.tmin1 = covs$moose_harv$time_tmin1$moose_harv_z,
+                    deerHarv.tmin1 = covs$deer_harv$time_tmin1$deer_harv_z,
+                    wsi.tmin1 = covs$wsi$time_tmin1$wsi_z,
+                    forest.tmin1 = covs$prop_disturbed$time_tmin1$prop_disturb_z,
+                    road.tmin1 = covs$road_density$time_tmin1$road_density_z,
+                    public.tmin1 = covs$public_land$time_tmin1$public_land_z)
     str(bundled)
     return(bundled)
   }
-  data_JAGS_bundle_topinter <- bundle_dat(post_summaries, covs = covs_stacked, nwolf = 7, nlion = 4, nbear = 5, 
-                                          ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
-  data_JAGS_bundle_topexploit <- bundle_dat(post_summaries, covs = covs_stacked, nwolf = 7, nlion = 4, nbear = 5, 
-                                            ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
-  data_JAGS_bundle_bottominter <- bundle_dat(post_summaries, covs = covs_stacked, nwolf = 7, nlion = 4, nbear = 5, 
-                                             ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
-  data_JAGS_bundle_bottomexploit <- bundle_dat(post_summaries, covs = covs_stacked, nwolf = 7, nlion = 4, nbear = 5, 
-                                               ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1)
+  data_JAGS_bundle_topinter <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 5, 
+                                          ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 6, nfor = 1, nwsi = 1)
+  data_JAGS_bundle_topexploit <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 5, 
+                                            ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 6, nfor = 1, nwsi = 1)
+  data_JAGS_bundle_bottominter <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 5, 
+                                             ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 0, nfor = 1, nwsi = 1)
+  data_JAGS_bundle_bottomexploit <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 5, 
+                                               ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 0, nfor = 1, nwsi = 1)
                                  
-  # save(data_JAGS_bundle_topinter, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_topinter.RData")
-  # save(data_JAGS_bundle_topexploit, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_topexploit.RData")
-  # save(data_JAGS_bundle_bottominter, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_bottominter.RData")
-  # save(data_JAGS_bundle_bottomexploit, file = "./Data/Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_bottomexploit.RData")
+  # save(data_JAGS_bundle_topinter, file = "./Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_topinter.RData")
+  # save(data_JAGS_bundle_topexploit, file = "./Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_topexploit.RData")
+  # save(data_JAGS_bundle_bottominter, file = "./Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_bottominter.RData")
+  # save(data_JAGS_bundle_bottomexploit, file = "./Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_bottomexploit.RData")
   
   #'  Generate initial values for each parameter (random node)
-  generate_inits <- function(nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor) {
+  generate_inits <- function(nwolf, nlion, nbear, ncoy, nelk, nmoose, nwtd, nharv, nfor, nwsi) {
     
     #'  Generate random values for each species-specific beta (nwolf, nlion, etc.
     #'  based on number of species-specific betas to be estimated)
@@ -133,8 +140,16 @@
       elk.t_1 = runif(nelk, -0.5, 0.5),
       moose.t_1 = runif(nmoose, -0.5, 0.5),
       wtd.t_1 = runif(nwtd, -0.5, 0.5),
-      harvest.t_1 = runif(nharv, -0.5, 0.5),
-      forest.t_1 = runif(nfor, -0.5, 0.5)#,
+      wolfharvest.t_1 = runif(nharv, -0.5, 0.5),
+      lionharvest.t_1 = runif(nharv, -0.5, 0.5),
+      bearharvest.t_1 = runif(nharv, -0.5, 0.5),
+      elkharvest.t_1 = runif(nharv, -0.5, 0.5),
+      mooseharvest.t_1 = runif(nharv, -0.5, 0.5),
+      deerharvest.t_1 = runif(nharv, -0.5, 0.5),
+      wsi.t_1 = runif(nwsi, -0.5, 0.5),
+      forest.t_1 = runif(nfor, -0.5, 0.5),
+      road.t_1 = runif(nwsi, -0.5, 0.5),
+      public.t_1 = runif(nwsi, -0.5, 0.5) # doesn't matter that using nwsi or other b/c all = 1
       #' #'  Fix random number generator and seed for every run of this function
       #' .RNG.name = "base::Wichmann-Hill",
       #' .RNG.seed = 182  
@@ -153,18 +168,19 @@
   #'  Loop through generate_inits function 3 times (1 for each chain) 
   for(i in 1:num.chains){
     initsList_topinter[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, nelk = 1, 
-                                     nmoose = 1, nwtd = 1, nharv = 1, nfor = 0)
+                                     nmoose = 1, nwtd = 1, nharv = 6, nfor = 0, nwsi = 0)
     initsList_topexploit[[i]] <- generate_inits(nwolf = 4, nlion = 3, nbear = 3, ncoy = 2, nelk = 1, 
-                                              nmoose = 1, nwtd = 1, nharv = 1, nfor = 0)
+                                              nmoose = 1, nwtd = 1, nharv = 6, nfor = 0, nwsi = 0)
     initsList_bottominter[[i]] <- generate_inits(nwolf = 4, nlion = 2, nbear = 3, ncoy = 1, nelk = 4, 
-                                              nmoose = 2, nwtd = 5, nharv = 0, nfor = 1)
+                                              nmoose = 2, nwtd = 5, nharv = 0, nfor = 1, nwsi = 1)
     initsList_bottomexploit[[i]] <- generate_inits(nwolf = 1, nlion = 1, nbear = 1, ncoy = 1, nelk = 4, 
-                                              nmoose = 2, nwtd = 5, nharv = 0, nfor = 1)
+                                              nmoose = 2, nwtd = 5, nharv = 0, nfor = 1, nwsi = 1)
   }
   
   #'  Parameters monitored
   params <- c("beta.int", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", 
-              "beta.moose", "beta.wtd", "beta.harvest", "beta.forest", "sigma.spp", "sigma.cluster") 
+              "beta.moose", "beta.wtd", "beta.harvest", "beta.wsi","beta.forest", 
+              "sigma.spp", "sigma.cluster") 
   
   #'  MCMC settings
   nc <- 3
