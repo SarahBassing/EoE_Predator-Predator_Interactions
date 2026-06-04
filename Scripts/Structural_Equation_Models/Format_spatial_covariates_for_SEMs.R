@@ -4,16 +4,20 @@
   #'  June 2026
   #'  ----------------------------------
   #'  Format spatial covariates for SEM, including:
-  #'    1) Winter severity: the cumulative number of days with >15” of snow and/or 
+  #'    1) Winter severity is the cumulative number of days with >15” of snow and/or 
   #'       a minimum daily temperature < 0°F (DeLgiudice et al. 2002). This combines
   #'       SNODAS and Daymet data bases. Annual winter severity calculated at the 
   #'       GMU level to account for migration between summer and winter ranges. 
-  #'    2) Road density - proxy for harvest exposure
-  #'    3) Proportion of public land - proxy for harvest exposure
-  #'    4) Species-specific harvest. Deer, elk, moose, lion, and bear harvest at
-  #'       the GMU scale owing to level of reporting data. Wolf harvest at the 
-  #'       cluster level. Coyote harvest data was unavailable.
-  #'    5) Percent disturbed forest in the previous 20 years.  
+  #'    2) Percent disturbed forest in the previous 20 years per cluster polygon.  
+  #'    3) Road density per cluster polygon - proxy for harvest exposure.
+  #'    4) Proportion of public land per cluster polygon - proxy for harvest exposure.
+  #'    5) Species-specific harvest, converted to number of animals harvested/100 km2. 
+  #'       Deer, elk, moose, lion, and bear harvest at the GMU scale owing to level 
+  #'       of reporting data. Wolf harvest at the cluster level and represents all
+  #'       harvest that occurred 1 year prior to start of annual camera trapping. 
+  #'       Coyote harvest data was unavailable. Frowny-face.
+  #'  Merge everything into single data frame.
+  #'  -----------------------------------
   
   # Load packages
   library(terra)
@@ -462,49 +466,20 @@
   #'  Calculate proportion disturbed forest, road density, and proportion of public
   #'  land for each cluster polygon  -----   THIS TAKES A HOT SECOND
   cluster_poly_covs <- cluster_poly_wolf %>% 
-    mutate(#WSI20 = c(zonal(win20_WSI, vect(cluster_poly))$sum),
-           # WSI21 = c(zonal(win21_WSI, vect(cluster_poly))$sum),
-           # WSI22 = c(zonal(win22_WSI, vect(cluster_poly))$sum),
-           # WSI23 = c(zonal(win23_WSI, vect(cluster_poly))$sum),
-           distForest20 = c(zonal(hdist_20, vect(cluster_poly))$Layer_1),
+    mutate(distForest20 = c(zonal(hdist_20, vect(cluster_poly))$Layer_1),
            distForest21 = c(zonal(hdist_21, vect(cluster_poly))$Layer_1),
            distForest22 = c(zonal(hdist_22, vect(cluster_poly))$Layer_1),
            distForest23 = c(zonal(hdist_23, vect(cluster_poly))$Layer_1),
            roaddens = c(zonal(roaddens, vect(cluster_poly))$AllRoads_2022_density_kmkm2),
            proppub = c(zonal(ownership_rast, vect(cluster_poly), na.rm = T)$public))
   
-  #'  Weight cluster-specific covaraites by cluster area and average within each GMU 
+  #'  Convert polygons to data frame and calculate wolf harvest per 100km2 
   cluster_poly_covs_df <- cluster_poly_covs %>% 
     st_drop_geometry() %>% 
     as.data.frame() %>% 
     group_by(Cluster_unique) %>% 
-    mutate(total_area = sum(unique(area_km2))) %>% 
-    # mutate(# weighted_WSI20 = round(area_km2 * WSI20, 2),
-    #        # weighted_WSI21 = round(area_km2 * WSI21, 2),
-    #        # weighted_WSI22 = round(area_km2 * WSI22, 2),
-    #        # weighted_WSI23 = round(area_km2 * WSI23, 2),
-    #        weighted_dist20 = round(area_km2 * dist20, 2),   # I don't understand the point of this since the next step leads to the original value
-    #        weighted_dist21 = round(area_km2 * dist21, 2),
-    #        weighted_dist22 = round(area_km2 * dist22, 2),
-    #        weighted_dist23 = round(area_km2 * dist23, 2),
-    #        weighted_roaddens = round(area_km2 * roaddens, 2),
-    #        weighted_proppub = round(area_km2 * proppub, 2)) %>% 
-    # ungroup() %>% 
-    # dplyr::select(-c("area_km2","dist20","dist21","dist22","dist23")) %>%  #"WSI20","WSI21","WSI22","WSI23",
-    # group_by(Cluster_unique,GMU,wolfharvest_2018,wolfharvest_2019,wolfharvest_2020,wolfharvest_2021,wolfharvest_2022,wolfharvest_2023,total_area) %>% 
-    # summarise(# weighted_WSI20 = sum(weighted_WSI20) / total_area,
-    #           # weighted_WSI21 = sum(weighted_WSI21) / total_area,
-    #           # weighted_WSI22 = sum(weighted_WSI22) / total_area,
-    #           # weighted_WSI23 = sum(weighted_WSI23) / total_area,
-    #           weighted_dist20 = sum(weighted_dist20) / total_area,
-    #           weighted_dist21 = sum(weighted_dist21) / total_area,
-    #           weighted_dist22 = sum(weighted_dist22) / total_area,
-    #           weighted_dist23 = sum(weighted_dist23) / total_area,
-    #           weighted_roaddens = sum(weighted_roaddens) / total_area,
-    #           weighted_proppub = sum(weighted_proppub) / total_area) %>% 
-    # # slice(1) %>% 
-    # ungroup() %>% 
-    mutate(wolfharvest_2018_per100km = round(wolfharvest_2018 / total_area*100,3),
+    mutate(total_area = sum(unique(area_km2)),
+           wolfharvest_2018_per100km = round(wolfharvest_2018 / total_area*100,3),
            wolfharvest_2019_per100km = round(wolfharvest_2019 / total_area*100,3),
            wolfharvest_2020_per100km = round(wolfharvest_2020 / total_area*100,3),
            wolfharvest_2021_per100km = round(wolfharvest_2021 / total_area*100,3),
