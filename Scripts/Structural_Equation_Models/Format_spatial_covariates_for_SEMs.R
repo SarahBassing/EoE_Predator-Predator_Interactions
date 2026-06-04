@@ -366,7 +366,8 @@
       grepl("WASHINGTON",killLocation) ~ "WASHINGTON CREEK",
       grepl("WHISKEY|WHISKY",killLocation) ~ "WHISKEY CREEK",
       TRUE ~ killLocation)) %>%
-    select(BGMRId, unit, harvestYear, gpsLat, gpsLong, dataAnalysisUnit, killLocation, killLocation_cleaned, daysHunted)
+    dplyr::select(BGMRId, unit, harvestYear, killDate, gpsLat, gpsLong, dataAnalysisUnit, 
+                  killLocation, killLocation_cleaned, daysHunted)
   
   #'  Read in manually edited kill locations with approximate lat/lon kill locations
   wolf_morts_LL <- read.csv("./Data/IDFG BGMR data/IDFG 2023 harvest data/WolfKillLocations_LatLon.csv")
@@ -379,7 +380,7 @@
   BGMRdat <- BGMRdat %>% 
     left_join(wolf_morts_LL) %>% 
     filter(!is.na(Lat)) %>%
-    arrange(unit, harvestYear)
+    arrange(unit, killDate) #harvestYear
   
   #'  Convert to sf object for plotting and intersecting
   BGMRdat <- st_as_sf(BGMRdat,coords = c("Long","Lat"), crs = 4326) # WGS 84
@@ -393,30 +394,42 @@
   sf::sf_use_s2(FALSE)
   wolfharvest <- (st_intersection(BGMRdat, cluster_poly))
   
+  #'  Wolf harvest is essentially year-round so need to reclassify harvest date
+  #'  based on when it occurred relative to summer camera trapping, not calendar year.
+  #'  Wolf harvest that occurs the previous summer, fall, winter, and spring are
+  #'  expected to affect the current summer wolf population
+  wolfharvest_adj <- wolfharvest %>%
+    mutate(cameraYear = ifelse(killDate >= "2018-06-01" & killDate < "2019-06-01", 2019, 2018),
+           cameraYear = ifelse(killDate >= "2019-06-01" & killDate < "2020-06-01", 2020, cameraYear),
+           cameraYear = ifelse(killDate >= "2020-06-01" & killDate < "2021-06-01", 2021, cameraYear),
+           cameraYear = ifelse(killDate >= "2021-06-01" & killDate < "2022-06-01", 2022, cameraYear),
+           cameraYear = ifelse(killDate >= "2022-06-01" & killDate < "2023-06-01", 2023, cameraYear),
+           cameraYear = ifelse(killDate >= "2023-06-01" & killDate < "2024-06-01", 2024, cameraYear),
+           cameraYear = ifelse(killDate >= "2024-06-01" & killDate < "2025-06-01", 2025, cameraYear)) %>%
+    relocate(cameraYear, .after = killDate) %>%
+    arrange(unit, killDate)
   
-  
-  ########   NEED TO THINK ABOUT WHEN WOLVES ARE HARVESTED WITHIN CALENDER YERA
-  ########   AND HOW THAT RELATES TO CAMERA SAMPLING AND TIME LAGS
-  
-  
-  
-  #'  Tally the number of wolves harvested in each cluster in each year
-  wolf_harv <- wolfharvest %>% 
+  #'  Tally the number of wolves harvested in each cluster in each year (relative
+  #'  to camera deployment)
+  wolf_harv <- wolfharvest_adj %>% 
     st_drop_geometry() %>% 
-    group_by(harvestYear, Cluster_unique) %>% 
+    group_by(cameraYear, Cluster_unique) %>% #harvestYear
     summarize(n_harvest = n(),
               n_effort = sum(daysHunted, na.rm = TRUE),
               #'  Change n_effort = 0 to 1 so each reported harvest has at least
               #'  one day of effort (can't have less!). Clearly there is under-reporting
               #'  in the wolf harvest effort data.
               n_effort = ifelse(n_effort == 0, 1, n_effort)) %>% 
-    mutate(harvestYear = paste0("wolfharvest_",harvestYear),
+    mutate(cameraYear = paste0("wolfharvest_",cameraYear),
            Harvest_per_HunterDay = round(n_harvest / n_effort, 4)) 
   
   #'  Pivot data to create one column per year with total harvest per cluster
+  #'  REMEMBER: wolfharvest_YEAR is actually the camera year it applies to - a one
+  #'  year time lag is already built into these data based on which harvest events
+  #'  were included in the total.
   harvestbyyear <- wolf_harv %>%
     dplyr::select(-c(n_effort, Harvest_per_HunterDay)) %>%
-    pivot_wider(names_from = harvestYear,
+    pivot_wider(names_from = cameraYear,
                 values_from = n_harvest) %>%
     mutate(across(where(is.numeric), ~ replace_na(., 0))) %>%
     arrange(Cluster_unique)
@@ -424,7 +437,7 @@
   #'  Pivot data to create one column per year with total harvest per hunter day per cluster
   harvestbyyear_cpu <- wolf_harv %>%
     dplyr::select(-c(n_effort, n_harvest)) %>%
-    pivot_wider(names_from = harvestYear,
+    pivot_wider(names_from = cameraYear,
                 values_from = Harvest_per_HunterDay) %>%
     mutate(across(where(is.numeric), ~ replace_na(., 0))) %>%
     arrange(Cluster_unique)
@@ -453,10 +466,10 @@
            # WSI21 = c(zonal(win21_WSI, vect(cluster_poly))$sum),
            # WSI22 = c(zonal(win22_WSI, vect(cluster_poly))$sum),
            # WSI23 = c(zonal(win23_WSI, vect(cluster_poly))$sum),
-           dist20 = c(zonal(hdist_20, vect(cluster_poly))$Layer_1),
-           dist21 = c(zonal(hdist_21, vect(cluster_poly))$Layer_1),
-           dist22 = c(zonal(hdist_22, vect(cluster_poly))$Layer_1),
-           dist23 = c(zonal(hdist_23, vect(cluster_poly))$Layer_1),
+           distForest20 = c(zonal(hdist_20, vect(cluster_poly))$Layer_1),
+           distForest21 = c(zonal(hdist_21, vect(cluster_poly))$Layer_1),
+           distForest22 = c(zonal(hdist_22, vect(cluster_poly))$Layer_1),
+           distForest23 = c(zonal(hdist_23, vect(cluster_poly))$Layer_1),
            roaddens = c(zonal(roaddens, vect(cluster_poly))$AllRoads_2022_density_kmkm2),
            proppub = c(zonal(ownership_rast, vect(cluster_poly), na.rm = T)$public))
   
@@ -466,88 +479,37 @@
     as.data.frame() %>% 
     group_by(Cluster_unique) %>% 
     mutate(total_area = sum(unique(area_km2))) %>% 
-    #'  Cluster polygons are unequal in size and contribute to GMU-wide average
-    #'  differently - need to area-weight covariates based on polygon size
-    mutate(# weighted_WSI20 = round(area_km2 * WSI20, 2),
-           # weighted_WSI21 = round(area_km2 * WSI21, 2),
-           # weighted_WSI22 = round(area_km2 * WSI22, 2),
-           # weighted_WSI23 = round(area_km2 * WSI23, 2),
-           weighted_dist20 = round(area_km2 * dist20, 2),   # I don't understand the point of this since the next step leads to the original value
-           weighted_dist21 = round(area_km2 * dist21, 2),
-           weighted_dist22 = round(area_km2 * dist22, 2),
-           weighted_dist23 = round(area_km2 * dist23, 2),
-           weighted_roaddens = round(area_km2 * roaddens, 2),
-           weighted_proppub = round(area_km2 * proppub, 2)) %>% 
-    ungroup() %>% 
-    dplyr::select(-c("area_km2","dist20","dist21","dist22","dist23")) %>%  #"WSI20","WSI21","WSI22","WSI23",
-    group_by(Cluster_unique,GMU,wolfharvest_2018,wolfharvest_2019,wolfharvest_2020,wolfharvest_2021,wolfharvest_2022,wolfharvest_2023,total_area) %>% 
-    summarise(# weighted_WSI20 = sum(weighted_WSI20) / total_area,
-              # weighted_WSI21 = sum(weighted_WSI21) / total_area,
-              # weighted_WSI22 = sum(weighted_WSI22) / total_area,
-              # weighted_WSI23 = sum(weighted_WSI23) / total_area,
-              weighted_dist20 = sum(weighted_dist20) / total_area,
-              weighted_dist21 = sum(weighted_dist21) / total_area,
-              weighted_dist22 = sum(weighted_dist22) / total_area,
-              weighted_dist23 = sum(weighted_dist23) / total_area,
-              weighted_roaddens = sum(weighted_roaddens) / total_area,
-              weighted_proppub = sum(weighted_proppub) / total_area) %>% 
-    # slice(1) %>% 
-    ungroup() %>% 
+    # mutate(# weighted_WSI20 = round(area_km2 * WSI20, 2),
+    #        # weighted_WSI21 = round(area_km2 * WSI21, 2),
+    #        # weighted_WSI22 = round(area_km2 * WSI22, 2),
+    #        # weighted_WSI23 = round(area_km2 * WSI23, 2),
+    #        weighted_dist20 = round(area_km2 * dist20, 2),   # I don't understand the point of this since the next step leads to the original value
+    #        weighted_dist21 = round(area_km2 * dist21, 2),
+    #        weighted_dist22 = round(area_km2 * dist22, 2),
+    #        weighted_dist23 = round(area_km2 * dist23, 2),
+    #        weighted_roaddens = round(area_km2 * roaddens, 2),
+    #        weighted_proppub = round(area_km2 * proppub, 2)) %>% 
+    # ungroup() %>% 
+    # dplyr::select(-c("area_km2","dist20","dist21","dist22","dist23")) %>%  #"WSI20","WSI21","WSI22","WSI23",
+    # group_by(Cluster_unique,GMU,wolfharvest_2018,wolfharvest_2019,wolfharvest_2020,wolfharvest_2021,wolfharvest_2022,wolfharvest_2023,total_area) %>% 
+    # summarise(# weighted_WSI20 = sum(weighted_WSI20) / total_area,
+    #           # weighted_WSI21 = sum(weighted_WSI21) / total_area,
+    #           # weighted_WSI22 = sum(weighted_WSI22) / total_area,
+    #           # weighted_WSI23 = sum(weighted_WSI23) / total_area,
+    #           weighted_dist20 = sum(weighted_dist20) / total_area,
+    #           weighted_dist21 = sum(weighted_dist21) / total_area,
+    #           weighted_dist22 = sum(weighted_dist22) / total_area,
+    #           weighted_dist23 = sum(weighted_dist23) / total_area,
+    #           weighted_roaddens = sum(weighted_roaddens) / total_area,
+    #           weighted_proppub = sum(weighted_proppub) / total_area) %>% 
+    # # slice(1) %>% 
+    # ungroup() %>% 
     mutate(wolfharvest_2018_per100km = round(wolfharvest_2018 / total_area*100,3),
            wolfharvest_2019_per100km = round(wolfharvest_2019 / total_area*100,3),
            wolfharvest_2020_per100km = round(wolfharvest_2020 / total_area*100,3),
            wolfharvest_2021_per100km = round(wolfharvest_2021 / total_area*100,3),
            wolfharvest_2022_per100km = round(wolfharvest_2022 / total_area*100,3),
            wolfharvest_2023_per100km = round(wolfharvest_2023 / total_area*100,3))
-  
-  #' #'  -------------------------------------------
-  #' #####  Append harvest data from other species  #####
-  #' #'  -------------------------------------------
-  #' #'  Load GMUs to get total area 
-  #' idfg_gmus <- read_sf("./Shapefiles/IDFG_Game_Management_Units/Game_Management_Units.shp")
-  #' gmu_areas <- data.frame(GMU = idfg_gmus$NAME, area_km2 = as.numeric(st_area(idfg_gmus)/1000000)) %>% 
-  #'   filter(GMU %in% c("1","6","10A")) %>% 
-  #'   mutate(GMU = case_when(
-  #'     GMU == "1" ~ "GMU1",
-  #'     GMU == "6" ~ "GMU6",
-  #'     GMU == "10A" ~ "GMU10A"
-  #'   ))
-  #' 
-  #' #'  Pivot harvest data to wider format 
-  #' elk_harv_wide <- elk_harv %>% 
-  #'   left_join(gmu_areas, by = "GMU") %>%
-  #'   rename(Elk_antlered = Antlered_harvest,
-  #'          Elk_antlerless = Antlerless_harvest,
-  #'          Elk_total = Total_harvest) %>% 
-  #'   mutate(Elk_total_per100km = round(Elk_total / area_km2*100, 3)) %>% 
-  #'   dplyr::select(Year, GMU, Elk_total_per100km) %>% 
-  #'   pivot_wider(names_from = Year, values_from = Elk_total_per100km, names_prefix = "Elk_per100km_") 
-  #' deer_harv_wide <- deer_harv %>% 
-  #'   left_join(gmu_areas, by = "GMU") %>% 
-  #'   rename(Deer_antlered = Antlered_harvest,
-  #'          Deer_antlerless = Antlerless_harvest,
-  #'          Deer_total = Total_harvest) %>% 
-  #'   mutate(Deer_total_per100km = round(Deer_total / area_km2*100, 3)) %>% 
-  #'   dplyr::select(Year,GMU,Deer_total_per100km) %>% 
-  #'   pivot_wider(names_from = Year, values_from = Deer_total_per100km, names_prefix = "Deer_per100km_") 
-  #' bear_harv_wide <- bear_harv %>% 
-  #'   left_join(gmu_areas, by = "GMU") %>% 
-  #'   rename(Bear_total = Total_harvest) %>%
-  #'   mutate(Bear_total_per100km = round(Bear_total / area_km2*100, 3)) %>% 
-  #'   dplyr::select(Year, GMU, Bear_total_per100km) %>% 
-  #'   pivot_wider(names_from = Year, values_from = Bear_total_per100km, names_prefix = "Bear_per100km_") 
-  #' lion_harv_wide <- lion_harv %>% 
-  #'   left_join(gmu_areas, by = "GMU") %>% 
-  #'   rename(Lion_total = Total_harvest) %>%
-  #'   mutate(Lion_total_per100km = round(Lion_total / area_km2*100, 3)) %>% 
-  #'   dplyr::select(Year, GMU, Lion_total_per100km) %>% 
-  #'   pivot_wider(names_from = Year, values_from = Lion_total_per100km, names_prefix = "Lion_per100km_")
-  #' moose_harv_wide <- moose_harv %>% 
-  #'   left_join(gmu_areas, by = "GMU") %>% 
-  #'   rename(Moose_total = Total_harvest) %>%
-  #'   mutate(Moose_total_per100km = round(Moose_total / area_km2*100, 3)) %>% 
-  #'   dplyr::select(Year, GMU, Moose_total_per100km) %>% 
-  #'   pivot_wider(names_from = Year, values_from = Moose_total_per100km, names_prefix = "Moose_per100km_")
   
   #'  Join all harvest data to larger covariate data frame and reduce to only necessary columns
   cluster_poly_covs_df <- cluster_poly_covs_df %>% 
@@ -556,13 +518,19 @@
     left_join(moose_harv_wide, by = "GMU") %>% 
     left_join(bear_harv_wide, by = "GMU") %>% 
     left_join(lion_harv_wide, by = "GMU") %>%
-    dplyr::select(Cluster_unique, GMU, total_area:Lion_per100km_2024) %>%
+    dplyr::select(Cluster_unique, GMU, distForest20:Lion_per100km_2024) %>%
     left_join(GMU_WSI, by = "GMU")
   
-  write.csv(cluster_poly_covs_df, "./Data/SEM_covariates.csv", row.names = F)
+  #' #'  Save
+  #' write.csv(cluster_poly_covs_df, "./Data/SEM_covariates.csv", row.names = F)
   
-  
-  # harvest_year is the number of animals harvested in the labeled calendar year. Needs to be time lagged.
-  # WSIYear is the calculated winter severity index from October 1 year-1 to May 1 year. Does not need to be time lagged.
-  # weighted_distyear is the calculated proportion of disturbed forest 20 years prior to year. Does not need to be time lagged.
+  #'  --------------------------------------------------------
+  ####  NOTE: These covariates do not need to be time lagged  ####
+  #'  --------------------------------------------------------
+  #'  wolfharvest_Year is the total wolves harvested from June 1 year-1 to May 30 year
+  #'  and reflects the camera year it should be applied to. A one year time lag is 
+  #'  already built into these data based on which harvest events were included.
+  #'  WSIYear is the calculated winter severity index from October 1 year-1 to May 1 year. 
+  #'  weighted_distyear is the calculated proportion of disturbed forest 20 years prior to year. 
+  print("Do not time lag the following variables: wolfharvest, WSI, weighted_distyear")
   
