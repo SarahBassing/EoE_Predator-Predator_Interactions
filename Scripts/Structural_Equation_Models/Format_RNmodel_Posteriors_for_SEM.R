@@ -120,6 +120,7 @@
     
     #'  List posteriors from time t and t-1
     timelag_list <- list(time_t, time_tmin1)
+    names(timelag_list) <- c("time_t", "time_tmin1") 
     return(timelag_list)
   }
   #'  Run function for each species
@@ -168,14 +169,16 @@
     dplyr::select(cluster, GMU, Lion_per100km_2019, Lion_per100km_2020, Lion_per100km_2021, Lion_per100km_2022)
   elk <- cluster_poly_covs_df %>%
     dplyr::select(cluster, GMU, Elk_per100km_2019, Elk_per100km_2020, Elk_per100km_2021, Elk_per100km_2022)
+  moose <- cluster_poly_covs_df %>%
+    dplyr::select(cluster, GMU, Moose_per100km_2019, Moose_per100km_2020, Moose_per100km_2021, Moose_per100km_2022)
   deer <- cluster_poly_covs_df %>%
     dplyr::select(cluster, GMU, Deer_per100km_2019, Deer_per100km_2020, Deer_per100km_2021, Deer_per100km_2022)
   
-  cov_list <- list(wolf_harvest, wsi, forest, roads, public, bear, lion, elk, deer)
+  cov_list <- list(wolf_harvest, wsi, forest, roads, public, bear, lion, elk, moose, deer)
   
   #'  Call drop_gmu1() function to remove GMU1 observations 
   gmu1_numeric <- c(9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
-  names(cov_list) <- c("wolf_harvest", "wsi", "forest", "roads", "public", "bear", "lion", "elk", "deer")
+  names(cov_list) <- c("wolf_harvest", "wsi", "forest", "roads", "public", "bear", "lion", "elk", "moose", "deer")
   cov_list_noGMU1 <- lapply(cov_list, drop_gmu1, gmu = gmu1_numeric)
   #'  NOTE: this removed GMU1 observations from ALL years. OK to have them removed
   #'  from 2020 and 2021 data, but will need them for 2022 and 2023 data (and 2021
@@ -204,8 +207,8 @@
     return(covs)
   }
   #'  For reference: yr1, yr2, yr3, yr4, yr2_noGMU1, cov_name
-  #'  cov_list indexing order: [[1]] wolf_harvest, [[2]] wsi, [[3]] forest, [[4]] roads, 
-  #'                           [[5]]public, [[6]] bear, [[7]] lion, [[8]] elk, [[9]] deer
+  #'  cov_list indexing order: [[1]] wolf_harvest, [[2]] wsi, [[3]] forest, [[4]] roads, [[5]]public, 
+  #'                           [[6]] bear, [[7]] lion, [[8]] elk, [[9]] moose, [[10]] deer
   wolf_harvest_cov <- reformat_covs(cov_list_noGMU1[[1]]$wolfharvest_2020_per100km, 
                                     cov_list[[1]]$wolfharvest_2021_per100km, 
                                     cov_list[[1]]$wolfharvest_2022_per100km, 
@@ -225,8 +228,10 @@
                             cov_list_noGMU1[[7]]$Lion_per100km_2020, cov_name = "lion_harvest")
   elk_cov <- reformat_covs(cov_list_noGMU1[[8]]$Elk_per100km_2019, cov_list[[8]]$Elk_per100km_2020, cov_list[[8]]$Elk_per100km_2021, cov_list[[8]]$Elk_per100km_2022,
                            cov_list_noGMU1[[8]]$Elk_per100km_2020, cov_name = "elk_harvest")
-  deer_cov <- reformat_covs(cov_list_noGMU1[[9]]$Deer_per100km_2019, cov_list[[9]]$Deer_per100km_2020, cov_list[[9]]$Deer_per100km_2021, cov_list[[9]]$Deer_per100km_2022,
-                            cov_list_noGMU1[[9]]$Deer_per100km_2020, cov_name = "deer_harvest")
+  moose_cov <- reformat_covs(cov_list_noGMU1[[9]]$Moose_per100km_2019, cov_list[[9]]$Moose_per100km_2020, cov_list[[9]]$Moose_per100km_2021, cov_list[[9]]$Moose_per100km_2022,
+                            cov_list_noGMU1[[9]]$Moose_per100km_2020, cov_name = "moose_harvest")
+  deer_cov <- reformat_covs(cov_list_noGMU1[[10]]$Deer_per100km_2019, cov_list[[10]]$Deer_per100km_2020, cov_list[[10]]$Deer_per100km_2021, cov_list[[10]]$Deer_per100km_2022,
+                            cov_list_noGMU1[[10]]$Deer_per100km_2020, cov_name = "deer_harvest")
   
   #'  Call stacked_posteriors() function to stack covaraite data based on year and 
   #'  time lag for each covariate 
@@ -240,6 +245,7 @@
   bear_harvest_timelag <- stacked_posteriors(bear_cov$yr1, bear_cov$yr2, bear_cov$yr3, bear_cov$yr4, bear_cov$yr2_noGMU1)
   lion_harvest_timelag <- stacked_posteriors(lion_cov$yr1, lion_cov$yr2, lion_cov$yr3, lion_cov$yr4, lion_cov$yr2_noGMU1)
   elk_harvest_timelag <- stacked_posteriors(elk_cov$yr1, elk_cov$yr2, elk_cov$yr3, elk_cov$yr4, elk_cov$yr2_noGMU1)
+  moose_harvest_timelag <- stacked_posteriors(moose_cov$yr1, moose_cov$yr2, moose_cov$yr3, moose_cov$yr4, moose_cov$yr2_noGMU1)
   deer_harvest_timelag <- stacked_posteriors(deer_cov$yr1, deer_cov$yr2, deer_cov$yr3, deer_cov$yr4, deer_cov$yr2_noGMU1)
   
   #'  Double check everything looks right (both time steps should have 37 rows)
@@ -253,6 +259,7 @@
   print(bear_harvest_timelag[[1]][c(1:8, 9:13),]); print(bear_harvest_timelag[[2]][c(14:21, 32:36),]) # same value for entire GMU
   print(lion_harvest_timelag[[1]][c(1:8, 9:13),]); print(lion_harvest_timelag[[2]][c(14:21, 32:36),]) # same value for entire GMU
   print(elk_harvest_timelag[[1]][c(1:8, 9:13),]); print(elk_harvest_timelag[[2]][c(14:21, 32:36),]) # same value for entire GMU
+  print(moose_harvest_timelag[[1]][c(1:8, 9:13),]); print(moose_harvest_timelag[[2]][c(14:21, 32:36),]) # same value for entire GMU
   print(deer_harvest_timelag[[1]][c(1:8, 9:13),]); print(deer_harvest_timelag[[2]][c(14:21, 32:36),]) # same value for entire GMU
   
   #'  ------------------------
@@ -284,10 +291,10 @@
   #'  Note: standardized values will be different between t and t-1 for same raw
   #'  posterior means because different years are stacked together, leading to 
   #'  different empirical means and SD for t vs t-1
-  print(wolf_timelag_z[[1]])
-  print(wolf_timelag_z[[2]])
-  print(wtd_timelag_z[[1]])
-  print(wtd_timelag_z[[2]])
+  print(wolf_timelag_z$time_t)
+  print(wolf_timelag_z$time_tmin1)
+  print(wtd_timelag_z$time_t)
+  print(wtd_timelag_z$time_tmin1)
   
   #'  Standardize covariate data
   z_transform_covs <- function(covs, cov_name) {
@@ -305,6 +312,7 @@
   bear_harv_timelag_z <- lapply(bear_harvest_timelag, z_transform_covs, cov_name = "bear_harv")
   lion_harv_timelag_z <- lapply(lion_harvest_timelag, z_transform_covs, cov_name = "lion_harv")
   elk_harv_timelag_z <- lapply(elk_harvest_timelag, z_transform_covs, cov_name = "elk_harv")
+  moose_harv_timelag_z <- lapply(moose_harvest_timelag, z_transform_covs, cov_name = "moose_harv")
   deer_harv_timelag_z <- lapply(deer_harvest_timelag, z_transform_covs, cov_name = "deer_harv")
   
   #'  List species-specific lists 
@@ -312,12 +320,15 @@
   #'  Second list (per species) indexes by time (time_t [[1]] & time_tmin1 [[2]])
   post_summaries <- list(wolf_timelag_z, lion_timelag_z, bear_timelag_z, coy_timelag_z, 
                          elk_timelag_z, moose_timelag_z, wtd_timelag_z)
+  names(post_summaries) <- c("wolf", "lion", "bear", "coy", "elk", "moose", "wtd")
   #'  List z-transformed covariates following similar indexing
   #'  Only really need time_tmin1 [[2]] for time lagged effect of covs in SEM
   covs_ztransformed <- list(wolf_harv_timelag_z, wsi_timelag_z, forest_timelag_z,
                             roads_timelag_z, public_timelag_z, bear_harv_timelag_z,
-                            lion_harv_timelag_z, elk_harv_timelag_z, deer_harv_timelag_z)
-  
+                            lion_harv_timelag_z, elk_harv_timelag_z, moose_harv_timelag_z, 
+                            deer_harv_timelag_z)
+  names(covs_ztransformed) <- c("wolf_harv", "wsi", "prop_disturbed", "road_density", "public_land",
+                                "bear_harv", "lion_harv", "elk_harv", "moose_harv", "deer_harv")
   
   #' ####  Save full posteriors (all iterations)  ####
   #' ####  Not necessary for how uncertainty from RN models are being propagated in SEM  ####
