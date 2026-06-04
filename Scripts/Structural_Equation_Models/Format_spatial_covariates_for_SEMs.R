@@ -253,7 +253,7 @@
                 Total_effort = sum(Total_days)) %>%
       ungroup() %>%
       #'  Calculate harvest per hunter day
-      mutate(Harvest_per_HunterDay = round(Total_harvest / Total_effort, 4))
+      mutate(Harvest_per_HunterDay = Total_harvest / Total_effort)
   }
   #'  Format elk and deer data per GMU
   elkharv_list <- lapply(elk_lookup,x,elk_harv)
@@ -280,7 +280,7 @@
       group_by(Year, Unit) %>%
       summarise(Total_harvest = sum(Harvest), 
                 Total_effort = sum(Days)) %>%
-      mutate(Harvest_per_HunterDay = round(Total_harvest / Total_effort, 4),
+      mutate(Harvest_per_HunterDay = Total_harvest / Total_effort,
              GMU = case_when(
                Unit == '1' ~ "GMU1",
                Unit == "10A" ~ "GMU10A",
@@ -425,7 +425,7 @@
               #'  in the wolf harvest effort data.
               n_effort = ifelse(n_effort == 0, 1, n_effort)) %>% 
     mutate(cameraYear = paste0("wolfharvest_",cameraYear),
-           Harvest_per_HunterDay = round(n_harvest / n_effort, 4)) 
+           Harvest_per_HunterDay = n_harvest / n_effort) 
   
   #'  Pivot data to create one column per year with total harvest per cluster
   #'  REMEMBER: wolfharvest_YEAR is actually the camera year it applies to - a one
