@@ -330,6 +330,25 @@
   names(covs_ztransformed) <- c("wolf_harv", "wsi", "prop_disturbed", "road_density", "public_land",
                                 "bear_harv", "lion_harv", "elk_harv", "moose_harv", "deer_harv")
   
+  #'  Check correlations among all variables going into SEM
+  #'  SEMs can handle correlated variables but good to be aware of high correlations
+  spp_unlist <- function(dat_list) {
+    dat_df <- bind_cols(dat_list[[1]][4], dat_list[[2]][4])
+  }
+  spp_ztrans_list <- lapply(post_summaries, spp_unlist)
+  spp_ztrans_df <- do.call(cbind.data.frame, spp_ztrans_list)
+  
+  cov_unlist <- function(dat_list) {
+    dat_df <- bind_cols(dat_list[[1]][2], dat_list[[2]][2])
+  }
+  covs_ztrans_list <- lapply(covs_ztransformed, cov_unlist)
+  covs_ztrans_df <- do.call(cbind.data.frame, covs_ztrans_list)
+  
+  all_ztrans_df <- bind_cols(spp_ztrans_df, covs_ztrans_df) %>%
+    as.matrix(.)
+  cor_mat <- cor(all_ztrans_df)
+  View(cor_mat)
+  
   #' ####  Save full posteriors (all iterations)  ####
   #' ####  Not necessary for how uncertainty from RN models are being propagated in SEM  ####
   #' #'  Function to save estimated posterior distributions of interest for each species,
