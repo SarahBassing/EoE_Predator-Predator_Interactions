@@ -484,7 +484,8 @@
            wolfharvest_2020_per100km = round(wolfharvest_2020 / total_area*100,3),
            wolfharvest_2021_per100km = round(wolfharvest_2021 / total_area*100,3),
            wolfharvest_2022_per100km = round(wolfharvest_2022 / total_area*100,3),
-           wolfharvest_2023_per100km = round(wolfharvest_2023 / total_area*100,3))
+           wolfharvest_2023_per100km = round(wolfharvest_2023 / total_area*100,3)) %>%
+    ungroup()
   
   #'  Join all harvest data to larger covariate data frame and reduce to only necessary columns
   cluster_poly_covs_df <- cluster_poly_covs_df %>% 
