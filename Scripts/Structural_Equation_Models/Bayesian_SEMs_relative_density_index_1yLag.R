@@ -16,7 +16,7 @@
   rm(list = ls())
 
   library(jagsUI)
-  # library(mcmcplots)
+  library(mcmcplots)
   library(tidyverse)
   
   #'  Run script that formats covariate data
@@ -162,13 +162,15 @@
   #'  Define number of chains
   num.chains <- 3
   #'  Create empty lists
-  initsList_topinter <- initsList_topexploit <- initsList_bottominter <- initsList_bottomexploit <- vector('list', num.chains)
+  initsList_topinter <- initsList_topinter_reduced <- initsList_topexploit <- initsList_bottominter <- initsList_bottomexploit <- vector('list', num.chains)
   #'  Setting seed for reproducibility
   set.seed(9983)
   #'  Loop through generate_inits function 3 times (1 for each chain) 
   for(i in 1:num.chains){
     initsList_topinter[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, nelk = 1, 
                                      nmoose = 1, nwtd = 1, nharv = 6, nfor = 0, nwsi = 0)
+    initsList_topinter_reduced[[i]] <- generate_inits(nwolf = 6, nlion = 4, nbear = 1, ncoy = 1, nelk = 1, 
+                                              nmoose = 1, nwtd = 1, nharv = 3, nfor = 0, nwsi = 0)
     initsList_topexploit[[i]] <- generate_inits(nwolf = 4, nlion = 3, nbear = 3, ncoy = 2, nelk = 1, 
                                               nmoose = 1, nwtd = 1, nharv = 6, nfor = 0, nwsi = 0)
     initsList_bottominter[[i]] <- generate_inits(nwolf = 4, nlion = 2, nbear = 3, ncoy = 1, nelk = 4, 
@@ -180,14 +182,14 @@
   #'  Parameters monitored
   params <- c("beta.int", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", 
               "beta.moose", "beta.wtd", "beta.harvest", "beta.wsi","beta.forest", 
-              "sigma.spp", "sigma.cluster") 
+              "sigma.spp", "sigma.cluster", "cluster.randeff") 
   
   #'  MCMC settings
   nc <- 3
-  ni <- 1000#00
-  nb <- 500#00
-  nt <- 1#0
-  na <- 500#0
+  ni <- 100000
+  nb <- 50000
+  nt <- 10
+  na <- 5000
   
   
   #'  ---------------------------------
@@ -211,18 +213,32 @@
   #'  sigma.clusters struggle to converge w <100000 iterations & 50000 burnin
   #'  sigma.clusters seem large compared to sigma.spp and betas (mostly ranging 7 - 9 vs 0.1 - 0.9)
   
-  #' #'  Same model but no random effect for cluster
-  #' source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_no_clusterRE.R")
-  #' start.time = Sys.time()
-  #' SEM_topdown_inter <- jags(data_JAGS_bundle_topinter, inits = initsList_topinter, params, 
-  #'                           "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_no_clusterRE.txt",
-  #'                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-  #'                           n.burnin = nb, parallel = TRUE)
-  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
-  #' print(SEM_topdown_inter$summary)  
-  #' which(SEM_topdown_inter$summary[,"Rhat"] > 1.1)    
-  #' mcmcplot(SEM_topdown_inter$samples)
-  #' save(SEM_topdown_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_inter_no_clusterRE_", Sys.Date(), ".RData"))
+  #####  Top-down, interference model  #####
+  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_reduced.R")
+  start.time = Sys.time()
+  SEM_topdown_inter <- jags(data_JAGS_bundle_topinter, inits = initsList_topinter_reduced, params, 
+                            "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_reduced.txt",
+                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                            n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(SEM_topdown_inter$summary)  
+  which(SEM_topdown_inter$summary[,"Rhat"] > 1.1)    
+  mcmcplot(SEM_topdown_inter$samples)
+  save(SEM_topdown_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_inter_", Sys.Date(), ".RData"))
+  
+  
+  #'  Same model but no random effect for cluster
+  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_no_clusterRE.R")
+  start.time = Sys.time()
+  SEM_topdown_inter <- jags(data_JAGS_bundle_topinter, inits = initsList_topinter, params,
+                            "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_no_clusterRE.txt",
+                            n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni,
+                            n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(SEM_topdown_inter$summary)
+  which(SEM_topdown_inter$summary[,"Rhat"] > 1.1)
+  mcmcplot(SEM_topdown_inter$samples)
+  save(SEM_topdown_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_inter_no_clusterRE_", Sys.Date(), ".RData"))
   
 
   #####  Top-down, exploitative model  #####  
