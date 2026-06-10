@@ -118,35 +118,35 @@ cat(file = './Outputs/SEM/JAGS_out/JAGS_SEM_AR1_only.txt', "
       #' 
       #' #'  Define scale paramter (represents median of distribution)
       #' #'  Expresses prior belief of typical SD for cluster-level random effect
-      #' scale <- 0.1  #  keep scale of standardized RDIs in mind
+      #' scale_re <- 0.1  #  keep scale of standardized RDIs in mind
       #' 
-      #' #' #'  Assuming all clusters for all species share same variance (constant
-      #' #' #'  across clusters for all species), but each cluster has its own deviation
-      #' #' #'  from the global mean.
-      #' #' for(i in 1:nCluster) {
-      #' #'   #'  Draw random value from gamma distribution
-      #' #'   aux[i] ~ dgamma(0.5, 0.5)
-      #' #'   #'  Draw random value from normal distribution using squared scale * aux
-      #' #'   #'  value as the variance, 1/var = precision. Then truncating at zero to
-      #' #'   #'  create a Half-Cauchy distribution.
-      #' #'   sigma.cluster[i] ~ dnorm(0, 1 / (pow(scale, 2) * aux[i])) T(0,)
-      #' #'     
-      #' #'   tau.cluster[i] <- 1 / pow(sigma.cluster[i], 2)
-      #' #'   cluster.randeff[i] ~ dnorm(0, tau.cluster[i])
-      #' #' }
-      #' 
-      #' #'  Assuming all clusters for a given species share same variance (constant
-      #' #'  across clusters for each species), but each cluster has its own deviation
+      #' #'  Assuming all clusters for all species share same variance (constant
+      #' #'  across clusters for all species), but each cluster has its own deviation
       #' #'  from the global mean.
-      #' for(k in 1:nSpp) {
-      #'   aux[k] ~ dgamma(0.5, 0.5)
-      #'   sigma.cluster[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
-      #'   tau.cluster[k] <- 1 / pow(sigma.cluster[k], 2)
+      #' for(i in 1:nCluster) {
+      #'   #'  Draw random value from gamma distribution
+      #'   aux_re[i] ~ dgamma(0.5, 0.5)
+      #'   #'  Draw random value from normal distribution using squared scale * aux
+      #'   #'  value as the variance, 1/var = precision. Then truncating at zero to
+      #'   #'  create a Half-Cauchy distribution.
+      #'   sigma.cluster[i] ~ dnorm(0, 1 / (pow(scale, 2) * aux_re[i])) T(0,)
       #' 
-      #'   for(i in 1:nCluster) {
-      #'     cluster.randeff[k,i] ~ dnorm(0, tau.cluster[k])
-      #'   }
+      #'   tau.cluster[i] <- 1 / pow(sigma.cluster[i], 2)
+      #'   cluster.randeff[i] ~ dnorm(0, tau.cluster[i])
       #' }
+      #' 
+      #' #' #'  Assuming all clusters for a given species share same variance (constant
+      #' #' #'  across clusters for each species), but each cluster has its own deviation
+      #' #' #'  from the global mean.
+      #' #' for(k in 1:nSpp) {
+      #' #'   aux_re[k] ~ dgamma(0.5, 0.5)
+      #' #'   sigma.cluster[k] ~ dnorm(0, 1 / (pow(scale_re, 2) * aux_re[k])) T(0,)
+      #' #'   tau.cluster[k] <- 1 / pow(sigma.cluster[k], 2)
+      #' #' 
+      #' #'   for(i in 1:nCluster) {
+      #' #'     cluster.randeff[k,i] ~ dnorm(0, tau.cluster[k])
+      #' #'   }
+      #' #' }
       
       
       
@@ -202,43 +202,43 @@ cat(file = './Outputs/SEM/JAGS_out/JAGS_SEM_AR1_only.txt', "
       #'  A random effect is also included for repeat measures at the cluster-level. 
       for(i in 1:nCluster) {
         wolf.t[i] ~ dnorm(mu.wolf.t[i], tau.spp[1])
-        mu.wolf.t[i] <- beta.int[2] + beta.wolf[1] * wolf.tmin1[i] #+ cluster.randeff[1,i]
+        mu.wolf.t[i] <- beta.int[2] + beta.wolf[1] * wolf.tmin1[i] #+ cluster.randeff[1]
         
         wolf.tmin1[i] ~ dnorm(mu.wolf.tmin1[i], tau.spp.tmin1[1])
         mu.wolf.tmin1[i] <- beta.int.tmin1[2]
         
         lion.t[i] ~ dnorm(mu.lion.t[i], tau.spp[2])  
-        mu.lion.t[i] <- beta.int[1] + beta.lion[1] * lion.tmin1[i] #+ cluster.randeff[2,i]
+        mu.lion.t[i] <- beta.int[1] + beta.lion[1] * lion.tmin1[i] #+ cluster.randeff[2]
         
         lion.tmin1[i] ~ dnorm(mu.lion.tmin1[i], tau.spp.tmin1[2])
         mu.lion.tmin1[i] <- beta.int.tmin1[1] 
         
         bear.t[i] ~ dnorm(mu.bear.t[i], tau.spp[3]) 
-        mu.bear.t[i] <- beta.int[3] + beta.bear[1] * bear.tmin1[i] #+ cluster.randeff[3,i]
+        mu.bear.t[i] <- beta.int[3] + beta.bear[1] * bear.tmin1[i] #+ cluster.randeff[3]
         
         bear.tmin1[i] ~ dnorm(mu.bear.tmin1[i], tau.spp.tmin1[3]) 
         mu.bear.tmin1[i] <- beta.int.tmin1[3] 
 
         coy.t[i] ~ dnorm(mu.coy.t[i], tau.spp[4])
-        mu.coy.t[i] <- beta.int[4] + beta.coy[1] * coy.tmin1[i] #+ cluster.randeff[41,i]
+        mu.coy.t[i] <- beta.int[4] + beta.coy[1] * coy.tmin1[i] #+ cluster.randeff[4]
 
         coy.tmin1[i] ~ dnorm(mu.coy.tmin1[i], tau.spp.tmin1[4])
         mu.coy.tmin1[i] <- beta.int.tmin1[4] 
         
         elk.t[i] ~ dnorm(mu.elk.t[i], tau.spp[5])
-        mu.elk.t[i] <- beta.int[5] + beta.elk[1] * elk.tmin1[i] #+ cluster.randeff[5,i]
+        mu.elk.t[i] <- beta.int[5] + beta.elk[1] * elk.tmin1[i] #+ cluster.randeff[5]
 
         elk.tmin1[i] ~ dnorm(mu.elk.tmin1[i], tau.spp.tmin1[5])
         mu.elk.tmin1[i] <- beta.int.tmin1[5]
         
         moose.t[i] ~ dnorm(mu.moose.t[i], tau.spp[6])
-        mu.moose.t[i] <- beta.int[6] + beta.moose[1] * moose.tmin1[i] #+ cluster.randeff[6,i]
+        mu.moose.t[i] <- beta.int[6] + beta.moose[1] * moose.tmin1[i] #+ cluster.randeff[6]
 
         moose.tmin1[i] ~ dnorm(mu.moose.tmin1[i], tau.spp.tmin1[6])
         mu.moose.tmin1[i] <- beta.int.tmin1[6]
         
         wtd.t[i] ~ dnorm(mu.wtd.t[i], tau.spp[7])
-        mu.wtd.t[i] <- beta.int[7] + beta.wtd[1] * wtd.tmin1[i] #+ cluster.randeff[7,i]
+        mu.wtd.t[i] <- beta.int[7] + beta.wtd[1] * wtd.tmin1[i] #+ cluster.randeff[7]
         
         wtd.tmin1[i] ~ dnorm(mu.wtd.tmin1[i], tau.spp.tmin1[7])
         mu.wtd.tmin1[i] <- beta.int.tmin1[7] 
