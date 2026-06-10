@@ -95,12 +95,13 @@
       for(h in 1:nharvest) {
         beta.harvest[h] ~ dnorm(0, 0.01)
       }
-      # for(s in 1:nWSI) {
-      #   beta.wsi[s] ~ dnorm(0, 0.01)
-      # }
-      # for(f in 1:nforest) {
-      #   beta.forest[f] ~ dnorm(0, 0.01)
-      # }
+      #' #'  Alternative variables to represent harvest 
+      #' for(s in 1:nSpp) {
+      #'   beta.road[s] ~ dnorm(0, 0.01)
+      #' }
+      #' for(f in 1:nSpp) {
+      #'   beta.public[f] ~ dnorm(0, 0.01)
+      #' }
       
       #' #'  SD prior for each regression and latent variables          
       #' for(k in 1:nSpp) {
@@ -254,7 +255,7 @@
         mu.elk.tmin1[i] <- beta.int.tmin1[5]
         
         moose.t[i] ~ dnorm(mu.moose.t[i], tau.spp[6])
-        mu.moose.t[i] <- beta.int[6] + beta.moose[1] * moose.tmin1[i] + beta.wolf[3] * wolf.tmin1[i] + beta.harvest[5] * mooseHarv.tmin1[i] #+ cluster.randeff[6,i]
+        mu.moose.t[i] <- beta.int[6] + beta.moose[1] * moose.tmin1[i] + beta.wolf[3] * wolf.tmin1[i] #+ beta.harvest[5] * mooseHarv.tmin1[i] #+ cluster.randeff[6,i]
 
         moose.tmin1[i] ~ dnorm(mu.moose.tmin1[i], tau.spp.tmin1[6])
         mu.moose.tmin1[i] <- beta.int.tmin1[6]
