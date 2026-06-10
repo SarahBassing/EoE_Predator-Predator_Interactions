@@ -113,24 +113,23 @@
     str(bundled)
     return(bundled)
   }
+  data_JAGS_bundle_ar1 <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 1, nlion = 1, nbear = 1, 
+                                     ncoy = 1, nelk = 1, nmoose = 1, nwtd = 1, nharv = 0, nfor = 0, nwsi = 0)
   data_JAGS_bundle_top <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 4, nlion = 3, nbear = 3, 
-                                          ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 6, nfor = 1, nwsi = 1)
-  # data_JAGS_bundle_inter <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 4, nlion = 2, nbear = 3, 
-  #                                         ncoy = 1, nelk = 1, nmoose = 1, nwtd = 1, nharv = 3, nfor = 1, nwsi = 1)
+                                          ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 6, nfor = 0, nwsi = 0)
+  data_JAGS_bundle_bottom <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 1, nlion = 1, nbear = 1, 
+                                        ncoy = 1, nelk = 5, nmoose = 2, nwtd = 3, nharv = 0, nfor = 4, nwsi = 3)
   data_JAGS_bundle_topinter <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 5, 
                                           ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 6, nfor = 1, nwsi = 1)
   data_JAGS_bundle_topinter_reduced <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 6, nlion = 4, nbear = 2, 
                                           ncoy = 1, nelk = 1, nmoose = 1, nwtd = 1, nharv = 1, nfor = 1, nwsi = 1)
-  # data_JAGS_bundle_exploit <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 5, 
-  #                                              ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 0, nfor = 1, nwsi = 1)
-  data_JAGS_bundle_topexploit <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 4, nlion = 3, nbear = 1, 
-                                            ncoy = 1, nelk = 1, nmoose = 1, nwtd = 1, nharv = 3, nfor = 1, nwsi = 1)
-  data_JAGS_bundle_bottom <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 5, 
-                                               ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 0, nfor = 1, nwsi = 1)
-  data_JAGS_bundle_bottominter <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 5, 
-                                             ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 0, nfor = 1, nwsi = 1)
-  data_JAGS_bundle_bottomexploit <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 5, 
-                                               ncoy = 2, nelk = 1, nmoose = 1, nwtd = 1, nharv = 0, nfor = 1, nwsi = 1)
+  # data_JAGS_bundle_topexploit <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 4, nlion = 3, nbear = 1, 
+  #                                           ncoy = 1, nelk = 1, nmoose = 1, nwtd = 1, nharv = 3, nfor = 1, nwsi = 1)
+  data_JAGS_bundle_bottominter <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 4, nlion = 1, nbear = 1, 
+                                             ncoy = 1, nelk = 5, nmoose = 2, nwtd = 3, nharv = 0, nfor = 4, nwsi = 3)
+  data_JAGS_bundle_topbottom <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 7, nlion = 4, nbear = 2, 
+                                             ncoy = 1, nelk = 3, nmoose = 2, nwtd = 2, nharv = 5, nfor = 4, nwsi = 3)
+  
                                  
   # save(data_JAGS_bundle_topinter, file = "./Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_topinter.RData")
   # save(data_JAGS_bundle_topexploit, file = "./Outputs/SEM/JAGS_data_bundle/data_JAGS_bundle_topexploit.RData")
@@ -172,35 +171,33 @@
   #'  Define number of chains
   num.chains <- 3
   #'  Create empty lists
-  initsList_topdown <- initsList_bottomup <- vector('list', num.chains) #initsList_inter <- initsList_exploit 
-  initsList_topinter <- initsList_topinter_reduced <- initsList_topexploit <- initsList_bottominter <- initsList_bottomexploit <- vector('list', num.chains)
+  initsList_ar1 <- initsList_topdown <- initsList_bottomup <- vector('list', num.chains) 
+  initsList_topinter <- initsList_topinter_reduced <- initsList_topexploit <- initsList_bottominter <- initsList_topbottom <- vector('list', num.chains)
   #'  Setting seed for reproducibility
   set.seed(9983)
   #'  Loop through generate_inits function 3 times (1 for each chain) 
   for(i in 1:num.chains){
+    initsList_ar1[[i]] <- generate_inits(nwolf = 1, nlion = 1, nbear = 1, ncoy = 1, nelk = 1, 
+                                     nmoose = 1, nwtd = 1, nharv = 0, nfor = 0, nwsi = 0)
     initsList_topdown[[i]] <- generate_inits(nwolf = 4, nlion = 3, nbear = 3, ncoy = 2, nelk = 1, 
-                                     nmoose = 1, nwtd = 1, nharv = 6, nfor = 0, nwsi = 0)
-    # initsList_inter[[i]] <- generate_inits(nwolf = 4, nlion = 2, nbear = 3, ncoy = 1, nelk = 1, 
-    #                                           nmoose = 1, nwtd = 1, nharv = 3, nfor = 0, nwsi = 0) # not a very informative model since ignores predator-prey relationships if only estimating interference competition (prey sub-models pointless)
-    # initsList_exploit[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, nelk = 1, 
-    #                                           nmoose = 1, nwtd = 1, nharv = 6, nfor = 0, nwsi = 0) # exploitation competition should arise as indirect effects of pred-prey so no sense making a stand-alone model for this
-    initsList_bottomup[[i]] <- generate_inits(nwolf = 4, nlion = 3, nbear = 3, ncoy = 2, nelk = 1, 
                                              nmoose = 1, nwtd = 1, nharv = 6, nfor = 0, nwsi = 0)
+    initsList_bottomup[[i]] <- generate_inits(nwolf = 1, nlion = 1, nbear = 1, ncoy = 1, nelk = 5, 
+                                              nmoose = 2, nwtd = 3, nharv = 0, nfor = 4, nwsi = 3)
     initsList_topinter[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 5, ncoy = 2, nelk = 1, 
                                               nmoose = 1, nwtd = 1, nharv = 6, nfor = 0, nwsi = 0)
     initsList_topinter_reduced[[i]] <- generate_inits(nwolf = 6, nlion = 4, nbear = 2, ncoy = 1, nelk = 1, 
                                               nmoose = 1, nwtd = 1, nharv = 1, nfor = 0, nwsi = 0)
-    initsList_topexploit[[i]] <- generate_inits(nwolf = 4, nlion = 3, nbear = 1, ncoy = 1, nelk = 1, 
-                                              nmoose = 1, nwtd = 1, nharv = 3, nfor = 0, nwsi = 0)
-    initsList_bottominter[[i]] <- generate_inits(nwolf = 4, nlion = 2, nbear = 3, ncoy = 1, nelk = 4, 
-                                              nmoose = 2, nwtd = 5, nharv = 0, nfor = 1, nwsi = 1)
-    initsList_bottomexploit[[i]] <- generate_inits(nwolf = 1, nlion = 1, nbear = 1, ncoy = 1, nelk = 4, 
-                                              nmoose = 2, nwtd = 5, nharv = 0, nfor = 1, nwsi = 1)
+    # initsList_topexploit[[i]] <- generate_inits(nwolf = 4, nlion = 3, nbear = 1, ncoy = 1, nelk = 1, 
+    #                                           nmoose = 1, nwtd = 1, nharv = 3, nfor = 0, nwsi = 0)
+    initsList_bottominter[[i]] <- generate_inits(nwolf = 4, nlion = 1, nbear = 1, ncoy = 1, nelk = 5, 
+                                                 nmoose = 2, nwtd = 3, nharv = 0, nfor = 4, nwsi = 3)
+    initsList_topbottom[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 2, ncoy = 1, nelk = 3, 
+                                               nmoose = 2, nwtd = 2, nharv = 5, nfor = 4, nwsi = 3)
   }
   
   #'  Parameters monitored
   params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", 
-              "beta.moose", "beta.wtd", "beta.harvest", "beta.wsi","beta.forest", 
+              "beta.moose", "beta.wtd", "beta.harvest", "beta.wsi","beta.forest", "beta.road", "beta.public",
               "sigma.spp", "sigma.spp.tmin1", "sigma.cluster", "cluster.randeff") 
   
   #'  MCMC settings
@@ -214,6 +211,20 @@
   #'  ---------------------------------
   ####  Call JAGS & Fit Bayesian SEMs  ####
   #'  ---------------------------------
+  #####  AR(1) model  #####
+  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_AR1_only.R")
+  start.time = Sys.time()
+  SEM_AR1 <- jags(data_JAGS_bundle_ar1, inits = initsList_ar1, params, 
+                      "./Outputs/SEM/JAGS_out/JAGS_SEM_AR1_only.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(SEM_AR1$summary)  
+  which(SEM_AR1$summary[,"Rhat"] < 0.9)
+  which(SEM_AR1$summary[,"Rhat"] > 1.1)
+  mcmcplot(SEM_AR1$samples)
+  save(SEM_AR1, file = paste0("./Outputs/SEM/JAGS_out/SEM_AR1_", Sys.Date(), ".RData"))
+  
   #####  Top-down model  #####
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown.R")
   start.time = Sys.time()
@@ -227,23 +238,6 @@
   which(SEM_topdown$summary[,"Rhat"] > 1.1)
   mcmcplot(SEM_topdown$samples)
   save(SEM_topdown, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_", Sys.Date(), ".RData"))
-  
-  # #####  Interference competition model  #####
-  # source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_inter.R")
-  # start.time = Sys.time()
-  # SEM_inter <- jags(data_JAGS_bundle_inter, inits = initsList_inter, params, 
-  #                           "./Outputs/SEM/JAGS_out/JAGS_SEM_inter.txt",
-  #                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-  #                           n.burnin = nb, parallel = TRUE)
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # print(SEM_inter$summary)  
-  # which(SEM_inter$summary[,"Rhat"] < 0.9) 
-  # which(SEM_inter$summary[,"Rhat"] > 1.1) 
-  # mcmcplot(SEM_inter$samples)
-  # save(SEM_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_inter_", Sys.Date(), ".RData"))
-  
-  #'  NOT CONSIDERING THIS MODEL B/C PREDATOR-PREY RELATIONSHIPS IGNORED IF ONLY EVALUATING
-  #'  INTERFERENCE COMPETITION AMONG PREDATORS
   
   #####  Top-down, interference model  #####
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter.R")
@@ -275,37 +269,35 @@
   which(SEM_topdown_inter_reduced$summary[,"Rhat"] < 0.9)    
   which(SEM_topdown_inter_reduced$summary[,"Rhat"] > 1.1)    
   mcmcplot(SEM_topdown_inter_reduced$samples)
-  save(SEM_topdown_inter_reduced, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_inter__reduced_", Sys.Date(), ".RData"))
-  
-  
-  #' #'  Same model but no random effect for cluster
-  #' source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_no_clusterRE.R")
-  #' start.time = Sys.time()
-  #' SEM_topdown_inter <- jags(data_JAGS_bundle_topinter, inits = initsList_topinter, params,
-  #'                           "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_no_clusterRE.txt",
-  #'                           n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni,
-  #'                           n.burnin = nb, parallel = TRUE)
-  #' end.time <- Sys.time(); (run.time <- end.time - start.time)
-  #' print(SEM_topdown_inter$summary)
-  #' which(SEM_topdown_inter$summary[,"Rhat"] < 0.9)
-  #' which(SEM_topdown_inter$summary[,"Rhat"] > 1.1)
-  #' mcmcplot(SEM_topdown_inter$samples)
-  #' save(SEM_topdown_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_inter_no_clusterRE_", Sys.Date(), ".RData"))
-  
+  save(SEM_topdown_inter_reduced, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_inter_reduced_", Sys.Date(), ".RData"))
 
-  #####  Top-down, exploitative model  #####  
-  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_exploit.R")
+  # #####  Top-down, exploitative model  #####  
+  # source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_exploit.R")
+  # start.time = Sys.time()
+  # SEM_topdown_exploit <- jags(data_JAGS_bundle_topexploit, inits = initsList_topexploit, params, 
+  #                             "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_exploit.txt",
+  #                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+  #                             n.burnin = nb, parallel = TRUE)
+  # end.time <- Sys.time(); (run.time <- end.time - start.time)
+  # print(SEM_topdown_exploit$summary)
+  # which(SEM_topdown_exploit$summary[,"Rhat"] < 0.9)
+  # which(SEM_topdown_exploit$summary[,"Rhat"] > 1.1)
+  # mcmcplot(SEM_topdown_exploit$samples)
+  # save(SEM_topdown_exploit, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_exploit_", Sys.Date(), ".RData"))
+  
+  #####  Bottom-up model  #####  
+  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup.R")
   start.time = Sys.time()
-  SEM_topdown_exploit <- jags(data_JAGS_bundle_topexploit, inits = initsList_topexploit, params, 
-                              "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_exploit.txt",
-                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                              n.burnin = nb, parallel = TRUE)
+  SEM_bottomup <- jags(data_JAGS_bundle_bottom, inits = initsList_bottomup, params, 
+                             "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup.txt",
+                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(SEM_topdown_exploit$summary)
-  which(SEM_topdown_exploit$summary[,"Rhat"] < 0.9)
-  which(SEM_topdown_exploit$summary[,"Rhat"] > 1.1)
-  mcmcplot(SEM_topdown_exploit$samples)
-  save(SEM_topdown_exploit, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_exploit_", Sys.Date(), ".RData"))
+  print(SEM_bottomup$summary)
+  which(SEM_bottomup$summary[,"Rhat"] < 0.9)
+  which(SEM_bottomup$summary[,"Rhat"] > 1.1)
+  mcmcplot(SEM_bottomup$samples)
+  save(SEM_bottomup, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_", Sys.Date(), ".RData"))
   
   #####  Bottom-up, interference model  #####  
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_inter.R")
@@ -316,22 +308,26 @@
                              n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   print(SEM_bottomup_inter$summary)
+  which(SEM_bottomup_inter$summary[,"Rhat"] < 0.9)
   which(SEM_bottomup_inter$summary[,"Rhat"] > 1.1)
   mcmcplot(SEM_bottomup_inter$samples)
   save(SEM_bottomup_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_inter_", Sys.Date(), ".RData"))
   
-  #####  Bottom-up, exploitative model  #####  
-  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_exploit.R")
+  #####  Top-down, Bottom-up model  #####  
+  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_bottomup.R")
   start.time = Sys.time()
-  SEM_bottomup_exploit <- jags(data_JAGS_bundle_bottomexploit, inits = initsList_bottomexploit, params, 
-                               "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_exploit.txt",
-                               n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                               n.burnin = nb, parallel = TRUE)
+  SEM_topdown_bottomup <- jags(data_JAGS_bundle_topbottom, inits = initsList_topbottom, params, 
+                             "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_bottomup.txt",
+                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(SEM_bottomup_exploit$summary)
-  which(SEM_bottomup_exploit$summary[,"Rhat"] > 1.1)
-  mcmcplot(SEM_bottomup_exploit$samples)
-  save(SEM_bottomup_exploit, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_exploit_", Sys.Date(), ".RData"))
+  print(SEM_topdown_bottomup$summary)
+  which(SEM_topdown_bottomup$summary[,"Rhat"] < 0.9)
+  which(SEM_topdown_bottomup$summary[,"Rhat"] > 1.1)
+  mcmcplot(SEM_topdown_bottomup$samples)
+  save(SEM_topdown_bottomup, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_bottomup_", Sys.Date(), ".RData"))
+  
+  
   
   
   
