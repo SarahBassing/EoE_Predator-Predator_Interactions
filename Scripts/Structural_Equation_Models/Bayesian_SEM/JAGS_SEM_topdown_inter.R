@@ -53,17 +53,23 @@
       #'  Define priors
       #'  -------------
       #'  Priors for intercepts
-      for(k in 1:nSpp) {
-        beta.int[k] ~ dnorm(0, 0.01)  
+      #'  Use more informed prior for lion intercept
+      beta.int[1] ~ dnorm(0, 1) # poor convergence with weaker priors
+      beta.int.tmin1[1] ~ dnorm(0, 0.01)
+      
+      #'  Intercept priors for all other species (note, intercept prior for wolf is beta.int[2])
+      for(k in 2:nSpp) {
+        beta.int[k] ~ dnorm(0, 0.01) 
+        beta.int.tmin1[k] ~ dnorm(0, 0.01)
       }
       
       #'  Priors for species lag effects
+      #'  As a reminder: precision = 0.01 --> sqrt(0.01^-1) --> SD = 10
       for(w in 1:nWolf) {
-        beta.wolf[w] ~ dnorm(0, 0.01)  # precision = 0.01 --> sqrt(0.01^-1) --> SD = 10
-        beta.int.tmin1[w] ~ dnorm(0, 0.01)
+        beta.wolf[w] ~ dnorm(0, 0.1)  # using more informed prior to help convergence
       }
       for(l in 1:nLion) {
-        beta.lion[l] ~ dnorm(0, 0.01)
+        beta.lion[l] ~ dnorm(0, 1)  # poor convergence with weaker priors
       }
       for(b in 1:nBear) {
         beta.bear[b] ~ dnorm(0, 0.01)
@@ -105,20 +111,42 @@
       }
       
       #' #'  Priors for random intercept term for clusters
-      #' #'  Assuming all clusters for a given species share same variance (constant
-      #' #'  across clusters for each species), but each cluster has its own deviation
-      #' #'  from the global mean.
+      #' #'  Using Half-Cauchy distribution to help avoid hitting arbitrary boundaries
+      #' #'  and improve behavior near 0. Half-Cauchy distribution can be represented
+      #' #'  as a mixture of the Normal and Inverse-Gamma distribution (JAGS does not
+      #' #'  have a built-in function of Half-Cauchy).
+      #' 
+      #' #'  Define scale paramter (represents median of distribution)
+      #' #'  Expresses prior belief of typical SD for cluster-level random effect
+      #' scale <- 0.1  #  keep scale of standardized RDIs in mind
+      #' 
+      #' #' #'  Assuming all clusters for all species share same variance (constant
+      #' #' #'  across clusters for all species), but each cluster has its own deviation
+      #' #' #'  from the global mean.
+      #' #' for(i in 1:nCluster) {
+      #' #'   #'  Draw random value from gamma distribution
+      #' #'   aux[i] ~ dgamma(0.5, 0.5)
+      #' #'   #'  Draw random value from normal distribution using squared scale * aux
+      #' #'   #'  value as the variance, 1/var = precision. Then truncating at zero to
+      #' #'   #'  create a Half-Cauchy distribution.
+      #' #'   sigma.cluster[i] ~ dnorm(0, 1 / (pow(scale, 2) * aux[i])) T(0,)
+      #' #'     
+      #' #'   tau.cluster[i] <- 1 / pow(sigma.cluster[i], 2)
+      #' #'   cluster.randeff[i] ~ dnorm(0, tau.cluster[i])
+      #' #' }
+      #' 
+      #'  Assuming all clusters for a given species share same variance (constant
+      #'  across clusters for each species), but each cluster has its own deviation
+      #'  from the global mean.
       #' for(k in 1:nSpp) {
-      #'   sigma.cluster[k] ~ dunif(0, 10) # dnorm(0, 0.01) T(0,)      
+      #'   aux[k] ~ dgamma(0.5, 0.5)
+      #'   sigma.cluster[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
       #'   tau.cluster[k] <- 1 / pow(sigma.cluster[k], 2)
-      #'   
+      #' 
       #'   for(i in 1:nCluster) {
       #'     cluster.randeff[k,i] ~ dnorm(0, tau.cluster[k])
       #'   }
       #' }
-      #'  dnorm(0, 0.01) T(0,) a few not converging well; posteriors quite large compared to beta coefficients
-      #'  dunif(0, 10) most are just returning the prior, a few have poor convergence
-      #'  dnorm seems to be the better prior if sticking with a species - cluster random effect
       
       #'  Likelihood
       #'  ----------
@@ -172,16 +200,16 @@
       #'  A random effect is also included for repeat measures at the cluster-level. 
       for(i in 1:nCluster) {
         wolf.t[i] ~ dnorm(mu.wolf.t[i], tau.spp[1])
-        mu.wolf.t[i] <- beta.int[1] + beta.wolf[1] * wolf.tmin1[i] + beta.harvest[1] * wolfHarv.tmin1[i] #+ cluster.randeff[1,i] 
+        mu.wolf.t[i] <- beta.int[2] + beta.wolf[1] * wolf.tmin1[i] + beta.harvest[1] * wolfHarv.tmin1[i] #+ cluster.randeff[1,i]
         
         wolf.tmin1[i] ~ dnorm(mu.wolf.tmin1[i], tau.spp.tmin1[1])
-        mu.wolf.tmin1[i] <- beta.int.tmin1[1]
+        mu.wolf.tmin1[i] <- beta.int.tmin1[2]
         
         lion.t[i] ~ dnorm(mu.lion.t[i], tau.spp[2])  
-        mu.lion.t[i] <- beta.int[2] + beta.lion[1] * lion.tmin1[i] + beta.wolf[2] * wolf.tmin1[i] #+ beta.bear[2] * bear.tmin1[i] + beta.harvest[2] * lionHarv.tmin1[i] #+ cluster.randeff[2,i]
+        mu.lion.t[i] <- beta.int[1] + beta.lion[1] * lion.tmin1[i] + beta.wolf[2] * wolf.tmin1[i] + beta.bear[2] * bear.tmin1[i] + beta.harvest[2] * lionHarv.tmin1[i] #+ cluster.randeff[2,i]
         
         lion.tmin1[i] ~ dnorm(mu.lion.tmin1[i], tau.spp.tmin1[2])
-        mu.lion.tmin1[i] <- beta.int.tmin1[2] 
+        mu.lion.tmin1[i] <- beta.int.tmin1[1] 
         
         bear.t[i] ~ dnorm(mu.bear.t[i], tau.spp[3]) 
         mu.bear.t[i] <- beta.int[3] + beta.bear[1] * bear.tmin1[i] + beta.wolf[3] * wolf.tmin1[i] + beta.harvest[3] * bearHarv.tmin1[i] #+ cluster.randeff[3,i]
@@ -190,13 +218,13 @@
         mu.bear.tmin1[i] <- beta.int.tmin1[3] 
 
         coy.t[i] ~ dnorm(mu.coy.t[i], tau.spp[4])
-        mu.coy.t[i] <- beta.int[4] + beta.coy[1] * coy.tmin1[i] + beta.wolf[4] * wolf.tmin1[i] + beta.lion[2] * lion.tmin1[i] #+ beta.bear[3] * bear.tmin1[i] #+ cluster.randeff[4,i]
+        mu.coy.t[i] <- beta.int[4] + beta.coy[1] * coy.tmin1[i] + beta.wolf[4] * wolf.tmin1[i] + beta.lion[2] * lion.tmin1[i] + beta.bear[3] * bear.tmin1[i] #+ cluster.randeff[4,i]
 
         coy.tmin1[i] ~ dnorm(mu.coy.tmin1[i], tau.spp.tmin1[4])
         mu.coy.tmin1[i] <- beta.int.tmin1[4] 
         
         elk.t[i] ~ dnorm(mu.elk.t[i], tau.spp[5])
-        mu.elk.t[i] <- beta.int[5] + beta.elk[1] * elk.tmin1[i] + beta.wolf[5] * wolf.tmin1[i] + beta.lion[3] * lion.tmin1[i] #+ beta.bear[4] * bear.tmin1[i] + beta.harvest[4] * elkHarv.tmin1[i] #+ cluster.randeff[5,i]
+        mu.elk.t[i] <- beta.int[5] + beta.elk[1] * elk.tmin1[i] + beta.wolf[5] * wolf.tmin1[i] + beta.lion[3] * lion.tmin1[i] + beta.bear[4] * bear.tmin1[i] + beta.harvest[4] * elkHarv.tmin1[i] #+ cluster.randeff[5,i]
 
         elk.tmin1[i] ~ dnorm(mu.elk.tmin1[i], tau.spp.tmin1[5])
         mu.elk.tmin1[i] <- beta.int.tmin1[5]
@@ -208,7 +236,7 @@
         mu.moose.tmin1[i] <- beta.int.tmin1[6]
         
         wtd.t[i] ~ dnorm(mu.wtd.t[i], tau.spp[7])
-        mu.wtd.t[i] <- beta.int[7] + beta.wtd[1] * wtd.tmin1[i] + beta.wolf[7] * wolf.tmin1[i] + beta.lion[4] * lion.tmin1[i] #+ beta.bear[5] * bear.tmin1[i] + beta.coy[2] * coy.tmin1[i] + beta.harvest[6] * deerHarv.tmin1[i] #+ cluster.randeff[7,i]
+        mu.wtd.t[i] <- beta.int[7] + beta.wtd[1] * wtd.tmin1[i] + beta.wolf[7] * wolf.tmin1[i] + beta.lion[4] * lion.tmin1[i] + beta.bear[5] * bear.tmin1[i] + beta.coy[2] * coy.tmin1[i] + beta.harvest[6] * deerHarv.tmin1[i] #+ cluster.randeff[7,i]
         
         wtd.tmin1[i] ~ dnorm(mu.wtd.tmin1[i], tau.spp.tmin1[7])
         mu.wtd.tmin1[i] <- beta.int.tmin1[7] 
