@@ -114,7 +114,7 @@
       #'   tau.spp.tmin1[k] <- 1 / pow(sigma.spp.tmin1[k], 2)
       #' }
       
-      #'  Alternate prior for latent variable SD
+      #'  Alternate Half-Cauchy prior for latent variable SD
       #'  Define scale paramter (represents median of distribution)
       #'  Expresses prior belief of typical SD for latent variable
       scale <- 1  #  keep scale of standardized RDIs in mind
@@ -134,7 +134,6 @@
       }
       
       
-      
       #'  Likelihood
       #'  ----------
       #'  Measurement error from RN models for each species and cluster-level RDI
@@ -144,7 +143,7 @@
         #'  RN model posterior means (spp.t_hat) arise from latent true RDI (spp.t).
         #'  RDI estimates from RN model are a noisy observation of true RDI,
         #'  governed by the true RDI and observed variability. True RDI (spp.t) are
-        #'  determined by hypothesized ecological factors in likelihood.
+        #'  determined by hypothesized ecological factors below.
         wolf.t_hat[i] ~ dnorm(wolf.t[i], wolf.t.tau_hat[i])
         wolf.tmin1_hat[i] ~ dnorm(wolf.tmin1[i], wolf.tmin1.tau_hat[i])
         lion.t_hat[i] ~ dnorm(lion.t[i], lion.t.tau_hat[i])
