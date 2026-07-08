@@ -98,15 +98,34 @@
       #   beta.forest[f] ~ dnorm(0, 0.01)
       # }
       
-      #'  SD prior for each regression and latent variables          
+      #' #'  SD prior for each regression and latent variables          
+      #' for(k in 1:nSpp) {
+      #'   #'  time step t regression
+      #'   sigma.spp[k] ~ dunif(0, 10)
+      #'   tau.spp[k] <- 1 / pow(sigma.spp[k], 2)
+      #'   
+      #'   #'  time step t-1 lantent variables (i.e., random effect explaining 
+      #'   #'  variation around the true ecological state)
+      #'   sigma.spp.tmin1[k] ~ dunif(0, 10)
+      #'   tau.spp.tmin1[k] <- 1 / pow(sigma.spp.tmin1[k], 2)
+      #' }
+      
+      #'  Alternate Half-Cauchy prior for latent variable SD
+      #'  Define scale paramter (represents median of distribution)
+      #'  Expresses prior belief of typical SD for latent variable
+      scale <- 1  #  keep scale of standardized RDIs in mind
       for(k in 1:nSpp) {
+        #'  Draw random value from gamma distribution
+        aux[k] ~ dgamma(0.5, 0.5)
+        #'  Draw random value from normal distribution using squared scale * aux
+        #'  value as the variance, 1/var = precision. Then truncating at zero to
+        #'  create a Half-Cauchy distribution.
         #'  time step t regression
-        sigma.spp[k] ~ dunif(0, 10)
+        sigma.spp[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
         tau.spp[k] <- 1 / pow(sigma.spp[k], 2)
-        
-        #'  time step t-1 lantent variables (i.e., random effect explaining 
+        #'  time step t-1 lantent variables (i.e., random effect explaining
         #'  variation around the true ecological state)
-        sigma.spp.tmin1[k] ~ dunif(0, 10)
+        sigma.spp.tmin1[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
         tau.spp.tmin1[k] <- 1 / pow(sigma.spp.tmin1[k], 2)
       }
       
