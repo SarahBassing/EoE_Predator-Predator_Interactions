@@ -115,7 +115,7 @@
       #'   tau.spp.tmin1[k] <- 1 / pow(sigma.spp.tmin1[k], 2)
       #' }
       
-      #'  Alternate prior for latent variable SD
+      #'  Alternate Half-Cauchy prior for latent variable SD
       #'  Define scale paramter (represents median of distribution)
       #'  Expresses prior belief of typical SD for latent variable
       scale <- 1  #  keep scale of standardized RDIs in mind
