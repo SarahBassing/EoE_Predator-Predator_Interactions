@@ -1,52 +1,52 @@
-#'  --------------------------------------------------------
-#'  JAGS model: top-down, interference SEM
-#'  
-#'  Model description: 
-#'    Structural equation model testing hypothesis that top-down processes and 
-#'    interference competition among predators most strongly determine the summer 
-#'    relative density indices of species in Northern Idaho's medium- and large-
-#'    bodied wildlife community. Model includes 1 year lag effect where the relative 
-#'    density of a species in the current time step [t] is affected by the relative 
-#'    density of itself, other species, and harvest from the previous time step [t-1].
-#'  
-#'  Parameters:
-#'    beta.int: intercept for each regression
-#'    beta.wolf: effect of wolf relative density index from previous time step
-#'    beta.lion: effect of mountain lion relative density index from previous time step
-#'    beta.bear: effect of black bear relative density index from previous time step
-#'    beta.coy: effect of coyote relative density index from previous time step
-#'    beta.elk: effect of elk relative density index from previous time step
-#'    beta.moose: effect of moose relative density index from previous time step
-#'    beta.wtd: effect of white-tailed deer relative density index from previous time step
-#'    beta.wolfharvest: effect of wolf harvest from previous time step
-#'    beta.lionharvest: effect of lion harvest from previous time step
-#'    beta.bearharvest: effect of bear harvest from previous time step
-#'    beta.elkharvest: effect of elk harvest from previous time step
-#'    beta.mooseharvest: effect of moose harvest from previous time step
-#'    beta.deerharvest: effect of deer harvest from previous time step
-#'    beta.wsi: effect of GMU-wide winter severity  from previous time step
-#'    beta.forest: effect of proportion of forest disturbance from previous 20 years
-#'    sigma.cluster: random effect for cluster (accounting for repeat measures across time step)
-#'  
-#'  Indices:
-#'    k: number of species (nSpp, 1:7), where
-#'       1 = wolf, 2 = mountain lion, 3 = black bear, 4 = coyote, 5 = elk, 6 = moose, 7 = white-tailed deer
-#'    t: number of time steps (nTimesetp, 1:3)
-#'    w: number of betas for 1-yr lag wolf effect (nWolf, 1:7), where
-#'       1 = 1L auto-regressive term in wolf regression, 2:7 = wolf effect on other species
-#'    l: number of betas for 1-yr lag mountain lion effect (nLion, 1:4, see w for details)
-#'    b: number of betas for 1-yr lag black bear effect (nBear, 1:5, see w for details)
-#'    c: number of betas for 1-yr lag coyote effect (nCoy, 1:2, see w for details)
-#'    e: number of betas for 1-yr lag elk effect (nElk, 1, see w for details)
-#'    m: number of betas for 1-yr lag moose effect (nMoose, 1, see w for details)
-#'    d: number of betas for 1-yr lag white-tailed deer effect (nDeer, 1, see w for details)
-#'    h: number of betas for 1-yr lag harvest effect (nharvest, 1:6, one per species except coy)
-#'    f: number of betas for 1-yr lag forest effect (nforest, 0)
-#'    s: number of betas for 1-yr lag winter severity effect (nWSI, 0)
-#'    i: number of clusters (nCluster, 1:23), where
-#'       each cluster represents the area over which species-specific RDI, harvest,
-#'       forest and WSI variables were generated from
-#'  --------------------------------------------------------
+  #'  --------------------------------------------------------
+  #'  JAGS model: top-down, interference SEM
+  #'  
+  #'  Model description: 
+  #'    Structural equation model testing hypothesis that top-down processes and 
+  #'    interference competition among predators most strongly determine the summer 
+  #'    relative density indices of species in Northern Idaho's medium- and large-
+  #'    bodied wildlife community. Model includes 1 year lag effect where the relative 
+  #'    density of a species in the current time step [t] is affected by the relative 
+  #'    density of itself, other species, and harvest from the previous time step [t-1].
+  #'  
+  #'  Parameters:
+  #'    beta.int: intercept for each regression
+  #'    beta.wolf: effect of wolf relative density index from previous time step
+  #'    beta.lion: effect of mountain lion relative density index from previous time step
+  #'    beta.bear: effect of black bear relative density index from previous time step
+  #'    beta.coy: effect of coyote relative density index from previous time step
+  #'    beta.elk: effect of elk relative density index from previous time step
+  #'    beta.moose: effect of moose relative density index from previous time step
+  #'    beta.wtd: effect of white-tailed deer relative density index from previous time step
+  #'    beta.wolfharvest: effect of wolf harvest from previous time step
+  #'    beta.lionharvest: effect of lion harvest from previous time step
+  #'    beta.bearharvest: effect of bear harvest from previous time step
+  #'    beta.elkharvest: effect of elk harvest from previous time step
+  #'    beta.mooseharvest: effect of moose harvest from previous time step
+  #'    beta.deerharvest: effect of deer harvest from previous time step
+  #'    beta.wsi: effect of GMU-wide winter severity  from previous time step
+  #'    beta.forest: effect of proportion of forest disturbance from previous 20 years
+  #'    sigma.cluster: random effect for cluster (accounting for repeat measures across time step)
+  #'  
+  #'  Indices:
+  #'    k: number of species (nSpp, 1:7), where
+  #'       1 = wolf, 2 = mountain lion, 3 = black bear, 4 = coyote, 5 = elk, 6 = moose, 7 = white-tailed deer
+  #'    t: number of time steps (nTimesetp, 1:3)
+  #'    w: number of betas for 1-yr lag wolf effect (nWolf, 1:7), where
+  #'       1 = 1L auto-regressive term in wolf regression, 2:7 = wolf effect on other species
+  #'    l: number of betas for 1-yr lag mountain lion effect (nLion, 1:4, see w for details)
+  #'    b: number of betas for 1-yr lag black bear effect (nBear, 1:5, see w for details)
+  #'    c: number of betas for 1-yr lag coyote effect (nCoy, 1:2, see w for details)
+  #'    e: number of betas for 1-yr lag elk effect (nElk, 1, see w for details)
+  #'    m: number of betas for 1-yr lag moose effect (nMoose, 1, see w for details)
+  #'    d: number of betas for 1-yr lag white-tailed deer effect (nDeer, 1, see w for details)
+  #'    h: number of betas for 1-yr lag harvest effect (nharvest, 1:6, one per species except coy)
+  #'    f: number of betas for 1-yr lag forest effect (nforest, 0)
+  #'    s: number of betas for 1-yr lag winter severity effect (nWSI, 0)
+  #'    i: number of clusters (nCluster, 1:23), where
+  #'       each cluster represents the area over which species-specific RDI, harvest,
+  #'       forest and WSI variables were generated from
+  #'  --------------------------------------------------------
   cat(file = './Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter.txt', "
       model{
       
@@ -98,15 +98,34 @@
       #   beta.forest[f] ~ dnorm(0, 0.01)
       # }
       
-      #'  SD prior for each regression and latent variables          
+      #' #'  SD prior for each regression and latent variables          
+      #' for(k in 1:nSpp) {
+      #'   #'  time step t regression
+      #'   sigma.spp[k] ~ dunif(0, 10)
+      #'   tau.spp[k] <- 1 / pow(sigma.spp[k], 2)
+      #'   
+      #'   #'  time step t-1 lantent variables (i.e., random effect explaining 
+      #'   #'  variation around the true ecological state)
+      #'   sigma.spp.tmin1[k] ~ dunif(0, 10)
+      #'   tau.spp.tmin1[k] <- 1 / pow(sigma.spp.tmin1[k], 2)
+      #' }
+      
+      #'  Alternate Half-Cauchy prior for latent variable SD
+      #'  Define scale paramter (represents median of distribution)
+      #'  Expresses prior belief of typical SD for latent variable
+      scale <- 1  #  keep scale of standardized RDIs in mind
       for(k in 1:nSpp) {
+        #'  Draw random value from gamma distribution
+        aux[k] ~ dgamma(0.5, 0.5)
+        #'  Draw random value from normal distribution using squared scale * aux
+        #'  value as the variance, 1/var = precision. Then truncating at zero to
+        #'  create a Half-Cauchy distribution.
         #'  time step t regression
-        sigma.spp[k] ~ dunif(0, 10)
+        sigma.spp[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
         tau.spp[k] <- 1 / pow(sigma.spp[k], 2)
-        
-        #'  time step t-1 lantent variables (i.e., random effect explaining 
+        #'  time step t-1 lantent variables (i.e., random effect explaining
         #'  variation around the true ecological state)
-        sigma.spp.tmin1[k] ~ dunif(0, 10)
+        sigma.spp.tmin1[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
         tau.spp.tmin1[k] <- 1 / pow(sigma.spp.tmin1[k], 2)
       }
       
