@@ -246,7 +246,7 @@
   bs_topdown_skinny[[38]] # coy.t and bear.t are independent given coy.tmin1, bearHarv.tmin1 and bear.tmin1
   d_Sep38 <- run_jags()
   p.rope(y = data_JAGS_bundle_top$bear.t_hat, post = d_Sep38$sims.list$beta.coy[,2])  # 0.001933333
-  ############  ADD TO SEM  #############
+  ############  ADD TO SEM.... BUT PROBABLY NOT - Not biologically reasonable  #############
   
   #' #'  Excluding this test b/c not biologically possible (time t cannot affect time t-1)
   #' bs_topdown_skinny[[39]] # coy.t and lionHarv.tmin1 are independent given coy.tmin1
@@ -273,7 +273,7 @@
   bs_topdown_skinny[[44]] # coy.t and wtd.t are independent given coy.tmin1, deerHarv.tmin1, wtd.tmin1, bear.tmin1, lion.tmin1 and wolf.tmin1
   d_Sep44 <- run_jags()
   p.rope(y = data_JAGS_bundle_top$wtd.t_hat, post = d_Sep44$sims.list$beta.coy[,2]) # 0.001066667
-  ############  ADD TO SEM  #############
+  ############  ADD TO SEM.... BUT PROBABLY NOT - Not biologically reasonable  #############
   
   bs_topdown_skinny[[45]] # coy.t and moose.t are independent given coy.tmin1, moose.tmin1 and wolf.tmin1
   d_Sep45 <- run_jags()
@@ -324,7 +324,7 @@
   bs_topdown_skinny[[55]] # bear.tmin1 and wolf.t are independent given wolfHarv.tmin1 and wolf.tmin1
   d_Sep55 <- run_jags()
   p.rope(y = data_JAGS_bundle_top$wolf.t_hat, post = d_Sep55$sims.list$beta.bear[,1]) # 0.009
-  ############  ADD TO SEM.... BUT PROBABLY NOT - Not biologically reasonable  #############
+  ############  ADD TO SEM  #############
   
   #' bs_topdown_skinny[[56]] # bear.t and lionHarv.tmin1 are independent given bearHarv.tmin1 and bear.tmin1
   #' d_Sep56 <- run_jags()
