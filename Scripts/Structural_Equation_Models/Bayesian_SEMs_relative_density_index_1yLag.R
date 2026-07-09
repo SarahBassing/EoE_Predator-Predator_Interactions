@@ -239,6 +239,30 @@
   mcmcplot(SEM_topdown$samples)
   save(SEM_topdown, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_", Sys.Date(), ".RData"))
   
+  #####  Top-down after d-sep  #####
+  #'  Update JAGS inputs
+  data_JAGS_bundle_top_final <- bundle_dat(post_summaries, covs = covs_ztransformed, 
+                                           nwolf = 2, nlion = 5, nbear = 2,  ncoy = 1, nelk = 1, 
+                                           nmoose = 1, nwtd = 1, nharv = 1, nfor = 0, nwsi = 0)
+  initsList_topdown_final <- vector('list', num.chains)
+  for(i in 1:num.chains){
+    initsList_topdown_final[[i]] <- generate_inits(nwolf = 2, nlion = 5, nbear = 2, ncoy = 1, nelk = 1, 
+                                                   nmoose = 1, nwtd = 1, nharv = 1, nfor = 0, nwsi = 0)
+  }
+  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_final.R")
+  start.time = Sys.time()
+  SEM_topdown_final <- jags(data_JAGS_bundle_top_final, inits = initsList_topdown_final, params, 
+                      "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_final.txt",
+                      n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
+                      n.burnin = nb, parallel = TRUE)
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  print(SEM_topdown_final$summary)  
+  which(SEM_topdown_final$summary[,"Rhat"] < 0.9)
+  which(SEM_topdown_final$summary[,"Rhat"] > 1.1)
+  mcmcplot(SEM_topdown_final$samples)
+  save(SEM_topdown_final, file = paste0("./Outputs/SEM/JAGS_out/SEM_topdown_final_", Sys.Date(), ".RData"))
+  
+  
   #####  Top-down, interference model  #####
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter.R")
   start.time = Sys.time()
