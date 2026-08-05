@@ -225,16 +225,14 @@
         mu.wolf.tmin1[i] <- beta.int.tmin1[2]
         
         lion.t[i] ~ dnorm(mu.lion.t[i], tau.spp[2])  
-        mu.lion.t[i] <- beta.int[1] + beta.lion[1] * lion.tmin1[i] + beta.wolf[2] * wolf.tmin1[i] + beta.bear[2] * bear.tmin1[i]  
-        # consider dropping bear effect - assuming mainly exploitation competition 
-        # dropped harvest effect
+        mu.lion.t[i] <- beta.int[1] + beta.lion[1] * lion.tmin1[i] + beta.wolf[2] * wolf.tmin1[i] + beta.harvest[2] * lionHarv.tmin1[i]  
+        # dropping bear effect - assuming mainly exploitation competition 
         
         lion.tmin1[i] ~ dnorm(mu.lion.tmin1[i], tau.spp.tmin1[2])
         mu.lion.tmin1[i] <- beta.int.tmin1[1] 
         
         bear.t[i] ~ dnorm(mu.bear.t[i], tau.spp[3]) 
-        mu.bear.t[i] <- beta.int[3] + beta.bear[1] * bear.tmin1[i] + beta.wolf[3] * wolf.tmin1[i]  
-        # dropped harvest effect
+        mu.bear.t[i] <- beta.int[3] + beta.bear[1] * bear.tmin1[i] + beta.wolf[3] * wolf.tmin1[i] + beta.harvest[3] * bearHarv.tmin1[i] 
         
         bear.tmin1[i] ~ dnorm(mu.bear.tmin1[i], tau.spp.tmin1[3]) 
         mu.bear.tmin1[i] <- beta.int.tmin1[3] 
