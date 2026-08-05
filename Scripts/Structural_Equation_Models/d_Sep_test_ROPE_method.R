@@ -121,10 +121,24 @@
     return(basicset_skinny)
   }
   
+  #'  -------------------------------------
+  #####  Top-down model (reduced version)  #####
+  #'  -------------------------------------
+  #'  Generate DAG
+  dag_topdown <- DAG(lion.t ~ lion.tmin1 + lionHarv.tmin1,  
+                     wolf.t ~ wolf.tmin1 + wolfHarv.tmin1,  
+                     bear.t ~ bear.tmin1 + bearHarv.tmin1,  
+                     coy.t ~ coy.tmin1,  
+                     elk.t ~ elk.tmin1 + wolf.tmin1 + lion.tmin1 + elkHarv.tmin1,  
+                     moose.t ~ moose.tmin1 + wolf.tmin1,  
+                     wtd.t ~ wtd.tmin1 + lion.tmin1 + deerHarv.tmin1)  
+  
+  #'  Generate basic set
+  bs_topdown <- basic_set(dag_topdown)
+  
   #'  --------------------------------------------------
   #####  Top-down interference model (reduced version)  #####
   #'  --------------------------------------------------
-  #'  Generate DAG
   dag_topdown_inter <- DAG(lion.t ~ lion.tmin1 + wolf.tmin1 + lionHarv.tmin1,  
                            wolf.t ~ wolf.tmin1 + wolfHarv.tmin1, 
                            bear.t ~ bear.tmin1 + wolf.tmin1 + bearHarv.tmin1,  
@@ -133,25 +147,31 @@
                            moose.t ~ moose.tmin1 + wolf.tmin1,  
                            wtd.t ~ wtd.tmin1 + lion.tmin1) 
   
-  #'  Generate basic set
   bs_topdown_inter <- basic_set(dag_topdown_inter)
-  
-  #'  -------------------------------------
-  #####  Top-down model (reduced version)  #####
-  #'  -------------------------------------
-  dag_topdown
-  bs_topdown <- basic_set(dag_topdown)
   
   #'  --------------------------------------
   #####  Bottom-up model (reduced version)  ####
   #'  --------------------------------------
-  dag_bottomup
+  dag_bottomup <- DAG(lion.t ~ lion.tmin1 + elk.tmin1 + wtd.tmin1,
+                      wolf.t ~ wolf.tmin1 + elk.tmin1 + moose.tmin1,
+                      bear.t ~ bear.tmin1 + elk.tmin1 + forest.tmin1,
+                      coy.t ~ coy.tmin1 + wtd.tmin1,
+                      elk.t ~ elk.tmin1 + forest.tmin1 + wsi.tmin1,
+                      moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
+                      wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
   bs_bottomup <- basic_set(dag_bottomup)
   
   #'  ---------------------------------------------------
   #####  Bottom-up interference model (reduced version)  ####
   #'  ---------------------------------------------------
-  dag_bottomup_inter
+  dag_bottomup_inter <- DAG(lion.t ~ lion.tmin1 + wtd.tmin1 + wolf.tmin1, 
+                            wolf.t ~ wolf.tmin1 + elk.tmin1 + moose.tmin1,
+                            bear.t ~ bear.tmin1 + forest.tmin1 + wolf.tmin1, 
+                            coy.t ~ coy.tmin1 + wtd.tmin1 + wolf.tmin1,
+                            elk.t ~ elk.tmin1 + forest.tmin1 + wsi.tmin1,
+                            moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
+                            wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
+  
   bs_bottomup_inter <- basic_set(dag_bottomup_inter)
   
   #'  ---------------------------------------------
