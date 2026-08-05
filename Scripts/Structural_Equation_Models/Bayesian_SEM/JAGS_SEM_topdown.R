@@ -249,7 +249,9 @@
         mu.coy.tmin1[i] <- beta.int.tmin1[4] 
         
         elk.t[i] ~ dnorm(mu.elk.t[i], tau.spp[5])
-        mu.elk.t[i] <- beta.int[5] + beta.elk[1] * elk.tmin1[i] + beta.wolf[2] * wolf.tmin1[i] + beta.lion[2] * lion.tmin1[i] + beta.bear[2] * bear.tmin1[i] + beta.harvest[4] * elkHarv.tmin1[i] #+ cluster.randeff[5,i]
+        mu.elk.t[i] <- beta.int[5] + beta.elk[1] * elk.tmin1[i] + beta.wolf[2] * wolf.tmin1[i] + beta.lion[2] * lion.tmin1[i] + beta.harvest[4] * elkHarv.tmin1[i] #+ cluster.randeff[5,i]
+        #  Removed beta.bear[2] * bear.tmin1[i] + 
+        #  Assuming wolves and lions are primary predators, bears are incidental and only affect neonates
 
         elk.tmin1[i] ~ dnorm(mu.elk.tmin1[i], tau.spp.tmin1[5])
         mu.elk.tmin1[i] <- beta.int.tmin1[5]
@@ -261,7 +263,9 @@
         mu.moose.tmin1[i] <- beta.int.tmin1[6]
         
         wtd.t[i] ~ dnorm(mu.wtd.t[i], tau.spp[7])
-        mu.wtd.t[i] <- beta.int[7] + beta.wtd[1] * wtd.tmin1[i] + beta.wolf[4] * wolf.tmin1[i] + beta.lion[3] * lion.tmin1[i] + beta.bear[3] * bear.tmin1[i] + beta.coy[2] * coy.tmin1[i] + beta.harvest[6] * deerHarv.tmin1[i] #+ cluster.randeff[7,i]
+        mu.wtd.t[i] <- beta.int[7] + beta.wtd[1] * wtd.tmin1[i] + beta.lion[3] * lion.tmin1[i] + beta.harvest[6] * deerHarv.tmin1[i] #+ cluster.randeff[7,i]
+        #  Removed beta.wolf[4] * wolf.tmin1[i] + beta.bear[3] * bear.tmin1[i] + beta.coy[2] * coy.tmin1[i] + 
+        #  Assuming lions are primary predator, all others or incidental 
         
         wtd.tmin1[i] ~ dnorm(mu.wtd.tmin1[i], tau.spp.tmin1[7])
         mu.wtd.tmin1[i] <- beta.int.tmin1[7] 
