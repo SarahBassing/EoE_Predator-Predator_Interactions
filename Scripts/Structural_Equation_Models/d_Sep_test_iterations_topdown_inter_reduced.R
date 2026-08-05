@@ -16,6 +16,9 @@
   #'            7 = wtd 
   #'  -- covariates: vector that include the covariates included in the SEM 
   #'     a priori, plus the one needed for the conditional independence test.
+  #'     NOTE: the last covariate in this vector should always be the explanatory
+  #'     variable you are testing the independence claim on. This will make life
+  #'     easier when using the p.rope function in d_Sep_test_ROPE_method.R
   #'  -- spp: vector containing the suffex of each parameter name to be appended
   #'     to "beta" in the model template. Must include a period before the term's
   #'     name to work.
