@@ -205,7 +205,9 @@
         mu.bear.tmin1[i] <- beta.int.tmin1[3] 
 
         coy.t[i] ~ dnorm(mu.coy.t[i], tau.spp[4])
-        mu.coy.t[i] <- beta.int[4] + beta.coy[1] * coy.tmin1[i] + beta.elk[5] * elk.tmin1[i] + beta.wtd[3] * wtd.tmin1[i]
+        mu.coy.t[i] <- beta.int[4] + beta.coy[1] * coy.tmin1[i] + beta.wtd[3] * wtd.tmin1[i]
+        #  Removed beta.elk[5] * elk.tmin1[i] + 
+        #  Assuming only neonates have any affect on coyotes and only for short period of time
 
         coy.tmin1[i] ~ dnorm(mu.coy.tmin1[i], tau.spp.tmin1[4])
         mu.coy.tmin1[i] <- beta.int.tmin1[4] 
