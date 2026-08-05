@@ -1,5 +1,5 @@
   #'  -----------------------------------
-  #'  D-separation tests with ROPE method
+  #'  D-separation tests with ROPE method: Top-down Hypothesis
   #'  Sarah Bassing & Matt Falcy
   #'  July 2026
   #'  -----------------------------------
@@ -15,8 +15,56 @@
   # BiocManager::install("graph")
   library(ggm) # for DAG() and basiSet(), which retrieves the basis set
   library(jagsUI)
-  #library(R2jags)
+  library(mcmcplots)
+  library(tidyverse)
   
+  #'  --------------------------------------
+  ####  Prepare data and settings for JAGS  ####
+  #'  --------------------------------------
+  #'  Run script that formats covariate data
+  source("./Scripts/Structural_Equation_Models/Format_spatial_covariates_for_SEMs.R") 
+  
+  #'  Run script that formats density data for SEMs
+  source("./Scripts/Structural_Equation_Models/Format_RNmodel_Posteriors_for_SEM.R")
+  
+  #'  Set options so all no rows are omitted in model output
+  options(max.print = 9999)
+  
+  #'  Source functions to setup data for JAGS
+  source("./Scripts/Structural_Equation_Models/JAGS_setup_functions.R")
+  
+  #'  Bundle data for reduced version of top-down  model
+  data_JAGS_bundle_top <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 4, nlion = 3, nbear = 3, 
+                                     ncoy = 2, nelk = 2, nmoose = 2, nwtd = 2, nharv = 6, nfor = 0, nwsi = 0)
+  
+  #'  Draw initial values for each chain in JAGS
+  #'  Define number of chains
+  num.chains <- 3
+  #'  Create empty list
+  initsList_topdown <- vector('list', num.chains)
+  #'  Setting seed for reproducibility
+  set.seed(6721)
+  #'  Loop through generate_inits function 3 times (1 for each chain) 
+  for(i in 1:num.chains){
+    initsList_topdown[[i]] <- generate_inits(nwolf = 4, nlion = 3, nbear = 3, ncoy = 2, nelk = 2, 
+                                             nmoose = 2, nwtd = 2, nharv = 6, nfor = 0, nwsi = 0)
+  }
+  
+  #'  Parameters monitored
+  params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", 
+              "beta.moose", "beta.wtd", "beta.harvest", "beta.wsi","beta.forest", "beta.road", "beta.public",
+              "sigma.spp", "sigma.spp.tmin1", "sigma.cluster", "cluster.randeff")  
+  
+  #'  MCMC settings
+  nc <- 3
+  ni <- 100000
+  nb <- 50000
+  nt <- 10
+  na <- 5000
+  
+  #'  -----------------------------
+  ####  Directed-Separation Tests  ####
+  #'  -----------------------------
   #'  Define function to establish a region of practical equivalence (ROPE) around
   #'  the null value. This expresses a range of parameter values considered equivalent
   #'  to the null value (0). This range is -pct*sd(y) to pct*sd(y)
@@ -35,7 +83,6 @@
     mean(-pct*sd(y) < post & pct*sd(y) > post)
   }
   
-  
   #'  Generate DAG for top-down model 
   dag_topdown <- DAG(wolf.t ~ wolf.tmin1 + wolfHarv.tmin1,  
                      lion.t ~ lion.tmin1 + lionHarv.tmin1,  
@@ -53,38 +100,35 @@
   View(bs_topdown_skinny)
   #'  Only testing conditional independence claims that are consistent with a priori hypotheses or biologically plausible
   
-  #'  NOTE: MUST RUN LINES 1 - 210 IN Bayesian_SEMs_relative_density_index_1yLag.R BEFORE THIS
-  #'  Update bundled data for JAGS
-  #'  d-Sep test requires a few extra priors for some parameters that weren't needed
-  #'  in the original model so rerunning code to update the bundled data
-  data_JAGS_bundle_top <- bundle_dat(post_summaries, covs = covs_ztransformed, nwolf = 4, nlion = 3, nbear = 3, 
-                                     ncoy = 2, nelk = 2, nmoose = 2, nwtd = 2, nharv = 6, nfor = 0, nwsi = 0)
-  for(i in 1:num.chains){
-    initsList_topdown[[i]] <- generate_inits(nwolf = 4, nlion = 3, nbear = 3, ncoy = 2, nelk = 2, 
-                                             nmoose = 2, nwtd = 2, nharv = 6, nfor = 0, nwsi = 0)
-  }
-  
-  #'  Function to source JAGS script and fit model 
+  #'  Function to source JAGS script and fit model
+  #'  --------------------------------------------- 
   #'  NOTE: The JAGS script must be updated for each conditional independence claim 
-  #'  below. Comment out all unneeded independence claims for each test below. This
-  #'  is tedious but better than having 100s of the same script with 1 line of code difference.
+  #'  below. Comment out all unneeded independence claims in JAGS_SEM_topdown_dsep.R 
+  #'  for each test below. This is tedious but better than having 100s of the same 
+  #'  script with 1 line of code difference.
+  #'  ---------------------------------------------
   run_jags <- function() {
     source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_dsep.R")
-    SEM_topdown_dsep <- jags(data_JAGS_bundle_top, inits = initsList_topdown, params, 
+    SEM_topdown_dsep <- jagsUI::jags(data_JAGS_bundle_top, inits = initsList_topdown, params, 
                              "./Outputs/SEM/JAGS_out/d_Sep/JAGS_SEM_topdown_dsep.txt",
                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                              n.burnin = nb, parallel = TRUE)
     return(SEM_topdown_dsep)
   }
 
+  #'  ---------------------------------
+  #####  Test each independence claim  #####
+  #'  ---------------------------------
   #'  Review specific conditional ind. claim and update JAGS_SEM_topdown_dsep.R script
   bs_topdown_skinny[[1]] # deerHarv.tmin1 and coy.t are independent given coy.tmin1
+  
   #'  Call run_jags function to source JAGS script updated for this conditional ind. claim and fit model
   d_Sep1 <- run_jags()
+  
   #'  Apply ROPE method to standardized original data and posterior of interest
   #'  NOTE THE INDEXING ON POSTERIOR! Make sure to grab correct posterior for each test 
   #'  (JAGS script written flexibly to estimate posteriors for >1 parameter with 
-  #'  same name that go unused in this d-Sep testing process)
+  #'  same name that go unused in this d-Sep testing process so be careful!)
   p.rope(y = data_JAGS_bundle_top$coy.t_hat, post = d_Sep1$sims.list$beta.harvest[,1])  # 0.3752
   
   bs_topdown_skinny[[2]] # deerHarv.tmin1 and bear.t are independent given bearHarv.tmin1 and bear.tmin1
