@@ -52,6 +52,12 @@
       for(h in 1:nharvest) {
         beta.harvest[h] ~ dnorm(0, 0.01)
       }
+      for(f in 1:nforest) {
+        beta.forest[f] ~ dnorm(0, 0.01)
+      }
+      for(s in 1:nWSI) {
+        beta.wsi[s] ~ dnorm(0, 0.01)
+      }
       
       #' Half-Cauchy prior for latent variable SD
       scale <- 1  
