@@ -124,6 +124,19 @@
   #'  ---------------------------
   ####  Basic set for each SEM  ####
   #'  ---------------------------
+  #'  --------------------------------------------------
+  #####  Top-down interference model (reduced version)  #####
+  #'  --------------------------------------------------
+  dag_topdown_inter <- DAG(lion.t ~ lion.tmin1 + wolf.tmin1 + lionHarv.tmin1,  
+                           wolf.t ~ wolf.tmin1 + wolfHarv.tmin1, 
+                           bear.t ~ bear.tmin1 + wolf.tmin1 + bearHarv.tmin1,  
+                           coy.t ~ coy.tmin1 + wolf.tmin1 + lion.tmin1,  
+                           elk.t ~ elk.tmin1 + wolf.tmin1 + lion.tmin1,  
+                           moose.t ~ moose.tmin1 + wolf.tmin1,  
+                           wtd.t ~ wtd.tmin1 + lion.tmin1) 
+  
+  bs_topdown_inter <- basic_set(dag_topdown_inter)
+  
   #'  -------------------------------------
   #####  Top-down model (reduced version)  #####
   #'  -------------------------------------
@@ -139,31 +152,6 @@
   #'  Generate basic set
   bs_topdown <- basic_set(dag_topdown)
   
-  #'  --------------------------------------------------
-  #####  Top-down interference model (reduced version)  #####
-  #'  --------------------------------------------------
-  dag_topdown_inter <- DAG(lion.t ~ lion.tmin1 + wolf.tmin1 + lionHarv.tmin1,  
-                           wolf.t ~ wolf.tmin1 + wolfHarv.tmin1, 
-                           bear.t ~ bear.tmin1 + wolf.tmin1 + bearHarv.tmin1,  
-                           coy.t ~ coy.tmin1 + wolf.tmin1 + lion.tmin1,  
-                           elk.t ~ elk.tmin1 + wolf.tmin1 + lion.tmin1,  
-                           moose.t ~ moose.tmin1 + wolf.tmin1,  
-                           wtd.t ~ wtd.tmin1 + lion.tmin1) 
-  
-  bs_topdown_inter <- basic_set(dag_topdown_inter)
-  
-  #'  --------------------------------------
-  #####  Bottom-up model (reduced version)  ####
-  #'  --------------------------------------
-  dag_bottomup <- DAG(lion.t ~ lion.tmin1 + elk.tmin1 + wtd.tmin1,
-                      wolf.t ~ wolf.tmin1 + elk.tmin1 + moose.tmin1,
-                      bear.t ~ bear.tmin1 + elk.tmin1 + forest.tmin1,
-                      coy.t ~ coy.tmin1 + wtd.tmin1,
-                      elk.t ~ elk.tmin1 + forest.tmin1 + wsi.tmin1,
-                      moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
-                      wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
-  bs_bottomup <- basic_set(dag_bottomup)
-  
   #'  ---------------------------------------------------
   #####  Bottom-up interference model (reduced version)  ####
   #'  ---------------------------------------------------
@@ -176,6 +164,18 @@
                             wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
   
   bs_bottomup_inter <- basic_set(dag_bottomup_inter)
+  
+  #'  --------------------------------------
+  #####  Bottom-up model (reduced version)  ####
+  #'  --------------------------------------
+  dag_bottomup <- DAG(lion.t ~ lion.tmin1 + elk.tmin1 + wtd.tmin1,
+                      wolf.t ~ wolf.tmin1 + elk.tmin1 + moose.tmin1,
+                      bear.t ~ bear.tmin1 + elk.tmin1 + forest.tmin1,
+                      coy.t ~ coy.tmin1 + wtd.tmin1,
+                      elk.t ~ elk.tmin1 + forest.tmin1 + wsi.tmin1,
+                      moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
+                      wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
+  bs_bottomup <- basic_set(dag_bottomup)
   
   #'  ------------------------------------------------------
   ####  Build iterative JAGS models for d-separation tests  ####
@@ -290,8 +290,8 @@
   #'  Script contains list of custom regressions for iterative d-separation tests 
   source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_topdown_inter_reduced.R")
   source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_topdown_reduced.R")
-  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_bottomup_reduced.R")
   source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_bottomup_inter_reduced.R")
+  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_bottomup_reduced.R")
   
   #'  -------------------------------
   ####  Iterate through d-Sep tests  ####
@@ -324,6 +324,19 @@
   )
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   
+  #'  --------------------------------------------
+  #####  Bottom-up interference model iterations  #####
+  #'  --------------------------------------------
+  start.time = Sys.time()
+  #'  Fit and save model iterations
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_bottomup_int),
+    function(i) run_dSep_iterations(i, iterations = dSep_iterations_bottomup_int, template = model_template, 
+                                    data_bundle = data_JAGS_bundle, listInits = initsList, model_name = "BottomUp_Interference"),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
   #'  -------------------------------
   #####  Bottom-up model iterations  #####
   #'  -------------------------------
@@ -335,17 +348,7 @@
     future.seed = TRUE
   )
   
-  #'  --------------------------------------------
-  #####  Bottom-up interference model iterations  #####
-  #'  --------------------------------------------
-  #'  Fit and save model iterations
-  saved_paths <- future_lapply(
-    seq_along(dSep_iterations_bottomup_inter),
-    function(i) run_dSep_iterations(i, iterations = dSep_iterations_bottomup_inter, template = model_template, 
-                                    data_bundle = data_JAGS_bundle, listInits = initsList, model_name = "BottomUp_Interference"),
-    future.seed = TRUE
-  )
- 
+  
   #'  ---------------------------------------------
   ####  Calculate p-values for d-Separation tests  ####
   #'  ---------------------------------------------
@@ -380,6 +383,7 @@
                  data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat,
                  data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,
                  data_JAGS_bundle$lion.t_hat)                                                               #73
+  #'  Leaves you with 70 d-Sep tests that were possible given the constructs of space and time and our data
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
   #'  Pay close attention to the indexing, especially with the beta indices. Most will be [,1]
@@ -438,8 +442,8 @@
   signif_topdown_inter <- p.rope_topdown_inter_df %>%
     filter(p.rope <= 0.1)
   
-  write_csv(p.rope_topdown_inter_df, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topedown_inter.csv")
-  write_csv(signif_topdown_inter, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topedown_inter_with_support.csv")
+  write_csv(p.rope_topdown_inter_df, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topdown_inter.csv")
+  write_csv(signif_topdown_inter, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topdown_inter_with_support.csv")
   
   #'  ------------------------------
   #####  Top-down model iterations  #####
@@ -448,30 +452,32 @@
   all_results_topdown <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/TopDown", full.names = TRUE), readRDS)
   
   #'  Create list of "observed" values of focal response variable, one per d-Sep test
-  y_list <- list(data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat,
-                 data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,
-                 data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat,
-                 data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,
-                 data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat,    #15 (iteration/regression number)
-                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,
-                 data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat,
-                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$moose.t_hat,
-                 data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat,
-                 data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,       #30
-                 data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat,
-                 data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,
-                 data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wtd.t_hat,
-                 data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,
-                 data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat,    #45
-                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat, 
-                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat,      #51 (skipped #52)
-                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat, 
-                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat,      #59 (skipped #58)
-                 data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,       #62 (skipped #63)
-                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat,
-                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$coy.t_hat,
-                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,
-                 data_JAGS_bundle$lion.t_hat)                                                               #73
+  y_list <- list(data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$moose.t_hat,
+                 data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$lion.t_hat,
+                 data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$moose.t_hat,
+                 data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$lion.t_hat,
+                 data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat,      #15 (iteration number)
+                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$lion.t_hat,
+                 data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$moose.t_hat,
+                 data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$lion.t_hat,
+                 data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$moose.t_hat,
+                 data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$lion.t_hat,      #30
+                 data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$wolf.t_hat,
+                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$lion.t_hat,
+                 data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$wolf.t_hat,    #39 (skipped #37, #38, #40, #41)
+                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$lion.t_hat,       #46 (skipped #44 & #45)
+                 data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat,    
+                 data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$moose.t_hat, 
+                 data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat,      
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$wolf.t_hat,    #62 (skipped #59 & #60)
+                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$lion.t_hat,       #67 (skipped #63 & #64)
+                 data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat,       
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$lion.t_hat,
+                 data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat,       #78 (skipped #75 & #76)
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat,       #83 (skipped #80 & #81)
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$elk.t_hat,
+                 data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$lion.t_hat)      #89 
+  #'  Leaves you with 75 d-Sep tests that were possible given the constructs of space and time and our data
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
   #'  Pay close attention to the indexing, especially with the beta indices. Most will be [,1]
@@ -480,32 +486,38 @@
   for(i in 1:length(all_results_topdown)) {
     mod_out[[i]] <- all_results_topdown[[i]]$fit$sims.list
   }
-  post_list_topdown_inter <- list(mod_out[[1]]$beta.wtd[,1], mod_out[[2]]$beta.wtd[,1], mod_out[[3]]$beta.wtd[,1],
-                                  mod_out[[4]]$beta.wtd[,1], mod_out[[5]]$beta.wtd[,1], mod_out[[6]]$beta.wtd[,1],
-                                  mod_out[[7]]$beta.moose[,1], mod_out[[8]]$beta.moose[,1], mod_out[[9]]$beta.moose[,1],
-                                  mod_out[[10]]$beta.moose[,1], mod_out[[11]]$beta.moose[,1], mod_out[[12]]$beta.moose[,1],
-                                  mod_out[[13]]$beta.elk[,1], mod_out[[14]]$beta.elk[,1], mod_out[[15]]$beta.elk[,1],
-                                  mod_out[[16]]$beta.elk[,1], mod_out[[17]]$beta.elk[,1], mod_out[[18]]$beta.elk[,1],
-                                  mod_out[[19]]$beta.coy[,1], mod_out[[20]]$beta.coy[,1], mod_out[[21]]$beta.coy[,1],
-                                  mod_out[[22]]$beta.coy[,1], mod_out[[23]]$beta.coy[,1], mod_out[[24]]$beta.harvest[,1],
-                                  mod_out[[25]]$beta.harvest[,1], mod_out[[26]]$beta.harvest[,2], mod_out[[27]]$beta.harvest[,1], # note the different indexing
-                                  mod_out[[28]]$beta.harvest[,1], mod_out[[29]]$beta.harvest[,1], mod_out[[30]]$beta.harvest[,2], # note the different indexing
-                                  mod_out[[31]]$beta.bear[,1], mod_out[[32]]$beta.bear[,1], mod_out[[33]]$beta.bear[,1],
-                                  mod_out[[34]]$beta.bear[,1], mod_out[[35]]$beta.bear[,1], mod_out[[36]]$beta.bear[,1],
-                                  mod_out[[37]]$beta.harvest[,1], mod_out[[38]]$beta.harvest[,2], mod_out[[39]]$beta.harvest[,1], # note the different indexing
-                                  mod_out[[40]]$beta.harvest[,1], mod_out[[41]]$beta.harvest[,1], mod_out[[42]]$beta.harvest[,2], # note the different indexing
-                                  mod_out[[43]]$beta.harvest[,1], mod_out[[44]]$beta.harvest[,2], mod_out[[45]]$beta.harvest[,2], # note the different indexing
-                                  mod_out[[46]]$beta.harvest[,1], mod_out[[47]]$beta.harvest[,1], mod_out[[48]]$beta.harvest[,1], 
-                                  mod_out[[49]]$beta.wolf[,1], mod_out[[50]]$beta.moose[,2], mod_out[[51]]$beta.moose[,2],        # note the different indexing
-                                  mod_out[[52]]$beta.moose[,2], mod_out[[53]]$beta.moose[,2], mod_out[[54]]$beta.moose[,2],       # note the different indexing
-                                  mod_out[[55]]$beta.moose[,2], mod_out[[56]]$beta.bear[,2], mod_out[[57]]$beta.bear[,2],         # note the different indexing
-                                  mod_out[[58]]$beta.bear[,2], mod_out[[59]]$beta.bear[,2], mod_out[[60]]$beta.bear[,2],          # note the different indexing
-                                  mod_out[[61]]$beta.wolf[,2], mod_out[[62]]$beta.wolf[,2], mod_out[[63]]$beta.wolf[,2],          # note the different indexing
-                                  mod_out[[64]]$beta.wolf[,2], mod_out[[65]]$beta.wtd[,2], mod_out[[66]]$beta.wtd[,2],            # note the different indexing
-                                  mod_out[[67]]$beta.wtd[,2], mod_out[[68]]$beta.elk[,2], mod_out[[69]]$beta.elk[,2],             # note the different indexing
-                                  mod_out[[70]]$beta.coy[,2])
+  post_list_topdown <- list(mod_out[[1]]$beta.harvest[,1], mod_out[[2]]$beta.harvest[,2], mod_out[[3]]$beta.harvest[,1],     # note the different indexing
+                            mod_out[[4]]$beta.harvest[,2], mod_out[[5]]$beta.harvest[,2], mod_out[[6]]$beta.harvest[,2],     # note the different indexing
+                            mod_out[[7]]$beta.wtd[,1], mod_out[[8]]$beta.wtd[,1], mod_out[[9]]$beta.wtd[,1],
+                            mod_out[[10]]$beta.wtd[,1], mod_out[[11]]$beta.wtd[,1], mod_out[[12]]$beta.wtd[,1],
+                            mod_out[[13]]$beta.moose[,1], mod_out[[14]]$beta.moose[,1], mod_out[[15]]$beta.moose[,1],
+                            mod_out[[16]]$beta.moose[,1], mod_out[[17]]$beta.moose[,1], mod_out[[18]]$beta.moose[,1],
+                            mod_out[[19]]$beta.harvest[,1], mod_out[[20]]$beta.harvest[,2], mod_out[[21]]$beta.harvest[,1],  # note the different indexing
+                            mod_out[[22]]$beta.harvest[,2], mod_out[[23]]$beta.harvest[,2], mod_out[[24]]$beta.harvest[,1],  # note the different indexing
+                            mod_out[[25]]$beta.elk[,1], mod_out[[26]]$beta.elk[,1], mod_out[[27]]$beta.elk[,1], 
+                            mod_out[[28]]$beta.elk[,1], mod_out[[29]]$beta.elk[,1], mod_out[[30]]$beta.elk[,1], 
+                            mod_out[[31]]$beta.coy[,1], mod_out[[32]]$beta.coy[,1], mod_out[[33]]$beta.coy[,1],
+                            mod_out[[34]]$beta.coy[,1], mod_out[[35]]$beta.coy[,1], mod_out[[36]]$beta.coy[,1],
+                            mod_out[[37]]$beta.coy[,2], mod_out[[38]]$beta.coy[,2], mod_out[[39]]$beta.coy[,2],              # note the different indexing
+                            mod_out[[40]]$beta.coy[,1], mod_out[[41]]$beta.coy[,1], mod_out[[42]]$beta.coy[,1],              # note the different indexing
+                            mod_out[[43]]$beta.harvest[,1], mod_out[[44]]$beta.harvest[,2], mod_out[[45]]$beta.harvest[,2],  # note the different indexing
+                            mod_out[[46]]$beta.harvest[,2], mod_out[[47]]$beta.harvest[,2], mod_out[[48]]$beta.bear[,1],     # note the different indexing
+                            mod_out[[49]]$beta.bear[,1], mod_out[[50]]$beta.bear[,1], mod_out[[51]]$beta.bear[,1],        
+                            mod_out[[52]]$beta.bear[,1], mod_out[[53]]$beta.bear[,2], mod_out[[54]]$beta.bear[,2],           # note the different indexing
+                            mod_out[[55]]$beta.bear[,2], mod_out[[56]]$beta.bear[,2], mod_out[[57]]$beta.bear[,2],           # note the different indexing
+                            mod_out[[58]]$beta.harvest[,1], mod_out[[59]]$beta.harvest[,2], mod_out[[60]]$beta.harvest[,2],  # note the different indexing
+                            mod_out[[61]]$beta.harvest[,2], mod_out[[62]]$beta.wolf[,1], mod_out[[63]]$beta.wolf[,1],        # note the different indexing
+                            mod_out[[64]]$beta.moose[,2], mod_out[[65]]$beta.moose[,2], mod_out[[66]]$beta.moose[,2],        # note the different indexing
+                            mod_out[[67]]$beta.moose[,2], mod_out[[68]]$beta.wolf[,2], mod_out[[69]]$beta.wolf[,2],          # note the different indexing
+                            mod_out[[70]]$beta.wolf[,2], mod_out[[71]]$beta.harvest[,2], mod_out[[72]]$beta.harvest[,2],
+                            mod_out[[73]]$beta.wtd[,2], mod_out[[74]]$beta.wtd[,2], mod_out[[75]]$beta.elk[,2])
   
-  #'  Calculate p.rope value for each iteration of the d-Sep test using p_rope_iterations() 
+  #'  Calculate p.rope value for each iteration of the d-Sep test 
+  p_rope_iterations <- function(y_dat, post_beta) { 
+    p.rope_val <- p.rope(y = y_dat, post = post_beta)
+    print(p.rope_val)
+    return(p.rope_val)
+  }
   p.rope_topdown_list <- mapply(p_rope_iterations, y_dat = y_list, post_beta = post_list_topdown, SIMPLIFY = FALSE)
   
   #'  Rename objects in the list based on iteration 
@@ -524,7 +536,84 @@
   signif_topdown <- p.rope_topdown_df %>%
     filter(p.rope <= 0.1)
   
-  write_csv(p.rope_topdown_df, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topedown.csv")
-  write_csv(signif_topdown, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topedown_with_support.csv")
+  write_csv(p.rope_topdown_df, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topdown.csv")
+  write_csv(signif_topdown, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topdown_with_support.csv")
   
+  #'  --------------------------------------------
+  #####  Bottom-up interference model iterations  #####
+  #'  --------------------------------------------
+  #'  Load all iterations of the JAGS model
+  all_results_bottomup_inter <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/BottomUp_Interference", full.names = TRUE), readRDS)
+  
+  #'  Create list of "observed" values of focal response variable, one per d-Sep test
+  y_list <- list(data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$coy.t_hat,
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$elk.t_hat,
+                 data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat,
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$coy.t_hat,
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$moose.t_hat, data_JAGS_bundle$elk.t_hat,     #15 (iteration/regression number)
+                 data_JAGS_bundle$wolf.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$coy.t_hat,
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$bear.t_hat,
+                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,
+                 data_JAGS_bundle$elk.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat,      #29 (skipped #25)
+                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat,       #34 (skipped #30)
+                 data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$coy.t_hat,
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$bear.t_hat, data_JAGS_bundle$wolf.t_hat,     #41 (skipped #39)
+                 data_JAGS_bundle$wtd.t_hat, data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$wtd.t_hat,        #50 (skipped #42)
+                 data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$wtd.t_hat,       #55 (skipped #52 & #54)
+                 data_JAGS_bundle$coy.t_hat, data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$coy.t_hat,       #59 (skipped #57)
+                 data_JAGS_bundle$lion.t_hat, data_JAGS_bundle$lion.t_hat)                                  #63 (skipped #60 & #62)
+  #'  Leaves you with 47 d-Sep tests that were possible given the constructs of space and time and our data
+  
+  #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
+  #'  Pay close attention to the indexing, especially with the beta indices. Most will be [,1]
+  #'  but some will be [,2] where the same beta name was used twice in the same regression.
+  #'  Indexing for beta.wsi[1] and beta.forest[1] are slightly different b/c only one coeff
+  #'  was generated per parameter for these.
+  mod_out <- list()
+  for(i in 1:length(all_results_bottomup_inter)) {
+    mod_out[[i]] <- all_results_bottomup_inter[[i]]$fit$sims.list
+  }
+  post_list_bottomup_inter <- list(mod_out[[1]]$beta.wsi[1], mod_out[[2]]$beta.wsi[1], mod_out[[3]]$beta.wsi[1],
+                                   mod_out[[4]]$beta.wsi[1], mod_out[[5]]$beta.coy[,1], mod_out[[6]]$beta.coy[,1],
+                                   mod_out[[7]]$beta.coy[,1], mod_out[[8]]$beta.coy[,1], mod_out[[9]]$beta.coy[,1],
+                                   mod_out[[10]]$beta.coy[,1], mod_out[[11]]$beta.forest[1], mod_out[[12]]$beta.forest[1],
+                                   mod_out[[13]]$beta.forest[1], mod_out[[14]]$beta.bear[,1], mod_out[[15]]$beta.bear[,1],
+                                   mod_out[[16]]$beta.bear[,1], mod_out[[17]]$beta.bear[,1], mod_out[[18]]$beta.bear[,1],
+                                   mod_out[[19]]$beta.bear[,1], mod_out[[20]]$beta.moose[,1], mod_out[[21]]$beta.moose[,1],
+                                   mod_out[[22]]$beta.moose[,1], mod_out[[23]]$beta.moose[,1], mod_out[[24]]$beta.moose[,1], # note the different indexing
+                                   mod_out[[25]]$beta.moose[,2], mod_out[[26]]$beta.moose[,2], mod_out[[27]]$beta.moose[,2], # note the different indexing
+                                   mod_out[[28]]$beta.moose[,2], mod_out[[29]]$beta.moose[,2], mod_out[[30]]$beta.moose[,2], # note the different indexing
+                                   mod_out[[31]]$beta.elk[,1], mod_out[[32]]$beta.elk[,1], mod_out[[33]]$beta.elk[,1],
+                                   mod_out[[34]]$beta.elk[,1], mod_out[[35]]$beta.elk[,2], mod_out[[36]]$beta.elk[,2],       # note the different indexing
+                                   mod_out[[37]]$beta.elk[,2], mod_out[[38]]$beta.elk[,2], mod_out[[39]]$beta.bear[,2],      # note the different indexing
+                                   mod_out[[40]]$beta.bear[,2], mod_out[[41]]$beta.bear[,2], mod_out[[42]]$beta.wolf[,2],    # note the different indexing
+                                   mod_out[[43]]$beta.wolf[,2], mod_out[[44]]$beta.wolf[,2], mod_out[[45]]$beta.wtd[,2],     # note the different indexing
+                                   mod_out[[46]]$beta.wtd[,2], mod_out[[47]]$beta.coy[,2])                                   # note the different indexing
+  
+  #'  Calculate p.rope value for each iteration of the d-Sep test
+  p_rope_iterations <- function(y_dat, post_beta) { 
+    p.rope_val <- p.rope(y = y_dat, post = post_beta)
+    print(p.rope_val)
+    return(p.rope_val)
+  }
+  p.rope_bottomup_inter_list <- mapply(p_rope_iterations, y_dat = y_list, post_beta = post_list_bottomup_inter, SIMPLIFY = FALSE)
+  
+  #'  Rename objects in the list based on iteration 
+  for(i in 1:length(p.rope_bottomup_inter_list)) {
+    list_name <- sprintf("p.rope.%03d", i)
+    names(p.rope_bottomup_inter_list)[i] <- list_name
+  }
+  
+  #'  Convert list to a data frame
+  p.rope_bottomup_inter_df <- stack(p.rope_bottomup_inter_list) %>%
+    transmute(iteration = ind,
+              p.rope = round(values, 4))
+  
+  #'  Reduce to d-Sep tests where there was some support that the variables are 
+  #'  not conditionally independent
+  signif_bottomup_inter <- p.rope_bottomup_inter_df %>%
+    filter(p.rope <= 0.1)
+  
+  write_csv(p.rope_bottomup_inter_df, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_bottomup_inter.csv")
+  write_csv(signif_bottomup_inter, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_bottomup_inter_with_support.csv")
   
