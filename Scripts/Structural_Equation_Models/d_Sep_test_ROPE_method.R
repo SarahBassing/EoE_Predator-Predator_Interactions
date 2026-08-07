@@ -284,14 +284,6 @@
   #'  Run all iterations in parallel
   plan(multisession, workers = parallel::detectCores() - 1)
   
-  #'  -----------------------------
-  #####  Source dSep_interactions  #####
-  #'  -----------------------------
-  #'  Script contains list of custom regressions for iterative d-separation tests 
-  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_topdown_inter_reduced.R")
-  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_topdown_reduced.R")
-  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_bottomup_inter_reduced.R")
-  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_bottomup_reduced.R")
   
   #'  -------------------------------
   ####  Iterate through d-Sep tests  ####
@@ -299,6 +291,8 @@
   #'  -------------------------------------------
   #####  Top-down interference model iterations  #####
   #'  -------------------------------------------
+  #'  Source d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_topdown_inter_reduced.R")
   start.time = Sys.time()
   #'  Fit and save model iterations
   saved_paths <- future_lapply(
@@ -314,6 +308,8 @@
   #'  ------------------------------
   #####  Top-down model iterations  #####
   #'  ------------------------------
+  #'  Source d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_topdown_reduced.R")
   start.time = Sys.time()
   #'  Fit and save model iterations
   saved_paths <- future_lapply(
@@ -327,6 +323,8 @@
   #'  --------------------------------------------
   #####  Bottom-up interference model iterations  #####
   #'  --------------------------------------------
+  #'  Source d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_bottomup_inter_reduced.R")
   start.time = Sys.time()
   #'  Fit and save model iterations
   saved_paths <- future_lapply(
@@ -340,6 +338,8 @@
   #'  -------------------------------
   #####  Bottom-up model iterations  #####
   #'  -------------------------------
+  #'  Source d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_bottomup_reduced.R")
   start.time = Sys.time()
   #'  Fit and save model iterations
   saved_paths <- future_lapply(
