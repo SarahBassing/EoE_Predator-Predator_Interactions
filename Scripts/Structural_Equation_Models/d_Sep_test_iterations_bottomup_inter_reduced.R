@@ -147,54 +147,54 @@
     # Regression #35
     # bs_bottomup_inter[[40]] # "elk.t"        "bear.t"       "wsi.tmin1"    "forest.tmin1" "elk.tmin1"    "bear.tmin1"   "wolf.tmin1"
     list(dSep_test = 3, covariates = c("wsi.tmin1", "forest.tmin1", "elk.tmin1", "bear.tmin1", "wolf.tmin1", "elk.t"), spp = c(".wsi", ".forest", ".elk", ".bear", ".wolf", ".elk"), indices = as.integer(c(1,1,1,1,1,2))),
-    # Regression #36 
+    # Regression #36
     # bs_bottomup_inter[[41]] # "elk.t"        "wolf.t"       "wsi.tmin1"    "forest.tmin1" "elk.tmin1"    "moose.tmin1"  "wolf.tmin1"
     list(dSep_test = 2, covariates = c("wsi.tmin1", "forest.tmin1", "elk.tmin1", "moose.tmin1", "wolf.tmin1", "elk.t"), spp = c(".wsi", ".forest", ".elk", ".moose", ".wolf", ".elk"), indices = as.integer(c(1,1,1,1,1,2))),
     #### bs_bottomup_inter[[42]] # NOT POSSIBLE - t cannot affect t-1  # "elk.t"        "wtd.tmin1"    "wsi.tmin1"    "forest.tmin1" "elk.tmin1"
     #### list(dSep_test = , covariates = c(), spp = c(), indices = as.integer(c()))
-    # Regression #37 
+    # Regression #37
     # bs_bottomup_inter[[43]] # "elk.t"        "wtd.t"        "wsi.tmin1"    "forest.tmin1" "elk.tmin1"    "wtd.tmin1"
     list(dSep_test = 7, covariates = c("wsi.tmin1", "forest.tmin1", "elk.tmin1", "wtd.tmin1", "elk.t"), spp = c(".wsi", ".forest", ".elk", ".wtd", ".elk"), indices = as.integer(c(1,1,1,1,2))),
-    # Regression #38 
-    # bs_bottomup_inter[[44]] # "elk.t"        "coy.t"        "wsi.tmin1"    "forest.tmin1" "elk.tmin1"    "coy.tmin1"    "wolf.tmin1"   "wtd.tmin1"  
+    # Regression #38
+    # bs_bottomup_inter[[44]] # "elk.t"        "coy.t"        "wsi.tmin1"    "forest.tmin1" "elk.tmin1"    "coy.tmin1"    "wolf.tmin1"   "wtd.tmin1"
     list(dSep_test = 4, covariates = c("wsi.tmin1", "forest.tmin1", "elk.tmin1", "coy.tmin1", "wolf.tmin1", "wtd.tmin1", "elk.t"), spp = c(".wsi", ".forest", ".elk", ".coy", ".wolf", ".wtd", ".elk"), indices = as.integer(c(1,1,1,1,1,1,2))),
-    #### bs_bottomup_inter[[45]] # NOT POSSIBLE - t cannot affect t-1 # "elk.t"        "lion.tmin1"   "wsi.tmin1"    "forest.tmin1" "elk.tmin1" 
+    #### bs_bottomup_inter[[45]] # NOT POSSIBLE - t cannot affect t-1 # "elk.t"        "lion.tmin1"   "wsi.tmin1"    "forest.tmin1" "elk.tmin1"
     #### list(dSep_test = , covariates = c(), spp = c(), indices = as.integer(c()))
-    # Regression #39 
+    # Regression #39
     # bs_bottomup_inter[[50]] # "bear.t"       "wtd.t"        "forest.tmin1" "bear.tmin1"   "wolf.tmin1"   "wsi.tmin1"    "wtd.tmin1"
     list(dSep_test = 7, covariates = c("forest.tmin1", "bear.tmin1", "wolf.tmin1", "wsi.tmin1", "wtd.tmin1", "bear.t"), spp = c(".forest", ".bear", ".wolf", ".wsi", ".wtd", ".bear"), indices = as.integer(c(1,1,1,1,1,2))),
-    # Regression #40 
+    # Regression #40
     # bs_bottomup_inter[[51]] # "bear.t"       "coy.t"        "forest.tmin1" "bear.tmin1"   "wolf.tmin1"   "coy.tmin1"    "wtd.tmin1"
     list(dSep_test = 4, covariates = c("forest.tmin1", "bear.tmin1", "wolf.tmin1", "coy.tmin1", "wtd.tmin1", "bear.t"), spp = c(".forest", ".bear", ".wolf", ".coy", ".wtd", ".bear"), indices = as.integer(c(1,1,1,1,1,2))),
     #### bs_bottomup_inter[[52]] # NOT POSSIBLE - t cannot affect t-1 # "bear.t"       "lion.tmin1"   "forest.tmin1" "bear.tmin1"   "wolf.tmin1"
     #### list(dSep_test = , covariates = c(), spp = c(), indices = as.integer(c()))
-    # Regression #41 
+    # Regression #41
     # bs_bottomup_inter[[53]] # "bear.t"       "lion.t"       "forest.tmin1" "bear.tmin1"   "wolf.tmin1"   "wtd.tmin1"    "lion.tmin1"
     list(dSep_test = 1, covariates = c("forest.tmin1", "bear.tmin1", "wolf.tmin1", "wtd.tmin1", "lion.tmin1", "bear.t"), spp = c(".forest", ".bear", ".wolf", ".wtd", ".lion", ".bear"), indices = as.integer(c(1,1,1,1,1,2))),
-    #### bs_bottomup_inter[[54]] # NOT POSSIBLE - t cannot affect t-1 # "wolf.t"      "wtd.tmin1"   "moose.tmin1" "elk.tmin1"   "wolf.tmin1" 
+    #### bs_bottomup_inter[[54]] # NOT POSSIBLE - t cannot affect t-1 # "wolf.t"      "wtd.tmin1"   "moose.tmin1" "elk.tmin1"   "wolf.tmin1"
     #### list(dSep_test = , covariates = c(), spp = c(), indices = as.integer(c()))
-    # Regression #42 
+    # Regression #42
     # bs_bottomup_inter[[55]] # "wolf.t"       "wtd.t"        "moose.tmin1"  "elk.tmin1"    "wolf.tmin1"   "wsi.tmin1"    "forest.tmin1" "wtd.tmin1"
     list(dSep_test = 7, covariates = c("moose.tmin1", "elk.tmin1", "wolf.tmin1", "wsi.tmin1", "forest.tmin1", "wtd.tmin1", "wolf.t"), spp = c(".moose", ".elk", ".wolf", ".wsi", ".forest", ".wtd", ".wolf"), indices = as.integer(c(1,1,1,1,1,1,2))),
-    # Regression #43 
+    # Regression #43
     # bs_bottomup_inter[[56]] # "wolf.t"      "coy.t"       "moose.tmin1" "elk.tmin1"   "wolf.tmin1"  "coy.tmin1"   "wtd.tmin1"
     list(dSep_test = 4, covariates = c("moose.tmin1", "elk.tmin1", "wolf.tmin1", "coy.tmin1", "wtd.tmin1", "wolf.t"), spp = c(".moose", ".elk", ".wolf", ".coy", ".wtd", ".wolf"), indices = as.integer(c(1,1,1,1,1,2))),
     #### bs_bottomup_inter[[57]] # NOT POSSIBLE - t cannot affect t-1 # "wolf.t"      "lion.tmin1"  "moose.tmin1" "elk.tmin1"   "wolf.tmin1"
     #### list(dSep_test = , covariates = c(), spp = c(), indices = as.integer(c()))
-    # Regression #44 
-    # bs_bottomup_inter[[58]] # "wolf.t"      "lion.t"      "moose.tmin1" "elk.tmin1"   "wolf.tmin1"  "wtd.tmin1"   "lion.tmin1" 
+    # Regression #44
+    # bs_bottomup_inter[[58]] # "wolf.t"      "lion.t"      "moose.tmin1" "elk.tmin1"   "wolf.tmin1"  "wtd.tmin1"   "lion.tmin1"
     list(dSep_test = 1, covariates = c("moose.tmin1", "elk.tmin1", "wolf.tmin1", "wtd.tmin1", "lion.tmin1", "wolf.t"), spp = c(".moose", ".elk", ".wolf", ".wtd", ".lion", ".wolf"), indices = as.integer(c(1,1,1,1,1,2))),
-    # Regression #45 
-    # bs_bottomup_inter[[59]] # "wtd.t"        "coy.t"        "wsi.tmin1"    "forest.tmin1" "wtd.tmin1"    "coy.tmin1"    "wolf.tmin1" 
+    # Regression #45
+    # bs_bottomup_inter[[59]] # "wtd.t"        "coy.t"        "wsi.tmin1"    "forest.tmin1" "wtd.tmin1"    "coy.tmin1"    "wolf.tmin1"
     list(dSep_test = 4, covariates = c("wsi.tmin1", "forest.tmin1", "wtd.tmin1", "coy.tmin1", "wolf.tmin1", "wtd.t"), spp = c(".wsi", ".forest", ".wtd", ".coy", ".wolf", ".wtd"), indices = as.integer(c(1,1,1,1,1,2))),
     #### bs_bottomup_inter[[60]] # NOT POSSIBLE - t cannot affect t-1 # "wtd.t"        "lion.tmin1"   "wsi.tmin1"    "forest.tmin1" "wtd.tmin1"
     #### list(dSep_test = , covariates = c(), spp = c(), indices = as.integer(c()))
-    # Regression #46 
+    # Regression #46
     # bs_bottomup_inter[[61]] # "wtd.t"        "lion.t"       "wsi.tmin1"    "forest.tmin1" "wtd.tmin1"    "wolf.tmin1"   "lion.tmin1"
     list(dSep_test = 1, covariates = c("wsi.tmin1", "forest.tmin1", "wtd.tmin1", "wolf.tmin1", "lion.tmin1", "wtd.t"), spp = c(".wsi", ".forest", ".wtd", ".wolf", ".lion", ".wtd"), indices = as.integer(c(1,1,1,1,1,2))),
     #### bs_bottomup_inter[[62]] # NOT POSSIBLE - t cannot affect t-1 # "coy.t"      "lion.tmin1" "coy.tmin1"  "wolf.tmin1" "wtd.tmin1"
     #### list(dSep_test = , covariates = c(), spp = c(), indices = as.integer(c()))
-    # Regression #47 
+    # Regression #47
     # bs_bottomup_inter[[63]] # "coy.t"      "lion.t"     "coy.tmin1"  "wolf.tmin1" "wtd.tmin1"  "lion.tmin1"
     list(dSep_test = 1, covariates = c("coy.tmin1", "wolf.tmin1", "wtd.tmin1", "lion.tmin1", "coy.t"), spp = c(".coy", ".wolf", ".wtd", ".lion", ".coy"), indices = as.integer(c(1,1,1,1,2)))
   )
