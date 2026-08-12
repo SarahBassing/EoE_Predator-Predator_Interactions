@@ -108,6 +108,32 @@
     
   }
   
+  #'  Bayesian p-value for d-Sep test and Fisher's C statistic
+  bayes_pvalue <- function(post) {
+    p_pos <- mean(post > 0)
+    p_neg <- mean(post < 0)
+    2 * min(p_pos, p_neg)
+  }
+  
+  #'  Fisher's C using Bayesian p-values
+  fishers_C <- function(pval, n_iter = NULL) {
+    if(is.null(n_iter)) {
+      eps <- 1e-10
+    } else {
+      eps <- 1 / n_iter # smallest resolvable p-value given draws
+    }
+    pval[pval <= 0] <- eps
+    pval[pval >= 1] <- 1 - eps
+    
+    k <- length(pval)
+    C <- -2 * sum(log(pval))
+    df <- 2 * k
+    pC <- 1 - pchisq(C, df)
+    
+    out <- list(claims.p = pval, k = k, C = C, df = df, p.value = pC)
+    return(out)
+  }
+  
   #'  Function to generate and simplify the basic set 
   basic_set <- function(dag) {
     #'  Generate the basic set 
@@ -418,7 +444,9 @@
                                   mod_out[[67]]$beta.wtd[,2], mod_out[[68]]$beta.elk[,2], mod_out[[69]]$beta.elk[,2],             # note the different indexing
                                   mod_out[[70]]$beta.coy[,2])
   
-  #'  Calculate p.rope value for each iteration of the d-Sep test
+  #'  ----------------------------------------------------------------
+  #####  Calculate p.rope value for each iteration of the d-Sep test  #####
+  #'  ----------------------------------------------------------------
   p_rope_iterations <- function(y_dat, post_beta) { 
     p.rope_val <- p.rope(y = y_dat, post = post_beta)
     print(p.rope_val)
@@ -431,20 +459,42 @@
     list_name <- sprintf("p.rope.%03d", i)
     names(p.rope_topdown_inter_list)[i] <- list_name
   }
-  # head(p.rope_topdown_inter_list)
   
   #'  Convert list to a data frame
   p.rope_topdown_inter_df <- stack(p.rope_topdown_inter_list) %>%
     transmute(iteration = ind,
               p.rope = round(values, 4))
-
-  #'  Reduce to d-Sep tests where there was some support that the variables are 
-  #'  not conditionally independent
-  signif_topdown_inter <- p.rope_topdown_inter_df %>%
-    filter(p.rope <= 0.1)
   
-  write_csv(p.rope_topdown_inter_df, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topdown_inter.csv")
-  write_csv(signif_topdown_inter, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topdown_inter_with_support.csv")
+  #'  --------------------------------------------
+  ####  Calculate Bayesian p-value as d-Sep test  ####
+  #'  --------------------------------------------
+  bayes_p_iterations <- function(post_beta) {
+    bayes.p_val <- bayes_pvalue(post = post_beta)
+    print(bayes.p_val)
+    return(bayes.p_val)
+  }
+  bayes.p_topdown_inter_list <- mapply(bayes_p_iterations, post_beta = post_list_topdown_inter, SIMPLIFY = FALSE)
+  
+  #'  Rename objects in the list based on iteration 
+  for(i in 1:length(bayes.p_topdown_inter_list)) {
+    list_name <- sprintf("p.rope.%03d", i)
+    names(bayes.p_topdown_inter_list)[i] <- list_name
+  }
+  bayes.p_topdown_inter_df <- stack(bayes.p_topdown_inter_list) %>%
+    transmute(iteration = ind,
+              bayes.p = round(values, 4))
+  
+  #'  Join both d-Sep test p-values and save
+  p.val_topdown_inter_df <- full_join(p.rope_topdown_inter_df, bayes.p_topdown_inter_df, by = "iteration")
+  
+  write_csv(p.val_topdown_inter_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_inter.csv")
+  
+  #'  ---------------
+  #####  Fisher's C  #####
+  #'  ---------------
+  fishers.C_topdown_inter <- fishers_C(pval = bayes.p_topdown_inter_df$bayes.p, n_iter = nrow(bayes.p_topdown_inter_df))
+  print(fishers.C_topdown_inter)
+  
   
   #'  ------------------------------
   #####  Top-down model iterations  #####
@@ -532,13 +582,36 @@
     transmute(iteration = ind,
               p.rope = round(values, 4))
   
-  #'  Reduce to d-Sep tests where there was some support that the variables are 
-  #'  not conditionally independent
-  signif_topdown <- p.rope_topdown_df %>%
-    filter(p.rope <= 0.1)
+  #'  --------------------------------------------
+  ####  Calculate Bayesian p-value as d-Sep test  ####
+  #'  --------------------------------------------
+  bayes_p_iterations <- function(post_beta) {
+    bayes.p_val <- bayes_pvalue(post = post_beta)
+    print(bayes.p_val)
+    return(bayes.p_val)
+  }
+  bayes.p_topdown_list <- mapply(bayes_p_iterations, post_beta = post_list_topdown, SIMPLIFY = FALSE)
   
-  write_csv(p.rope_topdown_df, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topdown.csv")
-  write_csv(signif_topdown, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_topdown_with_support.csv")
+  #'  Rename objects in the list based on iteration 
+  for(i in 1:length(bayes.p_topdown_list)) {
+    list_name <- sprintf("p.rope.%03d", i)
+    names(bayes.p_topdown_list)[i] <- list_name
+  }
+  bayes.p_topdown_df <- stack(bayes.p_topdown_list) %>%
+    transmute(iteration = ind,
+              bayes.p = round(values, 4))
+  
+  #'  Join both d-Sep test p-values and save
+  p.val_topdown_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = "iteration")
+  
+  write_csv(p.val_topdown_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown.csv")
+  
+  #'  ---------------
+  #####  Fisher's C  #####
+  #'  ---------------
+  fishers.C_topdown <- fishers_C(pval = bayes.p_topdown_df$bayes.p, n_iter = nrow(bayes.p_topdown_df))
+  print(fishers.C_topdown)
+  
   
   #'  --------------------------------------------
   #####  Bottom-up interference model iterations  #####
@@ -610,13 +683,35 @@
     transmute(iteration = ind,
               p.rope = round(values, 4))
   
-  #'  Reduce to d-Sep tests where there was some support that the variables are 
-  #'  not conditionally independent
-  signif_bottomup_inter <- p.rope_bottomup_inter_df %>%
-    filter(p.rope <= 0.1)
+  #'  --------------------------------------------
+  ####  Calculate Bayesian p-value as d-Sep test  ####
+  #'  --------------------------------------------
+  bayes_p_iterations <- function(post_beta) {
+    bayes.p_val <- bayes_pvalue(post = post_beta)
+    print(bayes.p_val)
+    return(bayes.p_val)
+  }
+  bayes.p_bottomup_inter_list <- mapply(bayes_p_iterations, post_beta = post_list_bottomup_inter, SIMPLIFY = FALSE)
   
-  write_csv(p.rope_bottomup_inter_df, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_bottomup_inter.csv")
-  write_csv(signif_bottomup_inter, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_bottomup_inter_with_support.csv")
+  #'  Rename objects in the list based on iteration 
+  for(i in 1:length(bayes.p_bottomup_inter_list)) {
+    list_name <- sprintf("p.rope.%03d", i)
+    names(bayes.p_bottomup_inter_list)[i] <- list_name
+  }
+  bayes.p_bottomup_inter_df <- stack(bayes.p_bottomup_inter_list) %>%
+    transmute(iteration = ind,
+              bayes.p = round(values, 4))
+  
+  #'  Join both d-Sep test p-values and save
+  p.val_bottomup_inter_df <- full_join(p.rope_bottomup_inter_df, bayes.p_bottomup_inter_df, by = "iteration")
+  
+  write_csv(p.val_bottomup_inter_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_inter.csv")
+  
+  #'  ---------------
+  #####  Fisher's C  #####
+  #'  ---------------
+  fishers.C_bottomup_inter <- fishers_C(pval = bayes.p_bottomup_inter_df$bayes.p, n_iter = nrow(bayes.p_bottomup_inter_df))
+  print(fishers.C_bottomup_inter)
   
   
   #'  --------------------------------------------
@@ -693,11 +788,33 @@
     transmute(iteration = ind,
               p.rope = round(values, 4))
   
-  #'  Reduce to d-Sep tests where there was some support that the variables are 
-  #'  not conditionally independent
-  signif_bottomup <- p.rope_bottomup_df %>%
-    filter(p.rope <= 0.1)
+  #'  --------------------------------------------
+  ####  Calculate Bayesian p-value as d-Sep test  ####
+  #'  --------------------------------------------
+  bayes_p_iterations <- function(post_beta) {
+    bayes.p_val <- bayes_pvalue(post = post_beta)
+    print(bayes.p_val)
+    return(bayes.p_val)
+  }
+  bayes.p_bottomup_list <- mapply(bayes_p_iterations, post_beta = post_list_bottomup, SIMPLIFY = FALSE)
   
-  write_csv(p.rope_bottomup_inter_df, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_bottomup.csv")
-  write_csv(signif_bottomup_inter, "./Outputs/SEM/JAGS_out/d_Sep/p.ROPE_bottomup_with_support.csv")
+  #'  Rename objects in the list based on iteration 
+  for(i in 1:length(bayes.p_bottomup_list)) {
+    list_name <- sprintf("p.rope.%03d", i)
+    names(bayes.p_bottomup_list)[i] <- list_name
+  }
+  bayes.p_bottomup_df <- stack(bayes.p_bottomup_list) %>%
+    transmute(iteration = ind,
+              bayes.p = round(values, 4))
+  
+  #'  Join both d-Sep test p-values and save
+  p.val_bottomup_df <- full_join(p.rope_bottomup_df, bayes.p_bottomup_df, by = "iteration")
+  
+  write_csv(p.val_bottomup_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup.csv")
+  
+  #'  ---------------
+  #####  Fisher's C  #####
+  #'  ---------------
+  fishers.C_bottomup <- fishers_C(pval = bayes.p_bottomup_df$bayes.p, n_iter = nrow(bayes.p_bottomup_df))
+  print(fishers.C_bottomup)
   
