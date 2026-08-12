@@ -219,15 +219,15 @@
     #'  Create intercept and slope parameter names based on time step
     beta0_array <- paste0("beta.int", timestep) # beta.int or beta.int.tmin1
     beta_array <- paste0("beta", timestep)      # beta or beta.tmin1
-    
+  
     #'  If-Else statement for time t regressions
     #'  If covariate is null or 0 (i.e., intercept only regressions)
     if(is.null(covariates) || length(covariates) == 0) {
       #'  Build intercept only regressions for time t and t-1
       sprintf("%s[%d]", beta0_array, reg_num)
     } else {
-      #'  Build one string per "beta * covariate" by filling placeholders with 
-      #'  specified character strings or integers (sprintf is vectorized so does 
+      #'  Build one string per "beta * covariate" by filling placeholders with
+      #'  specified character strings or integers (sprintf is vectorized so does
       #'  this in order that strings/integers are provided)
       #'  %s is placeholder for character strings; %d is placeholder for integers
       terms <- paste0(sprintf("%s%s[%d] * %s[i]", beta_array, spp, indices, covariates),
@@ -236,6 +236,7 @@
       #'  Build full regression with intercept plus regression terms defined above
       sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
     }
+    
   }
   
   #'  Function to assemble full model string for a single iteration
@@ -243,7 +244,7 @@
   #'  mu_lines[(r * 2) - 1] indexing maps each species regression (1:7) onto two 
   #'  consecutive slots in the mu_lines vector (for t and t-1 versions) - ensures 
   #'  regressions are in correct order and match template's 14 %s placeholders
-  build_model_string <- function(iter_config, template) {
+  build_model_string <- function(iter_config, template, registry) {
     mu_lines <- character(14)  # 7 regressions for time t and t-1
     for(r in 1:7) {
       if (r == iter_config$dSep_test) {
@@ -254,8 +255,13 @@
         #'  time t: create custom regression for d-sep test
         mu_lines[(r * 2) - 1] <- build_individual_submodels(r, covs, spp, indices, timestep = "")
       } else {
-        #'  time t: intercept-only for all other regressions
-        mu_lines[(r * 2) - 1] <- build_individual_submodels(r, NULL, timestep = "") 
+        #'  Non-focal time t: use original SEM covariates from the registry
+        orig <- registry[[(r * 2) - 1]]
+        #'  Grab covariate, species, and index numbers of terms NOT included in d-sep test
+        covs <- orig$covs
+        spp <- orig$spp
+        indices <- orig$indices
+        mu_lines[(r * 2) - 1] <- build_individual_submodels(r, covs, spp, indices, timestep = "")
       }
       
       #'  time t-1: always intercept-only for all regressions and iterations
@@ -266,12 +272,12 @@
   }
   
   #'  Function to call JAGS and run a single iteration of the model
-  run_dSep_iterations <- function(i, iterations, template, data_bundle, listInits, model_name) {  
+  run_dSep_iterations <- function(i, iterations, template, registry, data_bundle, listInits, model_name) {  
     
     iter_config <- iterations[[i]]
     
     #'  Call function to build the full model string with custom regressions for d-Sep test
-    model_string <- build_model_string(iter_config, template)
+    model_string <- build_model_string(iter_config, template, registry)
     
     #'  Create temporary directory to save all iterations of the template
     temp_dir <- file.path("./Outputs/SEM/JAGS_out/d_Sep/temp_models", model_name)
@@ -317,6 +323,38 @@
   #'  -------------------------------------------
   #####  Top-down interference model iterations  #####
   #'  -------------------------------------------
+  #'  Model registry that defines the original regressions in SEM to be updated
+  #'  with each iteration of d-Sep testing
+  sem_registry <- list(
+    #'  Regression 1: lion.t
+    list(covs = c("lion.tmin1", "wolf.tmin1", "lionHarv.tmin1"), spp = c(".lion", ".wolf", ".harvest"), indices = as.integer(c(1,1,1))),
+    #'  Regression 2: lion.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 3: wolf.t
+    list(covs = c("wolf.tmin1", "wolfHarv.tmin1"), spp = c(".wolf", ".harvest"), indices = as.integer(c(1,1))),
+    #'  Regression 4: wolf.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 5: bear.t
+    list(covs = c("bear.tmin1", "wolf.tmin1", "bearHarv.tmin1"), spp = c(".bear", ".wolf", ".harvest"), indices = as.integer(c(1,1,1))),
+    #'  Regression 6: bear.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 7: coy.t
+    list(covs = c("coy.tmin1", "wolf.tmin1", "lion.tmin1"), spp = c(".coy", ".wolf", ".lion"), indices = as.integer(c(1,1,1))),
+    #'  Regression 8: coy.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 9: elk.t
+    list(covs = c("elk.tmin1", "wolf.tmin1", "lion.tmin1"), spp = c(".elk", ".wolf", ".lion"), indices = as.integer(c(1,1,1))),
+    #'  Regression 10: elk.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 11: moose.t
+    list(covs = c("moose.tmin1", "wolf.tmin1"), spp = c(".moose", ".wolf"), indices = as.integer(c(1,1))),
+    #'  Regression 12: moose.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 13: wtd.t
+    list(covs = c("wtd.tmin1", "lion.tmin1"), spp = c(".wtd", ".lion"), indices = as.integer(c(1,1))),
+    #'  Regerssion 14: wtd.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL)
+  )
   #'  Source d-Sep custom regressions for iterative d-separation tests 
   source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_topdown_inter_reduced.R")
   start.time = Sys.time()
@@ -325,7 +363,7 @@
     #'  Apply across every element in list of active regressions
     seq_along(dSep_iterations_topdown_int),
     #'  Call run_dSep_iterations function using specified active regression list, model template, and data/inits prepared for JAGS
-    function(i) run_dSep_iterations(i, iterations = dSep_iterations_topdown_int, template = model_template, 
+    function(i) run_dSep_iterations(i, iterations = dSep_iterations_topdown_int, template = model_template, registry = sem_registry,
                                     data_bundle = data_JAGS_bundle, listInits = initsList, model_name = "TopDown_Interference"),
     future.seed = TRUE
   )
@@ -334,13 +372,45 @@
   #'  ------------------------------
   #####  Top-down model iterations  #####
   #'  ------------------------------
+  #'  Model registry that defines the original regressions in SEM to be updated
+  #'  with each iteration of d-Sep testing
+  sem_registry <- list(
+    #'  Regression 1: lion.t
+    list(covs = c("lion.tmin1", "lionHarv.tmin1"), spp = c(".lion", ".harvest"), indices = as.integer(c(1,1))),
+    #'  Regression 2: lion.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 3: wolf.t
+    list(covs = c("wolf.tmin1", "wolfHarv.tmin1"), spp = c(".wolf", ".harvest"), indices = as.integer(c(1,1))),
+    #'  Regression 4: wolf.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 5: bear.t
+    list(covs = c("bear.tmin1", "bearHarv.tmin1"), spp = c(".bear", ".harvest"), indices = as.integer(c(1,1))),
+    #'  Regression 6: bear.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 7: coy.t
+    list(covs = c("coy.tmin1"), spp = c(".coy"), indices = as.integer(c(1))),
+    #'  Regression 8: coy.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 9: elk.t
+    list(covs = c("elk.tmin1", "wolf.tmin1", "lion.tmin1", "elkHarv.tmin1"), spp = c(".elk", ".wolf", ".lion", ".harvest"), indices = as.integer(c(1,1,1,1))),
+    #'  Regression 10: elk.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 11: moose.t
+    list(covs = c("moose.tmin1", "wolf.tmin1"), spp = c(".moose", ".wolf"), indices = as.integer(c(1,1))),
+    #'  Regression 12: moose.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 13: wtd.t
+    list(covs = c("wtd.tmin1", "lion.tmin1", "deerHarv.tmin1"), spp = c(".wtd", ".lion", ".harvest"), indices = as.integer(c(1,1,1))),
+    #'  Regerssion 14: wtd.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL)
+  )
   #'  Source d-Sep custom regressions for iterative d-separation tests 
   source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_topdown_reduced.R")
   start.time = Sys.time()
   #'  Fit and save model iterations
   saved_paths <- future_lapply(
     seq_along(dSep_iterations_topdown),
-    function(i) run_dSep_iterations(i, iterations = dSep_iterations_topdown, template = model_template, 
+    function(i) run_dSep_iterations(i, iterations = dSep_iterations_topdown, template = model_template, registry = sem_registry,
                                     data_bundle = data_JAGS_bundle, listInits = initsList, model_name = "TopDown"),
     future.seed = TRUE
   )
@@ -349,13 +419,46 @@
   #'  --------------------------------------------
   #####  Bottom-up interference model iterations  #####
   #'  --------------------------------------------
+  #'  Model registry that defines the original regressions in SEM to be updated
+  #'  with each iteration of d-Sep testing
+  # source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_dsep_template_registry_bottomup_inter_reduced.R")
+  sem_registry <- list(
+    #'  Regression 1: lion.t
+    list(covs = c("lion.tmin1", "wtd.tmin1", "wolf.tmin1"), spp = c(".lion", ".wtd", ".wolf"), indices = as.integer(c(1,1,1))),
+    #'  Regression 2: lion.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 3: wolf.t
+    list(covs = c("wolf.tmin1", "elk.tmin1", "moose.tmin1"), spp = c(".wolf", ".elk", ".moose"), indices = as.integer(c(1,1,1))),
+    #'  Regression 4: wolf.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 5: bear.t
+    list(covs = c("bear.tmin1", "forest.tmin1", "wolf.tmin1"), spp = c(".bear", ".forest", ".wolf"), indices = as.integer(c(1,1,1))),
+    #'  Regression 6: bear.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 7: coy.t
+    list(covs = c("coy.tmin1", "wtd.tmin1", "wolf.tmin1"), spp = c(".coy", ".wtd", ".wolf"), indices = as.integer(c(1,1,1))),
+    #'  Regression 8: coy.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 9: elk.t
+    list(covs = c("elk.tmin1", "forest.tmin1", "wsi.tmin1"), spp = c(".elk", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    #'  Regression 10: elk.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 11: moose.t
+    list(covs = c("moose.tmin1", "forest.tmin1", "wsi.tmin1"), spp = c(".moose", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    #'  Regression 12: moose.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 13: wtd.t
+    list(covs = c("wtd.tmin1", "forest.tmin1", "wsi.tmin1"), spp = c(".wtd", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    #'  Regerssion 14: wtd.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL)
+  )
   #'  Source d-Sep custom regressions for iterative d-separation tests 
   source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_bottomup_inter_reduced.R")
   start.time = Sys.time()
   #'  Fit and save model iterations
   saved_paths <- future_lapply(
     seq_along(dSep_iterations_bottomup_int),
-    function(i) run_dSep_iterations(i, iterations = dSep_iterations_bottomup_int, template = model_template, 
+    function(i) run_dSep_iterations(i, iterations = dSep_iterations_bottomup_int, template = model_template, registry = sem_registry,
                                     data_bundle = data_JAGS_bundle, listInits = initsList, model_name = "BottomUp_Interference"),
     future.seed = TRUE
   )
@@ -364,13 +467,45 @@
   #'  -------------------------------
   #####  Bottom-up model iterations  #####
   #'  -------------------------------
+  #'  Model registry that defines the original regressions in SEM to be updated
+  #'  with each iteration of d-Sep testing
+  sem_registry <- list(
+    #'  Regression 1: lion.t
+    list(covs = c("lion.tmin1", "elk.tmin1", "wtd.tmin1"), spp = c(".lion", ".elk", ".wtd"), indices = as.integer(c(1,1,1))),
+    #'  Regression 2: lion.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 3: wolf.t
+    list(covs = c("wolf.tmin1", "elk.tmin1", "moose.tmin1"), spp = c(".wolf", ".elk", ".moose"), indices = as.integer(c(1,1,1))),
+    #'  Regression 4: wolf.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 5: bear.t
+    list(covs = c("bear.tmin1", "elk.tmin1", "forest.tmin1"), spp = c(".bear", ".elk", ".forest"), indices = as.integer(c(1,1,1))),
+    #'  Regression 6: bear.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 7: coy.t
+    list(covs = c("coy.tmin1", "wtd.tmin1"), spp = c(".coy", ".wtd"), indices = as.integer(c(1,1))),
+    #'  Regression 8: coy.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 9: elk.t
+    list(covs = c("elk.tmin1", "forest.tmin1", "wsi.tmin1"), spp = c(".elk", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    #'  Regression 10: elk.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 11: moose.t
+    list(covs = c("moose.tmin1", "forest.tmin1", "wsi.tmin1"), spp = c(".moose", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    #'  Regression 12: moose.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL),
+    #'  Regression 13: wtd.t
+    list(covs = c("wtd.tmin1", "forest.tmin1", "wsi.tmin1"), spp = c(".wtd", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    #'  Regerssion 14: wtd.tmin1
+    list(covs = NULL, spp = NULL, indices = NULL)
+  )
   #'  Source d-Sep custom regressions for iterative d-separation tests 
   source("./Scripts/Structural_Equation_Models/d_Sep_test_iterations_bottomup_reduced.R")
   start.time = Sys.time()
   #'  Fit and save model iterations
   saved_paths <- future_lapply(
     seq_along(dSep_iterations_bottomup),
-    function(i) run_dSep_iterations(i, iterations = dSep_iterations_bottomup, template = model_template, 
+    function(i) run_dSep_iterations(i, iterations = dSep_iterations_bottomup, template = model_template, registry = sem_registry,
                                     data_bundle = data_JAGS_bundle, listInits = initsList, model_name = "BottomUp"),
     future.seed = TRUE
   )
