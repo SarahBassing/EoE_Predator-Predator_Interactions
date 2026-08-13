@@ -1,5 +1,5 @@
   #'  --------------------------------------------------------
-  #'  JAGS model: bottom-up, interference SEM
+  #'  JAGS model: bottom-up, interference SEM - REDUCED
   #'  
   #'  Model description: 
   #'    Structural equation model testing hypothesis that top-down processes and 
@@ -54,8 +54,12 @@
       #'  -------------
       #'  Priors for intercepts
       #'  Use more informed prior for lion intercept
-      beta.int[1] ~ dnorm(0, 0.01) # poor convergence with weaker priors
+      beta.int[1] ~ dnorm(0, 1) # poor convergence with weaker priors
       beta.int.tmin1[1] ~ dnorm(0, 0.01) 
+      
+      #' #'  Use more informed prior for wolf intercept
+      #' beta.int[2] ~ dnorm(0, 0.1) # using more informed prior to help convergence
+      #' beta.int.tmin1[2] ~ dnorm(0, 0.01) 
       
       #'  Intercept priors for all other species (note, intercept prior for wolf is beta.int[2])
       for(k in 2:nSpp) {
@@ -127,7 +131,6 @@
       #'   sigma.spp.tmin1[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
       #'   tau.spp.tmin1[k] <- 1 / pow(sigma.spp.tmin1[k], 2)
       #' }
-      #' 
       
       #'  Likelihood
       #'  ----------
@@ -136,13 +139,13 @@
       #'  conditional on cluster-level latent parameter (truth) 
       for(i in 1:nSites) {
         for(y in 1:nYear) {
-          lion.hat[i,y]  ~ dnorm(lion.true[i,y],  lion.tau_hat[i,y])
-          wolf.hat[i,y]  ~ dnorm(wolf.true[i,y],  wolf.tau_hat[i,y])
-          bear.hat[i,y]  ~ dnorm(bear.true[i,y],  bear.tau_hat[i,y])
-          coy.hat[i,y]   ~ dnorm(coy.true[i,y],   coy.tau_hat[i,y])
-          elk.hat[i,y]   ~ dnorm(elk.true[i,y],   elk.tau_hat[i,y])
-          moose.hat[i,y] ~ dnorm(moose.true[i,y], moose.tau_hat[i,y])
-          wtd.hat[i,y]   ~ dnorm(wtd.true[i,y],   wtd.tau_hat[i,y])
+          lion.hat[i,y]  ~ dnorm(lion.latent[i,y],  lion.tau_hat[i,y])
+          wolf.hat[i,y]  ~ dnorm(wolf.latent[i,y],  wolf.tau_hat[i,y])
+          bear.hat[i,y]  ~ dnorm(bear.latent[i,y],  bear.tau_hat[i,y])
+          coy.hat[i,y]   ~ dnorm(coy.latent[i,y],   coy.tau_hat[i,y])
+          elk.hat[i,y]   ~ dnorm(elk.latent[i,y],   elk.tau_hat[i,y])
+          moose.hat[i,y] ~ dnorm(moose.latent[i,y], moose.tau_hat[i,y])
+          wtd.hat[i,y]   ~ dnorm(wtd.latent[i,y],   wtd.tau_hat[i,y])
 
           lion.tau_hat[i,y]  <- 1 / pow(lion.sigma_hat[i,y], 2)
           wolf.tau_hat[i,y]  <- 1 / pow(wolf.sigma_hat[i,y], 2)
@@ -176,9 +179,14 @@
         for(y in 2:nYear) {
 
           lion.latent[i,y] ~ dnorm(mu.lion[i,y], tau.spp[1])
-          mu.lion[i,y] <- beta.int[1] + beta.lion[1] * lion.latent[i,y-1] + beta.wtd[2] * wtd.latent[i,y-1] + beta.wolf[2] * wolf.latent[i,y-1]
+          mu.lion[i,y] <- beta.int[1] + beta.wtd[2] * wtd.latent[i,y-1] #+ beta.lion[1] * lion.latent[i,y-1] + beta.wolf[2] * wolf.latent[i,y-1] 
           #'  Dropped elk - assuming wtd is primary prey year round so most important to supporting lion population
-
+          #'  Lion-associated parameters carry more uncertainty (lion's RN model produces much noisier estimates than other species), 
+          #'  mean(data_JAGS_bundle_bottominter_reduced$lion.sigma_hat, na.rm = TRUE); mean(data_JAGS_bundle_bottominter_reduced$elk.sigma_hat, na.rm = TRUE)
+          #'  leading to poor convergence and the prior carrying more weight
+          #'  Used more informed priors to help with convergence but given limited sample size, 
+          #'  causal structure of model had to be reduced (AR1 and wolf effect removed to allow for convergence)
+          
           wolf.latent[i,y] ~ dnorm(mu.wolf[i,y], tau.spp[2])
           mu.wolf[i,y] <- beta.int[2] + beta.wolf[1] * wolf.latent[i,y-1] + beta.elk[2] * elk.latent[i,y-1] + beta.moose[2] * moose.latent[i,y-1]
 
@@ -203,14 +211,18 @@
       }
       
       
+      
       #'  Derived parameters
       #'  ------------------
-      #'  d-Separation...
-      
       #'  Total and indirect effects...
       
       }")
   
+  #' #'  Likelihood
+  #' #'  ----------
+  #' #'  Measurement error from RN models for each species and cluster-level RDI
+  #' #'  Posterior summaries (mean & sigma) treated as noisy observations [data] 
+  #' #'  conditional on cluster-level latent parameter (truth) 
   #' for(i in 1:nCluster) {
   #'   #'  RN model posterior means (spp.t_hat) arise from latent true RDI (spp.t).
   #'   #'  RDI estimates from RN model are a noisy observation of true RDI,
@@ -264,19 +276,22 @@
   #'   mu.wolf.tmin1[i] <- beta.int.tmin1[2]
   #'   
   #'   lion.t[i] ~ dnorm(mu.lion.t[i], tau.spp[2])  
-  #'   mu.lion.t[i] <- beta.int[1] + beta.lion[1] * lion.tmin1[i] + beta.elk[3] * elk.tmin1[i] + beta.wtd[2] * wtd.tmin1[i] + beta.wolf[2] * wolf.tmin1[i]
+  #'   mu.lion.t[i] <- beta.int[1] + beta.lion[1] * lion.tmin1[i] + beta.wtd[2] * wtd.tmin1[i] + beta.wolf[2] * wolf.tmin1[i]
+  #'   #'  Dropped elk - assuming wtd is primary prey year round so most important to supporting lion population
   #'   
   #'   lion.tmin1[i] ~ dnorm(mu.lion.tmin1[i], tau.spp.tmin1[2])
   #'   mu.lion.tmin1[i] <- beta.int.tmin1[1] 
   #'   
   #'   bear.t[i] ~ dnorm(mu.bear.t[i], tau.spp[3]) 
-  #'   mu.bear.t[i] <- beta.int[3] + beta.bear[1] * bear.tmin1[i] + beta.elk[4] * elk.tmin1[i] + beta.forest[4] * forest.tmin1[i] + beta.wolf[3] * wolf.tmin1[i]
+  #'   mu.bear.t[i] <- beta.int[3] + beta.bear[1] * bear.tmin1[i] + beta.forest[4] * forest.tmin1[i] + beta.wolf[3] * wolf.tmin1[i]
+  #'   #'  Dropped elk - assuming forage is most important, prey is opportunistic and less important
   #'   
   #'   bear.tmin1[i] ~ dnorm(mu.bear.tmin1[i], tau.spp.tmin1[3]) 
   #'   mu.bear.tmin1[i] <- beta.int.tmin1[3] 
   #'   
   #'   coy.t[i] ~ dnorm(mu.coy.t[i], tau.spp[4])
-  #'   mu.coy.t[i] <- beta.int[4] + beta.coy[1] * coy.tmin1[i] + beta.elk[5] * elk.tmin1[i] + beta.wtd[3] * wtd.tmin1[i] + beta.wolf[4] * wolf.tmin1[i]
+  #'   mu.coy.t[i] <- beta.int[4] + beta.coy[1] * coy.tmin1[i] + beta.wtd[3] * wtd.tmin1[i] + beta.wolf[4] * wolf.tmin1[i] 
+  #'   #'  Dropped elk - assuming most elk in diet is via scavenging and opportunistic whereas wtd is actual predation
   #'   
   #'   coy.tmin1[i] ~ dnorm(mu.coy.tmin1[i], tau.spp.tmin1[4])
   #'   mu.coy.tmin1[i] <- beta.int.tmin1[4] 
@@ -297,7 +312,7 @@
   #'   mu.wtd.t[i] <- beta.int[7] + beta.wtd[1] * wtd.tmin1[i] + beta.forest[3] * forest.tmin1[i] + beta.wsi[3] * wsi.tmin1[i]
   #'   
   #'   wtd.tmin1[i] ~ dnorm(mu.wtd.tmin1[i], tau.spp.tmin1[7])
-    mu.wtd.tmin1[i] <- beta.int.tmin1[7] 
-  
-  
+  #'   mu.wtd.tmin1[i] <- beta.int.tmin1[7] 
+  #'   
+  #' }
   
