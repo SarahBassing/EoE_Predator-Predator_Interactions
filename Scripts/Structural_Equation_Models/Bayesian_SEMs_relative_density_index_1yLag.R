@@ -282,7 +282,7 @@
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_reduced.R")
   start.time = Sys.time()
   SEM_topdown_inter <- jagsUI::jags(data_JAGS_bundle_topdown_inter, inits = initsList_topdown_inter, params, 
-                                            "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_reduced.txt",
+                                            "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter.txt",
                                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                                             n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
@@ -336,7 +336,7 @@
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_inter_reduced.R")
   start.time = Sys.time()
   SEM_bottomup_inter <- jagsUI::jags(data_JAGS_bundle_bottominter, inits = initsList_bottominter, params,
-                                     "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_inter_reduced.txt",
+                                     "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_inter.txt",
                                      n.adapt = na, n.chains = nc, n.thin = nt, 
                                      n.iter = ni, n.burnin = nb, parallel = TRUE)
   end.time <- Sys.time(); (run.time <- end.time - start.time)
