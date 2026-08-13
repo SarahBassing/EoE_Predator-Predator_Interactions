@@ -70,7 +70,7 @@
   
   #'  MCMC settings
   nc <- 3
-  ni <- 100000
+  ni <- 150000
   nb <- 50000
   nt <- 10
   na <- 5000
@@ -190,6 +190,17 @@
                             wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
   
   bs_bottomup_inter <- basic_set(dag_bottomup_inter)
+  
+  #'  After 1st set of d-Sep tests
+  dag_bottomup_inter_updated <- DAG(lion.t ~ lion.tmin1 + wtd.tmin1 + wolf.tmin1, 
+                            wolf.t ~ wolf.tmin1 + elk.tmin1 + moose.tmin1,
+                            bear.t ~ bear.tmin1 + forest.tmin1 + wolf.tmin1, 
+                            coy.t ~ coy.tmin1 + wtd.tmin1 + wolf.tmin1,
+                            elk.t ~ elk.tmin1 + forest.tmin1 + wsi.tmin1,
+                            moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
+                            wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1 + bear.t + coy.tmin1)
+  
+  bs_bottomup_inter_updated <- basic_set(dag_bottomup_inter_updated)
   
   #'  --------------------------------------
   #####  Bottom-up model (reduced version)  ####
