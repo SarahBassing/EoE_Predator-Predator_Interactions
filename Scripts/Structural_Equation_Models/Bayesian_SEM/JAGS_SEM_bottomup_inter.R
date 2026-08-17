@@ -54,12 +54,8 @@
       #'  -------------
       #'  Priors for intercepts
       #'  Use more informed prior for lion intercept
-      beta.int[1] ~ dnorm(0, 1) # poor convergence with weaker priors
+      beta.int[1] ~ dnorm(0, 0.1) # poor convergence with weaker priors
       beta.int.tmin1[1] ~ dnorm(0, 0.01) 
-      
-      #' #'  Use more informed prior for wolf intercept
-      #' beta.int[2] ~ dnorm(0, 0.1) # using more informed prior to help convergence
-      #' beta.int.tmin1[2] ~ dnorm(0, 0.01) 
       
       #'  Intercept priors for all other species (note, intercept prior for wolf is beta.int[2])
       for(k in 2:nSpp) {
@@ -69,11 +65,11 @@
       
       #'  Priors for species lag effects
       #'  As a reminder: precision = 0.01 --> sqrt(0.01^-1) --> SD = 10
-      for(w in 1:nWolf) {
-        beta.wolf[w] ~ dnorm(0, 0.1)  # using more informed prior to help convergence
-      }
       for(l in 1:nLion) {
-        beta.lion[l] ~ dnorm(0, 1)  # poor convergence with weaker priors
+        beta.lion[l] ~ dnorm(0, 0.1)  # poor convergence with weaker priors
+      }
+      for(w in 1:nWolf) {
+        beta.wolf[w] ~ dnorm(0, 0.1)  # using more informed prior to improve convergence
       }
       for(b in 1:nBear) {
         beta.bear[b] ~ dnorm(0, 0.01)
