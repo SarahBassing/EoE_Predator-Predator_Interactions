@@ -18,17 +18,22 @@
   #'     a priori, plus the one needed for the conditional independence test.
   #'     NOTE: the last covariate in this vector should always be the explanatory
   #'     variable you are testing the independence claim on. This will make life
-  #'     easier when using the p.rope function in d_Sep_test_ROPE_method.R
-  #'  -- spp: vector containing the suffex of each parameter name to be appended
+  #'     easier when using the p.rope() and bayes_pvalue() functions in 
+  #'     d_Sep_test_and_FishersC_for_Bayesian_SEM.R
+  #'     Note: need to include the AR1 term in covariates list for each regression -
+  #'     basic_set seems to drop it b/c it can't distinguish from the response 
+  #'     variable with the [nSite, nYear] indexing. Exceptions noted for specific
+  #'     regressions (lion regressions).
+  #'  -- spp: vector containing the suffix of each parameter name to be appended
   #'     to "beta" in the model template. Must include a period before the term's
   #'     name to work.
   #'  -- indices: vector containing the index value for each parameter. For most
   #'     regressions, each parameter's name is unique so the index is 1. But for some,
   #'     the parameter name is used twice in the model representing different coefficients
   #'     (e.g., beta.harvest[1] and beta.harvest[2] correspond to the effects of 
-  #'     wolfHarvets.tmin1 and lionHarvest.tmin1 in the same regression). Double check
-  #'     indexing for each regression to ensure appropriate coefficient estimates are
-  #'     saved and used in ROPE method.
+  #'     wolfHarv and lionHarv in the same regression). Double check indexing for 
+  #'     each regression to ensure appropriate coefficient estimates are saved and 
+  #'     used in ROPE / Bayesian p-value d-Sep tests.
   #'  ---------------------------------------------------------------- 
   
   dSep_iterations_bottomup_int <- list(
