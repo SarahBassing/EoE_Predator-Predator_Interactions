@@ -57,10 +57,6 @@
       beta.int[1] ~ dnorm(0, 1) # poor convergence with weaker priors
       beta.int.tmin1[1] ~ dnorm(0, 0.01) 
       
-      #' #'  Use more informed prior for wolf intercept
-      #' beta.int[2] ~ dnorm(0, 0.1) # using more informed prior to help convergence
-      #' beta.int.tmin1[2] ~ dnorm(0, 0.01) 
-      
       #'  Intercept priors for all other species (note, intercept prior for wolf is beta.int[2])
       for(k in 2:nSpp) {
         beta.int[k] ~ dnorm(0, 0.01) 
@@ -69,11 +65,11 @@
       
       #'  Priors for species lag effects
       #'  As a reminder: precision = 0.01 --> sqrt(0.01^-1) --> SD = 10
-      for(w in 1:nWolf) {
-        beta.wolf[w] ~ dnorm(0, 0.1)  # using more informed prior to help convergence
-      }
       for(l in 1:nLion) {
         beta.lion[l] ~ dnorm(0, 1)  # poor convergence with weaker priors
+      }
+      for(w in 1:nWolf) {
+        beta.wolf[w] ~ dnorm(0, 0.1)  # using more informed prior to improve convergence
       }
       for(b in 1:nBear) {
         beta.bear[b] ~ dnorm(0, 0.01)
@@ -180,7 +176,7 @@
         for(y in 2:nYear) {
 
           lion.latent[i,y] ~ dnorm(mu.lion[i,y], tau.spp[1])
-          mu.lion[i,y] <- beta.int[1] + beta.harvest[1] * lionHarv[i,y-1]  #+ beta.lion[1] * lion.latent[i,y-1] 
+          mu.lion[i,y] <- beta.int[1] + beta.harvest[1] * lionHarv[i,y-1]  #+ beta.lion[] * lion.latent[i,y-1] 
              
           wolf.latent[i,y] ~ dnorm(mu.wolf[i,y], tau.spp[2])
           mu.wolf[i,y] <- beta.int[2] + beta.wolf[1] * wolf.latent[i,y-1] + beta.harvest[2] * wolfHarv[i,y-1] 
@@ -192,14 +188,14 @@
           mu.coy[i,y] <- beta.int[4] + beta.coy[1] * coy.latent[i,y-1] 
 
           elk.latent[i,y] ~ dnorm(mu.elk[i,y], tau.spp[5])
-          mu.elk[i,y] <- beta.int[5] + beta.elk[1] * elk.latent[i,y-1] + beta.wolf[2] * wolf.latent[i,y-1] + beta.lion[2] * lion.latent[i,y-1] + beta.harvest[4] * elkHarv[i,y-1] 
+          mu.elk[i,y] <- beta.int[5] + beta.elk[1] * elk.latent[i,y-1] + beta.wolf[2] * wolf.latent[i,y-1] + beta.lion[1] * lion.latent[i,y-1] + beta.harvest[4] * elkHarv[i,y-1] 
           #  Removed bear - assuming wolves and lions are primary predators, bears are incidental and only affect neonates
 
           moose.latent[i,y] ~ dnorm(mu.moose[i,y], tau.spp[6])
           mu.moose[i,y] <- beta.int[6] + beta.moose[1] * moose.latent[i,y-1] + beta.wolf[3] * wolf.latent[i,y-1] 
 
           wtd.latent[i,y] ~ dnorm(mu.wtd[i,y], tau.spp[7])
-          mu.wtd[i,y] <- beta.int[7] + beta.wtd[1] * wtd.latent[i,y-1] + beta.lion[3] * lion.latent[i,y-1] + beta.harvest[5] * deerHarv[i,y-1]
+          mu.wtd[i,y] <- beta.int[7] + beta.wtd[1] * wtd.latent[i,y-1] + beta.lion[2] * lion.latent[i,y-1] + beta.harvest[5] * deerHarv[i,y-1]
           #  Removed wolf, bear, and coy - assuming lions are primary predator, all others or incidental
       
         }
