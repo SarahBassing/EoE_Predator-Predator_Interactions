@@ -106,26 +106,13 @@
       for(i in 1:nSites) {
 
         #'  Year 1: baseline latent states, no previous information available
-        lion.latent[i,1]  ~ dnorm(mu.lion[i,1], tau.spp[1])
-        mu.lion[i,1] <- %s                                         #### DOUBLE CHECK THIS IS CORRECT!
-        
-        wolf.latent[i,1]  ~ dnorm(mu.wolf[i,1], tau.spp[2])
-        mu.wolf[i,1] <- %s
-        
-        bear.latent[i,1]  ~ dnorm(mu.bear[i,1], tau.spp[3])
-        mu.bear[i,1] <- %s
-        
-        coy.latent[i,1]   ~ dnorm(mu.coy[i,1], tau.spp[4])
-        mu.coy[i,1] <- %s
-        
-        elk.latent[i,1]   ~ dnorm(mu.elk[i,1], tau.spp[5])
-        mu.elk[i,1] <- %s
-        
-        moose.latent[i,1] ~ dnorm(mu.moose[i,1], tau.spp[6])
-        mu.moose[i,1] <- %s
-        
-        wtd.latent[i,1]   ~ dnorm(mu.wtd[i,1], tau.spp[7])
-        mu.wtd[i,1] <- %s
+        lion.latent[i,1]  ~ dnorm(beta.int.tmin1[1], tau.spp[1])
+        wolf.latent[i,1]  ~ dnorm(beta.int.tmin1[2], tau.spp[2])
+        bear.latent[i,1]  ~ dnorm(beta.int.tmin1[3], tau.spp[3])
+        coy.latent[i,1]   ~ dnorm(beta.int.tmin1[4], tau.spp[4])
+        elk.latent[i,1]   ~ dnorm(beta.int.tmin1[5], tau.spp[5])
+        moose.latent[i,1] ~ dnorm(beta.int.tmin1[6], tau.spp[6])
+        wtd.latent[i,1]   ~ dnorm(beta.int.tmin1[7], tau.spp[7])
 
         #'  Years 2-4: process model driven by the same previous-year latent
         #'  nodes used as outcomes above
