@@ -4,7 +4,7 @@
   #'  --------------------------------------
   #'  Keeping all priors consistent with original SEMs. Template arises in the 
   #'  likelihood, where the regression for each species and time step is coded
-  #'  using a placeholder (%s) that is updated with each iteratation for each
+  #'  using a placeholder (percent sign s) that is updated with each iteration for each
   #'  d-separation test.
   #'  --------------------------------------
 
@@ -141,6 +141,9 @@
           
         }
       }
+      
+      #'  Place holder for additional independence claims
+          %s
       
     }"
   
