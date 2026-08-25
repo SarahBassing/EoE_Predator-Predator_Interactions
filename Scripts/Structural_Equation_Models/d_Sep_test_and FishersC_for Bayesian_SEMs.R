@@ -217,87 +217,89 @@
   #'  ------------------------------------------------------
   ####  Build iterative JAGS models for d-separation tests  ####
   #'  ------------------------------------------------------
+  #'  -------------------------------------------------------
+  #####  Functions for when variable A t-1 --> variable B t  #####
+  #'  These functions also work for when variable A t --> variable B t
+  #'  -------------------------------------------------------
   #'  Source JAGS template
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_dsep_template.R")
   
   #'  Function to build custom regressions for each iteration
   build_individual_submodels <- function(reg_num, covariates = NULL, spp = NULL, 
-                                         indices = NULL, lags = NULL, beta_prefix = "beta") {   
+                                         indices = NULL, lags = NULL) {   #, beta_prefix = "beta"
     
     
-    #'  Create intercept and slope parameter names based on time step
-    #'  beta_prefix indicates whether to use main model terms (beta.int) or the 
-    #'  auxilary beta terms (beta.aux). Only needed for d-Sep claims where t-1
-    #'  affects t-1. This helps keep the rest of the main model beta arrays and 
-    #'  number of regressions unchanged.
-    beta0_array <- if(beta_prefix == "beta") "beta.int" else "beta0.aux"
-    # beta0_array <- "beta.int"    # intercept array 
+    #' #'  Create intercept and slope parameter names based on time step
+    #' #'  beta_prefix indicates whether to use main model terms (beta.int) or the 
+    #' #'  auxilary beta terms (beta.aux). Only needed for d-Sep claims where t-1
+    #' #'  affects t-1. This helps keep the rest of the main model beta arrays and 
+    #' #'  number of regressions unchanged.
+    #' beta0_array <- if(beta_prefix == "beta") "beta.int" else "beta0.aux"
+    beta0_array <- "beta.int"    # intercept array 
     
-    #'  If-Else statement for regressions
-    if(is.null(covariates) || length(covariates) == 0) {
-      sprintf("%s[%d]", beta0_array, reg_num)
-    } else {
-      if(is.null(lags)) lags <- rep("y-1", length(covariates))
-      terms <- paste0(sprintf("%s%s[%d] * %s[i,%s]", beta_prefix, spp, indices, covariates, lags),
-                      collapse = " + ")
-      if(beta_prefix == "beta") {
-        sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
-      } else {
-        sprintf("%s + %s", beta0_array, terms)  # aux intercept has no [reg_num] index
-      }
-    }
-    
-    
-    #' #'  If covariate is null or 0 (i.e., intercept only regressions)
+    #' #'  If-Else statement for regressions
     #' if(is.null(covariates) || length(covariates) == 0) {
     #'   sprintf("%s[%d]", beta0_array, reg_num)
     #' } else {
-    #'   #'  Build one string per "beta * covariate" by filling placeholders with
-    #'   #'  specified character strings or integers (sprintf is vectorized so does
-    #'   #'  this in order that strings/integers are provided)
-    #'   #'  %s is placeholder for character strings; %d is placeholder for integers
     #'   if(is.null(lags)) lags <- rep("y-1", length(covariates))
-    #'   if (length(lags) != length(covariates)) {
-    #'     stop("lags must be NULL or the same length as covariates")
+    #'   terms <- paste0(sprintf("%s%s[%d] * %s[i,%s]", beta_prefix, spp, indices, covariates, lags),
+    #'                   collapse = " + ")
+    #'   if(beta_prefix == "beta") {
+    #'     sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
+    #'   } else {
+    #'     sprintf("%s + %s", beta0_array, terms)  # aux intercept has no [reg_num] index
     #'   }
-    #' 
-    #' terms <- paste0(sprintf("beta%s[%d] * %s[i,%s]", spp, indices, covariates, lags),
-    #'                 collapse = " + ")
-    #' sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
-
     #' }
+    
+    #'  If covariate is null or 0 (i.e., intercept only regressions)
+    if(is.null(covariates) || length(covariates) == 0) {
+      sprintf("%s[%d]", beta0_array, reg_num)
+    } else {
+      #'  Build one string per "beta * covariate" by filling placeholders with
+      #'  specified character strings or integers (sprintf is vectorized so does
+      #'  this in order that strings/integers are provided)
+      #'  %s is placeholder for character strings; %d is placeholder for integers
+      if(is.null(lags)) lags <- rep("y-1", length(covariates))
+      if (length(lags) != length(covariates)) {
+        stop("lags must be NULL or the same length as covariates")
+      }
+
+    terms <- paste0(sprintf("beta%s[%d] * %s[i,%s]", spp, indices, covariates, lags),
+                    collapse = " + ")
+    sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
+    }
   }
   
-  #'  Function to build auxiliary regressions to test same-year independence claims
-  #'  Essentially generates additional priors and likelihood for cases where the
-  #'  original model structure did not include a regression for the potential 
-  #'  relationship flagged in the basic set.
-  build_aux_submodel <- function(outcome_spp_name, covariates, spp, indices, lags) {
-    #'  outcome_spp_name must match those used in .hat / .sigma_hat array
-    #'  lags will typically be "y" indicating same year, as opposed to a 1-yr 
-    #'  time lag ("y-1").
-    linpred <- build_individual_submodels(reg_num = NA, covariates = covariates,
-                                          spp = spp, indices = indices, lags = lags,
-                                          beta_prefix = "beta.aux")
-    n_terms <- length(covariates)
-    #'  Generate priors and likelihood for aux data. beta.aux%s, only works if 
-    #'  there is a single aux covariate based on how it is currently formulated.
-    sprintf("
-      beta0.aux ~ dnorm(0, 0.01)
-      for (a in 1:%d) { beta.aux%s[a] ~ dnorm(0, 0.01) }
-      sigma.aux ~ dunif(0, 2)
-      tau.aux <- 1 / pow(sigma.aux, 2)
-
-      for (i in 1:nSites) {
-        for (y in 1:nYear) {
-          %s.hat[i,y] ~ dnorm(%s.aux[i,y], %s.tau_hat[i,y])
-          %s.aux[i,y] ~ dnorm(mu.aux[i,y], tau.aux)
-          mu.aux[i,y] <- %s
-        }
-      }
-      ", n_terms, paste(unique(spp), collapse = ""),  # a little hacky but it works for this situation
-      outcome_spp_name, outcome_spp_name, outcome_spp_name, outcome_spp_name, linpred)
-  }
+  #' #'  Function to build auxiliary regressions to test same-year independence claims
+  #' #'  Essentially generates additional priors and likelihood for cases where the
+  #' #'  original model structure did not include a regression for the potential 
+  #' #'  relationship flagged in the basic set.
+  #' build_aux_submodel <- function(outcome_spp_name, covariates, spp, indices, lags) {
+  #'   #'  outcome_spp_name must match those used in .hat / .sigma_hat array
+  #'   #'  lags will typically be "y" indicating same year, as opposed to a 1-yr 
+  #'   #'  time lag ("y-1").
+  #'   linpred <- build_individual_submodels(reg_num = NA, covariates = covariates,
+  #'                                         spp = spp, indices = indices, lags = lags,
+  #'                                         beta_prefix = "beta.aux")
+  #'   n_terms <- length(covariates)
+  #'   #'  Generate priors and likelihood for aux data. beta.aux%s, only works if 
+  #'   #'  there is a single aux covariate based on how it is currently formulated.
+  #'   sprintf("
+  #'     beta0.aux ~ dnorm(0, 0.01)
+  #'     for (a in 1:%d) { beta.aux%s[a] ~ dnorm(0, 0.01) }
+  #'     sigma.aux ~ dunif(0, 2)
+  #'     tau.aux <- 1 / pow(sigma.aux, 2)
+  #' 
+  #'     for (i in 1:nSites) {
+  #'       for (y in 1:nYear) {
+  #'         %s.hat[i,y] ~ dnorm(%s.aux[i,y], %s.tau_hat[i,y])
+  #'         %s.aux[i,y] ~ dnorm(mu.aux[i,y], tau.aux)
+  #'         mu.aux[i,y] <- %s
+  #'       }
+  #'     }
+  #'     ", n_terms, paste(unique(spp), collapse = ""),  # a little hacky but it works for this situation
+  #'     outcome_spp_name, outcome_spp_name, outcome_spp_name, outcome_spp_name, linpred)
+  #' }
   
   #'  Function to assemble full model string for a single iteration
   #'  Requires having sourced the JAGS template model
@@ -305,43 +307,24 @@
   #'  consecutive slots in the mu_lines vector (for t and t-1 versions) - ensures 
   #'  regressions are in correct order and match template's 14 %s placeholders
   build_model_string <- function(iter_config, template, registry) {
-    #'  Identify if regression is for the main independence claims or an auxiliary claim
-    mode <- if(is.null(iter_config$mode)) "main" else iter_config$mode
+    #' #'  Identify if regression is for the main independence claims or an auxiliary claim
+    #' mode <- if(is.null(iter_config$mode)) "main" else iter_config$mode
 
     #'  Create empty strings to be filled with each regressions terms
     mu_lines <- character(7)  
     # mu_lines <- character(14)  # 7 regressions for time t and t-1
 
-    for(r in 1:7) {
-      if(mode == "main" && r == iter_config$dSep_test) {
-        #'  Focal species for a MAIN-mode test
-        covs <- iter_config$covariates
-        spp <- iter_config$spp
-        indices <- iter_config$indices
-        lags <- iter_config$lags
-        mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags, beta_prefix = "beta")
-      } else {
-        #'  Non-focal species, use original SEM covariates from the registry 
-        #'  (always, for main and aux modes)
-        orig <- registry[[r]]
-        #'  Grab covariate, species, and index numbers of terms NOT included in d-sep test
-        covs <- orig$covs
-        spp <- orig$spp
-        indices <- orig$indices
-        lags <- orig$lags
-        mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
-      }
-    }
-    #' for(r in 1:7) {   # for each regression
-    #'   #'  If the regression index is the same as the dSep_test value then...
-    #'   if(r == iter_config$dSep_test) {
+    #' for(r in 1:7) {
+    #'   if(mode == "main" && r == iter_config$dSep_test) {
+    #'     #'  Focal species for a MAIN-mode test
     #'     covs <- iter_config$covariates
     #'     spp <- iter_config$spp
     #'     indices <- iter_config$indices
-    #'     lags <- iter_config$lags        # if NULL, defaults to "y-1
-    #'     mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
+    #'     lags <- iter_config$lags
+    #'     mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags, beta_prefix = "beta")
     #'   } else {
-    #'     #'  Non-focal time t: use original SEM covariates from the registry
+    #'     #'  Non-focal species, use original SEM covariates from the registry 
+    #'     #'  (always, for main and aux modes)
     #'     orig <- registry[[r]]
     #'     #'  Grab covariate, species, and index numbers of terms NOT included in d-sep test
     #'     covs <- orig$covs
@@ -352,36 +335,56 @@
     #'   }
     #' }
     
-    #'  8th placeholder: empty for main mode, auxiliary block for aux mode
-    aux_block <- if (mode == "aux") {
-      outcome_spp_name <- iter_config$outcome_spp_name
-      covariates <- iter_config$covariates
-      spp <- iter_config$spp
-      indices <- iter_config$indices
-      lags <- iter_config$lags
-      build_aux_submodel(outcome_spp_name, covariates, spp, indices, lags)
-    } else {
-      ""
+    for(r in 1:7) {   # for each regression
+      #'  If the regression index is the same as the dSep_test value then...
+      if(r == iter_config$dSep_test) {
+        covs <- iter_config$covariates
+        spp <- iter_config$spp
+        indices <- iter_config$indices
+        lags <- iter_config$lags        # if NULL, defaults to "y-1
+        mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
+      } else {
+        #'  Non-focal time t: use original SEM covariates from the registry
+        orig <- registry[[r]]
+        #'  Grab covariate, species, and index numbers of terms NOT included in d-sep test
+        covs <- orig$covs
+        spp <- orig$spp
+        indices <- orig$indices
+        lags <- orig$lags
+        mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
+      }
     }
     
-    all_lines <- c(mu_lines, aux_block)
+    #' #'  8th placeholder: empty for main mode, auxiliary block for aux mode
+    #' aux_block <- if (mode == "aux") {
+    #'   outcome_spp_name <- iter_config$outcome_spp_name
+    #'   covariates <- iter_config$covariates
+    #'   spp <- iter_config$spp
+    #'   indices <- iter_config$indices
+    #'   lags <- iter_config$lags
+    #'   build_aux_submodel(outcome_spp_name, covariates, spp, indices, lags)
+    #' } else {
+    #'   ""
+    #' }
+    #' 
+    #' all_lines <- c(mu_lines, aux_block)
     
-    do.call(sprintf, c(list(template), as.list(all_lines))) #mu_lines
+    do.call(sprintf, c(list(template), as.list(mu_lines))) #all_lines
   }
   
-  #'  Function to indicate which parameters to monitor (it will depend on whether
-  #'  main or aux independence claim is being tested)
-  get_monitor_params <- function(iter_config, main_params) {
-    mode <- if (is.null(iter_config$mode)) "main" else iter_config$mode
-    if (mode == "main") {
-      main_params  
-    } else {
-      #'  Aux mode: monitor the intercept + this iteration's specific
-      #'  aux beta term(s), whose names depend on this claim's spp/indices
-      aux_names <- sprintf("beta.aux%s[%d]", iter_config$spp, iter_config$indices)
-      c("beta0.aux", aux_names)
-    }
-  }
+  #' #'  Function to indicate which parameters to monitor (it will depend on whether
+  #' #'  main or aux independence claim is being tested)
+  #' get_monitor_params <- function(iter_config, main_params) {
+  #'   mode <- if (is.null(iter_config$mode)) "main" else iter_config$mode
+  #'   if (mode == "main") {
+  #'     main_params  
+  #'   } else {
+  #'     #'  Aux mode: monitor the intercept + this iteration's specific
+  #'     #'  aux beta term(s), whose names depend on this claim's spp/indices
+  #'     aux_names <- sprintf("beta.aux%s[%d]", iter_config$spp, iter_config$indices)
+  #'     c("beta0.aux", aux_names)
+  #'   }
+  #' }
   
   #'  Function to call JAGS and run a single iteration of the model
   run_dSep_iterations <- function(i, iterations, template, registry, data_bundle, listInits, model_name) {  
@@ -401,8 +404,8 @@
     
     #'  Snag bundled data
     data_i <- data_bundle
-    #'  Indicate which paramters to monitor
-    monitor_params <- get_monitor_params(iter_config, params)
+    #' #'  Indicate which paramters to monitor
+    #' monitor_params <- get_monitor_params(iter_config, params)
     
     #'  Fit model in JAGS
     SEM_dSep <- jagsUI::jags(data = data_i, inits = listInits, params, model.file = temp_file, 
@@ -425,6 +428,132 @@
     saveRDS(list(fit = SEM_dSep, config = iter_config, max_rhat = max_rhat), jags_out)
     
     jags_out
+  }
+  
+  #'  ---------------------------------------------------------
+  #####  Functions for when variable A t-1 --> variable B t-1  #####
+  #'  ---------------------------------------------------------
+  #'  Function to extract the latent posterior mean and sd from the main model 
+  #'  that was originally fitted. This requires that each spp.latent was monitored 
+  #'  when the original model was fit.
+  extract_latent_post_summaries <- function(og_fit, spp, nSites, nYear) {
+    #'  og_fit: fitted jagsUI output from original SEM (fit in Bayesian_SEMs_relative_density_index_1yLag.R)
+    #'  spp: species name - must match naming convention use din spp.latent array name
+    
+    #'  Grab posteriors
+    samples_matrix <- as.matrix(og_fit$samples)
+    latent_mean <- matrix(NA_real_, nSites, nYear)
+    latent_sd <- matrix(NA_real_, nSites, nYear)
+    
+    for(i in 1:nSites) {
+      for(y in 1:nYear) {
+        #'  Create column name for specific spp.latent variable indexed by [nSite,nYear]
+        col_name <- sprintf("%s.latent[%d,%d]", spp, i, y)
+        #'  If created column name is in the colnames extracted from the og_fit samples
+        if(col_name %in% colnames(samples_matrix)) {
+          #'  Snag those draws from the posterior and save the mean and sd from each iteration
+          draws <- samples_matrix[, col_name]
+          latent_mean[i,y] <- mean(draws)
+          latent_sd[i,y] <- sd(draws)
+        }
+      }
+    }
+    list(mean = latent_mean, sd = latent_sd)
+  }
+  
+  #'  Function to fit a standalone regression using the posterior summaries as
+  #'  the noisy "observed" response
+  fit_one_dSep_claim <- function(y, x, z = NULL, n.chains = n.chains, n.adapt = n.adapt, 
+                                 n.burnin = n.burnin, n.iter = n.iter, thin = n.thin) {
+    ncondvars <- if(is.null(z) || ncol(as.matrix(z)) == 0) 0 else ncol(as.matrix(z))
+    #'  Create and fill in input data for JAGS (in list format)
+    jd <- list(y = y, x = x, N = length(y))
+    if(ncondvars > 0) {
+      jd$z <- as.matrix(z)
+      jd$ncondvars <- ncondvars
+    }
+    
+    #'  Create custom regression with added variable for independence claims
+    if(ncondvars > 0) {
+      #'  Build conditioning variable terms
+      z_terms <- paste(sprintf("b_z[%d] * z[i,%d]", 1:ncondvars, 1:ncondvars), collapse = " + ")
+      
+      #'  Create model string for JAGS that can be updated dynamically for each ind. claim
+      model_string <- sprintf("
+                              model {
+                              #'  Likelihood to be appended with variable for ind. claim
+                              for(i in 1:N) {
+                                y[i] ~ dnorm(mu[i], tau)
+                                mu[i] <- b0 + b_x * x[i] + %s }
+                              
+                              #'  Priors
+                              b0 ~ dnorm(0, 1e-4)
+                              b_x ~ dnorm(0, 1e-4)
+                              for(j in 1:ncondvars) {
+                                b_z[i] ~ dnorm(0, 1e-4) }
+                              tau ~ dgamma(0.01, 0.01)
+                              }
+                              ", z_terms)
+    } else {
+      model_string <- "
+      model {
+      #'  Likelihood for all other regressions
+      for(i in 1:N) {
+        y[i] ~ dnorm(mu[i], tau)
+        mu[i] <- b0 + b_x * x[i] }
+      #'  Priors
+      b0 ~ dnorm(0, 1e-4)
+      b_x ~ dnorm(0, 1e-4)
+      tau ~ dgamma(0.01, 0.01) 
+      }
+      "
+    }
+    
+    #'  Create a temporary file to hold the model_string for jagsUI
+    temp_file <- tempfile(fileext = ".txt")
+    writeLines(model_string, temp_file)
+    on.exit(unlink(temp_file), add = TRUE)
+    
+    #'  Refit model with added independence claim
+    fit <- jagsUI::jags(data = jd, inits = NULL, parameters.to.save = "b_x",
+                        model.file = temp_file, n.chains = nc, n.adapt = na, n.iter = ni, 
+                        n.burnin = nb, n.thin = nt, parallel = FALSE, verbose = FALSE)
+    # as.numeric(fit$sims.list$b_x)
+      
+  }
+  
+  #'  Function tying this together by extracting posteriors and refitting the model
+  fit_aux_claim <- function(i, iterations, og_fit, nSites, nYear, model_name) { #spp, covariate_array, 
+    
+    #'  Grab details for focal iteration
+    iter_deets <- iterations[[i]]
+    spp <- iter_deets$spp
+    covariate_array <- iter_deets$covariate_array
+    
+    #'  Grab the posterior samples from the specified variable in the ind. claim
+    post <- extract_latent_post_summaries(og_fit, spp, nSites, nYear)
+    #'  Grab the sample means of the spp.latent posterior and the corresponding 
+    #'  "observed" covariate affecting that spp.latent, removing NAs
+    y_vec <- as.vector(post$mean)
+    x_vec <- as.vector(covariate_array)
+    keep <- !is.na(y_vec) & !is.na(x_vec)
+    #'  Refit model with added independence claim
+    mod_out <- fit_one_dSep_claim(y = y_vec[keep], x = x_vec[keep], z = NULL, n.chains = n.chains, 
+                       n.adapt = n.adapt, n.burnin = n.burnin, n.iter = n.iter, thin = n.thin)
+    
+    #'  Flag convergence issues
+    max_rhat <- suppressWarnings(max(unlist(mod_out$Rhat), na.rm = TRUE))
+    if(is.finite(max_rhat) && max_rhat > 1.1) {
+      warning(sprintf("Iteration %d: max Rhat = %.3f -- check convergence", i, max_rhat))
+    }
+    
+    #'  Temporary directory to save JAGS outputs
+    out_dir <- file.path("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1", model_name)
+    dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+    #'  Save JAGS output for each iteration
+    jags_out <- file.path(out_dir, sprintf("iter_%03d.rds", i))
+    saveRDS(list(fit = mod_out, b_x = as.numeric(mod_out$sims.list$b_x), 
+                 config = iter_deets, max_rhat = max_rhat), jags_out)
   }
   
   #'  Run all iterations in parallel
@@ -486,6 +615,7 @@
   #'  ------------------------------
   #####  Top-down model iterations  #####
   #'  ------------------------------
+  #'  Fit independence claims for variables where t-1 --> t or t --> t
   #'  Model registry that defines the original regressions in SEM to be updated
   #'  with each iteration of d-Sep testing
   sem_registry <- list(
@@ -530,6 +660,30 @@
     future.seed = TRUE
   )
   end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  #'  Source second d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_tmin1_only.R")
+  
+  #'  Fit independence claims for variables where t-1 --> t-1 
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_topdown_tmin1_only),
+    function(i) fit_aux_claim(i, iterations = dSep_iterations_topdown_tmin1_only, 
+                              og_fit = SEM_topdown, nSites = 23, nYear = 4, model_name = "TopDown"),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  # tst <- fit_aux_claim(
+  #   og_fit = SEM_topdown,
+  #   spp = "wtd",
+  #   covariate_array = data_JAGS_bundle_topdown$deerHarv,
+  #   nSites = 23, nYear = 4
+  # )
+  
+  
+  
+  
   
   #'  --------------------------------------------
   #####  Bottom-up interference model iterations  #####
@@ -750,69 +904,96 @@
   #'  ------------------------------
   #####  Top-down model iterations  #####
   #'  ------------------------------
-  #'  Load all iterations of the JAGS model
+  #'  Load iterations of the JAGS model
+  #'  Note: this list of outputs is based on the number of independence claims 
+  #'  assessed using the d_Sep_active_regression_topdown.R active regression list. 
+  #'  This is not a complete list of all independence claims being tested.
   all_results_topdown <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/TopDown", full.names = TRUE), readRDS)
   
   #'  Rename data bundle
   data_JAGS_bundle <- data_JAGS_bundle_topdown
-  #'  Create list of "observed" values of focal response variable, one per d-Sep test
-  y_list <- list(data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,
-                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,
-                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,
-                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,       #15 (iteration number)
-                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$moose.hat,
-                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, 
-                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,      #30 (skipped #30 & #31)
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,     #39 (skipped #33, #34, #36, #37)
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,      #43 (skipped #41)
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat,    
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,       
-                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,    
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,     #59 (skipped #53, #54, #56, #57)
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat,    #63 (skipped #61)   
-                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,    
-                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat,      
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,     #74 (skipped #71 & #72)       
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat,    #78 (skipped #76)
-                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat,      
-                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,      #85 (skipped #84)      
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat)                                #88 (skipped #89)
-  #'  Leaves you with 71 d-Sep tests that were possible given the constructs of space and time and our data
+  #'  Create list of "observed" values of focal response variable, one per d-Sep test               # instances where x was used as y in d-Sep test noted below
+  y_list <- list(data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,   #
+                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,    #
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,   #
+                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,    #
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #     
+                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,    #
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,  #
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,   #
+                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wtd.hat,    # wtd flipped
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$wtd.hat,      # wtd flipped both times      
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wtd.hat,     # wtd fillped both times
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,    # wtd flipped
+                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$lion.hat,    # wtd flipped
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,   #
+                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat,   #
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat,   #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$coy.hat,     # coy flipped both times
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$coy.hat,     # coy flipped both times
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat,   #
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat,   # coy flipped
+                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,    #
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat,   #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$bear.hat,   # bear flipped both times
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat,   #
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat,  # bear flipped
+                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat,    #
+                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat,   # moose flipped
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat,    # elk flipped
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat)   # wolf flipped
+  #'  Results in 90 d-Sep tests that were t-1 --> t or t --> t
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
-  #'  Pay close attention to the indexing, especially with the beta indices. Most will be [,1]
-  #'  but some will be [,2] where the same beta name was used twice in the same regression.
+  #'  Pay close attention to the indexing, especially with the beta.harvest indices. 
+  #'  Most will be [,1] but some will be [,2] where the same beta name was used 
+  #'  twice in the same regression.
   mod_out <- list()
   for(i in 1:length(all_results_topdown)) {
     mod_out[[i]] <- all_results_topdown[[i]]$fit$sims.list
   }
-  post_list_topdown <- list(mod_out[[1]]$beta.harvest[,1], mod_out[[2]]$beta.harvest[,2], mod_out[[3]]$beta.harvest[,1],     # note the different indexing
-                            mod_out[[4]]$beta.harvest[,2], mod_out[[5]]$beta.harvest[,2], mod_out[[6]]$beta.harvest[,2],     # note the different indexing
+  #'  Note: indexing is based on the number of independence claims assessed using the
+  #'  d_Sep_active_regression_topdown.R active regression list. This is not a complete
+  #'  list of all independence claims being tested.
+  post_list_topdown <- list(mod_out[[1]]$beta.harvest[,1], mod_out[[2]]$beta.harvest[,2], mod_out[[3]]$beta.harvest[,1],     # note indexing
+                            mod_out[[4]]$beta.harvest[,2], mod_out[[5]]$beta.harvest[,2], mod_out[[6]]$beta.harvest[,2],     # note indexing
                             mod_out[[7]]$beta.wtd[,1], mod_out[[8]]$beta.wtd[,1], mod_out[[9]]$beta.wtd[,1],
                             mod_out[[10]]$beta.wtd[,1], mod_out[[11]]$beta.wtd[,1], mod_out[[12]]$beta.wtd[,1],
                             mod_out[[13]]$beta.moose[,1], mod_out[[14]]$beta.moose[,1], mod_out[[15]]$beta.moose[,1],
                             mod_out[[16]]$beta.moose[,1], mod_out[[17]]$beta.moose[,1], mod_out[[18]]$beta.moose[,1],
-                            mod_out[[19]]$beta.harvest[,2], mod_out[[20]]$beta.harvest[,1], mod_out[[21]]$beta.harvest[,1],  # note the different indexing
-                            mod_out[[22]]$beta.harvest[,1], mod_out[[23]]$beta.harvest[,2], mod_out[[24]]$beta.harvest[,2],  # note the different indexing
+                            mod_out[[19]]$beta.harvest[,2], mod_out[[20]]$beta.harvest[,1], mod_out[[21]]$beta.harvest[,1],  # note indexing
+                            mod_out[[22]]$beta.harvest[,1], mod_out[[23]]$beta.harvest[,2], mod_out[[24]]$beta.harvest[,2],  # note indexing
                             mod_out[[25]]$beta.lion[,1], mod_out[[26]]$beta.lion[,1], mod_out[[27]]$beta.lion[,1], 
-                            mod_out[[28]]$beta.lion[,1], mod_out[[29]]$beta.lion[,1], mod_out[[30]]$beta.wtd[,2],            # note the different indexing
-                            mod_out[[31]]$beta.wtd[,2], mod_out[[32]]$beta.wtd[,2], mod_out[[33]]$beta.wtd[,2],              # note the different indexing
-                            mod_out[[34]]$beta.wtd[,2], mod_out[[35]]$beta.wtd[,2], mod_out[[36]]$beta.elk[,1],              # note the different indexing
-                            mod_out[[37]]$beta.elk[,1], mod_out[[38]]$beta.elk[,1], mod_out[[39]]$beta.elk[,1],              
-                            mod_out[[40]]$beta.elk[,1], mod_out[[41]]$beta.coy[,1], mod_out[[42]]$beta.coy[,1],              
-                            mod_out[[43]]$beta.coy[,1], mod_out[[44]]$beta.coy[,1], mod_out[[45]]$beta.coy[,1],  
-                            mod_out[[46]]$beta.coy[,2], mod_out[[47]]$beta.coy[,2], mod_out[[48]]$beta.coy[,2],              # note the different indexing
-                            mod_out[[49]]$beta.coy[,2], mod_out[[50]]$beta.coy[,2], mod_out[[51]]$beta.harvest[,1],          # note the different indexing
-                            mod_out[[52]]$beta.harvest[,2], mod_out[[53]]$beta.harvest[,2], mod_out[[54]]$beta.harvest[,2],  # note the different indexing
-                            mod_out[[55]]$beta.bear[,1], mod_out[[56]]$beta.bear[,1], mod_out[[57]]$beta.bear[,1],           
-                            mod_out[[58]]$beta.bear[,1], mod_out[[59]]$beta.bear[,2], mod_out[[60]]$beta.bear[,2],           # note the different indexing
-                            mod_out[[61]]$beta.bear[,2], mod_out[[62]]$beta.bear[,2], mod_out[[63]]$beta.harvest[,1],        # note the different indexing
-                            mod_out[[64]]$beta.harvest[,2], mod_out[[65]]$beta.harvest[,2], mod_out[[66]]$beta.wolf[,1],     # note the different indexing
-                            mod_out[[67]]$beta.moose[,2], mod_out[[68]]$beta.moose[,2], mod_out[[69]]$beta.moose[,2],        # note the different indexing
-                            mod_out[[70]]$beta.elk[,2], mod_out[[71]]$beta.elk[,2])                                          # note the different indexing
+                            mod_out[[28]]$beta.lion[,1], mod_out[[29]]$beta.lion[,1], mod_out[[30]]$beta.elk[,1],            # note elk flipped
+                            mod_out[[31]]$beta.coy[,1], mod_out[[32]]$beta.wtd[,2], mod_out[[33]]$beta.harvest[,2],          # note indexing and coy & harvest both flipped
+                            mod_out[[34]]$beta.bear[,1], mod_out[[35]]$beta.wtd[,2], mod_out[[36]]$beta.harvest[,2],         # note indexing and bear & harvest both flipped
+                            mod_out[[37]]$beta.harvest[,1], mod_out[[38]]$beta.wtd[,2], mod_out[[39]]$beta.wtd[,2],          # note indexing and harvest flipped              
+                            mod_out[[40]]$beta.wtd[,2], mod_out[[41]]$beta.harvest[,2], mod_out[[42]]$beta.wtd[,2],          # note indexing and harvest flipped
+                            mod_out[[43]]$beta.elk[,1], mod_out[[44]]$beta.elk[,1], mod_out[[45]]$beta.elk[,1],  
+                            mod_out[[46]]$beta.elk[,1], mod_out[[47]]$beta.elk[,1], mod_out[[48]]$beta.coy[,1],              
+                            mod_out[[49]]$beta.coy[,1], mod_out[[50]]$beta.coy[,1], mod_out[[51]]$beta.coy[,1],              
+                            mod_out[[52]]$beta.coy[,1], mod_out[[53]]$beta.harvest[,1], mod_out[[54]]$beta.coy[,1],          # note harvest flipped
+                            mod_out[[55]]$beta.coy[,2], mod_out[[56]]$beta.harvest[,1], mod_out[[57]]$beta.wolf[,1],         # note indexing and harvest & wolf both flipped  
+                            mod_out[[58]]$beta.coy[,2], mod_out[[59]]$beta.coy[,2], mod_out[[60]]$beta.coy[,2],              # note indexing
+                            mod_out[[61]]$beta.harvest[,1], mod_out[[62]]$beta.coy[,2], mod_out[[63]]$beta.harvest[,1],      # note indexing and 1st harvest flipped
+                            mod_out[[64]]$beta.harvest[,2], mod_out[[65]]$beta.harvest[,2], mod_out[[66]]$beta.harvest[,2],  # note indexing
+                            mod_out[[67]]$beta.bear[,1], mod_out[[68]]$beta.bear[,1], mod_out[[69]]$beta.bear[,1],           
+                            mod_out[[70]]$beta.bear[,1], mod_out[[71]]$beta.harvest[,2], mod_out[[72]]$beta.wolf[,1],        # note indexing and harvest & wolf both flipped
+                            mod_out[[73]]$beta.bear[,2], mod_out[[74]]$beta.bear[,2], mod_out[[75]]$beta.bear[,2],           # note indexing
+                            mod_out[[76]]$beta.harvest[,2], mod_out[[77]]$beta.bear[,2], mod_out[[78]]$beta.harvest[,1],     # note indexing and 1st harvest flipped
+                            mod_out[[79]]$beta.harvest[,2], mod_out[[80]]$beta.harvest[,2], mod_out[[81]]$beta.wolf[,1],     # note indexing
+                            mod_out[[82]]$beta.moose[,2], mod_out[[83]]$beta.moose[,2], mod_out[[84]]$beta.harvest[,1],      # note indexing and harvest flipped 
+                            mod_out[[85]]$beta.moose[,2], mod_out[[86]]$beta.elk[,2], mod_out[[87]]$beta.harvest[,2],        # note indexing and harvest flipped
+                            mod_out[[88]]$beta.elk[,2], mod_out[[89]]$beta.harvest[,2], mod_out[[90]]$beta.wolf[,2])         # note indexing and harvest flipped
+  
+  all_results_topdown_tmin1 <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1/TopDown", full.names = TRUE), readRDS)
+  y_list2 <- list()
+  mod_out2 <- list()
+  for(i in 1:length(all_results_topdown_tmin1)) {
+    mod_out2[[i]] <- all_results_topdown_tmin1[[i]]$fit$sims.list
+  }
+  post_list_topdown_tmin1 <- list()
   
   #'  -------------------------
   ######  ROPE method p-value  ######
@@ -824,17 +1005,27 @@
     return(p.rope_val)
   }
   p.rope_topdown_list <- mapply(p_rope_iterations, y_dat = y_list, post_beta = post_list_topdown, SIMPLIFY = FALSE)
+  p.rope_topdown_tmin1_list <- mapply(p_rope_iterations, y_dat = y_list2, post_beta = post_list_topdown_tmin1, SIMPLIFY = FALSE)
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(p.rope_topdown_list)) {
     list_name <- sprintf("p.rope.%03d", i)
     names(p.rope_topdown_list)[i] <- list_name
   }
+  for(i in 1:length(p.rope_topdown_tmin1_list)) {
+    list_name <- sprintf("p.rope.%03d", i)
+    names(p.rope_topdown_tmin1_list)[i] <- list_name
+  }
   
   #'  Convert list to a data frame
   p.rope_topdown_df <- stack(p.rope_topdown_list) %>%
     transmute(iteration = ind,
-              p.rope = round(values, 4))
+              p.rope = round(values, 4),
+              basicset = "normal")
+  p.rope_topdown_df <- stack(p.rope_topdown_tmin1_list) %>%
+    transmute(iteration = ind,
+              p.rope = round(values, 4),
+              basicset = "tmin1")
   
   #'  ----------------------
   ######  Bayesian p-value  ######
@@ -845,6 +1036,7 @@
     return(bayes.p_val)
   }
   bayes.p_topdown_list <- mapply(bayes_p_iterations, post_beta = post_list_topdown, SIMPLIFY = FALSE)
+  bayes.p_topdown_tmin1_list <- mapply(bayes_p_iterations, post_beta = post_list_topdown_tmin1, SIMPLIFY = FALSE)
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(bayes.p_topdown_list)) {
@@ -853,12 +1045,24 @@
   }
   bayes.p_topdown_df <- stack(bayes.p_topdown_list) %>%
     transmute(iteration = ind,
-              bayes.p = round(values, 4))
+              bayes.p = round(values, 4),
+              basicset = "normal")
+  
+  for(i in 1:length(bayes.p_topdown_tmin1_list)) {
+    list_name <- sprintf("p.rope.%03d", i)
+    names(bayes.p_topdown_tmin1_list)[i] <- list_name
+  }
+  bayes.p_topdown_df <- stack(bayes.p_topdown_tmin1_list) %>%
+    transmute(iteration = ind,
+              bayes.p = round(values, 4),
+              basicset = "tmin1")
   
   #'  Join both d-Sep test p-values and save
-  p.val_topdown_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = "iteration")
+  p.val_topdown_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = c("iteration", "basicset"))
+  p.val_topdown_tmin1_df <- full_join(p.rope_topdown_tmin1_df, bayes.p_topdown_tmin1_df, by = c("iteration", "basicset"))
+  p.val_topdown_all_df <- bind_rows(p.val_topdown_df, p.val_topdown_tmin1_df)
   
-  write_csv(p.val_topdown_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown.csv")
+  write_csv(p.val_topdown_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_all_claims.csv")
   
   #'  ----------------
   ######  Fisher's C  ######
