@@ -143,15 +143,17 @@
     #'  Generate the basic set 
     basicset <- basiSet(dag)
     print(length(basicset))
-    #'  Return basic set with conditional independence claims involving 3+ variables
-    basicset_3plus <- sapply(basicset, length) >= 3
-    basicset_skinny <- basicset[basicset_3plus]
-    #'  Return basic set of unconditional independence tests (marginal independence)
-    basicset_marginal_ind <- sapply(basicset, length) < 3
-    print(length(basicset_skinny))
-    View(basicset_skinny)
-    basicset_to_test <- rbind(basicset_skinny, basicset_marginal_ind)
-    return(basicset_to_test)
+    View(basicset)
+    #' #'  Return basic set with conditional independence claims involving 3+ variables
+    #' basicset_3plus <- sapply(basicset, length) >= 3
+    #' basicset_skinny <- basicset[basicset_3plus]
+    #' #'  Return basic set of unconditional independence tests (marginal independence)
+    #' basicset_marginal_ind <- sapply(basicset, length) < 3
+    #' basicset_marginal <- basicset[basicset_marginal_ind]
+    #' print(length(basicset_skinny))
+    #' View(basicset_skinny)
+    #' basicset_to_test <- list(basicset_skinny, basicset_marginal)
+    return(basicset)
   }
   
   #'  ---------------------------
@@ -219,51 +221,82 @@
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_dsep_template.R")
   
   #'  Function to build custom regressions for each iteration
-  build_individual_submodels <- function(reg_num, covariates = NULL, spp = NULL, indices = NULL, lags = NULL) {   #timestep = ""
-    #' #'  Ensures only valid time step suffixes are provided
-    #' if(!timestep %in% c("", ".tmin1")) {
-    #'   stop('timestep must be "" or ".tmin1')
-    #' }
+  build_individual_submodels <- function(reg_num, covariates = NULL, spp = NULL, 
+                                         indices = NULL, lags = NULL, beta_prefix = "beta") {   
+    
     
     #'  Create intercept and slope parameter names based on time step
-    beta0_array <- "beta.int"    # intercept array 
-    # beta0_array <- paste0("beta.int", timestep) # beta.int or beta.int.tmin1
-    # beta_array <- paste0("beta", timestep)      # beta or beta.tmin1
+    #'  beta_prefix indicates whether to use main model terms (beta.int) or the 
+    #'  auxilary beta terms (beta.aux). Only needed for d-Sep claims where t-1
+    #'  affects t-1. This helps keep the rest of the main model beta arrays and 
+    #'  number of regressions unchanged.
+    beta0_array <- if(beta_prefix == "beta") "beta.int" else "beta0.aux"
+    # beta0_array <- "beta.int"    # intercept array 
     
     #'  If-Else statement for regressions
-    #'  If covariate is null or 0 (i.e., intercept only regressions)
     if(is.null(covariates) || length(covariates) == 0) {
       sprintf("%s[%d]", beta0_array, reg_num)
     } else {
-      #'  Build one string per "beta * covariate" by filling placeholders with
-      #'  specified character strings or integers (sprintf is vectorized so does
-      #'  this in order that strings/integers are provided)
-      #'  %s is placeholder for character strings; %d is placeholder for integers
       if(is.null(lags)) lags <- rep("y-1", length(covariates))
-      if (length(lags) != length(covariates)) {
-        stop("lags must be NULL or the same length as covariates")
+      terms <- paste0(sprintf("%s%s[%d] * %s[i,%s]", beta_prefix, spp, indices, covariates, lags),
+                      collapse = " + ")
+      if(beta_prefix == "beta") {
+        sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
+      } else {
+        sprintf("%s + %s", beta0_array, terms)  # aux intercept has no [reg_num] index
       }
+    }
     
-    terms <- paste0(sprintf("beta%s[%d] * %s[i,%s]", spp, indices, covariates, lags),
-                    collapse = " + ")
-    sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
     
+    #' #'  If covariate is null or 0 (i.e., intercept only regressions)
     #' if(is.null(covariates) || length(covariates) == 0) {
-    #'   #'  Build intercept only regressions for time t and t-1
     #'   sprintf("%s[%d]", beta0_array, reg_num)
     #' } else {
     #'   #'  Build one string per "beta * covariate" by filling placeholders with
     #'   #'  specified character strings or integers (sprintf is vectorized so does
     #'   #'  this in order that strings/integers are provided)
     #'   #'  %s is placeholder for character strings; %d is placeholder for integers
-    #'   terms <- paste0(sprintf("%s%s[%d] * %s[i]", beta_array, spp, indices, covariates),
-    #'                   #'  And link regression terms into one single string
-    #'                   collapse = " + ")
-    #'   #'  Build full regression with intercept plus regression terms defined above
-    #'   sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
+    #'   if(is.null(lags)) lags <- rep("y-1", length(covariates))
+    #'   if (length(lags) != length(covariates)) {
+    #'     stop("lags must be NULL or the same length as covariates")
+    #'   }
+    #' 
+    #' terms <- paste0(sprintf("beta%s[%d] * %s[i,%s]", spp, indices, covariates, lags),
+    #'                 collapse = " + ")
+    #' sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
+
     #' }
-    
-    }
+  }
+  
+  #'  Function to build auxiliary regressions to test same-year independence claims
+  #'  Essentially generates additional priors and likelihood for cases where the
+  #'  original model structure did not include a regression for the potential 
+  #'  relationship flagged in the basic set.
+  build_aux_submodel <- function(outcome_spp_name, covariates, spp, indices, lags) {
+    #'  outcome_spp_name must match those used in .hat / .sigma_hat array
+    #'  lags will typically be "y" indicating same year, as opposed to a 1-yr 
+    #'  time lag ("y-1").
+    linpred <- build_individual_submodels(reg_num = NA, covariates = covariates,
+                                          spp = spp, indices = indices, lags = lags,
+                                          beta_prefix = "beta.aux")
+    n_terms <- length(covariates)
+    #'  Generate priors and likelihood for aux data. beta.aux%s, only works if 
+    #'  there is a single aux covariate based on how it is currently formulated.
+    sprintf("
+      beta0.aux ~ dnorm(0, 0.01)
+      for (a in 1:%d) { beta.aux%s[a] ~ dnorm(0, 0.01) }
+      sigma.aux ~ dunif(0, 2)
+      tau.aux <- 1 / pow(sigma.aux, 2)
+
+      for (i in 1:nSites) {
+        for (y in 1:nYear) {
+          %s.hat[i,y] ~ dnorm(%s.aux[i,y], %s.tau_hat[i,y])
+          %s.aux[i,y] ~ dnorm(mu.aux[i,y], tau.aux)
+          mu.aux[i,y] <- %s
+        }
+      }
+      ", n_terms, paste(unique(spp), collapse = ""),  # a little hacky but it works for this situation
+      outcome_spp_name, outcome_spp_name, outcome_spp_name, outcome_spp_name, linpred)
   }
   
   #'  Function to assemble full model string for a single iteration
@@ -272,18 +305,24 @@
   #'  consecutive slots in the mu_lines vector (for t and t-1 versions) - ensures 
   #'  regressions are in correct order and match template's 14 %s placeholders
   build_model_string <- function(iter_config, template, registry) {
+    #'  Identify if regression is for the main independence claims or an auxiliary claim
+    mode <- if(is.null(iter_config$mode)) "main" else iter_config$mode
+
+    #'  Create empty strings to be filled with each regressions terms
     mu_lines <- character(7)  
     # mu_lines <- character(14)  # 7 regressions for time t and t-1
 
     for(r in 1:7) {
-      if(r == iter_config$dSep_test) {
+      if(mode == "main" && r == iter_config$dSep_test) {
+        #'  Focal species for a MAIN-mode test
         covs <- iter_config$covariates
         spp <- iter_config$spp
         indices <- iter_config$indices
-        lags <- iter_config$lags        # if NULL, defaults to "y-1
-        mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
+        lags <- iter_config$lags
+        mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags, beta_prefix = "beta")
       } else {
-        #'  Non-focal time t: use original SEM covariates from the registry
+        #'  Non-focal species, use original SEM covariates from the registry 
+        #'  (always, for main and aux modes)
         orig <- registry[[r]]
         #'  Grab covariate, species, and index numbers of terms NOT included in d-sep test
         covs <- orig$covs
@@ -293,30 +332,55 @@
         mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
       }
     }
-    
-    #' for(r in 1:7) {
-    #'   if (r == iter_config$dSep_test) {
-    #'     #'  Grab covariate, species, and index numbers of terms included in d-sep test
+    #' for(r in 1:7) {   # for each regression
+    #'   #'  If the regression index is the same as the dSep_test value then...
+    #'   if(r == iter_config$dSep_test) {
     #'     covs <- iter_config$covariates
     #'     spp <- iter_config$spp
     #'     indices <- iter_config$indices
-    #'     #'  time t: create custom regression for d-sep test
-    #'     mu_lines[(r * 2) - 1] <- build_individual_submodels(r, covs, spp, indices, timestep = "")
+    #'     lags <- iter_config$lags        # if NULL, defaults to "y-1
+    #'     mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
     #'   } else {
     #'     #'  Non-focal time t: use original SEM covariates from the registry
-    #'     orig <- registry[[(r * 2) - 1]]
+    #'     orig <- registry[[r]]
     #'     #'  Grab covariate, species, and index numbers of terms NOT included in d-sep test
     #'     covs <- orig$covs
     #'     spp <- orig$spp
     #'     indices <- orig$indices
-    #'     mu_lines[(r * 2) - 1] <- build_individual_submodels(r, covs, spp, indices, timestep = "")
+    #'     lags <- orig$lags
+    #'     mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
     #'   }
-    #'   
-    #'   #'  time t-1: always intercept-only for all regressions and iterations
-    #'   mu_lines[r * 2] <- build_individual_submodels(r, NULL, timestep = ".tmin1")
     #' }
     
-    do.call(sprintf, c(list(template), as.list(mu_lines)))
+    #'  8th placeholder: empty for main mode, auxiliary block for aux mode
+    aux_block <- if (mode == "aux") {
+      outcome_spp_name <- iter_config$outcome_spp_name
+      covariates <- iter_config$covariates
+      spp <- iter_config$spp
+      indices <- iter_config$indices
+      lags <- iter_config$lags
+      build_aux_submodel(outcome_spp_name, covariates, spp, indices, lags)
+    } else {
+      ""
+    }
+    
+    all_lines <- c(mu_lines, aux_block)
+    
+    do.call(sprintf, c(list(template), as.list(all_lines))) #mu_lines
+  }
+  
+  #'  Function to indicate which parameters to monitor (it will depend on whether
+  #'  main or aux independence claim is being tested)
+  get_monitor_params <- function(iter_config, main_params) {
+    mode <- if (is.null(iter_config$mode)) "main" else iter_config$mode
+    if (mode == "main") {
+      main_params  
+    } else {
+      #'  Aux mode: monitor the intercept + this iteration's specific
+      #'  aux beta term(s), whose names depend on this claim's spp/indices
+      aux_names <- sprintf("beta.aux%s[%d]", iter_config$spp, iter_config$indices)
+      c("beta0.aux", aux_names)
+    }
   }
   
   #'  Function to call JAGS and run a single iteration of the model
@@ -337,6 +401,8 @@
     
     #'  Snag bundled data
     data_i <- data_bundle
+    #'  Indicate which paramters to monitor
+    monitor_params <- get_monitor_params(iter_config, params)
     
     #'  Fit model in JAGS
     SEM_dSep <- jagsUI::jags(data = data_i, inits = listInits, params, model.file = temp_file, 
