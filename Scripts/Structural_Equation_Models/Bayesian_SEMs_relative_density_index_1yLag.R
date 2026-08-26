@@ -199,7 +199,7 @@
   #'  Parameters monitored
   params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", 
               "beta.moose", "beta.wtd", "beta.harvest", "beta.wsi","beta.forest", "beta.road", "beta.public",
-              "sigma.spp", "sigma.spp.tmin1", "wolf.latent", "lion.latent", "bear.latent", "coy.latnet",
+              "sigma.spp", "sigma.spp.tmin1", "lion.latent", "wolf.latent", "bear.latent", "coy.latent",
               "elk.latent", "moose.latent", "wtd.latent") # , "sigma.cluster", "cluster.randeff" 
    
   #'  MCMC settings
