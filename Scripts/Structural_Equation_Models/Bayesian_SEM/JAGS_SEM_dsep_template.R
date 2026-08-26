@@ -142,9 +142,6 @@
         }
       }
       
-      #'  Place holder for additional independence claims
-          %s
-      
     }"
   
   
