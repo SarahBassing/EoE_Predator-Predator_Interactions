@@ -463,8 +463,11 @@
   
   #'  Function to fit a standalone regression using the posterior summaries as
   #'  the noisy "observed" response
+  #'  Note: z = NULL is a placeholder for if any of these independence claims had
+  #'  a condition set of variables. But in this case, z is never needed.
   fit_one_dSep_claim <- function(y, x, z = NULL, n.chains = n.chains, n.adapt = n.adapt, 
-                                 n.burnin = n.burnin, n.iter = n.iter, thin = n.thin) {
+                                 n.burnin = n.burnin, n.iter = n.iter, n.thin = n.thin, 
+                                 model_name, iter_num) {
     ncondvars <- if(is.null(z) || ncol(as.matrix(z)) == 0) 0 else ncol(as.matrix(z))
     #'  Create and fill in input data for JAGS (in list format)
     jd <- list(y = y, x = x, N = length(y))
@@ -479,9 +482,12 @@
       z_terms <- paste(sprintf("b_z[%d] * z[i,%d]", 1:ncondvars, 1:ncondvars), collapse = " + ")
       
       #'  Create model string for JAGS that can be updated dynamically for each ind. claim
+      #'  IF the independence claim includes a condition set of predictors (the 
+      #'  "given blah blah blah" variables) create the first model_string. ELSE 
+      #'  create the second model_string with only the y (spp.latent) and x (focal predictor)
       model_string <- sprintf("
                               model {
-                              #'  Likelihood to be appended with variable for ind. claim
+                              #'  Likelihood to be appended with conditioning claim
                               for(i in 1:N) {
                                 y[i] ~ dnorm(mu[i], tau)
                                 mu[i] <- b0 + b_x * x[i] + %s }
@@ -489,8 +495,8 @@
                               #'  Priors
                               b0 ~ dnorm(0, 1e-4)
                               b_x ~ dnorm(0, 1e-4)
-                              for(j in 1:ncondvars) {
-                                b_z[i] ~ dnorm(0, 1e-4) }
+                                for(j in 1:ncondvars) {
+                                  b_z[j] ~ dnorm(0, 1e-4) }
                               tau ~ dgamma(0.01, 0.01)
                               }
                               ", z_terms)
@@ -509,21 +515,31 @@
       "
     }
     
-    #'  Create a temporary file to hold the model_string for jagsUI
-    temp_file <- tempfile(fileext = ".txt")
+    #' #'  Create a temporary file to hold the model_string for jagsUI
+    #' temp_file <- tempfile(fileext = ".txt")
+    #' writeLines(model_string, temp_file)
+    #' on.exit(unlink(temp_file), add = TRUE)
+    
+    #'  Create temporary directory to save all iterations of the template
+    temp_dir <- file.path("./Outputs/SEM/JAGS_out/d_Sep/temp_models/tmin1", model_name)
+    dir.create(temp_dir, showWarnings = FALSE, recursive = TRUE)
+    #'  Create name new name for each model where %03d is a placeholder for the 
+    #'  iteration number, padded by up to three 0's (e.g., temp_model_001, temp_model_012)
+    temp_file <- file.path(temp_dir, sprintf("temp_model_%03d.txt", iter_num))
     writeLines(model_string, temp_file)
-    on.exit(unlink(temp_file), add = TRUE)
     
     #'  Refit model with added independence claim
     fit <- jagsUI::jags(data = jd, inits = NULL, parameters.to.save = "b_x",
-                        model.file = temp_file, n.chains = nc, n.adapt = na, n.iter = ni, 
-                        n.burnin = nb, n.thin = nt, parallel = FALSE, verbose = FALSE)
-    # as.numeric(fit$sims.list$b_x)
-      
+                        model.file = temp_file, n.chains = n.chains, n.adapt = n.adapt, 
+                        n.burnin = n.burnin, n.iter = n.iter, n.thin = n.thin, 
+                        parallel = FALSE, verbose = FALSE)
+    
+    fit
   }
   
   #'  Function tying this together by extracting posteriors and refitting the model
-  fit_aux_claim <- function(i, iterations, og_fit, nSites, nYear, model_name) { #spp, covariate_array, 
+  fit_aux_claim <- function(i, iterations, og_fit, nSites, nYear, model_name,
+                            n.chains, n.adapt, n.burnin, n.iter, n.thin) { #spp, covariate_array, 
     
     #'  Grab details for focal iteration
     iter_deets <- iterations[[i]]
@@ -532,14 +548,16 @@
     
     #'  Grab the posterior samples from the specified variable in the ind. claim
     post <- extract_latent_post_summaries(og_fit, spp, nSites, nYear)
-    #'  Grab the sample means of the spp.latent posterior and the corresponding 
-    #'  "observed" covariate affecting that spp.latent, removing NAs
+    #'  Grab the spp.latent posterior mean and the "observed" predictor 
     y_vec <- as.vector(post$mean)
     x_vec <- as.vector(covariate_array)
     keep <- !is.na(y_vec) & !is.na(x_vec)
-    #'  Refit model with added independence claim
-    mod_out <- fit_one_dSep_claim(y = y_vec[keep], x = x_vec[keep], z = NULL, n.chains = n.chains, 
-                       n.adapt = n.adapt, n.burnin = n.burnin, n.iter = n.iter, thin = n.thin)
+    #print(sum(keep)) # Better not be 0 or close to 0 (means very little data going into model)
+    #'  Refit model with added independence claim using spp.latent posterior mean 
+    #'  and specified predictor as y and x
+    mod_out <- fit_one_dSep_claim(y = y_vec[keep], x = x_vec[keep], z = NULL, 
+                                  n.chains = n.chains, n.adapt = n.adapt, n.burnin = n.burnin, 
+                                  n.iter = n.iter, n.thin = n.thin, model_name, iter_num = i)
     
     #'  Flag convergence issues
     max_rhat <- suppressWarnings(max(unlist(mod_out$Rhat), na.rm = TRUE))
@@ -555,6 +573,34 @@
     saveRDS(list(fit = mod_out, b_x = as.numeric(mod_out$sims.list$b_x), 
                  config = iter_deets, max_rhat = max_rhat), jags_out)
   }
+  
+  
+  #'  ------------------------------------------------------------
+  #####  Functions for ind. claims with only exogenous variables  #####
+  #'  ------------------------------------------------------------
+  #'  Function to grab covariate data and call fit_one_dSep_claim()
+  fit_covariate_claim <- function(i, iterations, model_name, #y_array, x_array, iter_num,
+                                  n.chains, n.adapt, n.burnin, n.iter, n.thin) {
+    iter_deets <- iterations[[i]]
+    y_vec <- as.vector(iter_deets$y_array)
+    x_vec <- as.vector(iter_deets$x_array)
+    keep <- !is.na(y_vec) & !is.na(x_vec)
+  
+    #'  Use simplified JAGS code and regression in fit_one_dSep_claim() to test claim
+    mod_out <- fit_one_dSep_claim(y = y_vec[keep], x = x_vec[keep], z = NULL,
+                       n.chains = n.chains, n.adapt = n.adapt, n.burnin = n.burnin,
+                       n.iter = n.iter, n.thin = n.thin, model_name = model_name,
+                       iter_num = i)
+    
+    #'  Temporary directory to save JAGS outputs
+    out_dir <- file.path("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1", model_name)
+    dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
+    #'  Save JAGS output for each iteration
+    jags_out <- file.path(out_dir, sprintf("iter_%03d.rds", i))
+    saveRDS(list(fit = mod_out, b_x = as.numeric(mod_out$sims.list$b_x), 
+                 config = iter_deets), jags_out)
+  }
+  
   
   #'  Run all iterations in parallel
   plan(multisession, workers = parallel::detectCores() - 1)
@@ -664,25 +710,34 @@
   #'  Source second d-Sep custom regressions for iterative d-separation tests 
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_tmin1_only.R")
   
+  ### MAKE SURE SEM_TOPDOWN IS IN WORKING DIRECTORY  ###
+  
   #'  Fit independence claims for variables where t-1 --> t-1 
   start.time = Sys.time()
   saved_paths <- future_lapply(
     seq_along(dSep_iterations_topdown_tmin1_only),
     function(i) fit_aux_claim(i, iterations = dSep_iterations_topdown_tmin1_only, 
-                              og_fit = SEM_topdown, nSites = 23, nYear = 4, model_name = "TopDown"),
+                              og_fit = SEM_topdown, nSites = 23, nYear = 4, model_name = "TopDown",
+                              n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
     future.seed = TRUE
   )
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   
-  # tst <- fit_aux_claim(
-  #   og_fit = SEM_topdown,
-  #   spp = "wtd",
-  #   covariate_array = data_JAGS_bundle_topdown$deerHarv,
-  #   nSites = 23, nYear = 4
-  # )
   
-  
-  
+  #'  Source third d-Sep custom regressions for iterative d-separation tests -
+  #'  this time to simply test correlation between exogenous variables flagged 
+  #'  in the basic set
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_exog_only.R")
+  #'  Fit independence claims for pairs of exogenous variables
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_topdown_exog_only),
+    function(i) fit_covariate_claim(i, iterations = dSep_iterations_topdown_exog_only, 
+                                    model_name = "TopDown_exog", n.chains = nc, 
+                                    n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
   
   
   #'  --------------------------------------------
@@ -987,13 +1042,95 @@
                             mod_out[[85]]$beta.moose[,2], mod_out[[86]]$beta.elk[,2], mod_out[[87]]$beta.harvest[,2],        # note indexing and harvest flipped
                             mod_out[[88]]$beta.elk[,2], mod_out[[89]]$beta.harvest[,2], mod_out[[90]]$beta.wolf[,2])         # note indexing and harvest flipped
   
+  #'  Load more iterations of the JAGS model
+  #'  Note: this list of outputs is based on the number of independence claims 
+  #'  assessed using the d_Sep_active_regression_topdown_tmin1_only.R list. 
+  #'  This is not a complete list of all independence claims being tested.
   all_results_topdown_tmin1 <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1/TopDown", full.names = TRUE), readRDS)
-  y_list2 <- list()
+  
+  #'  Create list of "observed" values of focal response variable, one per d-Sep test                 # instances where x was used as y in d-Sep test noted below
+  y_list2 <- list(data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$lion.hat,
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat,
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,
+                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wtd.hat,
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat,
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, 
+                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$lion.hat,
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat,
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$elk.hat,
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,
+                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat,
+                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,
+                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat,
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$nWolf)
+  
+  #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
+  #'  Generally don't need to worry about indexing here because most of these independence
+  #'  claims are really marginal independence claims (not conditional ind. claims) 
+  #'  so there is typically only 1 explanatory variable to consider and index will be [1]
   mod_out2 <- list()
   for(i in 1:length(all_results_topdown_tmin1)) {
     mod_out2[[i]] <- all_results_topdown_tmin1[[i]]$fit$sims.list
   }
-  post_list_topdown_tmin1 <- list()
+  post_list_topdown_tmin1 <- list(mod_out2[[1]]$b_x, mod_out2[[2]]$b_x,  mod_out2[[3]]$b_x,
+                                  mod_out2[[4]]$b_x,  mod_out2[[5]]$b_x,  mod_out2[[6]]$b_x,
+                                  mod_out2[[7]]$b_x,  mod_out2[[8]]$b_x,  mod_out2[[9]]$b_x,
+                                  mod_out2[[10]]$b_x,  mod_out2[[11]]$b_x,  mod_out2[[12]]$b_x, 
+                                  mod_out2[[13]]$b_x,  mod_out2[[14]]$b_x,  mod_out2[[15]]$b_x, 
+                                  mod_out2[[16]]$b_x,  mod_out2[[17]]$b_x,  mod_out2[[18]]$b_x,
+                                  mod_out2[[19]]$b_x,  mod_out2[[20]]$b_x,  mod_out2[[21]]$b_x, 
+                                  mod_out2[[22]]$b_x,  mod_out2[[23]]$b_x,  mod_out2[[24]]$b_x,
+                                  mod_out2[[25]]$b_x,  mod_out2[[26]]$b_x,  mod_out2[[27]]$b_x,
+                                  mod_out2[[28]]$b_x,  mod_out2[[29]]$b_x,  mod_out2[[30]]$b_x,
+                                  mod_out2[[31]]$b_x,  mod_out2[[32]]$b_x,  mod_out2[[33]]$b_x,
+                                  mod_out2[[34]]$b_x,  mod_out2[[35]]$b_x,  mod_out2[[36]]$b_x, 
+                                  mod_out2[[37]]$b_x,  mod_out2[[38]]$b_x,  mod_out2[[39]]$b_x, 
+                                  mod_out2[[40]]$b_x,  mod_out2[[41]]$b_x,  mod_out2[[42]]$b_x,
+                                  mod_out2[[43]]$b_x,  mod_out2[[44]]$b_x,  mod_out2[[45]]$b_x, 
+                                  mod_out2[[46]]$b_x,  mod_out2[[47]]$b_x,  mod_out2[[48]]$b_x, 
+                                  mod_out2[[49]]$b_x, mod_out2[[50]]$b_x, mod_out2[[51]]$b_x, 
+                                  mod_out2[[52]]$b_x, mod_out2[[53]]$b_x, mod_out2[[54]]$b_x,
+                                  mod_out2[[55]]$b_x, mod_out2[[56]]$b_x)
+  # post_list_topdown_tmin1 <- list(mod_out2[[1]]$beta.harvest[,1], mod_out2[[2]]$beta.harvest[,1],  mod_out2[[3]]$beta.harvest[,1],
+  #                                 mod_out2[[4]]$beta.harvest[,1],  mod_out2[[5]]$beta.harvest[,1],  mod_out2[[6]]$beta.harvest[,1],
+  #                                 mod_out2[[7]]$beta.harvest[,1],  mod_out2[[8]]$beta.wtd[,1],  mod_out2[[9]]$beta.harvest[,1],
+  #                                 mod_out2[[10]]$beta.wtd[,1],  mod_out2[[11]]$beta.wtd[,1],  mod_out2[[12]]$beta.wtd[,1], 
+  #                                 mod_out2[[13]]$beta.harvest[,1],  mod_out2[[14]]$beta.wtd[,1],  mod_out2[[15]]$beta.harvest[,1], 
+  #                                 mod_out2[[16]]$beta.wtd[,1],  mod_out2[[17]]$beta.harvest[,1],  mod_out2[[18]]$beta.harvest[,1],
+  #                                 mod_out2[[19]]$beta.moose[,1],  mod_out2[[20]]$beta.moose[,1],  mod_out2[[21]]$beta.moose[,1], 
+  #                                 mod_out2[[22]]$beta.harvest[,1],  mod_out2[[23]]$beta.moose[,1],  mod_out2[[24]]$beta.harvest[,1],
+  #                                 mod_out2[[25]]$beta.moose[,1],  mod_out2[[26]]$beta.harvest[,1],  mod_out2[[27]]$beta.harvest[,1],
+  #                                 mod_out2[[28]]$beta.harvest[,1],  mod_out2[[29]]$beta.harvest[,1],  mod_out2[[30]]$beta.harvest[,1],
+  #                                 mod_out2[[31]]$beta.harvest[,1],  mod_out2[[32]]$beta.lion[,1],  mod_out2[[33]]$beta.lion[,1],
+  #                                 mod_out2[[34]]$beta.harvest[,1],  mod_out2[[35]]$beta.lion[,1],  mod_out2[[36]]$beta.harvest[,1], 
+  #                                 mod_out2[[37]]$beta.lion[,1],  mod_out2[[38]]$beta.harvest[,1],  mod_out2[[39]]$beta.elk[,1], 
+  #                                 mod_out2[[40]]$beta.harvest[,1],  mod_out2[[41]]$beta.elk[,1],  mod_out2[[42]]$beta.harvest[,1],
+  #                                 mod_out2[[43]]$beta.elk[,1],  mod_out2[[44]]$beta.harvest[,1],  mod_out2[[45]]$beta.harvest[,1], 
+  #                                 mod_out2[[46]]$beta.coy[,1],  mod_out2[[47]]$beta.harvest[,1],  mod_out2[[48]]$beta.coy[,1], 
+  #                                 mod_out2[[49]]$beta.harvest[,1], mod_out2[[50]]$beta.harvest[,1], mod_out2[[51]]$beta.harvest[,1], 
+  #                                 mod_out2[[52]]$beta.harvest[,1], mod_out2[[53]]$beta.bear[,1], mod_out2[[54]]$beta.harvest[,1],
+  #                                 mod_out2[[55]]$beta.harvest[,1], mod_out2[[56]]$beta.harvest[,1])
+  
+  #'  Load more iterations of the JAGS model (this time assessing correlation between exogenous variables)
+  all_results_topdown_exog <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1/TopDown_exog", full.names = TRUE), readRDS)
+  y_list3 <- list(data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$lion.hat,
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat,
+                  data_JAGS_bundle$lion.hat) ######### UPDATE THESE
+  mod_out3 <- list()
+  for(i in 1:length(all_results_topdown_exog)) {
+    mod_out3[[i]] <- all_results_topdown_exog[[i]]$fit$sims.list
+  }
+  post_list_topdown_exog <- list(mod_out3[[1]]$b_x, mod_out3[[2]]$b_x, mod_out3[[3]]$b_x,
+                                  mod_out3[[4]]$b_x, mod_out3[[5]]$b_x, mod_out3[[6]]$b_x,
+                                  mod_out3[[7]]$b_x, mod_out3[[8]]$b_x, mod_out3[[9]]$b_x,
+                                  mod_out3[[10]]$b_x)
+  
   
   #'  -------------------------
   ######  ROPE method p-value  ######
@@ -1006,6 +1143,7 @@
   }
   p.rope_topdown_list <- mapply(p_rope_iterations, y_dat = y_list, post_beta = post_list_topdown, SIMPLIFY = FALSE)
   p.rope_topdown_tmin1_list <- mapply(p_rope_iterations, y_dat = y_list2, post_beta = post_list_topdown_tmin1, SIMPLIFY = FALSE)
+  p.rope_topdown_exog_list <- mapply(p_rope_iterations, y_dat = y_list3, post_beta = post_list_topdown_exog, SIMPLIFY = FALSE)
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(p.rope_topdown_list)) {
@@ -1016,16 +1154,24 @@
     list_name <- sprintf("p.rope.%03d", i)
     names(p.rope_topdown_tmin1_list)[i] <- list_name
   }
+  for(i in 1:length(p.rope_topdown_exog_list)) {
+    list_name <- sprintf("p.rope.%03d", i)
+    names(p.rope_topdown_exog_list)[i] <- list_name
+  }
   
   #'  Convert list to a data frame
   p.rope_topdown_df <- stack(p.rope_topdown_list) %>%
     transmute(iteration = ind,
               p.rope = round(values, 4),
               basicset = "normal")
-  p.rope_topdown_df <- stack(p.rope_topdown_tmin1_list) %>%
+  p.rope_topdown_tmin1_df <- stack(p.rope_topdown_tmin1_list) %>%
     transmute(iteration = ind,
               p.rope = round(values, 4),
               basicset = "tmin1")
+  p.rope_topdown_exog_df <- stack(p.rope_topdown_exog_list) %>%
+    transmute(iteration = ind,
+              p.rope = round(values, 4),
+              basicset = "exog")
   
   #'  ----------------------
   ######  Bayesian p-value  ######
@@ -1037,6 +1183,7 @@
   }
   bayes.p_topdown_list <- mapply(bayes_p_iterations, post_beta = post_list_topdown, SIMPLIFY = FALSE)
   bayes.p_topdown_tmin1_list <- mapply(bayes_p_iterations, post_beta = post_list_topdown_tmin1, SIMPLIFY = FALSE)
+  bayes.p_topdown_exog_list <- mapply(bayes_p_iterations, post_beta = post_list_topdown_exog, SIMPLIFY = FALSE)
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(bayes.p_topdown_list)) {
@@ -1052,15 +1199,25 @@
     list_name <- sprintf("p.rope.%03d", i)
     names(bayes.p_topdown_tmin1_list)[i] <- list_name
   }
-  bayes.p_topdown_df <- stack(bayes.p_topdown_tmin1_list) %>%
+  bayes.p_topdown_tmin1_df <- stack(bayes.p_topdown_tmin1_list) %>%
     transmute(iteration = ind,
               bayes.p = round(values, 4),
               basicset = "tmin1")
   
+  for(i in 1:length(bayes.p_topdown_exog_list)) {
+    list_name <- sprintf("p.rope.%03d", i)
+    names(bayes.p_topdown_exog_list)[i] <- list_name
+  }
+  bayes.p_topdown_exog_df <- stack(bayes.p_topdown_exog_list) %>%
+    transmute(iteration = ind,
+              bayes.p = round(values, 4),
+              basicset = "exog")
+  
   #'  Join both d-Sep test p-values and save
   p.val_topdown_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = c("iteration", "basicset"))
   p.val_topdown_tmin1_df <- full_join(p.rope_topdown_tmin1_df, bayes.p_topdown_tmin1_df, by = c("iteration", "basicset"))
-  p.val_topdown_all_df <- bind_rows(p.val_topdown_df, p.val_topdown_tmin1_df)
+  p.val_topdown_exog_df <- full_join(p.rope_topdown_exog_df, bayes.p_topdown_exog_df, by = c("iteration", "basicset"))
+  p.val_topdown_all_df <- bind_rows(p.val_topdown_df, p.val_topdown_tmin1_df, p.val_topdown_exog_df)
   
   write_csv(p.val_topdown_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_all_claims.csv")
   
