@@ -7,7 +7,7 @@
   #'  
   #'  Input for each iteration are: 
   #'  spp = the response variable in the independence claim (must be the same
-  #'    how the spp is represented in each spp.latent estiamte)
+  #'    how the spp is represented in each spp.latent estimate)
   #'  covariate_array = the input covariate data used as the focal explanatory 
   #'    variable in the independence claim
   #'  
