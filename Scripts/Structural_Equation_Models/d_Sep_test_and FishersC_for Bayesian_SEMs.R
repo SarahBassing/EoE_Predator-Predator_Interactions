@@ -658,6 +658,37 @@
   )
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   
+  #'  Source second d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_tmin1_only.R")
+  
+  ### MAKE SURE SEM_TOPDOWN IS IN WORKING DIRECTORY  ###
+  
+  #'  Fit independence claims for variables where t-1 --> t-1 
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_topdown_inter_tmin1_only),
+    function(i) fit_aux_claim(i, iterations = dSep_iterations_topdown_inter_tmin1_only, 
+                              og_fit = SEM_topdown_inter, nSites = 23, nYear = 4, model_name = "TopDown_Interference",
+                              n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  #'  Source third d-Sep custom regressions for iterative d-separation tests -
+  #'  this time to simply test correlation between exogenous variables flagged 
+  #'  in the basic set
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_exog_only.R")
+  #'  Fit independence claims for pairs of exogenous variables
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_topdown_inter_exog_only),
+    function(i) fit_covariate_claim(i, iterations = dSep_iterations_topdown_inter_exog_only, 
+                                    model_name = "TopDown_Interference_exog", n.chains = nc, 
+                                    n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
   #'  ------------------------------
   #####  Top-down model iterations  #####
   #'  ------------------------------
@@ -846,30 +877,30 @@
   
   #'  Rename data bundle
   data_JAGS_bundle <- data_JAGS_bundle_topdown_inter
-  #'  Create list of "observed" values of focal response variable, one per d-Sep test
+  #'  Create list of "observed" values of focal response variable, one per d-Sep test               # instances where x was used as y in d-Sep test noted below
   y_list <- list(data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,
                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, 
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,      #15 (basic set index)
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,      
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,
                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,     #30 (skipped #23 - #28)
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,     
                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,
                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,       
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,
                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,
                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat,
                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat,
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,     #51
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,     
                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat, 
                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,      
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat, 
                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,      
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,      #66
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,      
                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat,
                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,
-                 data_JAGS_bundle$bear.hat)                                                           #73
+                 data_JAGS_bundle$bear.hat)                                                           
   #'  Leaves you with 67 d-Sep tests that were possible given the constructs of space and time and our data
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
@@ -916,7 +947,7 @@
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(p.rope_topdown_inter_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(p.rope_topdown_inter_list)[i] <- list_name
   }
   
@@ -937,7 +968,7 @@
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(bayes.p_topdown_inter_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(bayes.p_topdown_inter_list)[i] <- list_name
   }
   bayes.p_topdown_inter_df <- stack(bayes.p_topdown_inter_list) %>%
@@ -1118,10 +1149,10 @@
   
   #'  Load more iterations of the JAGS model (this time assessing correlation between exogenous variables)
   all_results_topdown_exog <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1/TopDown_exog", full.names = TRUE), readRDS)
-  y_list3 <- list(data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$lion.hat,
-                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,
-                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat,
-                  data_JAGS_bundle$lion.hat) ######### UPDATE THESE
+  y_list3 <- list(data_JAGS_bundle$elkHarv, data_JAGS_bundle$bearHarv, data_JAGS_bundle$wolfHarv,
+                  data_JAGS_bundle$lionHarv, data_JAGS_bundle$bearHarv, data_JAGS_bundle$wolfHarv,
+                  data_JAGS_bundle$lionHarv, data_JAGS_bundle$wolfHarv, data_JAGS_bundle$lionHarv,
+                  data_JAGS_bundle$wolfHarv) ######### UPDATE THESE
   mod_out3 <- list()
   for(i in 1:length(all_results_topdown_exog)) {
     mod_out3[[i]] <- all_results_topdown_exog[[i]]$fit$sims.list
@@ -1147,15 +1178,15 @@
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(p.rope_topdown_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(p.rope_topdown_list)[i] <- list_name
   }
   for(i in 1:length(p.rope_topdown_tmin1_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(p.rope_topdown_tmin1_list)[i] <- list_name
   }
   for(i in 1:length(p.rope_topdown_exog_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(p.rope_topdown_exog_list)[i] <- list_name
   }
   
@@ -1187,7 +1218,7 @@
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(bayes.p_topdown_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(bayes.p_topdown_list)[i] <- list_name
   }
   bayes.p_topdown_df <- stack(bayes.p_topdown_list) %>%
@@ -1196,7 +1227,7 @@
               basicset = "normal")
   
   for(i in 1:length(bayes.p_topdown_tmin1_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(bayes.p_topdown_tmin1_list)[i] <- list_name
   }
   bayes.p_topdown_tmin1_df <- stack(bayes.p_topdown_tmin1_list) %>%
@@ -1205,7 +1236,7 @@
               basicset = "tmin1")
   
   for(i in 1:length(bayes.p_topdown_exog_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(bayes.p_topdown_exog_list)[i] <- list_name
   }
   bayes.p_topdown_exog_df <- stack(bayes.p_topdown_exog_list) %>%
@@ -1214,9 +1245,9 @@
               basicset = "exog")
   
   #'  Join both d-Sep test p-values and save
-  p.val_topdown_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = c("iteration", "basicset"))
-  p.val_topdown_tmin1_df <- full_join(p.rope_topdown_tmin1_df, bayes.p_topdown_tmin1_df, by = c("iteration", "basicset"))
-  p.val_topdown_exog_df <- full_join(p.rope_topdown_exog_df, bayes.p_topdown_exog_df, by = c("iteration", "basicset"))
+  p.val_topdown_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
+  p.val_topdown_tmin1_df <- full_join(p.rope_topdown_tmin1_df, bayes.p_topdown_tmin1_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
+  p.val_topdown_exog_df <- full_join(p.rope_topdown_exog_df, bayes.p_topdown_exog_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
   p.val_topdown_all_df <- bind_rows(p.val_topdown_df, p.val_topdown_tmin1_df, p.val_topdown_exog_df)
   
   write_csv(p.val_topdown_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_all_claims.csv")
@@ -1294,7 +1325,7 @@
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(p.rope_bottomup_inter_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(p.rope_bottomup_inter_list)[i] <- list_name
   }
   
@@ -1315,7 +1346,7 @@
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(bayes.p_bottomup_inter_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(bayes.p_bottomup_inter_list)[i] <- list_name
   }
   bayes.p_bottomup_inter_df <- stack(bayes.p_bottomup_inter_list) %>%
@@ -1404,7 +1435,7 @@
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(p.rope_bottomup_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(p.rope_bottomup_list)[i] <- list_name
   }
   
@@ -1425,7 +1456,7 @@
   
   #'  Rename objects in the list based on iteration 
   for(i in 1:length(bayes.p_bottomup_list)) {
-    list_name <- sprintf("p.rope.%03d", i)
+    list_name <- sprintf("regression.%03d", i)
     names(bayes.p_bottomup_list)[i] <- list_name
   }
   bayes.p_bottomup_df <- stack(bayes.p_bottomup_list) %>%
