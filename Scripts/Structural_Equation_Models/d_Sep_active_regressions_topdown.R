@@ -42,11 +42,12 @@
   #'  -- lags: vector containing character strings that indicate whether the year
   #'     index should be lagged by one year. "y-1" applies a lag to the variable;
   #'     "y" does not apply a lag.
-  #'  -- mode: indicates which type of independence claim is being tested from the
-  #'     basic set. "main" claims involve t-1 --> t; "aux" claims test t-1 --> t-1.
-  #'     There are no existing regressions in the original model to test the "aux"
-  #'     claims so the template has a placeholder for an 8th standalone same-year 
-  #'     regression to be built that spans all years (y = 1:nYear) 
+  #'  
+  #'  Some independence claims cannot be assess with this script given how the
+  #'  SEM regressions are written. Those are included here for consistency but 
+  #'  are commented out and assessed in other scripts: 
+  #'  d_Sep_active_regression_topdown_tmin1_only.R  and 
+  #'  d_Sep_active_regression_topdown_exog_only.R
   #'  ---------------------------------------------------------------- 
   
   dSep_iterations_topdown <- list(
