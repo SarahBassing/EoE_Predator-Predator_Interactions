@@ -164,7 +164,7 @@
     # # Regression #35         # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS FOCUSED ON SPP NOT HARVEST
     # # bs_topdown_inter[[35]] # "elk.tmin1"      "wolfHarv.tmin1"
     # list(dSep_test = 5, covariates = c("wolfHarv"), spp = c(".harvest"), indices = c(1), lags = c("y-1")),
-    # # Regression #36
+    # # Regression #36         # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS FOCUSED ON SPP NOT HARVEST
     # # bs_topdown_inter[[36]] # "elk.tmin1"      "lionHarv.tmin1"
     # list(dSep_test = 5, covariates = c("lionHarv"), spp = c(".harvest"), indices = c(1), lags = c("y-1")),
     # # Regression #37
