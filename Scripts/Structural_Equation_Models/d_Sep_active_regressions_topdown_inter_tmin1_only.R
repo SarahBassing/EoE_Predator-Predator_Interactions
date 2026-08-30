@@ -107,12 +107,13 @@
     # Regression #35         # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS FOCUSED ON SPP NOT HARVEST
     # bs_topdown_inter[[35]] # "elk.tmin1"      "wolfHarv.tmin1"
     list(spp = c("elk"), covariate_array = data_JAGS_bundle_topdown_inter$wolfHarv),
-    # Regression #36
+    # #########
+    # Regression #36         # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS FOCUSED ON SPP NOT HARVEST
     # bs_topdown_inter[[36]] # "elk.tmin1"      "lionHarv.tmin1"
     list(spp = c("elk"), covariate_array = data_JAGS_bundle_topdown_inter$lionHarv),
     # Regression #37
     # bs_topdown_inter[[37]] # "elk.tmin1"  "wolf.tmin1"
-    list(spp = c("wolf"), covariate_array = data_JAGS_bundle_topdown_inter$elkHarv),
+    list(spp = c("wolf"), covariate_array = data_JAGS_bundle_topdown_inter$elk.hat),
     # # Regression #43
     # bs_topdown_inter[[43]] # "lion.tmin1" "coy.tmin1"
     list(spp = c("coy"), covariate_array = data_JAGS_bundle_topdown_inter$lion.hat),
