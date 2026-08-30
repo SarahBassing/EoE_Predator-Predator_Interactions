@@ -110,7 +110,6 @@
     # # Regression #19   # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS FOCUSED ON SPP NOT HARVEST
     # # bs_topdown[[19]] # "wtd.tmin1"     "elkHarv.tmin1"
     # list(dSep_test = NA, covariates = c("elkHarv"), spp = c(".harvest"), indices = c(1), lags = c("y-1")),
-    # #########
     # # Regression #20
     # # bs_topdown[[20]] # "wtd.tmin1"  "lion.tmin1"
     # list(dSep_test = NA, covariates = c("wtd.latent"), spp = c(".wtd"), indices = c(1), lags = c("y-1")),
