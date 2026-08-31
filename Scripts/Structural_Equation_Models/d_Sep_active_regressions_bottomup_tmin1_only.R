@@ -117,7 +117,7 @@
     list(spp = c("elk"), covariate_array = data_JAGS_bundle_bottomup$wolf.hat),
     # Regression #66
     # bs_bottomup[[66]] # "wtd.tmin1" "elk.tmin1"
-    list(spp = c("wlk"), covariate_array = data_JAGS_bundle_bottomup$elk.hat)
+    list(spp = c("elk"), covariate_array = data_JAGS_bundle_bottomup$wtd.hat)
   )
 
   
