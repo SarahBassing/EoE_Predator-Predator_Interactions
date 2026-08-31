@@ -24,7 +24,7 @@
   dSep_iterations_bottomup_exog_only <- list(
     # Regression #2
     # bs_topdown[[2]] # "wsi.tmin1"    "forest.tmin1"
-    list(y_array = data_JAGS_bundle_topdown$forest, x_array = data_JAGS_bundle_topdown$wsi)
+    list(y_array = data_JAGS_bundle_bottomup$forest, x_array = data_JAGS_bundle_bottomup$wsi)
   )
   
 
