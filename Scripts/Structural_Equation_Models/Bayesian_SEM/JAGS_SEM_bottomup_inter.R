@@ -187,11 +187,11 @@
           mu.wolf[i,y] <- beta.int[2] + beta.wolf[1] * wolf.latent[i,y-1] + beta.elk[2] * elk.latent[i,y-1] + beta.moose[2] * moose.latent[i,y-1]
 
           bear.latent[i,y] ~ dnorm(mu.bear[i,y], tau.spp[3])
-          mu.bear[i,y] <- beta.int[3] + beta.bear[1] * bear.latent[i,y-1] + beta.forest[4] * forest[i,y-1] + beta.wolf[3] * wolf.latent[i,y-1]
+          mu.bear[i,y] <- beta.int[3] + beta.bear[1] * bear.latent[i,y-1] + beta.forest[4] * forest[i,y-1] + beta.wolf[2] * wolf.latent[i,y-1]
           #'  Dropped elk - assuming forage is most important, prey is opportunistic and less important
 
           coy.latent[i,y] ~ dnorm(mu.coy[i,y], tau.spp[4])
-          mu.coy[i,y] <- beta.int[4] + beta.coy[1] * coy.latent[i,y-1] + beta.wtd[3] * wtd.latent[i,y-1] + beta.wolf[4] * wolf.latent[i,y-1]
+          mu.coy[i,y] <- beta.int[4] + beta.coy[1] * coy.latent[i,y-1] + beta.wtd[3] * wtd.latent[i,y-1] + beta.wolf[3] * wolf.latent[i,y-1]
           #'  Dropped elk - assuming most elk in diet is via scavenging and opportunistic whereas wtd is actual predation
 
           elk.latent[i,y] ~ dnorm(mu.elk[i,y], tau.spp[5])
