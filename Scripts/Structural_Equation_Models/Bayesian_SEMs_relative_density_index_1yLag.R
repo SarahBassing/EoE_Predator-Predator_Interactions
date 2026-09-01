@@ -331,12 +331,12 @@
                                      dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
                                      covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
                                      covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
-                                     nwolf = 4, nlion = 1, nbear = 1, ncoy = 1, nelk = 2, 
+                                     nwolf = 3, nlion = 1, nbear = 1, ncoy = 1, nelk = 2, 
                                      nmoose = 2, nwtd = 3, nharv = 0, nfor = 4, nwsi = 3)
   num.chains <- 3
   initsList_bottominter <- vector('list', num.chains) 
   for(i in 1:num.chains) {
-    initsList_bottominter[[i]] <- generate_inits(nwolf = 4, nlion = 1, nbear = 1, ncoy = 1, nelk = 2, nmoose = 2, 
+    initsList_bottominter[[i]] <- generate_inits(nwolf = 3, nlion = 1, nbear = 1, ncoy = 1, nelk = 2, nmoose = 2, 
                                                     nwtd = 3, nharv = 0, nfor = 4, nwsi = 3, nSpp = 7, nSites = 23, nYear = 4)
   }
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_inter.R")
