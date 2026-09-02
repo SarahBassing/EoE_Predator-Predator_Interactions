@@ -352,29 +352,6 @@
   mcmcplot(SEM_bottomup_inter$samples)
   save(SEM_bottomup_inter, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_inter_", Sys.Date(), ".RData"))
   
-  #####  Bottom-up, interference model REDUCED after d-sep  #####
-  #'  Update JAGS inputs
-  data_JAGS_bundle_bottominter_final <- bundle_dat(post_summaries, covs = covs_ztransformed, 
-                                                           nwolf = 4, nlion = 1, nbear = 2,  ncoy = 2, nelk = 3, 
-                                                           nmoose = 2, nwtd = 3, nharv = 0, nfor = 4, nwsi = 3)
-  initsList_bottominter_final <- vector('list', num.chains)
-  for(i in 1:num.chains){
-    initsList_bottominter_final[[i]] <- generate_inits(nwolf = 4, nlion = 1, nbear = 2, ncoy = 2, nelk = 3, 
-                                                               nmoose = 2, nwtd = 3, nharv = 0, nfor = 4, nwsi = 3)
-  }
-  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_inter_reduced_w_dSep1.R")
-  start.time = Sys.time()
-  SEM_bottomup_inter_final <- jagsUI::jags(data_JAGS_bundle_bottominter_final, 
-                                                   inits = initsList_bottominter_final, params, 
-                                                   "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_inter_reduced_w_dSep1.txt",
-                                                   n.adapt = na, n.chains = nc, n.thin = nt, 
-                                                   n.iter = ni, n.burnin = nb, parallel = TRUE)
-  end.time <- Sys.time(); (run.time <- end.time - start.time)
-  print(SEM_bottomup_inter_final$summary)
-  which(SEM_bottomup_inter_final$summary[,"Rhat"] < 0.9)
-  which(SEM_bottomup_inter_final$summary[,"Rhat"] > 1.1)
-  mcmcplot(SEM_bottomup_inter_final$samples)
-  save(SEM_bottomup_inter_final, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_inter_w_dSep1_", Sys.Date(), ".RData"))
   
   
   
