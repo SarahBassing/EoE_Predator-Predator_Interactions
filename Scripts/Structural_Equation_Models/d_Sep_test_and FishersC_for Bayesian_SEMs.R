@@ -919,7 +919,7 @@
                   data_JAGS_bundle$bear.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat,
                   data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,
                   data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat,
-                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$nWolf)
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat)
   #'  Leaves you with 56 d-Sep tests that were t-1 --> t-1
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
