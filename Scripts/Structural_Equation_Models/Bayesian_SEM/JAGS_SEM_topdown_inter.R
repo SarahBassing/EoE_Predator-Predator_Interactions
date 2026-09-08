@@ -91,12 +91,6 @@
       for(h in 1:nharvest) {
         beta.harvest[h] ~ dnorm(0, 0.01)
       }
-      # for(s in 1:nWSI) {
-      #   beta.wsi[s] ~ dnorm(0, 0.01)
-      # }
-      # for(f in 1:nforest) {
-      #   beta.forest[f] ~ dnorm(0, 0.01)
-      # }
       
       #'  Half-Cauchy prior for latent variable SD
       #'  Define scale paramter (represents median of distribution)
@@ -108,63 +102,6 @@
         sigma.spp[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
         tau.spp[k] <- 1 / pow(sigma.spp[k], 2)
       }
-      
-      #' #'  Alternate Half-Cauchy prior for latent variable SD
-      #' #'  Define scale paramter (represents median of distribution)
-      #' #'  Expresses prior belief of typical SD for latent variable
-      #' scale <- 1  #  keep scale of standardized RDIs in mind
-      #' for(k in 1:nSpp) {
-      #'   #'  Draw random value from gamma distribution
-      #'   aux[k] ~ dgamma(0.5, 0.5)
-      #'   #'  Draw random value from normal distribution using squared scale * aux
-      #'   #'  value as the variance, 1/var = precision. Then truncating at zero to
-      #'   #'  create a Half-Cauchy distribution.
-      #'   #'  time step t regression
-      #'   sigma.spp[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
-      #'   tau.spp[k] <- 1 / pow(sigma.spp[k], 2)
-      #'   #'  time step t-1 lantent variables (i.e., random effect explaining
-      #'   #'  variation around the true ecological state)
-      #'   sigma.spp.tmin1[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
-      #'   tau.spp.tmin1[k] <- 1 / pow(sigma.spp.tmin1[k], 2)
-      #' }
-      
-      #' #'  Priors for random intercept term for clusters
-      #' #'  Using Half-Cauchy distribution to help avoid hitting arbitrary boundaries
-      #' #'  and improve behavior near 0. Half-Cauchy distribution can be represented
-      #' #'  as a mixture of the Normal and Inverse-Gamma distribution (JAGS does not
-      #' #'  have a built-in function of Half-Cauchy).
-      #' 
-      #' #'  Define scale paramter (represents median of distribution)
-      #' #'  Expresses prior belief of typical SD for cluster-level random effect
-      #' scale <- 0.1  #  keep scale of standardized RDIs in mind
-      #' 
-      #' #' #'  Assuming all clusters for all species share same variance (constant
-      #' #' #'  across clusters for all species), but each cluster has its own deviation
-      #' #' #'  from the global mean.
-      #' #' for(i in 1:nCluster) {
-      #' #'   #'  Draw random value from gamma distribution
-      #' #'   aux[i] ~ dgamma(0.5, 0.5)
-      #' #'   #'  Draw random value from normal distribution using squared scale * aux
-      #' #'   #'  value as the variance, 1/var = precision. Then truncating at zero to
-      #' #'   #'  create a Half-Cauchy distribution.
-      #' #'   sigma.cluster[i] ~ dnorm(0, 1 / (pow(scale, 2) * aux[i])) T(0,)
-      #' #'     
-      #' #'   tau.cluster[i] <- 1 / pow(sigma.cluster[i], 2)
-      #' #'   cluster.randeff[i] ~ dnorm(0, tau.cluster[i])
-      #' #' }
-      #' 
-      #'  Assuming all clusters for a given species share same variance (constant
-      #'  across clusters for each species), but each cluster has its own deviation
-      #'  from the global mean.
-      #' for(k in 1:nSpp) {
-      #'   aux[k] ~ dgamma(0.5, 0.5)
-      #'   sigma.cluster[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
-      #'   tau.cluster[k] <- 1 / pow(sigma.cluster[k], 2)
-      #' 
-      #'   for(i in 1:nCluster) {
-      #'     cluster.randeff[k,i] ~ dnorm(0, tau.cluster[k])
-      #'   }
-      #' }
       
       #'  Likelihood
       #'  ----------
@@ -247,104 +184,4 @@
       
     }")
   
-  #' #'  Likelihood
-  #' #'  ----------
-  #' #'  Measurement error from RN models for each species and cluster-level RDI
-  #' #'  Posterior summaries (mean & sigma) treated as noisy observations [data] 
-  #' #'  conditional on cluster-level latent parameter (truth) 
-  #' for(i in 1:nCluster) {
-  #'   #'  RN model posterior means (spp.t_hat) arise from latent true RDI (spp.t).
-  #'   #'  RDI estimates from RN model are a noisy observation of true RDI,
-  #'   #'  governed by the true RDI and observed variability. True RDI (spp.t) are
-  #'   #'  determined by hypothesized ecological factors in likelihood.
-  #'   wolf.t_hat[i] ~ dnorm(wolf.t[i], wolf.t.tau_hat[i])
-  #'   wolf.tmin1_hat[i] ~ dnorm(wolf.tmin1[i], wolf.tmin1.tau_hat[i])
-  #'   lion.t_hat[i] ~ dnorm(lion.t[i], lion.t.tau_hat[i])
-  #'   lion.tmin1_hat[i] ~ dnorm(lion.tmin1[i], lion.tmin1.tau_hat[i])
-  #'   bear.t_hat[i] ~ dnorm(bear.t[i], bear.t.tau_hat[i])
-  #'   bear.tmin1_hat[i] ~ dnorm(bear.tmin1[i], bear.tmin1.tau_hat[i])
-  #'   coy.t_hat[i] ~ dnorm(coy.t[i], coy.t.tau_hat[i])
-  #'   coy.tmin1_hat[i] ~ dnorm(coy.tmin1[i], coy.tmin1.tau_hat[i])
-  #'   elk.t_hat[i] ~ dnorm(elk.t[i], elk.t.tau_hat[i])
-  #'   elk.tmin1_hat[i] ~ dnorm(elk.tmin1[i], elk.tmin1.tau_hat[i])
-  #'   moose.t_hat[i] ~ dnorm(moose.t[i], moose.t.tau_hat[i])
-  #'   moose.tmin1_hat[i] ~ dnorm(moose.tmin1[i], moose.tmin1.tau_hat[i])
-  #'   wtd.t_hat[i] ~ dnorm(wtd.t[i], wtd.t.tau_hat[i])
-  #'   wtd.tmin1_hat[i] ~ dnorm(wtd.tmin1[i], wtd.tmin1.tau_hat[i])
-  #'   
-  #'   #'  RN model posterior SD (spp.t.sigma_hat) used to calculate spp.t.tau_hat
-  #'   #'  spp.t.tau_hat are known constraints from the RN model posteriors that
-  #'   #'  inform how variable (noisy) the observed RDI can be given the latent truth
-  #'   wolf.t.tau_hat[i] <- 1 / pow(wolf.t.sigma_hat[i], 2)
-  #'   wolf.tmin1.tau_hat[i] <- 1 / pow(wolf.tmin1.sigma_hat[i], 2)
-  #'   lion.t.tau_hat[i] <- 1 / pow(lion.t.sigma_hat[i], 2)
-  #'   lion.tmin1.tau_hat[i] <- 1 / pow(lion.tmin1.sigma_hat[i], 2)
-  #'   bear.t.tau_hat[i] <- 1 / pow(bear.t.sigma_hat[i], 2)
-  #'   bear.tmin1.tau_hat[i] <- 1 / pow(bear.tmin1.sigma_hat[i], 2)
-  #'   coy.t.tau_hat[i] <- 1 / pow(coy.t.sigma_hat[i], 2)
-  #'   coy.tmin1.tau_hat[i] <- 1 / pow(coy.tmin1.sigma_hat[i], 2)
-  #'   elk.t.tau_hat[i] <- 1 / pow(elk.t.sigma_hat[i], 2)
-  #'   elk.tmin1.tau_hat[i] <- 1 / pow(elk.tmin1.sigma_hat[i], 2)
-  #'   moose.t.tau_hat[i] <- 1 / pow(moose.t.sigma_hat[i], 2)
-  #'   moose.tmin1.tau_hat[i] <- 1 / pow(moose.tmin1.sigma_hat[i], 2)
-  #'   wtd.t.tau_hat[i] <- 1 / pow(wtd.t.sigma_hat[i], 2)
-  #'   wtd.tmin1.tau_hat[i] <- 1 / pow(wtd.tmin1.sigma_hat[i], 2)
-  #' }
-  #' 
-  #' #'  Ecological process model
-  #' #'  Latent cluster-level RDIs (spp.t) govern RN posterior summaries (spp.t_hat 
-  #' #'  and spp.t.sigma_hat) and are in turn drawn from a normal distaribution
-  #' #'  whose mean is defined by a species-specific autoregressive term, the 
-  #' #'  RDIs of other species RDIs, and other variables.
-  #' #'  A random effect is also included for repeat measures at the cluster-level. 
-  #' for(i in 1:nCluster) {
-  #'   wolf.t[i] ~ dnorm(mu.wolf.t[i], tau.spp[1])
-  #'   mu.wolf.t[i] <- beta.int[2] + beta.wolf[1] * wolf.tmin1[i] + beta.harvest[1] * wolfHarv.tmin1[i] 
-  #'   
-  #'   wolf.tmin1[i] ~ dnorm(mu.wolf.tmin1[i], tau.spp.tmin1[1])
-  #'   mu.wolf.tmin1[i] <- beta.int.tmin1[2]
-  #'   
-  #'   lion.t[i] ~ dnorm(mu.lion.t[i], tau.spp[2])  
-  #'   mu.lion.t[i] <- beta.int[1] + beta.lion[1] * lion.tmin1[i] + beta.wolf[2] * wolf.tmin1[i] + beta.harvest[2] * lionHarv.tmin1[i]  
-  #'   # dropping bear effect - assuming mainly exploitation competition 
-  #'   
-  #'   lion.tmin1[i] ~ dnorm(mu.lion.tmin1[i], tau.spp.tmin1[2])
-  #'   mu.lion.tmin1[i] <- beta.int.tmin1[1] 
-  #'   
-  #'   bear.t[i] ~ dnorm(mu.bear.t[i], tau.spp[3]) 
-  #'   mu.bear.t[i] <- beta.int[3] + beta.bear[1] * bear.tmin1[i] + beta.wolf[3] * wolf.tmin1[i] + beta.harvest[3] * bearHarv.tmin1[i] 
-  #'   
-  #'   bear.tmin1[i] ~ dnorm(mu.bear.tmin1[i], tau.spp.tmin1[3]) 
-  #'   mu.bear.tmin1[i] <- beta.int.tmin1[3] 
-  #'   
-  #'   coy.t[i] ~ dnorm(mu.coy.t[i], tau.spp[4])
-  #'   mu.coy.t[i] <- beta.int[4] + beta.coy[1] * coy.tmin1[i] + beta.wolf[4] * wolf.tmin1[i] + beta.lion[2] * lion.tmin1[i] 
-  #'   # dropped bear effect - assuming interactions are mainly exploitation competition
-  #'   
-  #'   coy.tmin1[i] ~ dnorm(mu.coy.tmin1[i], tau.spp.tmin1[4])
-  #'   mu.coy.tmin1[i] <- beta.int.tmin1[4] 
-  #'   
-  #'   elk.t[i] ~ dnorm(mu.elk.t[i], tau.spp[5])
-  #'   mu.elk.t[i] <- beta.int[5] + beta.elk[1] * elk.tmin1[i] + beta.wolf[5] * wolf.tmin1[i] + beta.lion[3] * lion.tmin1[i]  
-  #'   # dropped bear - assuming wolf & lion are primary predators year round, bear very seasonal 
-  #'   # dropped harvest effect
-  #'   
-  #'   elk.tmin1[i] ~ dnorm(mu.elk.tmin1[i], tau.spp.tmin1[5])
-  #'   mu.elk.tmin1[i] <- beta.int.tmin1[5]
-  #'   
-  #'   moose.t[i] ~ dnorm(mu.moose.t[i], tau.spp[6])
-  #'   mu.moose.t[i] <- beta.int[6] + beta.moose[1] * moose.tmin1[i] + beta.wolf[6] * wolf.tmin1[i] 
-  #'   # dropping harvest effect - more of a special tag
-  #'   
-  #'   moose.tmin1[i] ~ dnorm(mu.moose.tmin1[i], tau.spp.tmin1[6])
-  #'   mu.moose.tmin1[i] <- beta.int.tmin1[6]
-  #'   
-  #'   wtd.t[i] ~ dnorm(mu.wtd.t[i], tau.spp[7])
-  #'   mu.wtd.t[i] <- beta.int[7] + beta.wtd[1] * wtd.tmin1[i]  + beta.lion[4] * lion.tmin1[i]  
-  #'   # dropped wolf, bear, coyote - assuming lion is primary predator, wolf is opportunistic and others very seasonal
-  #'   # dropped harvest effect
-  #'   
-  #'   wtd.tmin1[i] ~ dnorm(mu.wtd.tmin1[i], tau.spp.tmin1[7])
-  #'   mu.wtd.tmin1[i] <- beta.int.tmin1[7] 
-  #'   
-  #' }
+ 
