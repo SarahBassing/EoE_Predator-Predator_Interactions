@@ -81,8 +81,8 @@
     # Regression #10
     # bs_bottomup_inter[[10]] # "wsi.tmin1"  "coy.t"      "coy.tmin1"  "wolf.tmin1" "wtd.tmin1"
     list(dSep_test = 4, covariates = c("coy.latent", "wolf.latent", "wtd.latent", "wsi"), spp = c(".coy", ".wolf", ".wtd", ".wsi"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1","y-1")),
-    # Regression #4
-    # bs_bottomup_inter[[4]] # "wsi.tmin1"  "lion.t"     "wtd.tmin1"  
+    # Regression #11
+    # bs_bottomup_inter[[11]] # "wsi.tmin1"  "lion.t"     "wtd.tmin1"  
     list(dSep_test = 1, covariates = c("wtd.latent", "wsi"), spp = c(".wtd", ".wsi"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")),
     # # ########
     # # Regression #12          # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS FOCUSED ON SPP NOT FOREST
@@ -268,7 +268,7 @@
     # bs_bottomup_inter[[70]] # "elk.t"        "coy.t"        "wsi.tmin1"    "forest.tmin1" "elk.tmin1"    "coy.tmin1"    "wolf.tmin1"   "wtd.tmin1"
     list(dSep_test = 4, covariates = c("wsi", "forest", "elk.latent", "coy.latent", "wolf.latent", "wtd.latent", "elk.latent"), spp = c(".wsi", ".forest", ".elk", ".coy", ".wolf", ".wtd", ".elk"), indices = as.integer(c(1,1,1,1,1,1,2)), lags = c("y-1","y-1","y-1","y-1","y-1","y-1","y")),
     # Regression #71
-    # bs_bottomup_inter[[45]] # "elk.t"        "lion.t"       "wsi.tmin1"    "forest.tmin1" "elk.tmin1"    "wtd.tmin1"   
+    # bs_bottomup_inter[[71]] # "elk.t"        "lion.t"       "wsi.tmin1"    "forest.tmin1" "elk.tmin1"    "wtd.tmin1"   
     list(dSep_test = 1, covariates = c("wsi", "forest", "elk.latent", "wtd.latent", "elk.latent"), spp = c(".wsi", ".forest", ".elk", ".wtd", ".elk"), indices = as.integer(c(1,1,1,1,2)), lags = c("y-1","y-1","y-1","y-1","y")),
     # # Regression #72
     # # bs_bottomup_inter[[72]] # "wolf.tmin1" "wtd.tmin1" 
