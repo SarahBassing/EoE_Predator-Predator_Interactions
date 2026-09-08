@@ -1507,27 +1507,26 @@
   #'  Rename data bundle
   data_JAGS_bundle <- data_JAGS_bundle_bottomup_inter
   #'  Create list of "observed" values of focal response variable, one per d-Sep test                   # instances where x was used as y in d-Sep test noted below
-  y_list <- list(data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,        #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,       #
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat,        #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,        #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,       #    
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat,         #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat,        #
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$lion.hat,         #
-                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$moose.hat,      # moose both flipped
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat,      # moose flipped 
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$lion.hat,         #      
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat,         #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat,        # elk flipped  
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$wtd.hat,         # elk flipped 
-                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wtd.hat,         #        
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat,       # bear flipped
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$lion.hat,         #
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat,         #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$lion.hat,        #
-                 data_JAGS_bundle$lion.hat)                                  
-  #'  Leaves you with 58 d-Sep tests that were possible given the constructs of space and time and our data
+  y_list <- list(data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,        #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wtd.hat,       #
+                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,        #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat,        #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wtd.hat,       #    
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat,         #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$coy.hat,         #
+                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat,        #
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wtd.hat,      # moose both flipped
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,        # moose flipped 
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,       #      
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat,         #
+                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,        # 
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat,          # wtd flipped 
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,       #        
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat,         # coy flipped
+                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat,       #
+                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat,       #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat)                                  
+  #'  Leaves you with 56 d-Sep tests that were possible given the constructs of space and time and our data
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
   #'  Pay close attention to the indexing, especially with the beta.spp indices. 
@@ -1545,18 +1544,17 @@
                                    mod_out[[16]]$beta.bear[,1], mod_out[[17]]$beta.bear[,1], mod_out[[18]]$beta.bear[,1],
                                    mod_out[[19]]$beta.bear[,1], mod_out[[20]]$beta.moose[,1], mod_out[[21]]$beta.moose[,1],
                                    mod_out[[22]]$beta.moose[,1], mod_out[[23]]$beta.moose[,1], mod_out[[24]]$beta.moose[,1], 
-                                   mod_out[[25]]$beta.elk[,1], mod_out[[26]]$beta.moose[,2], mod_out[[27]]$beta.moose[,1],   # note the different indexing
-                                   mod_out[[28]]$beta.moose[,2], mod_out[[29]]$beta.moose[,2], mod_out[[30]]$beta.wtd[,1],   # note the different indexing
+                                   mod_out[[25]]$beta.wolf[,1], mod_out[[26]]$beta.wtd[,1], mod_out[[27]]$beta.moose[,2],    # note the different indexing
+                                   mod_out[[28]]$beta.moose[,2], mod_out[[29]]$beta.elk[,1], mod_out[[30]]$beta.moose[,2],   # note the different indexing
                                    mod_out[[31]]$beta.moose[,2], mod_out[[32]]$beta.moose[,2], mod_out[[33]]$beta.moose[,2], # note the different indexing
-                                   mod_out[[34]]$beta.elk[,1], mod_out[[35]]$beta.elk[,1], mod_out[[36]]$beta.elk[,1],
-                                   mod_out[[37]]$beta.elk[,1], mod_out[[38]]$beta.wolf[,1], mod_out[[39]]$beta.elk[,2],      # note the different indexing
-                                   mod_out[[40]]$beta.elk[,2], mod_out[[41]]$beta.wtd[,1], mod_out[[42]]$beta.elk[,2],       # note the different indexing
-                                   mod_out[[43]]$beta.elk[,2], mod_out[[44]]$beta.elk[,2], mod_out[[45]]$beta.wolf[,1],      # note the different indexing
-                                   mod_out[[46]]$beta.wolf[,1], mod_out[[47]]$beta.bear[,2], mod_out[[48]]$beta.wtd[,1],     # note the different indexing
-                                   mod_out[[49]]$beta.bear[,2], mod_out[[50]]$beta.bear[,2], mod_out[[51]]$beta.bear[,2],    # note the different indexing
-                                   mod_out[[52]]$beta.wtd[,1], mod_out[[53]]$beta.wolf[,2], mod_out[[54]]$beta.wolf[,2],     # note the different indexing
-                                   mod_out[[55]]$beta.wolf[,2], mod_out[[56]]$beta.wtd[,2], mod_out[[57]]$beta.wtd[,2],      # note the different indexing
-                                   mod_out[[58]]$beta.coy[,2])                                                               # note the different indexing
+                                   mod_out[[34]]$beta.wolf[,1], mod_out[[35]]$beta.wolf[,1], mod_out[[36]]$beta.wolf[,1],
+                                   mod_out[[37]]$beta.wtd[,1], mod_out[[38]]$beta.wtd[,1], mod_out[[39]]$beta.wtd[,1],       
+                                   mod_out[[40]]$beta.wtd[,2], mod_out[[41]]$beta.elk[,1], mod_out[[42]]$beta.wtd[,2],       # note the different indexing
+                                   mod_out[[43]]$beta.wtd[,2], mod_out[[44]]$beta.wtd[,2], mod_out[[45]]$beta.wtd[,2],       # note the different indexing
+                                   mod_out[[46]]$beta.elk[,1], mod_out[[47]]$beta.coy[,2], mod_out[[48]]$beta.coy[,2],       # note the different indexing
+                                   mod_out[[49]]$beta.coy[,2], mod_out[[50]]$beta.coy[,2], mod_out[[51]]$beta.elk[,2],       # note the different indexing
+                                   mod_out[[52]]$beta.elk[,2], mod_out[[53]]$beta.elk[,2], mod_out[[54]]$beta.bear[,2],      # note the different indexing
+                                   mod_out[[55]]$beta.bear[,2], mod_out[[56]]$beta.wolf[,2])                                 # note the different indexing
   
   #'  Load more iterations of the JAGS model
   #'  Note: this list of outputs is based on the number of independence claims 
@@ -1566,14 +1564,14 @@
   
   #'  Create list of "observed" values of focal response variable, one per d-Sep test                 # instances where x was used as y in d-Sep test noted below
   y_list2 <- list(data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,    #
-                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat,      #
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat,      #
                   data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,    # coy flipped
-                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat,      #
-                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,    #
-                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat,    #
-                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat,      # 
-                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat,     #
-                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat)      #
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat,      #
+                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat,   #
+                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$moose.hat,     #
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat,      # 
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat,      #
+                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$elk.hat)       #
   #'  Leaves you with 27 d-Sep tests that were t-1 --> t-1
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
@@ -1692,7 +1690,7 @@
   p.val_bottomup_inter_exog_df <- full_join(p.rope_bottomup_inter_exog_df, bayes.p_bottomup_inter_exog_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
   p.val_bottomup_inter_all_df <- bind_rows(p.val_bottomup_inter_df, p.val_bottomup_inter_tmin1_df, p.val_bottomup_inter_exog_df)
   
-  write_csv(p.val_bottomup_inter_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_inter_all_claims.csv")
+  write_csv(p.val_bottomup_inter_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_inter_all_claims_updated.csv")
   
   #'  ----------------
   ######  Fisher's C  ######
