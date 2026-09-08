@@ -345,6 +345,7 @@
               "beta.moose", "beta.wtd", "beta.harvest", "sigma.spp", "indirect.wolf.lion.elk", 
               "indirect.wolf.lion.wtd", "indirect.wolf.lion.coy", "indirect.wolf.bear.wtd",
               "indirect.wolf.coy.wtd", "indirect.lion.coy.wtd", "indirect.wolf.bear.wolf",
+              "indirect.bear.wolf.bear", "indirect.bear.wolf.lion", "indirect.bear.wolf.coy",
               "indirect.wolf.bear.self", "indirect.wolf.coy.self", "indirect.lion.coy.self", 
               "indirect.bear.wolf.self", "indirect.wolf.elk.self", "indirect.lion.elk.self", 
               "indirect.wolf.moose.self", "indirect.lion.wtd.self", "indirect.coy.wtd.self", 
@@ -464,16 +465,32 @@
                                                     dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
                                                     covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
                                                     covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
-                                                    nwolf = 4, nlion = 1, nbear = 7, ncoy = 1, nelk = 4, 
-                                                    nmoose = 3, nwtd = 5, nharv = 0, nfor = 4, nwsi = 3)
+                                                    nwolf = 3, nlion = 0, nbear = 5, ncoy = 1, nelk = 6, 
+                                                    nmoose = 3, nwtd = 6, nharv = 0, nfor = 4, nwsi = 3)
                                              
   num.chains <- 3
   initsList_bottom_inter <- vector('list', num.chains) 
   for(i in 1:num.chains) {
-    initsList_bottom_inter[[i]] <- generate_inits(nwolf = 4, nlion = 1, nbear = 7, ncoy = 1, nelk = 4, nmoose = 3, 
-                                                 nwtd = 5, nharv = 0, nfor = 4, nwsi = 3, nSpp = 7, nSites = 23, nYear = 4)
+    initsList_bottom_inter[[i]] <- generate_inits(nwolf = 3, nlion = 0, nbear = 5, ncoy = 1, nelk = 6, nmoose = 3, 
+                                                 nwtd = 6, nharv = 0, nfor = 4, nwsi = 3, nSpp = 7, nSites = 23, nYear = 4)
   }
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_inter_final.R")
+  
+  #'  Updated list of parameters to follow (includes derived parameters for indirect effects now)
+  params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.bear", "beta.coy",
+              "beta.elk", "beta.moose", "beta.wtd", "beta.forest", "beta.wsi", "sigma.spp",
+              "indirect.elk.wolf.bear", "indirect.moose.wolf.bear.v1", "indirect.moose.wolf.bear.v2",
+              "indirect.elk.wolf.coy",  "indirect.moose.wolf.coy.v1",  "indirect.moose.wolf.coy.v2",
+              "indirect.elk.bear.lion", "indirect.wtd.bear.lion", "indirect.elk.bear.wolf.v1", 
+              "indirect.wtd.bear.wolf.v1", "indirect.elk.bear.wolf.v2", "indirect.wtd.bear.wolf.v2",
+              "indirect.elk.bear.coy", "indirect.wtd.bear.coy", "indirect.wolf.bear.lion",
+              "indirect.wolf.bear.wolf.v1", "indirect.wolf.bear.wolf.v2", "indirect.wolf.bear.coy",
+              "indirect.bear.wolf.bear.v1", "indirect.bear.wolf.bear.v2", "indirect.bear.wolf.coy.v1",  
+              "indirect.bear.wolf.coy.v2", "indirect.elk.wolf.self", "indirect.moose.wolf.self",
+              "indirect.elk.bear.self", "indirect.wtd.bear.self", "indirect.wtd.coy.self",
+              "indirect.bear.wolf.self", "indirect.wolf.bear.self", "indirect.wolf.coy.self",  
+              "indirect.bear.coy.self")
+  
   start.time = Sys.time()
   SEM_bottomup_inter_final <- jagsUI::jags(data_JAGS_bundle_bottom_inter_final, inits = initsList_bottom_inter, params,
                                            "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_inter_final.txt",
