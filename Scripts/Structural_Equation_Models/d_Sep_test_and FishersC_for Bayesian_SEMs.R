@@ -48,8 +48,7 @@
   
   #'  Parameters to be monitored
   params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk", 
-              "beta.moose", "beta.wtd", "beta.harvest", "beta.wsi","beta.forest", "beta.road", "beta.public",
-              "sigma.spp", "sigma.spp.tmin1")  
+              "beta.moose", "beta.wtd", "beta.harvest", "beta.wsi","beta.forest", "sigma.spp")  
   
   #'  MCMC settings
   nc <- 3
@@ -176,9 +175,9 @@
   #'  ---------------------------------
   #####  Bottom-up interference model  ####
   #'  ---------------------------------
-  dag_bottomup_inter <- DAG(lion.t ~ wtd.tmin1, #+ wolf.tmin1 lion.tmin1 + 
+  dag_bottomup_inter <- DAG(lion.t ~ elk.tmin1 + wtd.tmin1, #+ wolf.tmin1 lion.tmin1 + 
                             wolf.t ~ wolf.tmin1 + elk.tmin1 + moose.tmin1,
-                            bear.t ~ bear.tmin1 + forest.tmin1 + wolf.tmin1,
+                            bear.t ~ bear.tmin1 + elk.tmin1 + forest.tmin1 + wolf.tmin1,
                             coy.t ~ coy.tmin1 + wtd.tmin1 + wolf.tmin1,
                             elk.t ~ elk.tmin1 + forest.tmin1 + wsi.tmin1,
                             moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
@@ -731,11 +730,11 @@
   #'  with each iteration of d-Sep testing
   sem_registry <- list(
     #'  Regression 1: lion.latent
-    list(covs = c("wtd.latent"), spp = c(".wtd"), indices = as.integer(c(1))),
+    list(covs = c("elk.latent", "wtd.latent"), spp = c(".elk", ".wtd"), indices = as.integer(c(1,1))),
     #'  Regression 2: wolf.latent
     list(covs = c("wolf.latent", "elk.latent", "moose.latent"), spp = c(".wolf", ".elk", ".moose"), indices = as.integer(c(1,1,1))),
     #'  Regression 3: bear.latent
-    list(covs = c("bear.latent", "forest", "wolf.latent"), spp = c(".bear", ".forest", ".wolf"), indices = as.integer(c(1,1,1))),
+    list(covs = c("bear.latent", "elk.latent", "forest", "wolf.latent"), spp = c(".bear", ".elk", ".forest", ".wolf"), indices = as.integer(c(1,1,1,1))),
     #'  Regression 4: coy.latent
     list(covs = c("coy.latent", "wtd.latent", "wolf.latent"), spp = c(".coy", ".wtd", ".wolf"), indices = as.integer(c(1,1,1))),
     #'  Regression 5: elk.latent
@@ -746,19 +745,19 @@
     list(covs = c("wtd.latent", "forest", "wsi"), spp = c(".wtd", ".forest", ".wsi"), indices = as.integer(c(1,1,1)))
   )
   #'  Source d-Sep custom regressions for iterative d-separation tests 
-  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter.R")
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_updated.R")
   
   #'  Bundle data and draw inits using functions in in Format_RNmodel_Posteriors_for_SEM.R
   data_JAGS_bundle_bottomup_inter <- bundle_dat(dat_yr1 = posteriors_20s, dat_yr2 = posteriors_21s, 
                                                 dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s,
                                                 covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
                                                 covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
-                                                nwolf = 4, nlion = 1, nbear = 2, ncoy = 2, nelk = 3, 
+                                                nwolf = 4, nlion = 1, nbear = 2, ncoy = 2, nelk = 5, 
                                                 nmoose = 3, nwtd = 4, nharv = 0, nfor = 5, nwsi = 4)
   num.chains <- 3
   initsList_bottomup_inter <- vector('list', num.chains) 
   for(i in 1:num.chains) {
-    initsList_bottomup_inter[[i]] <- generate_inits(nwolf = 4, nlion = 1, nbear = 2, ncoy = 2, nelk = 3, nmoose = 3, 
+    initsList_bottomup_inter[[i]] <- generate_inits(nwolf = 4, nlion = 1, nbear = 2, ncoy = 2, nelk = 5, nmoose = 3, 
                                                     nwtd = 4, nharv = 0, nfor = 5, nwsi = 4, nSpp = 7, nSites = 23, nYear = 4)
   }
   
@@ -773,7 +772,7 @@
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   
   #'  Source second d-Sep custom regressions for iterative d-separation tests 
-  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_tmin1_only.R")
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_tmin1_only_updated.R")
   
   ### MAKE SURE SEM_BOTTOMUP_INTER IS IN WORKING DIRECTORY  ###
   
@@ -1489,7 +1488,7 @@
   p.val_bottomup_exog_df <- full_join(p.rope_bottomup_exog_df, bayes.p_bottomup_exog_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
   p.val_bottomup_all_df <- bind_rows(p.val_bottomup_df, p.val_bottomup_tmin1_df, p.val_bottomup_exog_df)
   
-  write_csv(p.val_bottomup_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_all_claims.csv")
+  write_csv(p.val_bottomup_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_all_claims.csv")
   
   #'  ----------------
   ######  Fisher's C  ######
