@@ -251,18 +251,22 @@
   
   #####  Top-down, exploitation d-Sep updated  #####
   #'  Update JAGS inputs
-  data_JAGS_bundle_top_final <- bundle_dat(dat_yr1 = posteriors_20s, dat_yr2 = posteriors_21s, 
-                                           dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
-                                           covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
-                                           covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
-                                           nwolf = 4, nlion = 2, nbear = 2, ncoy = 2, nelk = 3, 
-                                           nmoose = 2, nwtd = 7, nharv = 5, nfor = 0, nwsi = 0)
+  data_JAGS_bundle_topdown_final <- bundle_dat(dat_yr1 = posteriors_20s, dat_yr2 = posteriors_21s, 
+                                               dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
+                                               covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
+                                               covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
+                                               nwolf = 4, nlion = 2, nbear = 2, ncoy = 2, nelk = 3, 
+                                               nmoose = 2, nwtd = 7, nharv = 5, nfor = 0, nwsi = 0)
+                                           
   initsList_topdown_final <- vector('list', num.chains)
   for(i in 1:num.chains){
     initsList_topdown_final[[i]] <- generate_inits(nwolf = 4, nlion = 2, nbear = 2, ncoy = 2, nelk = 3, nmoose = 2, 
                                                    nwtd = 7, nharv = 5, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4)
   }
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_final.R")
+  
+  #'  Identify log-likelihood parameters to monitor
+  loglik_params <- c("loglik.lion", "loglik.wolf", "loglik.bear", "loglik.coy", "loglik.elk", "loglik.moose", "loglik.wtd")
   
   #'  Updated list of parameters to follow (includes derived parameters for indirect effects now)
   params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk",
@@ -283,10 +287,10 @@
               "indirect.elk.wolf.moose",   "indirect.elk.wolf.wtd", "indirect.wtd.wolf.elk",   
               "indirect.wtd.wolf.moose",   "indirect.wtd.wolf.wtd", "indirect.wtd.lion.elk.v2", 
               "indirect.wtd.lion.wtd.v2", "indirect.wtd.wolf.elk.v2", "indirect.wtd.wolf.moose.v2", 
-              "indirect.wtd.wolf.wtd.v2", "indirect.wtd.bear.elk.v2")
+              "indirect.wtd.wolf.wtd.v2", "indirect.wtd.bear.elk.v2", loglik_params)
   
   start.time = Sys.time()
-  SEM_topdown_final <- jagsUI::jags(data_JAGS_bundle_top_final, inits = initsList_topdown_final, params, 
+  SEM_topdown_final <- jagsUI::jags(data_JAGS_bundle_topdown_final, inits = initsList_topdown_final, params, 
                       "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_final.txt",
                       n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
                       n.burnin = nb, parallel = TRUE)
@@ -340,6 +344,9 @@
   }
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_final.R")
   
+  #'  Identify log-likelihood parameters to monitor
+  loglik_params <- c("loglik.lion", "loglik.wolf", "loglik.bear", "loglik.coy", "loglik.elk", "loglik.moose", "loglik.wtd")
+  
   #'  Updated list of parameters to follow (includes derived parameters for indirect effects now)
   params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk",
               "beta.moose", "beta.wtd", "beta.harvest", "sigma.spp", "indirect.wolf.lion.elk", 
@@ -349,7 +356,7 @@
               "indirect.wolf.bear.self", "indirect.wolf.coy.self", "indirect.lion.coy.self", 
               "indirect.bear.wolf.self", "indirect.wolf.elk.self", "indirect.lion.elk.self", 
               "indirect.wolf.moose.self", "indirect.lion.wtd.self", "indirect.coy.wtd.self", 
-              "indirect.bear.wtd.self")
+              "indirect.bear.wtd.self", loglik_params)
   
   start.time = Sys.time()
   SEM_topdown_inter_final <- jagsUI::jags(data_JAGS_bundle_topdown_inter_final, inits = initsList_topdown_inter_final, params, 
@@ -408,6 +415,9 @@
   }
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_final.R")
   
+  #'  Identify log-likelihood parameters to monitor
+  loglik_params <- c("loglik.lion", "loglik.wolf", "loglik.bear", "loglik.coy", "loglik.elk", "loglik.moose", "loglik.wtd")
+  
   #'  Updated list of parameters to follow (includes derived parameters for indirect effects now)
   params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.bear", "beta.coy",
               "beta.elk", "beta.moose", "beta.wtd", "beta.forest", "beta.wsi", "sigma.spp",
@@ -418,7 +428,7 @@
               "indirect.bear.elklag.bear", "indirect.coy.wtdlag.lion", "indirect.coy.wtdlag.coy",
               "indirect.bear.wtdlag.lion", "indirect.bear.wtdlag.coy", "indirect.bear.elk.self", 
               "indirect.bear.wtd.self", "indirect.coy.wtd.self", "indirect.elk.bear.elk", 
-              "indirect.elk.bear.wtd")
+              "indirect.elk.bear.wtd", loglik_params)
   
   start.time = Sys.time()
   SEM_bottomup_final <- jagsUI::jags(data_JAGS_bundle_bottomup_final, inits = initsList_bottomup_final, params, 
@@ -476,6 +486,9 @@
   }
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_inter_final.R")
   
+  #'  Identify log-likelihood parameters to monitor
+  loglik_params <- c("loglik.lion", "loglik.wolf", "loglik.bear", "loglik.coy", "loglik.elk", "loglik.moose", "loglik.wtd")
+  
   #'  Updated list of parameters to follow (includes derived parameters for indirect effects now)
   params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.bear", "beta.coy",
               "beta.elk", "beta.moose", "beta.wtd", "beta.forest", "beta.wsi", "sigma.spp",
@@ -489,7 +502,7 @@
               "indirect.bear.wolf.coy.v2", "indirect.elk.wolf.self", "indirect.moose.wolf.self",
               "indirect.elk.bear.self", "indirect.wtd.bear.self", "indirect.wtd.coy.self",
               "indirect.bear.wolf.self", "indirect.wolf.bear.self", "indirect.wolf.coy.self",  
-              "indirect.bear.coy.self")
+              "indirect.bear.coy.self", loglik_params)
   
   start.time = Sys.time()
   SEM_bottomup_inter_final <- jagsUI::jags(data_JAGS_bundle_bottom_inter_final, inits = initsList_bottom_inter, params,
@@ -505,9 +518,82 @@
   save(SEM_bottomup_inter_final, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_inter_final_", Sys.Date(), ".RData"))
   
   
+  #'  ---------------------------------
+  ####  Leave-one-out model selection  ####
+  #'  ---------------------------------
+  #'  Extract log-likelihood samples
+  build_loglik_matrix <- function(mod, dat, spp_names = c("lion", "wolf", "bear", "coy", "elk", "moose", "wtd")) {
+    #'  Create empty list to hold matrix
+    mat_list <- list()
+    
+    for(i in spp_names) {
+      #'  extract log-likelihood samples that match spp name
+      loglik_node <- mod$sims.list[[paste0("loglik.", i)]]   # dims [n_draws, nSites, nYear]
+      
+      #'  Extract "raw" observation data that match species name
+      hat_array <- dat[[paste0(i, ".hat")]]  # dims [nSites, nYear], NA where missing values
+      #'  Create vector that returns TRUE for observations that are not NA
+      keep <- !is.na(as.vector(hat_array))
+      
+      #'  Create matrix with "raw" observed data, excluding NAs
+      #'  Count number of draws in loglike_node
+      n_draws <- dim(loglik_node)[1]
+      #'  Flatten 3D array of loglik_node into 2D matrix where draws stay as rows
+      flat <- matrix(loglik_node, nrow = n_draws)
+      #'  Remove observations that were flagged as FALSE (NAs in input data)
+      flat <- flat[, keep, drop = FALSE]
+      
+      colnames(flat) <- paste0(i, ".", which(keep))
+      mat_list[[i]] <- flat
+    }
+    
+    #'  Return [n_draws x total_real_observations] matrix
+    do.call(cbind, mat_list)
+    
+  }
   
+  #'  Run PSIS-LOO (and WAIC for comparison)
+  #'  install.packages("loo")
+  library(loo)
   
+  run_loo <- function(mod, dat) {
+    #'  Call build_loglik_matrix() function to format log-likelihood data
+    loglik_matrix <- build_loglik_matrix(mod, dat)
+    
+    #'  Generate LOO and WAIC values
+    loo_out <- loo(loglik_matrix)
+    waic_out <- waic(loglik_matrix)
+    
+    #'  Check Pareto-k diagnostics for LOO
+    #'  NOTE: values > 0.7 flag observations where importance-sampling approximation
+    #'  is unreliable (Vehtari, Gelman & Gabry 2017). A few flagged points is normal 
+    #'  but a large proportion suggests PSIS-LOO is struggling and results should
+    #'  be interpreted with caution.
+    n_bad_k <- sum(loo_out$diagnostics$pareto_k > 0.7)
+    if(n_bad_k > 0) {
+      message(sprintf(
+        "%d / %d observations have Pareto k> 0.7 - PSIS-LOO approx. may be unreliable for these. Check loo_result$diagnostics$pareto_k.",
+        n_bad_k, length(loo_out$diagnostics$pareto_k)
+      ))
+    }
+    
+    loo_list <- list(loo = loo_out, waic = waic_out, loglik_matrix = loglik_matrix)
+    return(loo_list)
+    
+  }
   
+  #'  Run loo function for each model
+  loo_topdown_exploit <- run_loo(SEM_topdown_final, data_JAGS_bundle_topdown_final)
+  loo_topdown_inter <- run_loo(SEM_topdown_inter_final, data_JAGS_bundle_topdown_inter_final)
+  loo_bottomup_exploit <- run_loo(SEM_bottomup_final, data_JAGS_bundle_bottom_final)
+  loo_bottomup_inter <- run_loo(SEM_bottomup_inter_final, data_JAGS_bundle_bottom_inter_final)
+  
+  #'  Compare loo (and WAIC) across models
+  #'  NOTE: loo_compare ranks models by expected log predictive density (ELPD). 
+  #'  Top row is the best supported model and elpd_diff / se_diff indicates how 
+  #'  many standard errors separate each model from the "top" model. Typically, 
+  #'  a |elpd_diff| less than x2 its se_diff is not clearly different from top model.
+  loo_compare(loo_topdown_exploit, loo_topdown_inter, loo_bottomup_exploit, loo_bottomup_inter)
   
   
   
