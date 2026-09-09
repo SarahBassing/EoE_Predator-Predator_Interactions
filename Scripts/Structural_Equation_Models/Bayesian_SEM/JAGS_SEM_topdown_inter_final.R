@@ -186,7 +186,12 @@
       
       #'  Contemporaneous self-effect via bear
       indirect.wolf.bear.wolf <- beta.wolf[3] * beta.bear[2]     # effect of wolf.tmin1 on bear.t --> effect of bear.t on wolf.t (wolf affecting itself via effect on bears)
-      
+      indirect.bear.wolf.bear <- beta.bear[2] * beta.wolf[3]     # effect of bear.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on bear.t (bear affecting itself vai effect on wolves)
+
+      #'  Interference interactions across predators where predator.A.tmin1 --> predator.B.tmin1 --> predator.C.t 
+      indirect.bear.wolf.lion <- beta.bear[2] * beta.wolf[2]     # effect of bear.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on lion.t (note the contemporaneous relationship)
+      indirect.bear.wolf.coy <- beta.bear[2] * beta.wolf[4]      # effect of bear.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on coy.t  (note the contemporaneous relationship)
+            
       #'  2-yr lag effect on same species where predator effect on predaotr or prey is extended via their AR1 term 
       #'  Via predator.A.tmin1 --> predator.B.tmin1 --> predator.B.t............
       indirect.wolf.bear.self <- beta.wolf[3] * beta.bear[1]     # effect of wolf.tmin2 on bear.tmin1 --> effect of bear.tmin1 on bear.t  
