@@ -1,0 +1,230 @@
+#'  --------------------------------------------------------
+#'  JAGS model: bottom-up, interference SEM finalized after d-Sep
+#'  
+#'  Model description: 
+#'    Structural equation model testing hypothesis that top-down processes and 
+#'    interference competition among predators most strongly determine the summer 
+#'    relative density indices of species in Northern Idaho's medium- and large-
+#'    bodied wildlife community. Model includes 1 year lag effect where the relative 
+#'    density of a species in the current time step [t] is affected by the relative 
+#'    density of itself, other species, and harvest from the previous time step [t-1].
+#'  
+#'  Parameters:
+#'    beta.int: intercept for each regression
+#'    beta.wolf: effect of wolf relative density index from previous time step
+#'    beta.lion: effect of mountain lion relative density index from previous time step
+#'    beta.bear: effect of black bear relative density index from previous time step
+#'    beta.coy: effect of coyote relative density index from previous time step
+#'    beta.elk: effect of elk relative density index from previous time step
+#'    beta.moose: effect of moose relative density index from previous time step
+#'    beta.wtd: effect of white-tailed deer relative density index from previous time step
+#'    beta.wsi: effect of GMU-wide winter severity  from previous time step
+#'    beta.forest: effect of proportion of forest disturbance from previous 20 years
+#'  
+#'  Indices:
+#'    k: number of species (nSpp, 1:7), where
+#'       1 = wolf, 2 = mountain lion, 3 = black bear, 4 = coyote, 5 = elk, 6 = moose, 7 = white-tailed deer
+#'    w: number of betas for 1-yr lag wolf effect (nWolf, 1), where
+#'       1 = 1L auto-regressive term in wolf regression, 0 = wolf effect on other species
+#'    l: number of betas for 1-yr lag mountain lion effect (nLion, 1, see w for details)
+#'    b: number of betas for 1-yr lag black bear effect (nBear, 1, see w for details)
+#'    c: number of betas for 1-yr lag coyote effect (nCoy, 1, see w for details)
+#'    e: number of betas for 1-yr lag elk effect (nElk, 1:5, see w for details)
+#'    m: number of betas for 1-yr lag moose effect (nMoose, 1:2, see w for details)
+#'    d: number of betas for 1-yr lag white-tailed deer effect (nDeer, 1:3, see w for details)
+#'    h: number of betas for 1-yr lag harvest effect (nharvest, 0)
+#'    f: number of betas for 1-yr lag forest effect (nforest, 1:4)
+#'    s: number of betas for 1-yr lag winter severity effect (nWSI, 1:3)
+#'    i: number of clusters (nCluster, 1:23), where
+#'       each cluster represents the area over which species-specific RDI, harvest,
+#'       forest and WSI variables were generated from
+#'  --------------------------------------------------------
+cat(file = './Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_inter_final.txt', "
+      model{
+      
+      #'  Define priors
+      #'  -------------
+      #'  Priors for intercepts
+      #'  Use more informed prior for lion intercept
+      beta.int[1] ~ dnorm(0, 0.1) # poor convergence with weaker priors
+      beta.int.tmin1[1] ~ dnorm(0, 0.01) 
+      
+      #'  Intercept priors for all other species (note, intercept prior for wolf is beta.int[2])
+      for(k in 2:nSpp) {
+        beta.int[k] ~ dnorm(0, 0.01) 
+        beta.int.tmin1[k] ~ dnorm(0, 0.01) 
+      }
+      
+      #'  Priors for species lag effects
+      #'  As a reminder: precision = 0.01 --> sqrt(0.01^-1) --> SD = 10
+      for(l in 1:nLion) {
+        beta.lion[l] ~ dnorm(0, 0.1)  # poor convergence with weaker priors
+      }
+      for(w in 1:nWolf) {
+        beta.wolf[w] ~ dnorm(0, 0.1)  # using more informed prior to improve convergence
+      }
+      for(b in 1:nBear) {
+        beta.bear[b] ~ dnorm(0, 0.01)
+      }
+      for(c in 1:nCoy) {
+        beta.coy[c] ~ dnorm(0, 0.01)
+      }
+      for(e in 1:nElk) {
+        beta.elk[e] ~ dnorm(0, 0.01)
+      }
+      for(m in 1:nMoose) {
+        beta.moose[m] ~ dnorm(0, 0.01)
+      }
+      for(d in 1:nWtd) {
+        beta.wtd[d] ~ dnorm(0, 0.01)
+      }
+
+      #'  Priors for anthropogenic & landscape effects
+      for(s in 1:nWSI) {
+        beta.wsi[s] ~ dnorm(0, 0.01)
+      }
+      for(f in 1:nforest) {
+        beta.forest[f] ~ dnorm(0, 0.01)
+      }
+      
+      #'  Half-Cauchy prior for latent variable SD
+      #'  Define scale paramter (represents median of distribution)
+      #'  Expresses prior belief of typical SD for latent variable
+      scale.aux ~ dgamma(0.5, 0.5)
+      scale ~ dnorm(0, 1 / (pow(2, 2) * scale.aux)) T(0,)
+      for(k in 1:nSpp) {
+        aux[k] ~ dgamma(0.5, 0.5)
+        sigma.spp[k] ~ dnorm(0, 1 / (pow(scale, 2) * aux[k])) T(0,)
+        tau.spp[k] <- 1 / pow(sigma.spp[k], 2)
+      }
+      
+      #'  Likelihood
+      #'  ----------
+      #'  Measurement error from RN models for each species and cluster-level RDI
+      #'  Posterior summaries (mean & sigma) treated as noisy observations [data] 
+      #'  conditional on cluster-level latent parameter (truth) 
+      for(i in 1:nSites) {
+        for(y in 1:nYear) {
+          lion.hat[i,y]  ~ dnorm(lion.latent[i,y],  lion.tau_hat[i,y])
+          wolf.hat[i,y]  ~ dnorm(wolf.latent[i,y],  wolf.tau_hat[i,y])
+          bear.hat[i,y]  ~ dnorm(bear.latent[i,y],  bear.tau_hat[i,y])
+          coy.hat[i,y]   ~ dnorm(coy.latent[i,y],   coy.tau_hat[i,y])
+          elk.hat[i,y]   ~ dnorm(elk.latent[i,y],   elk.tau_hat[i,y])
+          moose.hat[i,y] ~ dnorm(moose.latent[i,y], moose.tau_hat[i,y])
+          wtd.hat[i,y]   ~ dnorm(wtd.latent[i,y],   wtd.tau_hat[i,y])
+
+          lion.tau_hat[i,y]  <- 1 / pow(lion.sigma_hat[i,y], 2)
+          wolf.tau_hat[i,y]  <- 1 / pow(wolf.sigma_hat[i,y], 2)
+          bear.tau_hat[i,y]  <- 1 / pow(bear.sigma_hat[i,y], 2)
+          coy.tau_hat[i,y]   <- 1 / pow(coy.sigma_hat[i,y], 2)
+          elk.tau_hat[i,y]   <- 1 / pow(elk.sigma_hat[i,y], 2)
+          moose.tau_hat[i,y] <- 1 / pow(moose.sigma_hat[i,y], 2)
+          wtd.tau_hat[i,y]   <- 1 / pow(wtd.sigma_hat[i,y], 2)
+          
+          #'  Save Log-likelihood for LOO -- observation layer only
+          loglik.lion[i,y]  <- logdensity.norm(lion.hat[i,y],  lion.latent[i,y],  lion.tau_hat[i,y])
+          loglik.wolf[i,y]  <- logdensity.norm(wolf.hat[i,y],  wolf.latent[i,y],  wolf.tau_hat[i,y])
+          loglik.bear[i,y]  <- logdensity.norm(bear.hat[i,y],  bear.latent[i,y],  bear.tau_hat[i,y])
+          loglik.coy[i,y]   <- logdensity.norm(coy.hat[i,y],   coy.latent[i,y],   coy.tau_hat[i,y])
+          loglik.elk[i,y]   <- logdensity.norm(elk.hat[i,y],   elk.latent[i,y],   elk.tau_hat[i,y])
+          loglik.moose[i,y] <- logdensity.norm(moose.hat[i,y], moose.latent[i,y], moose.tau_hat[i,y])
+          loglik.wtd[i,y]   <- logdensity.norm(wtd.hat[i,y],   wtd.latent[i,y],   wtd.tau_hat[i,y])
+          
+        }
+      }
+      
+      #'  Ecological process model
+      #'  Latent cluster-level RDIs (spp.true[i,y]) govern RN posterior summaries 
+      #'  (spp.hat[i,y] and spp.sigma_hat[i,y]) and are in turn drawn from a normal 
+      #'  distribution whose mean is defined by a species-specific autoregressive 
+      #'  term, the RDIs of other species RDIs, and other variables. Year 1 has 
+      #'  no prior year, so it gets an intercept-only baseline model.
+      for(i in 1:nSites) {
+
+        #'  Year 1: baseline latent states, no previous information available
+        lion.latent[i,1]  ~ dnorm(beta.int.tmin1[1], tau.spp[1])
+        wolf.latent[i,1]  ~ dnorm(beta.int.tmin1[2], tau.spp[2])
+        bear.latent[i,1]  ~ dnorm(beta.int.tmin1[3], tau.spp[3])
+        coy.latent[i,1]   ~ dnorm(beta.int.tmin1[4], tau.spp[4])
+        elk.latent[i,1]   ~ dnorm(beta.int.tmin1[5], tau.spp[5])
+        moose.latent[i,1] ~ dnorm(beta.int.tmin1[6], tau.spp[6])
+        wtd.latent[i,1]   ~ dnorm(beta.int.tmin1[7], tau.spp[7])
+
+        #'  Years 2-4: process model driven by the same previous-year latent
+        #'  nodes used as outcomes above
+        for(y in 2:nYear) {
+
+          lion.latent[i,y] ~ dnorm(mu.lion[i,y], tau.spp[1])
+          mu.lion[i,y] <- beta.int[1] + beta.elk[2] * elk.latent[i,y-1] + beta.elk[3] * elk.latent[i,y] + beta.wtd[2] * wtd.latent[i,y-1] + beta.wtd[3] * wtd.latent[i,y] + beta.bear[2] * bear.latent[i,y-1] 
+          
+          wolf.latent[i,y] ~ dnorm(mu.wolf[i,y], tau.spp[2])
+          mu.wolf[i,y] <- beta.int[2] + beta.wolf[1] * wolf.latent[i,y-1] + beta.elk[4] * elk.latent[i,y-1] + beta.elk[5] * elk.latent[i,y] + beta.moose[2] * moose.latent[i,y-1] + beta.moose[3] * moose.latent[i,y] + beta.bear[3] * bear.latent[i,y-1] + beta.bear[4] * bear.latent[i,y]
+
+          bear.latent[i,y] ~ dnorm(mu.bear[i,y], tau.spp[3])
+          mu.bear[i,y] <- beta.int[3] + beta.bear[1] * bear.latent[i,y-1] + beta.elk[6] * elk.latent[i,y-1] + beta.forest[4] * forest[i,y-1] + beta.wolf[2] * wolf.latent[i,y-1] + beta.wtd[4] * wtd.latent[i,y]
+          
+          coy.latent[i,y] ~ dnorm(mu.coy[i,y], tau.spp[4])
+          mu.coy[i,y] <- beta.int[4] + beta.coy[1] * coy.latent[i,y-1] + beta.wtd[5] * wtd.latent[i,y-1] + beta.wtd[6] * wtd.latent[i,y] + beta.wolf[3] * wolf.latent[i,y-1] + beta.bear[5] * bear.latent[i,y-1] 
+          
+          elk.latent[i,y] ~ dnorm(mu.elk[i,y], tau.spp[5])
+          mu.elk[i,y] <- beta.int[5] + beta.elk[1] * elk.latent[i,y-1] + beta.forest[1] * forest[i,y-1] + beta.wsi[1] * wsi[i,y-1]
+
+          moose.latent[i,y] ~ dnorm(mu.moose[i,y], tau.spp[6])
+          mu.moose[i,y] <- beta.int[6] + beta.moose[1] * moose.latent[i,y-1] + beta.forest[2] * forest[i,y-1] + beta.wsi[2] * wsi[i,y-1]
+
+          wtd.latent[i,y] ~ dnorm(mu.wtd[i,y], tau.spp[7])
+          mu.wtd[i,y] <- beta.int[7] + beta.wtd[1] * wtd.latent[i,y-1] + beta.forest[3] * forest[i,y-1] + beta.wsi[3] * wsi[i,y-1] 
+      
+        }
+      }
+      
+      
+      #'  Derived parameters: Indirect Effects
+      #'  ------------------------------------
+      #'  Bottom-up effects with a predator as the mediator through interference where prey --> predator.A --> predator.B under different time lags
+      #'  Via wolves......
+      indirect.elk.wolf.bear <- beta.elk[4] * beta.wolf[2]          # effect of elk.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on bear.t
+      indirect.moose.wolf.bear.v1 <- beta.moose[2] * beta.wolf[2]   # effect of moose.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on bear.t
+      indirect.moose.wolf.bear.v2 <- beta.moose[3] * beta.wolf[2]   # effect of moose.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on bear.t  (note the contemporaneous relationship)
+      indirect.elk.wolf.coy <- beta.elk[4] * beta.wolf[3]           # effect of elk.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on coy.t
+      indirect.moose.wolf.coy.v1 <- beta.moose[2] * beta.wolf[3]    # effect of moose.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on coy.t
+      indirect.moose.wolf.coy.v2 <- beta.moose[3] * beta.wolf[3]    # effect of moose.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on coy.t   (note the contemporaneous relationship)
+      
+      #'  Via black bears.....
+      indirect.elk.bear.lion <- beta.elk[6] * beta.bear[2]          # effect of elk.tmin2 on bear.tmin1 --> effect of bear.tmin1 on lion.t
+      indirect.wtd.bear.lion <- beta.wtd[4] * beta.bear[2]          # effect of wtd.tmin1 on bear.tmin1 --> effect of bear.tmin1 on lion.t    (wtd and bear a contemporaneous and effect next year lions)
+      indirect.elk.bear.wolf.v1 <- beta.elk[6] * beta.bear[3]       # effect of elk.tmin2 on bear.tmin1 --> effect of bear.tmin1 on wolf.t
+      indirect.wtd.bear.wolf.v1 <- beta.wtd[4] * beta.bear[3]       # effect of wtd.tmin1 on bear.tmin1 --> effect of bear.tmin1 on wolf.t    (note the contemporaneous relationship)
+      indirect.elk.bear.wolf.v2 <- beta.elk[6] * beta.bear[4]       # effect of elk.tmin1 on bear.t --> effect of bear.t on wolf.t            (bear and wolves are contemporaneous)
+      indirect.wtd.bear.wolf.v2 <- beta.wtd[4] * beta.bear[4]       # effect of wtd.t on bear.t --> effect of bear.t on wolf.t                (fully same-year chain)
+      indirect.elk.bear.coy <- beta.elk[6] * beta.bear[5]           # effect of elk.tmin2 on bear.tmin1 --> effect of bear.tmin1 on coy.t
+      indirect.wtd.bear.coy <- beta.wtd[4] * beta.bear[5]           # effect of wtd.tmin1 on bear.tmin1 --> effect of bear.tmin1 on coy.t     (note the contemporaneous relationship)
+ 
+      #'  Interference interactions across predators where predator.A --> predator.B --> predator.C under different time lags
+      indirect.wolf.bear.lion <- beta.wolf[2] * beta.bear[2]        # effect of wolf.tmin2 on bear.tmin1 --> effect of bear.tmin1 on lion.t
+      indirect.wolf.bear.wolf.v1 <- beta.wolf[2] * beta.bear[3]     # effect of wolf.tmin2 on bear.tmin1 --> effect of bear.tmin1 on wolf.t     (wolf affecting itself through effect on bear)
+      indirect.wolf.bear.wolf.v2 <- beta.wolf[2] * beta.bear[4]     # effect of wolf.tmin1 on bear.t --> effect of bear.t on wolf.t             (wolf affecting itself through effect on bear, different time lag)
+      indirect.wolf.bear.coy <- beta.wolf[2] * beta.bear[5]         # effect of wolf.tmin2 on bear.tmin1 --> effect of bear.tmin1 on coy.t
+      indirect.bear.wolf.bear.v1 <- beta.bear[3] * beta.wolf[2]     # effect of bear.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on bear.t
+      indirect.bear.wolf.bear.v2 <- beta.bear[4] * beta.wolf[2]     # effect of bear.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on bear.t     (note the contemporaneous relationship)
+      indirect.bear.wolf.coy.v1 <- beta.bear[3] * beta.wolf[3]      # effect of bear.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on coy.t
+      indirect.bear.wolf.coy.v2 <- beta.bear[4] * beta.wolf[3]      # effect of bear.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on coy.t      (note the contemporaneous relationship)
+      
+      
+      #'  2-yr lag effect on same species where predator effect on predaotr or prey is extended via their AR1 term 
+      #'  Via bottom-up effects......................
+      indirect.elk.wolf.self <- beta.elk[4] * beta.wolf[1]         # effect of elk.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on wolf.t
+      indirect.moose.wolf.self <- beta.moose[2] * beta.wolf[1]     # effect of moose.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on wolf.t
+      indirect.elk.bear.self <- beta.elk[6] * beta.bear[1]         # effect of elk.tmin2 on bear.tmin1 --> effect of bear.tmin1 on bear.t
+      indirect.wtd.bear.self <- beta.wtd[4] * beta.bear[1]         # effect of wtd.tmin1 on bear.tmin1 --> effect of bear.tmin1 on bear.t       (note the contemporaneous relationship)
+      indirect.wtd.coy.self <- beta.wtd[5] * beta.coy[1]           # effect of wtd.tmin2 on coy.tmin1 --> effect of coy.tmin1 on coyt.
+      
+      #'  Via interference competition...............
+      indirect.bear.wolf.self <- beta.bear[3] * beta.wolf[1]       # effect of bear.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on wolf.t
+      indirect.wolf.bear.self <- beta.wolf[2] * beta.bear[1]       # effect of wolf.tmin2 on bear.tmin1 --> effect of bear.tmin on bear.t
+      indirect.wolf.coy.self <- beta.wolf[3] * beta.coy[1]         # effect of wolf.tmin2 on coy.tmin1 --> effect of coy.tmin1 on coy.t
+      indirect.bear.coy.self <- beta.bear[5] * beta.coy[1]         # effect of bear.tmin2 on coy.tmin1 --> effect of coy.tmin1 on coy.t
+      
+      }")
+
+
