@@ -41,6 +41,8 @@
   source("./Scripts/Structural_Equation_Models/Format_spatial_covariates_for_SEMs.R")
   #'  Formats density data for SEMs
   source("./Scripts/Structural_Equation_Models/Format_RNmodel_Posteriors_for_SEM.R")
+  #'  Basic set and d-Separation test functions
+  source("./Scripts/Structural_Equation_Models/d_Sep_functions.R")
   #'  Set options so all no rows are omitted in model output
   options(max.print = 9999)
   #' #'  Source functions to setup data for JAGS
@@ -57,81 +59,12 @@
   nt <- 10
   na <- 5000
   
+  #'  Run all iterations in parallel
+  plan(multisession, workers = parallel::detectCores() - 1)
+  
   #'  -------------------------------
-  ####  ROPE method for d-Sep tests  ####
+  ####  Basic set for original SEMs  ####
   #'  -------------------------------
-  #'  Define function to establish a region of practical equivalence (ROPE) around
-  #'  the null value. This expresses a range of parameter values considered equivalent
-  #'  to the null value (0). This range is -pct*sd(y) to pct*sd(y)
-  #'  If 95% CRI falls entirely within this range, 95% of the posterior is practically
-  #'  equivalent to the null value. Taking the mean calculates the proportion
-  #'  of the posterior that falls inside the ROPE. In other words, what is the 
-  #'  probability that the effect is small enough to be ignored? Larger p.rope 
-  #'  values indicate a large percentage of the posterior is "practically" 0; 
-  #'  these variables are conditionally independent. Small p.rope values (i.e., < 0.05) 
-  #'  indicate a small percentage of the posterior falls inside the ROPE and thus  
-  #'  it is not practically equivalent to 0 (i.e., it is "practically" significant).
-  #'  These variables are NOT conditionally independent and this relationship is 
-  #'  missing in the model. Another way to think about it is, by defining the ROPE 
-  #'  as a small percentage of the standard deviation of y, we have defined a threshold 
-  #'  of practical significance. If the variable of interest only moves the needle 
-  #'  by a 10% of a standard deviation, we can consider its effect to be noise.
-  #'  
-  #'  ---> p.rope is the probability that the parameter is actually trivial given 
-  #'  ---> the data, where small values indicate the prob of being trivial is low. 
-  #'  
-  #'  y represents the SD of the observed response variable
-  #'  post represents the effect of the coefficient of interest - if the parameter 
-  #'  effect is "meaningful" it should be larger than the typical "noise" or trivial
-  #'  variation associated with the response variable
-  p.rope <- function(pct = 0.1, y = NULL, post = NULL){
-    #'  Ensure y is a vector
-    y_vec <- as.vector(y)
-    #'  Calculate SD, after removing any NAs in y
-    sd_y <- sd(y_vec, na.rm = TRUE)
-    #'  Average number of posterior draws that fall above lower ROPE value AND below upper ROPE value
-    mean(-pct * sd_y < post & pct * sd_y > post)
-    
-  }
-  
-  #'  Bayesian p-value for d-Sep test and Fisher's C statistic
-  bayes_pvalue <- function(post) {
-    p_pos <- mean(post > 0)
-    p_neg <- mean(post < 0)
-    2 * min(p_pos, p_neg)
-  }
-  
-  #'  Fisher's C using Bayesian p-values
-  fishers_C <- function(pval, n_iter = NULL) {
-    if(is.null(n_iter)) {
-      eps <- 1e-10
-    } else {
-      eps <- 1 / n_iter # smallest resolvable p-value given draws
-    }
-    pval[pval <= 0] <- eps
-    pval[pval >= 1] <- 1 - eps
-    
-    k <- length(pval)
-    C <- -2 * sum(log(pval))
-    df <- 2 * k
-    pC <- 1 - pchisq(C, df)
-    
-    out <- list(claims.p = pval, k = k, C = C, df = df, p.value = pC)
-    return(out)
-  }
-  
-  #'  Function to generate and simplify the basic set 
-  basic_set <- function(dag) {
-    #'  Generate the basic set 
-    basicset <- basiSet(dag)
-    print(length(basicset))
-    View(basicset)
-    return(basicset)
-  }
-  
-  #'  ---------------------------
-  ####  Basic set for each SEM  ####
-  #'  ---------------------------
   #'  -------------------
   #####  Top-down model  #####
   #'  -------------------
@@ -184,293 +117,6 @@
                             wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
   
   bs_bottomup_inter <- basic_set(dag_bottomup_inter)
-  
-  
-  #'  ------------------------------------------------------
-  ####  Build iterative JAGS models for d-separation tests  ####
-  #'  ------------------------------------------------------
-  #'  -------------------------------------------------------
-  #####  Functions for when variable A t-1 --> variable B t  #####
-  #'  These functions also work for when variable A t --> variable B t
-  #'  -------------------------------------------------------
-  #'  Source JAGS template
-  source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_dsep_template.R")
-  
-  #'  Function to build custom regressions for each iteration
-  build_individual_submodels <- function(reg_num, covariates = NULL, spp = NULL, 
-                                         indices = NULL, lags = NULL) {   #, beta_prefix = "beta"
-    
-    
-    #'  Create intercept and slope parameter names based on time step
-    #'  beta_prefix indicates whether to use main model terms (beta.int) or the
-    #'  auxilary beta terms (beta.aux). Only needed for d-Sep claims where t-1
-    #'  affects t-1. This helps keep the rest of the main model beta arrays and
-    #'  number of regressions unchanged.
-    beta0_array <- "beta.int"    # intercept array 
-    
-    #'  If covariate is null or 0 (i.e., intercept only regressions)
-    if(is.null(covariates) || length(covariates) == 0) {
-      sprintf("%s[%d]", beta0_array, reg_num)
-    } else {
-      #'  Build one string per "beta * covariate" by filling placeholders with
-      #'  specified character strings or integers (sprintf is vectorized so does
-      #'  this in order that strings/integers are provided)
-      #'  %s is placeholder for character strings; %d is placeholder for integers
-      if(is.null(lags)) lags <- rep("y-1", length(covariates))
-      if (length(lags) != length(covariates)) {
-        stop("lags must be NULL or the same length as covariates")
-      }
-
-    terms <- paste0(sprintf("beta%s[%d] * %s[i,%s]", spp, indices, covariates, lags),
-                    collapse = " + ")
-    sprintf("%s[%d] + %s", beta0_array, reg_num, terms)
-    }
-  }
-  
-  #'  Function to assemble full model string for a single iteration
-  #'  Requires having sourced the JAGS template model
-  build_model_string <- function(iter_config, template, registry) {
-    #'  Create empty strings to be filled with each regressions terms
-    mu_lines <- character(7)  
-    
-    #'  Build custom regressions
-    for(r in 1:7) {   # for each regression
-      #'  If the regression index is the same as the dSep_test value then...
-      if(r == iter_config$dSep_test) {
-        covs <- iter_config$covariates
-        spp <- iter_config$spp
-        indices <- iter_config$indices
-        lags <- iter_config$lags        # if NULL, defaults to "y-1
-        mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
-      } else {
-        #'  Non-focal time t: use original SEM covariates from the registry
-        orig <- registry[[r]]
-        #'  Grab covariate, species, and index numbers of terms NOT included in d-sep test
-        covs <- orig$covs
-        spp <- orig$spp
-        indices <- orig$indices
-        lags <- orig$lags
-        mu_lines[r] <- build_individual_submodels(r, covs, spp, indices, lags)
-      }
-    }
-    
-    do.call(sprintf, c(list(template), as.list(mu_lines))) #all_lines
-  }
-  
-  #'  Function to call JAGS and run a single iteration of the model
-  run_dSep_iterations <- function(i, iterations, template, registry, data_bundle, listInits, model_name) {  
-    
-    iter_config <- iterations[[i]]
-    
-    #'  Call function to build the full model string with custom regressions for d-Sep test
-    model_string <- build_model_string(iter_config, template, registry)
-    
-    #'  Create temporary directory to save all iterations of the template
-    temp_dir <- file.path("./Outputs/SEM/JAGS_out/d_Sep/temp_models", model_name)
-    dir.create(temp_dir, showWarnings = FALSE, recursive = TRUE)
-    #'  Create name new name for each model where %03d is a placeholder for the 
-    #'  iteration number, padded by up to three 0's (e.g., temp_model_001, temp_model_012)
-    temp_file <- file.path(temp_dir, sprintf("temp_model_%03d.txt", i))
-    writeLines(model_string, temp_file)
-    
-    #'  Snag bundled data
-    data_i <- data_bundle
-    #' #'  Indicate which paramters to monitor
-    #' monitor_params <- get_monitor_params(iter_config, params)
-    
-    #'  Fit model in JAGS
-    SEM_dSep <- jagsUI::jags(data = data_i, inits = listInits, params, model.file = temp_file, 
-                             n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-                             n.burnin = nb, parallel = FALSE, verbose = FALSE)
-                             # chain-level parallelism is off - parallelizing across
-                             # iterations instead
-    
-    #'  Flag convergence issues
-    max_rhat <- suppressWarnings(max(unlist(SEM_dSep$Rhat), na.rm = TRUE))
-    if(is.finite(max_rhat) && max_rhat > 1.1) {
-      warning(sprintf("Iteration %d: max Rhat = %.3f -- check convergence", i, max_rhat))
-    }
-    
-    #'  Temporary directory to save JAGS outputs
-    out_dir <- file.path("./Outputs/SEM/JAGS_out/d_Sep/Results", model_name)
-    dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-    #'  Save JAGS output for each iteration
-    jags_out <- file.path(out_dir, sprintf("iter_%03d.rds", i))
-    saveRDS(list(fit = SEM_dSep, config = iter_config, max_rhat = max_rhat), jags_out)
-    
-    jags_out
-  }
-  
-  #'  ---------------------------------------------------------
-  #####  Functions for when variable A t-1 --> variable B t-1  #####
-  #'  ---------------------------------------------------------
-  #'  Function to extract the latent posterior mean and sd from the main model 
-  #'  that was originally fitted. This requires that each spp.latent was monitored 
-  #'  when the original model was fit.
-  extract_latent_post_summaries <- function(og_fit, spp, nSites, nYear) {
-    #'  og_fit: fitted jagsUI output from original SEM (fit in Bayesian_SEMs_relative_density_index_1yLag.R)
-    #'  spp: species name - must match naming convention use din spp.latent array name
-    
-    #'  Grab posteriors
-    samples_matrix <- as.matrix(og_fit$samples)
-    latent_mean <- matrix(NA_real_, nSites, nYear)
-    latent_sd <- matrix(NA_real_, nSites, nYear)
-    
-    for(i in 1:nSites) {
-      for(y in 1:nYear) {
-        #'  Create column name for specific spp.latent variable indexed by [nSite,nYear]
-        col_name <- sprintf("%s.latent[%d,%d]", spp, i, y)
-        #'  If created column name is in the colnames extracted from the og_fit samples
-        if(col_name %in% colnames(samples_matrix)) {
-          #'  Snag those draws from the posterior and save the mean and sd from each iteration
-          draws <- samples_matrix[, col_name]
-          latent_mean[i,y] <- mean(draws)
-          latent_sd[i,y] <- sd(draws)
-        }
-      }
-    }
-    list(mean = latent_mean, sd = latent_sd)
-  }
-  
-  #'  Function to fit a standalone regression using the posterior summaries as
-  #'  the noisy "observed" response
-  #'  Note: z = NULL is a placeholder for if any of these independence claims had
-  #'  a condition set of variables. But in this case, z is never needed.
-  fit_one_dSep_claim <- function(y, x, z = NULL, n.chains = n.chains, n.adapt = n.adapt, 
-                                 n.burnin = n.burnin, n.iter = n.iter, n.thin = n.thin, 
-                                 model_name, iter_num) {
-    ncondvars <- if(is.null(z) || ncol(as.matrix(z)) == 0) 0 else ncol(as.matrix(z))
-    #'  Create and fill in input data for JAGS (in list format)
-    jd <- list(y = y, x = x, N = length(y))
-    if(ncondvars > 0) {
-      jd$z <- as.matrix(z)
-      jd$ncondvars <- ncondvars
-    }
-    
-    #'  Create custom regression with added variable for independence claims
-    if(ncondvars > 0) {
-      #'  Build conditioning variable terms
-      z_terms <- paste(sprintf("b_z[%d] * z[i,%d]", 1:ncondvars, 1:ncondvars), collapse = " + ")
-      
-      #'  Create model string for JAGS that can be updated dynamically for each ind. claim
-      #'  IF the independence claim includes a condition set of predictors (the 
-      #'  "given blah blah blah" variables) create the first model_string. ELSE 
-      #'  create the second model_string with only the y (spp.latent) and x (focal predictor)
-      model_string <- sprintf("
-                              model {
-                              #'  Likelihood to be appended with conditioning claim
-                              for(i in 1:N) {
-                                y[i] ~ dnorm(mu[i], tau)
-                                mu[i] <- b0 + b_x * x[i] + %s }
-                              
-                              #'  Priors
-                              b0 ~ dnorm(0, 1e-4)
-                              b_x ~ dnorm(0, 1e-4)
-                                for(j in 1:ncondvars) {
-                                  b_z[j] ~ dnorm(0, 1e-4) }
-                              tau ~ dgamma(0.01, 0.01)
-                              }
-                              ", z_terms)
-    } else {
-      model_string <- "
-      model {
-      #'  Likelihood for all other regressions
-      for(i in 1:N) {
-        y[i] ~ dnorm(mu[i], tau)
-        mu[i] <- b0 + b_x * x[i] }
-      #'  Priors
-      b0 ~ dnorm(0, 1e-4)
-      b_x ~ dnorm(0, 1e-4)
-      tau ~ dgamma(0.01, 0.01) 
-      }
-      "
-    }
-    
-    #'  Create temporary directory to save all iterations of the template
-    temp_dir <- file.path("./Outputs/SEM/JAGS_out/d_Sep/temp_models/tmin1", model_name)
-    dir.create(temp_dir, showWarnings = FALSE, recursive = TRUE)
-    #'  Create name new name for each model where %03d is a placeholder for the 
-    #'  iteration number, padded by up to three 0's (e.g., temp_model_001, temp_model_012)
-    temp_file <- file.path(temp_dir, sprintf("temp_model_%03d.txt", iter_num))
-    writeLines(model_string, temp_file)
-    
-    #'  Refit model with added independence claim
-    fit <- jagsUI::jags(data = jd, inits = NULL, parameters.to.save = "b_x",
-                        model.file = temp_file, n.chains = n.chains, n.adapt = n.adapt, 
-                        n.burnin = n.burnin, n.iter = n.iter, n.thin = n.thin, 
-                        parallel = FALSE, verbose = FALSE)
-    
-    fit
-  }
-  
-  #'  Function tying this together by extracting posteriors and refitting the model
-  fit_aux_claim <- function(i, iterations, og_fit, nSites, nYear, model_name,
-                            n.chains, n.adapt, n.burnin, n.iter, n.thin) { #spp, covariate_array, 
-    
-    #'  Grab details for focal iteration
-    iter_deets <- iterations[[i]]
-    spp <- iter_deets$spp
-    covariate_array <- iter_deets$covariate_array
-    
-    #'  Grab the posterior samples from the specified variable in the ind. claim
-    post <- extract_latent_post_summaries(og_fit, spp, nSites, nYear)
-    #'  Grab the spp.latent posterior mean and the "observed" predictor 
-    y_vec <- as.vector(post$mean)
-    x_vec <- as.vector(covariate_array)
-    keep <- !is.na(y_vec) & !is.na(x_vec)
-    #print(sum(keep)) # Better not be 0 or close to 0 (means very little data going into model)
-    #'  Refit model with added independence claim using spp.latent posterior mean 
-    #'  and specified predictor as y and x
-    mod_out <- fit_one_dSep_claim(y = y_vec[keep], x = x_vec[keep], z = NULL, 
-                                  n.chains = n.chains, n.adapt = n.adapt, n.burnin = n.burnin, 
-                                  n.iter = n.iter, n.thin = n.thin, model_name, iter_num = i)
-    
-    #'  Flag convergence issues
-    max_rhat <- suppressWarnings(max(unlist(mod_out$Rhat), na.rm = TRUE))
-    if(is.finite(max_rhat) && max_rhat > 1.1) {
-      warning(sprintf("Iteration %d: max Rhat = %.3f -- check convergence", i, max_rhat))
-    }
-    
-    #'  Temporary directory to save JAGS outputs
-    out_dir <- file.path("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1", model_name)
-    dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-    #'  Save JAGS output for each iteration
-    jags_out <- file.path(out_dir, sprintf("iter_%03d.rds", i))
-    saveRDS(list(fit = mod_out, b_x = as.numeric(mod_out$sims.list$b_x), 
-                 config = iter_deets, max_rhat = max_rhat), jags_out)
-  }
-  
-  
-  #'  ------------------------------------------------------------
-  #####  Functions for ind. claims with only exogenous variables  #####
-  #'  ------------------------------------------------------------
-  #'  Function to grab covariate data and call fit_one_dSep_claim()
-  fit_covariate_claim <- function(i, iterations, model_name, #y_array, x_array, iter_num,
-                                  n.chains, n.adapt, n.burnin, n.iter, n.thin) {
-    iter_deets <- iterations[[i]]
-    y_vec <- as.vector(iter_deets$y_array)
-    x_vec <- as.vector(iter_deets$x_array)
-    keep <- !is.na(y_vec) & !is.na(x_vec)
-  
-    #'  Use simplified JAGS code and regression in fit_one_dSep_claim() to test claim
-    mod_out <- fit_one_dSep_claim(y = y_vec[keep], x = x_vec[keep], z = NULL,
-                       n.chains = n.chains, n.adapt = n.adapt, n.burnin = n.burnin,
-                       n.iter = n.iter, n.thin = n.thin, model_name = model_name,
-                       iter_num = i)
-    
-    #'  Temporary directory to save JAGS outputs
-    out_dir <- file.path("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1", model_name)
-    dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-    #'  Save JAGS output for each iteration
-    jags_out <- file.path(out_dir, sprintf("iter_%03d.rds", i))
-    saveRDS(list(fit = mod_out, b_x = as.numeric(mod_out$sims.list$b_x), 
-                 config = iter_deets), jags_out)
-  }
-  
-  
-  #'  Run all iterations in parallel
-  plan(multisession, workers = parallel::detectCores() - 1)
-  
   
   #'  -------------------------------
   ####  Iterate through d-Sep tests  ####
@@ -647,19 +293,19 @@
   #'  with each iteration of d-Sep testing
   sem_registry <- list(
     #'  Regression 1: lion.t
-    list(covs = c("elk.latent", "wtd.latent"), spp = c(".elk", ".wtd"), indices = as.integer(c(1,1))),
+    list(covs = c("elk.latent", "wtd.latent"), spp = c(".elk", ".wtd"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")),
     #'  Regression 2: wolf.t
-    list(covs = c("wolf.latent", "elk.latent", "moose.latent"), spp = c(".wolf", ".elk", ".moose"), indices = as.integer(c(1,1,1))),
+    list(covs = c("wolf.latent", "elk.latent", "moose.latent"), spp = c(".wolf", ".elk", ".moose"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 3: bear.t
-    list(covs = c("bear.latent", "elk.latent", "forest"), spp = c(".bear", ".elk", ".forest"), indices = as.integer(c(1,1,1))),
+    list(covs = c("bear.latent", "elk.latent", "forest"), spp = c(".bear", ".elk", ".forest"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 4: coy.t
-    list(covs = c("coy.latent", "wtd.latent"), spp = c(".coy", ".wtd"), indices = as.integer(c(1,1))),
+    list(covs = c("coy.latent", "wtd.latent"), spp = c(".coy", ".wtd"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")),
     #'  Regression 5: elk.t
-    list(covs = c("elk.latent", "forest", "wsi"), spp = c(".elk", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    list(covs = c("elk.latent", "forest", "wsi"), spp = c(".elk", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 6: moose.t
-    list(covs = c("moose.latent", "forest", "wsi"), spp = c(".moose", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    list(covs = c("moose.latent", "forest", "wsi"), spp = c(".moose", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 7: wtd.t
-    list(covs = c("wtd.latent", "forest", "wsi"), spp = c(".wtd", ".forest", ".wsi"), indices = as.integer(c(1,1,1)))
+    list(covs = c("wtd.latent", "forest", "wsi"), spp = c(".wtd", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1"))
     )
   #'  Source d-Sep custom regressions for iterative d-separation tests 
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup.R")
@@ -730,19 +376,19 @@
   #'  with each iteration of d-Sep testing
   sem_registry <- list(
     #'  Regression 1: lion.latent
-    list(covs = c("elk.latent", "wtd.latent"), spp = c(".elk", ".wtd"), indices = as.integer(c(1,1))),
+    list(covs = c("elk.latent", "wtd.latent"), spp = c(".elk", ".wtd"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")),
     #'  Regression 2: wolf.latent
-    list(covs = c("wolf.latent", "elk.latent", "moose.latent"), spp = c(".wolf", ".elk", ".moose"), indices = as.integer(c(1,1,1))),
+    list(covs = c("wolf.latent", "elk.latent", "moose.latent"), spp = c(".wolf", ".elk", ".moose"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 3: bear.latent
-    list(covs = c("bear.latent", "elk.latent", "forest", "wolf.latent"), spp = c(".bear", ".elk", ".forest", ".wolf"), indices = as.integer(c(1,1,1,1))),
+    list(covs = c("bear.latent", "elk.latent", "forest", "wolf.latent"), spp = c(".bear", ".elk", ".forest", ".wolf"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 4: coy.latent
-    list(covs = c("coy.latent", "wtd.latent", "wolf.latent"), spp = c(".coy", ".wtd", ".wolf"), indices = as.integer(c(1,1,1))),
+    list(covs = c("coy.latent", "wtd.latent", "wolf.latent"), spp = c(".coy", ".wtd", ".wolf"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 5: elk.latent
-    list(covs = c("elk.latent", "forest", "wsi"), spp = c(".elk", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    list(covs = c("elk.latent", "forest", "wsi"), spp = c(".elk", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 6: moose.latent
-    list(covs = c("moose.latent", "forest", "wsi"), spp = c(".moose", ".forest", ".wsi"), indices = as.integer(c(1,1,1))),
+    list(covs = c("moose.latent", "forest", "wsi"), spp = c(".moose", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 7: wtd.latent
-    list(covs = c("wtd.latent", "forest", "wsi"), spp = c(".wtd", ".forest", ".wsi"), indices = as.integer(c(1,1,1)))
+    list(covs = c("wtd.latent", "forest", "wsi"), spp = c(".wtd", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1"))
   )
   #'  Source d-Sep custom regressions for iterative d-separation tests 
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_updated.R")
@@ -1699,5 +1345,339 @@
   print(fishers.C_bottomup_inter)
   
   
-
+  
+  #'  --------------------------------------
+  ####  Final SEMs following d-Sep updates  ####
+  #'  --------------------------------------
+  #'  --------------------------------
+  #####  Top-down exploitative model  #####
+  #'  --------------------------------
+  #'  Generate DAG
+  dag_topdown_final <- DAG(lion.t ~ lionHarv.tmin1 + elk.tmin1 + wtd.tmin1 + wtd.t, 
+                           wolf.t ~ wolf.tmin1 + wolfHarv.tmin1 + moose.tmin1 + elk.tmin1 + wtd.tmin1 + wtd.t,
+                           bear.t ~ bear.tmin1 + bearHarv.tmin1 + wtd.t,
+                           coy.t ~ coy.tmin1 + wtd.tmin1,
+                           elk.t ~ elk.tmin1 + wolf.tmin1 + lion.tmin1 + elkHarv.tmin1 + bear.tmin1,
+                           moose.t ~ moose.tmin1 + wolf.tmin1,
+                           wtd.t ~ wtd.tmin1 + lion.tmin1 + deerHarv.tmin1 + wolf.tmin1 + coy.tmin1)
+                     
+  
+  #'  Generate basic set
+  bs_topdown_final <- basic_set(dag_topdown_final)
+  
+  #'  ----------------------
+  ######  d-Sep iterations  ######
+  #'  ----------------------
+  #'  Fit independence claims for variables where t-1 --> t or t --> t
+  #'  Model registry that defines the original regressions in SEM to be updated
+  #'  with each iteration of d-Sep testing
+  sem_registry <- list(
+    #'  Regression 1: lion.latent
+    list(covs = c("lionHarv", "elk.latent", "wtd.latent", "wtd.latent"), spp = c(".harvest", ".elk", ".wtd", ".wtd"), indices = as.integer(c(1,1,1,2)), lags = c("y-1","y-1","y-1","y")),
+    #'  Regression 2: wolf.latent
+    list(covs = c("wolf.latent", "wolfHarv", "moose.latent", "elk.latent", "wtd.latent", "wtd.latent"), spp = c(".wolf", ".harvest", ".moose", ".elk", ".wtd", ".wtd"), indices = as.integer(c(1,1,1,1,1,2)), lags = c("y-1","y-1","y-1","y-1","y-1","y")),
+    #'  Regression 3: bear.latent
+    list(covs = c("bear.latent", "bearHarv", "wtd.latent"), spp = c(".bear", ".harvest", ".wtd"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y")),
+    #'  Regression 4: coy.latent
+    list(covs = c("coy.latent", "wtd.latent"), spp = c(".coy", ".wtd"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")),
+    #'  Regression 5: elk.latent
+    list(covs = c("elk.latent", "wolf.latent", "lion.latent", "elkHarv", "bear.latent"), spp = c(".elk", ".wolf", ".lion", ".harvest", ".bear"), indices = as.integer(c(1,1,1,1,1)), lags = c("y-1","y-1","y-1","y-1","y-1")),
+    #'  Regression 6: moose.latent
+    list(covs = c("moose.latent", "wolf.latent"), spp = c(".moose", ".wolf"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")),
+    #'  Regression 7: wtd.latent
+    list(covs = c("wtd.latent", "lion.latent", "deerHarv", "wolf.latent", "coy.latent"), spp = c(".wtd", ".lion", ".harvest", ".wolf", ".coy"), indices = as.integer(c(1,1,1,1,1)), lags = c("y-1","y-1","y-1","y-1","y-1"))
+  )
+  #'  Source d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_final.R")
+  
+  #'  Bundle data and draw inits using functions in in Format_RNmodel_Posteriors_for_SEM.R
+  data_JAGS_bundle_topdown_final <- bundle_dat(dat_yr1 = posteriors_20s, dat_yr2 = posteriors_21s, 
+                                               dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
+                                               covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
+                                               covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
+                                               nwolf = 5, nlion = 3, nbear = 3, ncoy = 3, nelk = 4, 
+                                               nmoose = 3, nwtd = 9, nharv = 6, nfor = 0, nwsi = 0)
+                                         
+  num.chains <- 3
+  initsList_topdown_final <- vector('list', num.chains) 
+  for(i in 1:num.chains) {
+    initsList_topdown_final[[i]] <- generate_inits(nwolf = 5, nlion = 3, nbear = 3, ncoy = 3, nelk = 4, nmoose = 3, 
+                                             nwtd = 9, nharv = 6, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4)
+  }
+  
+  #'  Fit and save model iterations
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_topdown_final),
+    function(i) run_dSep_iterations(i, iterations = dSep_iterations_topdown_final, template = model_template, registry = sem_registry,
+                                    data_bundle = data_JAGS_bundle_topdown_final, listInits = initsList_topdown_final, model_name = "TopDown_Exploitative_Final"),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  #'  Source second d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_tmin1_only_final.R")
+  
+  ### MAKE SURE SEM_TOPDOWN_FINAL IS IN WORKING DIRECTORY  ###
+  
+  #'  Fit independence claims for variables where t-1 --> t-1 
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_topdown_tmin1_only_final),
+    function(i) fit_aux_claim(i, iterations = dSep_iterations_topdown_tmin1_only_final, 
+                              og_fit = SEM_topdown_final, nSites = 23, nYear = 4, model_name = "TopDown_Exploitative_Final",
+                              n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  
+  #'  Source third d-Sep custom regressions for iterative d-separation tests -
+  #'  this time to simply test correlation between exogenous variables flagged 
+  #'  in the basic set
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_exog_only_final.R")
+  #'  Fit independence claims for pairs of exogenous variables
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_topdown_exog_only_final),
+    function(i) fit_covariate_claim(i, iterations = dSep_iterations_topdown_exog_only_final, 
+                                    model_name = "TopDown_Exploitative_Final", n.chains = nc, 
+                                    n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  
+  
+  
+  
+  
+  
+  
+  #'  --------------------------------
+  #####  Top-down interference model  #####
+  #'  --------------------------------
+  dag_topdown_inter_final <- DAG(lion.t ~ wolf.tmin1 + lionHarv.tmin1, 
+                                 wolf.t ~ wolf.tmin1 + wolfHarv.tmin1 + bear.t,
+                                 bear.t ~ bear.tmin1 + bearHarv.tmin1 + wolf.tmin1,
+                                 coy.t ~ coy.tmin1 + wolf.tmin1 + lion.tmin1,
+                                 elk.t ~ elk.tmin1 + wolf.tmin1 + lion.tmin1,
+                                 moose.t ~ moose.tmin1 + wolf.tmin1,
+                                 wtd.t ~ wtd.tmin1 + lion.tmin1 + coy.tmin1 + bear.tmin1)
+                           
+  
+  bs_topdown_inter_final <- basic_set(dag_topdown_inter_final)
+  
+  #'  ----------------------
+  ######  d-Sep iterations  ######
+  #'  ----------------------
+  #'  Fit independence claims for variables where t-1 --> t or t --> t
+  #'  Model registry that defines the original regressions in SEM to be updated
+  #'  with each iteration of d-Sep testing
+  sem_registry <- list(
+    #'  Regression 1: lion.latent
+    list(covs = c("wolf.latent", "lionHarv"), spp = c(".wolf", ".harvest"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")), 
+    #'  Regression 2: wolf.latent
+    list(covs = c("wolf.latent", "wolfHarv", "bear.latent"), spp = c(".wolf", ".harvest", ".bear"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y")),
+    #'  Regression 3: bear.latent
+    list(covs = c("bear.latent", "bearHarv", "wolf.latent"), spp = c(".bear", ".harvest", ".wolf"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
+    #'  Regression 4: coy.latent
+    list(covs = c("coy.latent", "wolf.latent", "lion.latent"), spp = c(".coy", ".wolf", ".lion"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
+    #'  Regression 5: elk.latent
+    list(covs = c("elk.latent", "wolf.latent", "lion.latent"), spp = c(".elk", ".wolf", ".lion"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
+    #'  Regression 6: moose.latent
+    list(covs = c("moose.latent", "wolf.latent"), spp = c(".moose", ".wolf"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")),
+    #'  Regression 7: wtd.latent
+    list(covs = c("wtd.latent", "lion.latent", "coy.latent", "bear.latent"), spp = c(".wtd", ".lion", ".coy", ".bear"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1","y-1"))
+  )
+  #'  Source d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_final.R")
+  
+  data_JAGS_bundle_topdown_inter_final <- bundle_dat(dat_yr1 = posteriors_20s, dat_yr2 = posteriors_21s, 
+                                                     dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
+                                                     covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
+                                                     covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
+                                                     nwolf = 7, nlion = 4, nbear = 4, ncoy = 3, nelk = 2, 
+                                                     nmoose = 2, nwtd = 2, nharv = 4, nfor = 0, nwsi = 0)
+                                               
+  num.chains <- 3
+  initsList_topdown_inter_final <- vector('list', num.chains) 
+  for(i in 1:num.chains) {
+    initsList_topdown_inter_final[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 4, ncoy = 3, nelk = 2, nmoose = 2, 
+                                                   nwtd = 2, nharv = 4, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4)
+  }
+  
+  #'  Fit and save model iterations
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    #'  Apply across every element in list of active regressions
+    seq_along(dSep_iterations_topdown_inter_final),
+    #'  Call run_dSep_iterations function using specified active regression list, model template, and data/inits prepared for JAGS
+    function(i) run_dSep_iterations(i, iterations = dSep_iterations_topdown_inter_final, template = model_template, registry = sem_registry,
+                                    data_bundle = data_JAGS_bundle_topdown_inter_final, listInits = initsList_topdown_inter_final, model_name = "TopDown_Interference_Final"),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  #'  Source second d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_tmin1_only_final.R")
+  
+  ### MAKE SURE SEM_TOPDOWN_INTER_FINAL IS IN GLOBAL ENVI and spp.latent params were monitored  ###
+  
+  #'  Fit independence claims for variables where t-1 --> t-1 
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_topdown_inter_tmin1_only_final),
+    function(i) fit_aux_claim(i, iterations = dSep_iterations_topdown_inter_tmin1_only_final, 
+                              og_fit = SEM_topdown_inter_final, nSites = 23, nYear = 4, model_name = "TopDown_Interference_Final",
+                              n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  #'  Source third d-Sep custom regressions for iterative d-separation tests -
+  #'  this time to simply test correlation between exogenous variables flagged 
+  #'  in the basic set
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_exog_only_final.R")
+  #'  Fit independence claims for pairs of exogenous variables
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_topdown_inter_exog_only_final),
+    function(i) fit_covariate_claim(i, iterations = dSep_iterations_topdown_inter_exog_only_final, 
+                                    model_name = "TopDown_Interference_exog_final", n.chains = nc, 
+                                    n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  
+  #'  ---------------------------------
+  #####  Bottom-up exploitative model  #####
+  #'  ---------------------------------
+  dag_bottomup_final <- DAG(lion.t ~ elk.tmin1 + elk.t + wtd.tmin1 + wtd.t, 
+                            wolf.t ~ wolf.tmin1 + elk.tmin1 + elk.t + moose.tmin1 + moose.t + wtd.t,
+                            bear.t ~ bear.tmin1 + elk.tmin1 + forest.tmin1 + wtd.t,
+                            coy.t ~ coy.tmin1 + wtd.tmin1 + wtd.t,
+                            elk.t ~ elk.tmin1 + forest.tmin1 + wsi.tmin1 + bear.tmin1,
+                            moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
+                            wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1 + coy.tmin1 + bear.tmin1)
+                      
+  bs_bottomup_final <- basic_set(dag_bottomup_final)
+  
+  #'  ----------------------
+  ######  d-Sep iterations  ######
+  #'  ----------------------
+  #'  Fit independence claims for variables where t-1 --> t or t --> t
+  #'  Model registry that defines the original regressions in SEM to be updated
+  #'  with each iteration of d-Sep testing
+  sem_registry <- list(
+    #'  Regression 1: lion.t
+    list(covs = c("elk.latent", "wtd.latent", "wtd.latent"), spp = c(".elk", ".wtd", ".wtd"), indices = as.integer(c(1,1,2)), lags = c("y-1","y-1","y")),
+    #'  Regression 2: wolf.t
+    list(covs = c("wolf.latent", "elk.latent", "elk.latent", "moose.latent", "moose.latent", "wtd.latent"), spp = c(".wolf", ".elk", ".elk", ".moose", ".moose", ".wtd"), indices = as.integer(c(1,1,2,1,2,1)), lags = c("y-1","y-1","y","y-1","y","y")),
+    #'  Regression 3: bear.t
+    list(covs = c("bear.latent", "elk.latent", "forest", "wtd.latent"), spp = c(".bear", ".elk", ".forest", ".wtd"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1","y")),
+    #'  Regression 4: coy.t
+    list(covs = c("coy.latent", "wtd.latent", "wtd.latent"), spp = c(".coy", ".wtd", ".wtd"), indices = as.integer(c(1,1,2)), lags = c("y-1","y-1","y")),
+    #'  Regression 5: elk.t
+    list(covs = c("elk.latent", "forest", "wsi", "bear.latent"), spp = c(".elk", ".forest", ".wsi", ".bear"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1","y-1")),
+    #'  Regression 6: moose.t
+    list(covs = c("moose.latent", "forest", "wsi"), spp = c(".moose", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
+    #'  Regression 7: wtd.t
+    list(covs = c("wtd.latent", "forest", "wsi", "coy.latent", "bear.latent"), spp = c(".wtd", ".forest", ".wsi", ".coy", ".bear"), indices = as.integer(c(1,1,1,1,1)), lags = c("y-1","y-1","y-1","y-1","y-1"))
+  )
+  #'  Source d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_final.R")
+  
+  #'  Bundle data and draw inits using functions in in Format_RNmodel_Posteriors_for_SEM.R
+  data_JAGS_bundle_bottomup_final <- bundle_dat(dat_yr1 = posteriors_20s, dat_yr2 = posteriors_21s, 
+                                                dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
+                                                covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
+                                                covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
+                                                nwolf = 2, nlion = 1, nbear = 2, ncoy = 2, nelk = 5, 
+                                                nmoose = 3, nwtd = 4, nharv = 0, nfor = 5, nwsi = 5)
+                            
+  num.chains <- 3
+  initsList_bottomup_final <- vector('list', num.chains) 
+  for(i in 1:num.chains) {
+    initsList_bottomup_final[[i]] <- generate_inits(nwolf = 2, nlion = 1, nbear = 2, ncoy = 2, nelk = 5, nmoose = 3, 
+                                              nwtd = 4, nharv = 0, nfor = 5, nwsi = 5, nSpp = 7, nSites = 23, nYear = 4)
+  }
+  
+  start.time = Sys.time()
+  #'  Fit and save model iterations
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_bottomup_final),
+    function(i) run_dSep_iterations(i, iterations = dSep_iterations_bottomup_final, template = model_template, registry = sem_registry,
+                                    data_bundle = data_JAGS_bundle_bottomup_final, listInits = initsList_bottomup_final, model_name = "BottomUp_Exploitative_Final"),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  
+  #'  Source second d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_tmin1_only_final.R")
+  
+  ### MAKE SURE SEM_BOTTOMUP_FINAL IS IN GLOBAL ENVIRO and spp.latent params were monitored  ###
+  
+  #'  Fit independence claims for variables where t-1 --> t-1 
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_bottomup_tmin1_only_final),
+    function(i) fit_aux_claim(i, iterations = dSep_iterations_bottomup_tmin1_only_final, 
+                              og_fit = SEM_bottomup, nSites = 23, nYear = 4, model_name = "BottomUp_Exploitative_Final",
+                              n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  
+  #'  Source third d-Sep custom regressions for iterative d-separation tests -
+  #'  this time to simply test correlation between exogenous variables flagged 
+  #'  in the basic set
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_exog_only_final.R")
+  #'  Fit independence claims for pairs of exogenous variables
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_bottomup_exog_only_final),
+    function(i) fit_covariate_claim(i, iterations = dSep_iterations_bottomup_exog_only_final, 
+                                    model_name = "BottomUp_Exploitative_exog_final", n.chains = nc, 
+                                    n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  
+  #'  ---------------------------------
+  #####  Bottom-up interference model  #####
+  #'  ---------------------------------
+  dag_bottomup_inter_final <- DAG(lion.t ~ elk.tmin1 + elk.t + wtd.tmin1 + wtd.t + bear.tmin1, 
+                                  wolf.t ~ wolf.tmin1 + elk.tmin1 + elk.t + moose.tmin1 + moose.t + bear.t,
+                                  bear.t ~ bear.tmin1 + elk.tmin1 + forest.tmin1 + wolf.tmin1 + wtd.t,
+                                  coy.t ~ coy.tmin1 + wtd.tmin1 + wolf.tmin1 + bear.tmin1,
+                                  elk.t ~ elk.tmin1 + forest.tmin1 + wsi.tmin1,
+                                  moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
+                                  wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
+                            
+  
+  bs_bottomup_inter_final <- basic_set(dag_bottomup_inter_final)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
