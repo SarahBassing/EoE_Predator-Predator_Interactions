@@ -121,14 +121,14 @@ cat(file = './Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_inter_final.txt', "
           moose.tau_hat[i,y] <- 1 / pow(moose.sigma_hat[i,y], 2)
           wtd.tau_hat[i,y]   <- 1 / pow(wtd.sigma_hat[i,y], 2)
           
-          #'  Save Log-likelihood for LOO -- observation layer only
-          loglik.lion[i,y]  <- logdensity.norm(lion.hat[i,y],  lion.latent[i,y],  lion.tau_hat[i,y])
-          loglik.wolf[i,y]  <- logdensity.norm(wolf.hat[i,y],  wolf.latent[i,y],  wolf.tau_hat[i,y])
-          loglik.bear[i,y]  <- logdensity.norm(bear.hat[i,y],  bear.latent[i,y],  bear.tau_hat[i,y])
-          loglik.coy[i,y]   <- logdensity.norm(coy.hat[i,y],   coy.latent[i,y],   coy.tau_hat[i,y])
-          loglik.elk[i,y]   <- logdensity.norm(elk.hat[i,y],   elk.latent[i,y],   elk.tau_hat[i,y])
-          loglik.moose[i,y] <- logdensity.norm(moose.hat[i,y], moose.latent[i,y], moose.tau_hat[i,y])
-          loglik.wtd[i,y]   <- logdensity.norm(wtd.hat[i,y],   wtd.latent[i,y],   wtd.tau_hat[i,y])
+          #' #'  Save Log-likelihood for LOO -- observation layer only
+          #' loglik.lion[i,y]  <- logdensity.norm(lion.hat[i,y],  lion.latent[i,y],  lion.tau_hat[i,y])
+          #' loglik.wolf[i,y]  <- logdensity.norm(wolf.hat[i,y],  wolf.latent[i,y],  wolf.tau_hat[i,y])
+          #' loglik.bear[i,y]  <- logdensity.norm(bear.hat[i,y],  bear.latent[i,y],  bear.tau_hat[i,y])
+          #' loglik.coy[i,y]   <- logdensity.norm(coy.hat[i,y],   coy.latent[i,y],   coy.tau_hat[i,y])
+          #' loglik.elk[i,y]   <- logdensity.norm(elk.hat[i,y],   elk.latent[i,y],   elk.tau_hat[i,y])
+          #' loglik.moose[i,y] <- logdensity.norm(moose.hat[i,y], moose.latent[i,y], moose.tau_hat[i,y])
+          #' loglik.wtd[i,y]   <- logdensity.norm(wtd.hat[i,y],   wtd.latent[i,y],   wtd.tau_hat[i,y])
           
         }
       }
