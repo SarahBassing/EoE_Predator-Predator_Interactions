@@ -398,13 +398,14 @@
     # Regression #100
     # bs_topdown_final[[100]] # "wolfHarv.tmin1" "bear.t"         "bearHarv.tmin1" "bear.tmin1"     "wtd.t"
     list(dSep_test = 3, covariates = c("bearHarv", "bear.latent", "wtd.latent", "wolfHarv"), spp = c(".harvest", ".bear", ".wtd", ".harvest"), indices = c(1,1,1,2), lags = c("y-1","y-1","y","y-1")),
-    #########
+    # #########
     # # Regression #101
     # # bs_topdown_final[[101]] # "wolfHarv.tmin1" "elk.tmin1"
     # list(dSep_test = 5, covariates = c(), spp = c(), indices = c(), lags = c()),
     # Regression #102
     # bs_topdown_final[[102]] # "wolfHarv.tmin1" "elk.t"          "elkHarv.tmin1"  "lion.tmin1"     "bear.tmin1"     "wolf.tmin1"     "elk.tmin1"
     list(dSep_test = 5, covariates = c("elkHarv", "lion.latent", "bear.latent", "wolf.latent", "elk.latent", "wolfHarv"), spp = c(".harvest", ".lion", ".bear", ".wolf", ".elk", ".harvest"), indices = c(1,1,1,1,1,2), lags = c("y-1","y-1","y-1","y-1","y-1","y-1")),
+    # #########
     # # Regression #103
     # # bs_topdown_final[[103]] # "wolfHarv.tmin1" "lionHarv.tmin1"
     # list(dSep_test = NA, covariates = c(), spp = c(), indices = c(), lags = c()),   # exog on exog
@@ -501,7 +502,7 @@
     # bs_topdown_final[[132]] # "wtd.t"          "elk.t"          "deerHarv.tmin1" "lion.tmin1"     "coy.tmin1"      "wolf.tmin1"     "wtd.tmin1"      "elkHarv.tmin1"     "bear.tmin1"     "elk.tmin1"
     list(dSep_test = 5, covariates = c("deerHarv", "lion.latent", "coy.latent", "wolf.latent", "wtd.latent", "elkHarv", "bear.latent", "elk.latent", "wtd.latent"), spp = c(".harvest", ".lion", ".coy", ".wolf", ".wtd", ".harvest", ".bear", ".elk", ".wtd"), indices = c(1,1,1,1,1,2,1,1,2), lags = c("y-1","y-1","y-1","y-1","y-1","y-1","y-1","y-1","y")),
     # Regression #133        # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS FOCUSED ON SPP NOT HARVEST
-    # bs_topdown_final[[134]] # "wtd.t"          "lionHarv.tmin1" "deerHarv.tmin1" "lion.tmin1"     "coy.tmin1"      "wolf.tmin1"     "wtd.tmin1"
+    # bs_topdown_final[[133]] # "wtd.t"          "lionHarv.tmin1" "deerHarv.tmin1" "lion.tmin1"     "coy.tmin1"      "wolf.tmin1"     "wtd.tmin1"
     list(dSep_test = 7, covariates = c("deerHarv", "lion.latent", "coy.latent", "wolf.latent", "wtd.latent", "lionHarv"), spp = c(".harvest", ".lion", ".coy", ".wolf", ".wtd", ".harvest"), indices = c(1,1,1,1,1,2), lags = c("y-1","y-1","y-1","y-1","y-1","y-1")),
     # Regression #134         # NOTE: NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS TEMPORALLY VALID
     # bs_topdown_final[[134]] # "bear.t"         "elk.tmin1"      "bearHarv.tmin1" "bear.tmin1"     "wtd.t"
