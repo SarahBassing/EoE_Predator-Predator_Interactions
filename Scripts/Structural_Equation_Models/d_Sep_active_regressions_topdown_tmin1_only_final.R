@@ -162,6 +162,9 @@
     # Regression #83         # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS FOCUSED ON SPP NOT HARVEST
     # bs_topdown_final[[83]] # "bear.tmin1"     "lionHarv.tmin1"
     list(spp = c("bear"), covariate_array = data_JAGS_bundle_topdown_final$lionHarv),
+    # Regression #85         # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS FOCUSED ON SPP NOT HARVEST
+    # bs_topdown_final[[85]] # "moose.tmin1"    "wolfHarv.tmin1"
+    list(spp = c("moose"), covariate_array = data_JAGS_bundle_topdown_final$wolfHarv),
     # Regression #86
     # bs_topdown_final[[86]] # "moose.tmin1" "wolf.tmin1"
     list(spp = c("wolf"), covariate_array = data_JAGS_bundle_topdown_final$moose.hat),
