@@ -422,7 +422,7 @@
   which(SEM_bottomup_final$summary[,"Rhat"] < 0.9)
   which(SEM_bottomup_final$summary[,"Rhat"] > 1.1)
   mcmcplot(SEM_bottomup_final$samples)
-  save(SEM_bottomup_final, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_exploitation_final", Sys.Date(), ".RData"))
+  save(SEM_bottomup_final, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_exploitation_final_", Sys.Date(), ".RData"))
   
   
   #####  Bottom-up, interference model  #####
@@ -619,6 +619,7 @@
                                       nYear = 4, n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt,
                                       out_dir = "./Outputs/SEM/LOSO_CV/topdown_exploit")
   end.time <- Sys.time(); (run.time <- end.time - start.time)
+  save(loso_topdown_exploit, file = "./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_exploit.RData")
   
   start.time = Sys.time()
   loso_topdown_inter <- run_loso_cv(mod = "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_final.txt", dat = data_JAGS_bundle_topdown_inter_final,
@@ -626,13 +627,15 @@
                                       nYear = 4, n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt,
                                       out_dir = "./Outputs/SEM/LOSO_CV/topdown_inter")
   end.time <- Sys.time(); (run.time <- end.time - start.time)
+  save(loso_topdown_inter, file = "./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_inter.RData")
   
   start.time = Sys.time()
   loso_bottomup_exploit <- run_loso_cv(mod = "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_final.txt", dat = data_JAGS_bundle_bottomup_final,
                                       spp_names = c("lion", "wolf", "bear", "coy", "elk", "moose", "wtd"), nSites = 23,  
                                       nYear = 4, n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt,
-                                      out_dir = "./Outputs/SEM/LOSO_CV/bottomup_exploit")
+                                      out_dir = )
   end.time <- Sys.time(); (run.time <- end.time - start.time)
+  save(loso_bottomup_exploit, file = "./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_exploit.RData")
   
   start.time = Sys.time()
   loso_bottomup_inter <- run_loso_cv(mod = "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_inter_final.txt", dat = data_JAGS_bundle_bottomup_inter_final,
@@ -640,6 +643,13 @@
                                       nYear = 4, n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt,
                                       out_dir = "./Outputs/SEM/LOSO_CV/bottomup_inter")
   end.time <- Sys.time(); (run.time <- end.time - start.time)
+  save(loso_bottomup_inter, file = "./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_inter.RData")
+  
+  #'  Read in LOSO_CV results
+  load("./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_exploit.RData")
+  load("./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_inter.RData")
+  load("./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_exploit.RData")
+  load("./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_inter.RData")
   
   #'  Compare LOSO CV across models
   compare_loso <- data.frame(model = c("topdown_exploitative", "topdown_interference", 
