@@ -1625,7 +1625,7 @@
   saved_paths <- future_lapply(
     seq_along(dSep_iterations_bottomup_tmin1_only_final),
     function(i) fit_aux_claim(i, iterations = dSep_iterations_bottomup_tmin1_only_final, 
-                              og_fit = SEM_bottomup, nSites = 23, nYear = 4, model_name = "BottomUp_Exploitative_Final",
+                              og_fit = SEM_bottomup_final, nSites = 23, nYear = 4, model_name = "BottomUp_Exploitative_Final",
                               n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
     future.seed = TRUE
   )
@@ -1662,9 +1662,86 @@
   
   bs_bottomup_inter_final <- basic_set(dag_bottomup_inter_final)
   
+  #'  ----------------------
+  ######  d-Sep iterations  ######
+  #'  ----------------------
+  #'  Model registry that defines the original regressions in SEM to be updated
+  #'  with each iteration of d-Sep testing
+  sem_registry <- list(
+    #'  Regression 1: lion.latent
+    list(covs = c("elk.latent", "elk.latent", "wtd.latent", "wtd.latent", "bear.latent"), spp = c(".elk", ".elk", ".wtd", ".wtd", ".bear"), indices = as.integer(c(1,2,1,2,1)), lags = c("y-1","y","y-1","y","y-1")),
+    #'  Regression 2: wolf.latent
+    list(covs = c("wolf.latent", "elk.latent", "elk.latent", "moose.latent", "moose.latent", "bear.latent"), spp = c(".wolf", ".elk", ".elk", ".moose", ".moose", ".bear"), indices = as.integer(c(1,1,2,1,2,1)), lags = c("y-1","y-1","y","y-1","y","y")),
+    #'  Regression 3: bear.latent
+    list(covs = c("bear.latent", "elk.latent", "forest", "wolf.latent", "wtd.latent"), spp = c(".bear", ".elk", ".forest", ".wolf", ".wtd"), indices = as.integer(c(1,1,1,1,1)), lags = c("y-1","y-1","y-1","y-1","y")),
+    #'  Regression 4: coy.latent
+    list(covs = c("coy.latent", "wtd.latent", "wolf.latent", "bear.latent"), spp = c(".coy", ".wtd", ".wolf", ".bear"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1","y-1")),
+    #'  Regression 5: elk.latent
+    list(covs = c("elk.latent", "forest", "wsi"), spp = c(".elk", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
+    #'  Regression 6: moose.latent
+    list(covs = c("moose.latent", "forest", "wsi"), spp = c(".moose", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
+    #'  Regression 7: wtd.latent
+    list(covs = c("wtd.latent", "forest", "wsi"), spp = c(".wtd", ".forest", ".wsi"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1"))
+  )
+  #'  Source d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_updated_final.R")
+  
+  #'  Bundle data and draw inits using functions in in Format_RNmodel_Posteriors_for_SEM.R
+  data_JAGS_bundle_bottomup_inter_final <- bundle_dat(dat_yr1 = posteriors_20s, dat_yr2 = posteriors_21s, 
+                                                      dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s,
+                                                      covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
+                                                      covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
+                                                      nwolf = 4, nlion = 1, nbear = 5, ncoy = 2, nelk = 7, 
+                                                      nmoose = 4, nwtd = 6, nharv = 0, nfor = 5, nwsi = 4)
+                                                
+  num.chains <- 3
+  initsList_bottomup_inter_final <- vector('list', num.chains) 
+  for(i in 1:num.chains) {
+    initsList_bottomup_inter_final[[i]] <- generate_inits(nwolf = 4, nlion = 1, nbear = 5, ncoy = 2, nelk = 7, nmoose = 4, 
+                                                    nwtd = 6, nharv = 0, nfor = 5, nwsi = 4, nSpp = 7, nSites = 23, nYear = 4)
+  }
+  
+  start.time = Sys.time()
+  #'  Fit and save model iterations
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_bottomup_inter_final), 
+    function(i) run_dSep_iterations(i, iterations = dSep_iterations_bottomup_inter_final, template = model_template, registry = sem_registry,
+                                    data_bundle = data_JAGS_bundle_bottomup_inter_final, listInits = initsList_bottomup_inter_final, model_name = "BottomUp_Interference_final"),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
+  
+  #'  Source second d-Sep custom regressions for iterative d-separation tests 
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_updated_tmin1_only_final.R")
+  
+  ### MAKE SURE SEM_BOTTOMUP_INTER_FINAL IS IN GLOBAL ENVIRO and spp.latent params were monitored  ###
+  
+  #'  Fit independence claims for variables where t-1 --> t-1 
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_bottomup_inter_tmin1_only),
+    function(i) fit_aux_claim(i, iterations = dSep_iterations_bottomup_inter_tmin1_only, 
+                              og_fit = SEM_bottomup_inter_final, nSites = 23, nYear = 4, model_name = "BottomUp_Interference_Final",
+                              n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
   
   
-  
+  #'  Source third d-Sep custom regressions for iterative d-separation tests -
+  #'  this time to simply test correlation between exogenous variables flagged 
+  #'  in the basic set
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_updated_exog_only.R")
+  #'  Fit independence claims for pairs of exogenous variables
+  start.time = Sys.time()
+  saved_paths <- future_lapply(
+    seq_along(dSep_iterations_bottomup_inter_exog_only_final),
+    function(i) fit_covariate_claim(i, iterations = dSep_iterations_bottomup_inter_exog_only_final, 
+                                    model_name = "BottomUp_Interference_exog_final", n.chains = nc, 
+                                    n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt),
+    future.seed = TRUE
+  )
+  end.time <- Sys.time(); (run.time <- end.time - start.time)
   
   
   
