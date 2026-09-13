@@ -273,7 +273,7 @@
     list(dSep_test = 2, covariates = c("moose.latent", "moose.latent", "wolf.latent", "elk.latent", "bear.latent", "elk.latent", "wtd.latent"), spp = c(".moose", ".moose", ".wolf", ".elk", ".bear", ".elk", ".wtd"), indices = as.integer(c(1,2,1,1,1,2,1)), lags = c("y-1","y","y-1","y-1","y","y","y-1")),
     # Regression #65
     # bs_bottomup_inter_final[[65]] # "coy.t"        "wtd.t"        "coy.tmin1"    "wolf.tmin1"   "bear.tmin1"   "wtd.tmin1"    "wsi.tmin1"    "forest.tmin1"
-    list(dSep_test = 7, covariates = c("coy.latent", "wolf.latent", "bear.latent", "wtd.latent", "wsi", "forest", "coy.latent"), spp = c(".coy", ".wolf", ".bear", ".wtd", "wsi", ".forest", ".coy"), indices = as.integer(c(1,1,1,1,1,1,2)), lags = c("y-1","y-1","y-1","y-1","y-1","y-1","y")),
+    list(dSep_test = 7, covariates = c("coy.latent", "wolf.latent", "bear.latent", "wtd.latent", "wsi", "forest", "coy.latent"), spp = c(".coy", ".wolf", ".bear", ".wtd", ".wsi", ".forest", ".coy"), indices = as.integer(c(1,1,1,1,1,1,2)), lags = c("y-1","y-1","y-1","y-1","y-1","y-1","y")),
     # Regression #66                # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS TEMPORALLY VALID
     # bs_bottomup_inter_final[[66]] # "coy.t"      "elk.tmin1"  "coy.tmin1"  "wolf.tmin1" "bear.tmin1" "wtd.tmin1" 
     list(dSep_test = 4, covariates = c("coy.latent", "wolf.latent", "bear.latent", "wtd.latent", "elk.latent"), spp = c(".coy", ".wolf", ".bear", ".wtd", ".elk"), indices = as.integer(c(1,1,1,1,1)), lags = c("y-1","y-1","y-1","y-1","y-1")),
@@ -291,7 +291,7 @@
     list(dSep_test = 1, covariates = c("coy.latent", "wolf.latent", "bear.latent", "wtd.latent", "wtd.latent", "elk.latent", "elk.latent", "coy.latent"), spp = c(".coy", ".wolf", ".bear", ".wtd", ".wtd", ".elk", ".elk", ".coy"), indices = as.integer(c(1,1,1,1,2,1,2,2)), lags = c("y-1","y-1","y-1","y-1","y","y-1","y","y")),
     # Regression #71                # NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS TEMPORALLY VALID
     # bs_bottomup_inter_final[[71]] # "wtd.t"        "elk.tmin1"    "wsi.tmin1"    "forest.tmin1" "wtd.tmin1"   
-    list(dSep_test = 7, covariates = c("wsi", "forest", "wtd.latent", "wtd.latent"), spp = c(".wsi", ".forest", ".wtd", ".wtd"), indices = as.integer(c(1,1,1,2)), lags = c("y-1","y-1","y-1","y")),
+    list(dSep_test = 7, covariates = c("wsi", "forest", "wtd.latent", "elk.latent"), spp = c(".wsi", ".forest", ".wtd", ".elk"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1","y-1")),
     # Regression #72
     # bs_bottomup_inter_final[[72]] # "wtd.t"        "elk.t"        "wsi.tmin1"    "forest.tmin1" "wtd.tmin1"    "elk.tmin1"   
     list(dSep_test = 5, covariates = c("wsi", "forest", "wtd.latent", "elk.latent", "wtd.latent"), spp = c(".wsi", ".forest", ".wtd", ".elk", ".wtd"), indices = as.integer(c(1,1,1,1,2)), lags = c("y-1","y-1","y-1","y-1","y")),
