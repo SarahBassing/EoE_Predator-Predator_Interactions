@@ -468,8 +468,8 @@
   }
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_bottomup_inter_final.R")
   
-  #' #'  Identify log-likelihood parameters to monitor
-  #' loglik_params <- c("loglik.lion", "loglik.wolf", "loglik.bear", "loglik.coy", "loglik.elk", "loglik.moose", "loglik.wtd")
+  #'  Latent parameters to monitor if needed (necessary when rerunning this model for final d-Sep and Fisher's C)
+  latent_params <- c("lion.latent", "wolf.latent", "bear.latent", "coy.latent", "elk.latent", "moose.latent", "wtd.latent")
   
   #'  Updated list of parameters to follow (includes derived parameters for indirect effects now)
   params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.bear", "beta.coy",
@@ -484,7 +484,7 @@
               "indirect.bear.wolf.coy.v2", "indirect.elk.wolf.self", "indirect.moose.wolf.self",
               "indirect.elk.bear.self", "indirect.wtd.bear.self", "indirect.wtd.coy.self",
               "indirect.bear.wolf.self", "indirect.wolf.bear.self", "indirect.wolf.coy.self",  
-              "indirect.bear.coy.self") # , loglik_params
+              "indirect.bear.coy.self", latent_params) 
   
   start.time = Sys.time()
   SEM_bottomup_inter_final <- jagsUI::jags(data_JAGS_bundle_bottomup_inter_final, inits = initsList_bottomup_inter, params,
