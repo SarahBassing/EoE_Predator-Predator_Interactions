@@ -87,7 +87,7 @@
     list(dSep_test = 3, covariates = c("forest", "bear.latent", "wtd.latent", "elk.latent", "wsi"), spp = c(".forest", ".bear", ".wtd", ".elk", ".wsi"), indices = as.integer(c(1,1,1,1,1)), lags = c("y-1","y-1","y","y-1","y-1")),
     # Regression #10
     # bs_bottomup_final[[10]] # "wsi.tmin1"   "wolf.t"      "moose.tmin1" "moose.t"     "wolf.tmin1"  "wtd.t"       "elk.tmin1"   "elk.t"  
-    list(dSep_test = 2, covariates = c("moose.latent", "moose.latent", "wolf.latent", "wtd.latent", "elk.latent", "elk.latent", "wsi.latent"), spp = c(".moose", ".moose", ".wolf", ".wtd", ".elk", ".elk", ".wsi"), indices = as.integer(c(1,2,1,1,1,2,1)), lags = c("y-1","y","y-1","y","y-1","y","y-1")),
+    list(dSep_test = 2, covariates = c("moose.latent", "moose.latent", "wolf.latent", "wtd.latent", "elk.latent", "elk.latent", "wsi"), spp = c(".moose", ".moose", ".wolf", ".wtd", ".elk", ".elk", ".wsi"), indices = as.integer(c(1,2,1,1,1,2,1)), lags = c("y-1","y","y-1","y","y-1","y","y-1")),
     # Regression #11
     # bs_bottomup_final[[11]] # "wsi.tmin1" "lion.t"    "wtd.tmin1" "wtd.t"     "elk.tmin1" "elk.t"
     list(dSep_test = 1, covariates = c("wtd.latent", "wtd.latent", "elk.latent", "elk.latent", "wsi"), spp = c(".wtd", ".wtd", ".elk", ".elk", ".wsi"), indices = as.integer(c(1,2,1,2,1)), lags = c("y-1","y","y-1","y","y-1")),
@@ -148,7 +148,7 @@
     # list(dSep_test = NA, covariates = c(), spp = c(), indices = as.integer(c()), lags = c()),      # exog on exog
     # Regression #27
     # bs_bottomup_final[[27]] # "forest.tmin1" "coy.t"        "coy.tmin1"    "wtd.tmin1"    "wtd.t"     
-    list(dSep_test = 4, covariates = c("coy.latent", "wtd.latent", "wtd.latent", "forest.latent"), spp = c(".coy", ".wtd", ".wtd", ".forest"), indices = as.integer(c(1,1,2,1)), lags = c("y-1","y-1","y","y-1")),
+    list(dSep_test = 4, covariates = c("coy.latent", "wtd.latent", "wtd.latent", "forest"), spp = c(".coy", ".wtd", ".wtd", ".forest"), indices = as.integer(c(1,1,2,1)), lags = c("y-1","y-1","y","y-1")),
     # #########
     # # Regression #28
     # # bs_bottomup_final[[28]] # "forest.tmin1" "elk.tmin1"   
@@ -219,7 +219,7 @@
     list(dSep_test = 2, covariates = c("wsi", "forest", "moose.latent", "moose.latent"), spp = c(".wsi", ".forest", ".moose", ".moose"), indices = as.integer(c(1,1,1,2)), lags = c("y-1","y-1","y-1","y")),
     # Regression #48
     # bs_bottomup_final[[48]] # "moose.t"      "wtd.tmin1"    "wsi.tmin1"    "forest.tmin1" "moose.tmin1" 
-    list(dSep_test = 7, covariates = c("wsi", "forest", ".moose", ".moose"), spp = c(".wsi", ".forest", ".moose", ".moose"), indices = as.integer(c(1,1,1,2)), lags = c("y-1","y-1","y-1","y")),
+    list(dSep_test = 7, covariates = c("wsi", "forest", "moose.latent", "moose.latent"), spp = c(".wsi", ".forest", ".moose", ".moose"), indices = as.integer(c(1,1,1,2)), lags = c("y-1","y-1","y-1","y")),
     # Regression #49
     # bs_bottomup_final[[49]] # "moose.t"      "wtd.t"        "wsi.tmin1"    "forest.tmin1" "moose.tmin1"  "coy.tmin1"    "bear.tmin1"   "wtd.tmin1"   
     list(dSep_test = 7, covariates = c("wsi", "forest", "moose.latent", "coy.latent", "bear.latent", "wtd.latent", "moose.latent"), spp = c(".wsi", ".forest", ".moose", ".coy", ".bear", ".wtd", ".moose"), indices = as.integer(c(1,1,1,1,1,1,2)), lags = c("y-1","y-1","y-1","y-1","y-1","y-1","y")),
@@ -231,7 +231,7 @@
     list(dSep_test = 5, covariates = c("wsi", "forest", "moose.latent", "moose.latent"), spp = c(".wsi", ".forest", ".moose", ".moose"), indices = as.integer(c(1,1,1,2)), lags = c("y-1","y-1","y-1","y")),
     # Regression #52
     # bs_bottomup_final[[52]] # "moose.t"      "bear.t"       "wsi.tmin1"    "forest.tmin1" "moose.tmin1"  "bear.tmin1"   "wtd.t"        "elk.tmin1" 
-    list(dSep_test = 3, covariates = c("wsi", "forest", "moose.latent", "bear.latent", "wtd.latent", "elk.latent", "moose.latent"), spp = c(".wsi", ".forest", ".moose", ".bear", ".wtd", ".elk", ".moose"), indices = as.integer(c(1,1,1,1,1,1,1)), lags = c("y-1","y-1","y-1","y-1","y","y-1","y")),
+    list(dSep_test = 3, covariates = c("wsi", "forest", "moose.latent", "bear.latent", "wtd.latent", "elk.latent", "moose.latent"), spp = c(".wsi", ".forest", ".moose", ".bear", ".wtd", ".elk", ".moose"), indices = as.integer(c(1,1,1,1,1,1,2)), lags = c("y-1","y-1","y-1","y-1","y","y-1","y")),
     # Regression #53
     # bs_bottomup_final[[53]] # "moose.t"      "elk.t"        "wsi.tmin1"    "forest.tmin1" "moose.tmin1"  "bear.tmin1"   "elk.tmin1"   
     list(dSep_test = 5, covariates = c("wsi", "forest", "moose.latent", "bear.latent", "elk.latent", "moose.latent"), spp = c(".wsi", ".forest", ".moose", ".bear", ".elk", ".moose"), indices = as.integer(c(1,1,1,1,1,2)), lags = c("y-1","y-1","y-1","y-1","y-1","y")),
@@ -297,7 +297,7 @@
     list(dSep_test = 1, covariates = c("coy.latent", "wtd.latent", "wtd.latent", "elk.latent", "elk.latent" ,"coy.latent"), spp = c(".coy", ".wtd", ".wtd", ".elk", ".elk", ".coy"), indices = as.integer(c(1,1,2,1,2,2)), lags = c("y-1","y-1","y","y-1","y","y")),
     # Regression #73
     # bs_bottomup_final[[73]] # "bear.t"       "elk.t"        "forest.tmin1" "bear.tmin1"   "wtd.t"        "elk.tmin1"    "wsi.tmin1"   
-    list(dSep_test = 5, covariates = c("forest", "bear.latent", "wtd.latent", "elk.latent", "wsi.latent", "bear.latent"), spp = c(".forest", ".bear", ".wtd", ".elk", ".wsi", ".bear"), indices = as.integer(c(1,1,1,1,1,2)), lags = c("y-1","y-1","y","y-1","y-1","y")),
+    list(dSep_test = 5, covariates = c("forest", "bear.latent", "wtd.latent", "elk.latent", "wsi", "bear.latent"), spp = c(".forest", ".bear", ".wtd", ".elk", ".wsi", ".bear"), indices = as.integer(c(1,1,1,1,1,2)), lags = c("y-1","y-1","y","y-1","y-1","y")),
     # Regression #74
     # bs_bottomup_final[[74]] # "bear.t"       "wolf.t"       "forest.tmin1" "bear.tmin1"   "wtd.t"        "elk.tmin1"    "moose.tmin1"  "moose.t"      "wolf.tmin1"   "elk.t"    
     list(dSep_test = 2, covariates = c("forest", "bear.latent", "wtd.latent", "elk.latent", "moose.latent", "moose.latent", "wolf.latent", "elk.latent", "bear.latent"), spp = c(".forest", ".bear", ".wtd", ".elk", ".moose", ".moose", ".wolf", ".elk", ".bear"), indices = as.integer(c(1,1,1,1,1,2,1,2,2)), lags = c("y-1","y-1","y","y-1","y-1","y","y-1","y","y")),
