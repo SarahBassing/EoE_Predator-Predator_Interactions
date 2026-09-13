@@ -339,9 +339,9 @@
     # Regression #82               #  NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS TEMPORALLY VALID
     # bs_topdown_inter_final[[82]] # "wtd.t"          "lionHarv.tmin1" "wtd.tmin1"      "lion.tmin1"     "coy.tmin1"      "bear.tmin1"   
     list(dSep_test = 7, covariates = c("wtd.latent", "lion.latent", "coy.latent", "bear.latent", "lionHarv"), spp = c(".wtd", ".lion", ".coy", ".bear", ".harvest"), indices = c(1,1,1,1,1), lags = c("y-1","y-1","y-1","y-1","y-1")),
-    # Regression #83
+    # Regression #83               #  NOTE: I'VE FLIPPED THE RESPONSE & EXPLANATORY VARIABLES HERE SO THE INDEP. CLAIM IS TEMPORALLY VALID
     # bs_topdown_inter_final[[83]] # "wtd.t"      "wolf.tmin1" "wtd.tmin1"  "lion.tmin1" "coy.tmin1"  "bear.tmin1"
-    list(dSep_test = 2, covariates = c("wtd.latent", "lion.latent", "coy.latent", "bear.latent", "wtd.latent"), spp = c(".wtd", ".lion", ".coy", ".bear", ".wtd"), indices = c(1,1,1,1,2), lags = c("y-1","y-1","y-1","y-1","y")),
+    list(dSep_test = 7, covariates = c("wtd.latent", "lion.latent", "coy.latent", "bear.latent", "wolf.latent"), spp = c(".wtd", ".lion", ".coy", ".bear", ".wolf"), indices = c(1,1,1,1,1), lags = c("y-1","y-1","y-1","y-1","y-1")),
     # Regression #84
     # bs_topdown_inter_final[[84]] # "wtd.t"       "moose.t"     "wtd.tmin1"   "lion.tmin1"  "coy.tmin1"   "bear.tmin1"  "moose.tmin1" "wolf.tmin1" 
     list(dSep_test = 6, covariates = c("wtd.latent", "lion.latent", "coy.latent", "bear.latent", "moose.latent", "wolf.latent", "wtd.latent"), spp = c(".wtd", ".lion", ".coy", ".bear", ".moose", ".wolf", ".wtd"), indices = c(1,1,1,1,1,1,2), lags = c("y-1","y-1","y-1","y-1","y-1","y-1","y")),
