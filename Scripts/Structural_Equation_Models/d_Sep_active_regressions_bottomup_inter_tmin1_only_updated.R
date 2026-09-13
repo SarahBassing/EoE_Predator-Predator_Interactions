@@ -37,7 +37,7 @@
   
   dSep_iterations_bottomup_inter_tmin1_only <- list(
     # Regression #1
-    # bs_bottomup[[1]] # "wsi.tmin1" "coy.tmin1"
+    # bs_bottomup_inter[[1]] # "wsi.tmin1" "coy.tmin1"
     list(spp = c("coy"), covariate_array = data_JAGS_bundle_bottomup_inter$wsi),
     # # Regression #2
     # # bs_bottomup_inter[[2]] # "wsi.tmin1"    "forest.tmin1"
