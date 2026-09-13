@@ -48,7 +48,10 @@
     list(y_array = data_JAGS_bundle_topdown_final$wolfHarv, x_array = data_JAGS_bundle_topdown_final$bearHarv),  
     # Regression #72
     # bs_topdown_final[[72]] # "bearHarv.tmin1" "lionHarv.tmin1"
-    list(y_array = data_JAGS_bundle_topdown_final$lionHarv, x_array = data_JAGS_bundle_topdown_final$bearHarv) 
+    list(y_array = data_JAGS_bundle_topdown_final$lionHarv, x_array = data_JAGS_bundle_topdown_final$bearHarv),
+    # Regression #103
+    # bs_topdown_final[[103]] # "wolfHarv.tmin1" "lionHarv.tmin1"
+    list(y_array = data_JAGS_bundle_topdown_final$lionHarv, x_array = data_JAGS_bundle_topdown_final$wolfHarv)
   )
   
   
