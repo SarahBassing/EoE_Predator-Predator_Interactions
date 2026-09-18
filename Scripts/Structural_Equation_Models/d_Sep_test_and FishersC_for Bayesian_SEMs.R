@@ -3117,7 +3117,7 @@
    
   
   #'  ---------------------------------
-  #####  Bottom-up exploitative model  #####
+  #####  Bottom-up exploitative final  #####
   #'  ---------------------------------
   dag_bottomup_final <- DAG(lion.t ~ elk.tmin1 + elk.t + wtd.tmin1 + wtd.t, 
                             wolf.t ~ wolf.tmin1 + elk.tmin1 + elk.t + moose.tmin1 + moose.t + wtd.t,
@@ -3388,7 +3388,7 @@
   
   
   #'  ---------------------------------
-  #####  Bottom-up interference model  #####
+  #####  Bottom-up interference final  #####
   #'  ---------------------------------
   dag_bottomup_inter_final <- DAG(lion.t ~ elk.tmin1 + elk.t + wtd.tmin1 + wtd.t + bear.tmin1, 
                                   wolf.t ~ wolf.tmin1 + elk.tmin1 + elk.t + moose.tmin1 + moose.t + bear.t,
@@ -3700,3 +3700,4 @@
                                       "Bottom-up, exploitative" = fishers.C_bottomup_final,
                                       "Bottom-up, interference" = fishers.C_bottomup_inter_final))
   print(AIC_table)
+  write.csv(AIC_table, "./Outputs/SEM/Tables_for_publication/FishersC_AICc_results.csv")
