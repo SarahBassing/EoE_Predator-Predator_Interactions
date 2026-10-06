@@ -375,9 +375,14 @@
   #'  Save!
   write_csv(p.val_topdown_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_all_claims.csv")
   
+  #'  Remove "tmin1" claims from final set of conditional independence claims
+  #'  These are redundant and a result of how the lag effect had to be accounted for
+  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  through various pathways.
+  p.val_topdown_all_df_skinny <- filter(p.val_topdown_all_df, basicset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
-  fishers.C_topdown <- fishers_C(pval = p.val_topdown_all_df$bayes.p, 
-                                       n_iter = nrow(p.val_topdown_all_df))
+  fishers.C_topdown <- fishers_C(pval = p.val_topdown_all_df_skinny$bayes.p, 
+                                       n_iter = nrow(p.val_topdown_all_df_skinny))
   print(fishers.C_topdown)
   
   
@@ -667,9 +672,14 @@
   #'  Save!
   write_csv(p.val_topdown_inter_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_inter_all_claims.csv")
   
+  #'  Remove "tmin1" claims from final set of conditional independence claims
+  #'  These are redundant and a result of how the lag effect had to be accounted for
+  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  through various pathways.
+  p.val_topdown_inter_all_df_skinny <- filter(p.val_topdown_inter_all_df, basicset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
-  fishers.C_topdown_inter <- fishers_C(pval = p.val_topdown_inter_all_df$bayes.p, 
-                                 n_iter = nrow(p.val_topdown_inter_all_df))
+  fishers.C_topdown_inter <- fishers_C(pval = p.val_topdown_inter_all_df_skinny$bayes.p, 
+                                 n_iter = nrow(p.val_topdown_inter_all_df_skinny))
   print(fishers.C_topdown_inter)
   
   
@@ -936,9 +946,14 @@
   #'  Save!
   write_csv(p.val_bottomup_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_all_claims.csv")
   
+  #'  Remove "tmin1" claims from final set of conditional independence claims
+  #'  These are redundant and a result of how the lag effect had to be accounted for
+  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  through various pathways.
+  p.val_bottomup_all_df_skinny <- filter(p.val_bottomup_all_df, basicset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
-  fishers.C_bottomup <- fishers_C(pval = p.val_bottomup_all_df$bayes.p, 
-                                 n_iter = nrow(p.val_bottomup_all_df))
+  fishers.C_bottomup <- fishers_C(pval = p.val_bottomup_all_df_skinny$bayes.p, 
+                                 n_iter = nrow(p.val_bottomup_all_df_skinny))
   print(fishers.C_bottomup)
   
   
@@ -973,7 +988,7 @@
     #'  Regression 2: wolf.latent
     list(covs = c("wolf.latent", "elk.latent", "moose.latent"), spp = c(".wolf", ".elk", ".moose"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 3: bear.latent
-    list(covs = c("bear.latent", "elk.latent", "forest", "wolf.latent"), spp = c(".bear", ".elk", ".forest", ".wolf"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1")),
+    list(covs = c("bear.latent", "elk.latent", "forest", "wolf.latent"), spp = c(".bear", ".elk", ".forest", ".wolf"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1","y-1")),
     #'  Regression 4: coy.latent
     list(covs = c("coy.latent", "wtd.latent", "wolf.latent"), spp = c(".coy", ".wtd", ".wolf"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 5: elk.latent
@@ -1202,9 +1217,14 @@
   #'  Save!
   write_csv(p.val_bottomup_inter_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_inter_all_claims.csv")
   
+  #'  Remove "tmin1" claims from final set of conditional independence claims
+  #'  These are redundant and a result of how the lag effect had to be accounted for
+  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  through various pathways.
+  p.val_bottomup_inter_all_df_skinny <- filter(p.val_bottomup_inter_all_df, basicset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
-  fishers.C_bottomup_inter <- fishers_C(pval = p.val_bottomup_inter_all_df$bayes.p, 
-                                  n_iter = nrow(p.val_bottomup_inter_all_df))
+  fishers.C_bottomup_inter <- fishers_C(pval = p.val_bottomup_inter_all_df_skinny$bayes.p, 
+                                  n_iter = nrow(p.val_bottomup_inter_all_df_skinny))
   print(fishers.C_bottomup_inter)
   
   #' #'  -------------------------------
@@ -2810,9 +2830,14 @@
   #'  undefinable or unstable AICc values (denominator would be zero or negative)
   n <- 23 * 4 - 10  # missing observations for 10 sites in yr 1
   
+  #'  Remove "tmin1" claims from final set of conditional independence claims
+  #'  These are redundant and a result of how the lag effect had to be accounted for
+  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  through various pathways.
+  p.val_topdown_all_final_df_skinny <- filter(p.val_topdown_all_final_df, basicset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
-  fishers.C_topdown_final <- fishers_C(pval = p.val_topdown_all_final_df$bayes.p, 
-                                       n_iter = nrow(p.val_topdown_all_final_df), K = K, n = n)
+  fishers.C_topdown_final <- fishers_C(pval = p.val_topdown_all_final_df_skinny$bayes.p, 
+                                       n_iter = nrow(p.val_topdown_all_final_df_skinny), K = K, n = n)
   print(fishers.C_topdown_final)
   
   
@@ -3109,9 +3134,14 @@
   #'  undefinable or unstable AICc values (denominator would be zero or negative)
   n <- 23 * 4 - 10  # missing observations for 10 sites in yr 1
   
+  #'  Remove "tmin1" claims from final set of conditional independence claims
+  #'  These are redundant and a result of how the lag effect had to be accounted for
+  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  through various pathways.
+  p.val_topdown_inter_all_final_df_skinny <- filter(p.val_topdown_inter_all_final_df, basicset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
-  fishers.C_topdown_inter_final <- fishers_C(pval = p.val_topdown_inter_all_final_df$bayes.p, 
-                                             n_iter = nrow(p.val_topdown_inter_all_final_df), K = K, n = n)
+  fishers.C_topdown_inter_final <- fishers_C(pval = p.val_topdown_inter_all_final_df_skinny$bayes.p, 
+                                             n_iter = nrow(p.val_topdown_inter_all_final_df_skinny), K = K, n = n)
   print(fishers.C_topdown_inter_final)
  
    
@@ -3380,9 +3410,14 @@
   #'  undefinable or unstable AICc values (denominator would be zero or negative)
   n <- 23 * 4 - 10  # missing observations for 10 sites in yr 1
   
+  #'  Remove "tmin1" claims from final set of conditional independence claims
+  #'  These are redundant and a result of how the lag effect had to be accounted for
+  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  through various pathways.
+  p.val_bottomup_all_final_df_skinny <- filter(p.val_bottomup_all_final_df, basicset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
-  fishers.C_bottomup_final <- fishers_C(pval = p.val_bottomup_all_final_df$bayes.p, 
-                                        n_iter = nrow(p.val_bottomup_all_final_df), K = K, n = n)
+  fishers.C_bottomup_final <- fishers_C(pval = p.val_bottomup_all_final_df_skinny$bayes.p, 
+                                        n_iter = nrow(p.val_bottomup_all_final_df_skinny), K = K, n = n)
   print(fishers.C_bottomup_final)
   
   
@@ -3650,9 +3685,14 @@
   #'  undefinable or unstable AICc values (denominator would be zero or negative)
   n <- 23 * 4 - 10  # missing observations for 10 sites in yr 1
   
+  #'  Remove "tmin1" claims from final set of conditional independence claims
+  #'  These are redundant and a result of how the lag effect had to be accounted for
+  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  through various pathways.
+  p.val_bottomup_inter_all_final_df_skinny <- filter(p.val_bottomup_inter_all_final_df, basicset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
-  fishers.C_bottomup_inter_final <- fishers_C(pval = p.val_bottomup_inter_all_final_df$bayes.p, 
-                                              n_iter = nrow(p.val_bottomup_inter_all_final_df), K = K, n = n)
+  fishers.C_bottomup_inter_final <- fishers_C(pval = p.val_bottomup_inter_all_final_df_skinny$bayes.p, 
+                                              n_iter = nrow(p.val_bottomup_inter_all_final_df_skinny), K = K, n = n)
   print(fishers.C_bottomup_inter_final)
   
   
