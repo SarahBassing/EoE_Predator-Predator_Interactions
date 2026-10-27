@@ -20,16 +20,16 @@
   lapply(filenames, load, environment())
   
   #'  List models based on species and year
-  yr_list <- list("2020", "2021", "2022")
-  bear_list <- list(RN_bear_20s, RN_bear_21s, RN_bear_22s)
-  bob_list <- list(RN_bob_20s, RN_bob_21s, RN_bob_22s)
-  coy_list <- list(RN_coy_20s, RN_coy_21s, RN_coy_22s)
-  lion_list <- list(RN_lion_20s, RN_lion_21s, RN_lion_22s)
-  wolf_list <- list(RN_wolf_20s, RN_wolf_21s, RN_wolf_22s)
-  elk_list <- list(RN_elk_20s, RN_elk_21s, RN_elk_22s)
-  moose_list <- list(RN_moose_20s, RN_moose_21s, RN_moose_22s)
-  wtd_list <- list(RN_wtd_20s, RN_wtd_21s, RN_wtd_22s)
-  lago_list <- list(RN_lago_20s, RN_lago_21s, RN_lago_22s)
+  yr_list <- list("2020", "2021", "2022", "2023")
+  bear_list <- list(RN_bear_20s, RN_bear_21s, RN_bear_22s, RN_bear_23s)
+  # bob_list <- list(RN_bob_20s, RN_bob_21s, RN_bob_22s)
+  coy_list <- list(RN_coy_20s, RN_coy_21s, RN_coy_22s, RN_coy_23s)
+  lion_list <- list(RN_lion_20s, RN_lion_21s, RN_lion_22s, RN_lion_23s)
+  wolf_list <- list(RN_wolf_20s, RN_wolf_21s, RN_wolf_22s, RN_wolf_23s)
+  elk_list <- list(RN_elk_20s, RN_elk_21s, RN_elk_22s, RN_elk_23s)
+  moose_list <- list(RN_moose_20s, RN_moose_21s, RN_moose_22s, RN_moose_23s)
+  wtd_list <- list(RN_wtd_20s, RN_wtd_21s, RN_wtd_22s, RN_wtd_23s)
+  # lago_list <- list(RN_lago_20s, RN_lago_21s, RN_lago_22s)
   
   #'  Define number of significant digits to round to
   rounddig <- 3
@@ -49,11 +49,11 @@
     p <- round(mod$mean$mean.p, rounddig)
     p.ll <- round(mod$q2.5$mean.p, rounddig)
     p.ul <- round(mod$q97.5$mean.p, rounddig)
-    psi <- round(mod$mean$mean.psi, rounddig)
-    psi.ll <- round(mod$q2.5$mean.psi, rounddig)
-    psi.ul <- round(mod$q97.5$mean.psi, rounddig)
+    # psi <- round(mod$mean$mean.psi, rounddig)
+    # psi.ll <- round(mod$q2.5$mean.psi, rounddig)
+    # psi.ul <- round(mod$q97.5$mean.psi, rounddig)
     #'  Merge and format into single data frame
-    out <- cbind(lambda, lambda.ll, lambda.ul, r, r.ll, r.ul, p, p.ll, p.ul, psi, psi.ll, psi.ul)
+    out <- cbind(lambda, lambda.ll, lambda.ul, r, r.ll, r.ul, p, p.ll, p.ul) #, psi, psi.ll, psi.ul
     param_est <- as.data.frame(out) %>%
       mutate(Species = spp,
              Year = yr,
@@ -62,25 +62,26 @@
              # r = as.numeric(r),
              r.cri = paste0(r, " (", r.ll, " - ", r.ul, ")"),
              # p = as.numeric(p),
-             p.cri = paste0(p, " (", p.ll, " - ", p.ul, ")"),
+             p.cri = paste0(p, " (", p.ll, " - ", p.ul, ")")#,
              # psi = as.numeric(psi),
-             psi.cri = paste0(psi, " (", psi.ll, " - ", psi.ul, ")")) %>%
-      dplyr::select(c(Species, Year, lambda.cri, r.cri, p.cri, psi.cri))
+             # psi.cri = paste0(psi, " (", psi.ll, " - ", psi.ul, ")")
+             ) %>%
+      dplyr::select(c(Species, Year, lambda.cri, r.cri, p.cri)) #, psi.cri
     return(param_est)
   }
-  study_yr <- list("2020", "2021", "2022")
+  study_yr <- list("2020", "2021", "2022", "2023")
   bear_mean_params <- mapply(params, bear_list, spp = "Black bear", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
-  bob_mean_params <- mapply(params, bob_list, spp = "Bobcat", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
+  # bob_mean_params <- mapply(params, bob_list, spp = "Bobcat", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
   coy_mean_params <- mapply(params, coy_list, spp = "Coyote", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
   lion_mean_params <- mapply(params, lion_list, spp = "Mountain lion", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
   wolf_mean_params <- mapply(params, wolf_list, spp = "Wolf", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
   elk_mean_params <- mapply(params, elk_list, spp = "Elk", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
-  lago_mean_params <- mapply(params, lago_list, spp = "Lagomorph", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
+  # lago_mean_params <- mapply(params, lago_list, spp = "Lagomorph", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
   moose_mean_params <- mapply(params, moose_list, spp = "Moose", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
   wtd_mean_params <- mapply(params, wtd_list, spp = "White-tailed deer", yr = study_yr, SIMPLIFY = FALSE) %>% bind_rows(.)
   
-  mean_params <- bind_rows(bear_mean_params, bob_mean_params, coy_mean_params, lion_mean_params, wolf_mean_params, elk_mean_params, lago_mean_params, moose_mean_params, wtd_mean_params)
-  write_csv(mean_params, "./Outputs/Relative_Abundance/RN_model/Tables/RN_mean_lambda_table.csv")
+  mean_params <- bind_rows(bear_mean_params, coy_mean_params, lion_mean_params, wolf_mean_params, elk_mean_params, moose_mean_params, wtd_mean_params) #bob_mean_params, lago_mean_params, 
+  write_csv(mean_params, paste0("./Outputs/Relative_Abundance/RN_model/Tables/RN_mean_lambda_table_", Sys.Date(), ".csv"))
   
   #'  --------------------------------------------
   ####  All coefficient estimates in long format  ####
@@ -128,21 +129,21 @@
     return(out)
   }
   bear_tbl <- mapply(mod_out_summary_table, mod = bear_list, spp = "Black bear", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
-  bob_tbl <- mapply(mod_out_summary_table, mod = bob_list, spp = "Bobcat", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
+  # bob_tbl <- mapply(mod_out_summary_table, mod = bob_list, spp = "Bobcat", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
   coy_tbl <- mapply(mod_out_summary_table, mod = coy_list, spp = "Coyote", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
   lion_tbl <- mapply(mod_out_summary_table, mod = lion_list, spp = "Mountain lion", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
   wolf_tbl <- mapply(mod_out_summary_table, mod = wolf_list, spp = "Wolf", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
   elk_tbl <- mapply(mod_out_summary_table, mod = elk_list, spp = "Elk", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
   moose_tbl <- mapply(mod_out_summary_table, mod = moose_list, spp = "Moose", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
   wtd_tbl <- mapply(mod_out_summary_table, mod = wtd_list, spp = "White-tailed deer", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
-  lago_tbl <- mapply(mod_out_summary_table, mod = lago_list, spp = "Lagomorphs", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
+  # lago_tbl <- mapply(mod_out_summary_table, mod = lago_list, spp = "Lagomorphs", yr = yr_list, SIMPLIFY = FALSE) %>% do.call("rbind", .)
   
   RN_result_tbl <- rbind(bear_tbl, coy_tbl, lion_tbl, wolf_tbl, elk_tbl, moose_tbl, wtd_tbl) #bob_tbl, lago_tbl
   RN_result_tbl_list <- list(bear_tbl, coy_tbl, lion_tbl, wolf_tbl, elk_tbl, moose_tbl, wtd_tbl) #bob_tbl, lago_tbl
   
   #'  Save
-  write_csv(RN_result_tbl, file = "./Outputs/Relative_Abundance/RN_model/Tables/RN_result_tbl.csv")
-  save(RN_result_tbl_list, file = "./Outputs/Relative_Abundance/RN_model/Tables/RN_result_tbl_list.R")
+  write_csv(RN_result_tbl, file = paste0("./Outputs/Relative_Abundance/RN_model/Tables/RN_result_tbl_", Sys.Date(), ".csv"))
+  save(RN_result_tbl_list, file = paste0("./Outputs/Relative_Abundance/RN_model/Tables/RN_result_tbl_list_", Sys.Date(), ".R"))
   
   #'  ------------------------
   ####  Data summary tables  ####
@@ -151,19 +152,23 @@
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_20s.RData") 
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_21s.RData") 
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_22s.RData") 
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_23s.RData") 
   #'  Seasonal detection histories
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp20s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp21s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp22s_RNmod.RData")
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp23s_RNmod.RData")
   #'  Name lists so life is easier
-  spp_order <- c("bear_black", "bobcat", "coyote", "mountain_lion", "wolf", "elk", "moose", "muledeer", "whitetaileddeer", "rabbit_hare")
+  spp_order <- c("bear_black", "coyote", "mountain_lion", "wolf", "elk", "moose", "whitetaileddeer") #"bobcat", "muledeer", "rabbit_hare"
   names(DH_npp20s_RNmod) <- spp_order
   names(DH_npp21s_RNmod) <- spp_order
   names(DH_npp22s_RNmod) <- spp_order
+  names(DH_npp23s_RNmod) <- spp_order
   #' Sampling effort
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp20s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp21s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp22s_RNmod.RData")
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp23s_RNmod.RData")
   
   #'  ----------------------------------
   #####  Summary stats for publication  #####
@@ -172,12 +177,14 @@
   dim(DH_npp20s_RNmod[[1]])
   dim(DH_npp21s_RNmod[[1]])
   dim(DH_npp22s_RNmod[[1]])
+  dim(DH_npp23s_RNmod[[1]])
   
   #'  Average number of operable camera days
   (ndays20 <- mean(effort_20s_RNmod$ndays)); sd(effort_20s_RNmod$ndays)/sqrt(length(effort_20s_RNmod$ndays))
   (ndays21 <- mean(effort_21s_RNmod$ndays)); sd(effort_21s_RNmod$ndays)/sqrt(length(effort_21s_RNmod$ndays))
   (ndays22 <- mean(effort_22s_RNmod$ndays)); sd(effort_22s_RNmod$ndays)/sqrt(length(effort_22s_RNmod$ndays))
-  ndays <- c(ndays20, ndays21, ndays22)
+  (ndays23 <- mean(effort_23s_RNmod$ndays)); sd(effort_23s_RNmod$ndays)/sqrt(length(effort_23s_RNmod$ndays))
+  ndays <- c(ndays20, ndays21, ndays22, ndays23)
   mean(ndays)
   sd(ndays)/sqrt(length(ndays))
   
@@ -197,7 +204,8 @@
   dets_20s <- mapply(seasonal_dets, DH = DH_npp20s_RNmod, spp = spp_list, yr = "2020", SIMPLIFY = FALSE) %>% bind_rows()
   dets_21s <- mapply(seasonal_dets, DH = DH_npp21s_RNmod, spp = spp_list, yr = "2021", SIMPLIFY = FALSE) %>% bind_rows()
   dets_22s <- mapply(seasonal_dets, DH = DH_npp22s_RNmod, spp = spp_list, yr = "2022", SIMPLIFY = FALSE) %>% bind_rows()
-  dets <- bind_rows(dets_20s, dets_21s, dets_22s) %>%
+  dets_23s <- mapply(seasonal_dets, DH = DH_npp22s_RNmod, spp = spp_list, yr = "2023", SIMPLIFY = FALSE) %>% bind_rows()
+  dets <- bind_rows(dets_20s, dets_21s, dets_22s, dets_23s) %>%
     filter(Species == "bear_black" | Species == "coyote" | Species == "mountain_lion" | Species == "wolf" | 
              Species == "elk" | Species == "moose" | Species == "whitetaileddeer") %>%
     group_by(Species, Year) %>%
@@ -231,13 +239,14 @@
   #####  Summarize detection data  ####
   #'  ------------------------------
   #'  Function to summarize species-specific detection data
-  all_detections <- function(dh1, dh2, dh3, spp) {
+  all_detections <- function(dh1, dh2, dh3, dh4, spp) {
     #'  Add year to each data set
     dh1$Year <- "2020"
     dh2$Year <- "2021"
     dh3$Year <- "2022"
+    dh4$Year <- "2023"
     #'  Bind data and summarize detections
-    dh <- bind_rows(dh1, dh2, dh3) %>%
+    dh <- bind_rows(dh1, dh2, dh3, dh4) %>%
       rownames_to_column(., "NewLocationID") %>%
       relocate(Year, .before = o1) %>%
       #'  Sum detection events across sampling occasions
@@ -263,14 +272,14 @@
                                "Number of operating cameras", "Proportion cameras with detections")
     return(det_summary)
   }
-  DH_bear <- all_detections(DH_npp20s_RNmod$bear_black, DH_npp21s_RNmod$bear_black, DH_npp22s_RNmod$bear_black, spp = "Black bear")
-  DH_bob <- all_detections(DH_npp20s_RNmod$bobcat, DH_npp21s_RNmod$bobcat, DH_npp22s_RNmod$bobcat, spp = "Bobcat")
-  DH_coy <- all_detections(DH_npp20s_RNmod$coyote, DH_npp21s_RNmod$coyote, DH_npp22s_RNmod$coyote, spp = "Coyote")
-  DH_lion <- all_detections(DH_npp20s_RNmod$mountain_lion, DH_npp21s_RNmod$mountain_lion, DH_npp22s_RNmod$mountain_lion, spp = "Mountain lion")
-  DH_wolf <- all_detections(DH_npp20s_RNmod$wolf, DH_npp21s_RNmod$wolf, DH_npp22s_RNmod$wolf, spp = "Wolf")
-  DH_elk <- all_detections(DH_npp20s_RNmod$elk, DH_npp21s_RNmod$elk, DH_npp22s_RNmod$elk, spp = "Elk")
-  DH_moose <- all_detections(DH_npp20s_RNmod$moose, DH_npp21s_RNmod$moose, DH_npp22s_RNmod$moose, spp = "Moose")
-  DH_wtd <- all_detections(DH_npp20s_RNmod$whitetaileddeer, DH_npp21s_RNmod$whitetaileddeer, DH_npp22s_RNmod$whitetaileddeer, spp = "White-tailed deer")
+  DH_bear <- all_detections(DH_npp20s_RNmod$bear_black, DH_npp21s_RNmod$bear_black, DH_npp22s_RNmod$bear_black, DH_npp23s_RNmod$bear_black, spp = "Black bear")
+  DH_bob <- all_detections(DH_npp20s_RNmod$bobcat, DH_npp21s_RNmod$bobcat, DH_npp22s_RNmod$bobcat, DH_npp23s_RNmod$bobcat, spp = "Bobcat")
+  DH_coy <- all_detections(DH_npp20s_RNmod$coyote, DH_npp21s_RNmod$coyote, DH_npp22s_RNmod$coyote, DH_npp23s_RNmod$coyote, spp = "Coyote")
+  DH_lion <- all_detections(DH_npp20s_RNmod$mountain_lion, DH_npp21s_RNmod$mountain_lion, DH_npp22s_RNmod$mountain_lion, DH_npp23s_RNmod$mountain_lion, spp = "Mountain lion")
+  DH_wolf <- all_detections(DH_npp20s_RNmod$wolf, DH_npp21s_RNmod$wolf, DH_npp22s_RNmod$wolf, DH_npp23s_RNmod$wolf, spp = "Wolf")
+  DH_elk <- all_detections(DH_npp20s_RNmod$elk, DH_npp21s_RNmod$elk, DH_npp22s_RNmod$elk, DH_npp23s_RNmod$elk, spp = "Elk")
+  DH_moose <- all_detections(DH_npp20s_RNmod$moose, DH_npp21s_RNmod$moose, DH_npp22s_RNmod$moose, DH_npp23s_RNmod$moose, spp = "Moose")
+  DH_wtd <- all_detections(DH_npp20s_RNmod$whitetaileddeer, DH_npp21s_RNmod$whitetaileddeer, DH_npp22s_RNmod$whitetaileddeer, DH_npp23s_RNmod$whitetaileddeer, spp = "White-tailed deer")
   
   #'  Final detection history summary table
   DH_summary <- rbind(DH_bear, DH_coy, DH_lion, DH_wolf, DH_elk, DH_moose, DH_wtd) %>% #DH_bob
@@ -295,15 +304,15 @@
   
   
   #'  Save!
-  write.csv(DH_summary, "./Outputs/Relative_Abundance/RN_model/Tables/Summary_table_detections.csv")
+  write.csv(DH_summary, paste0("./Outputs/Relative_Abundance/RN_model/Tables/Summary_table_detections_", Sys.Date(), ".csv"))
   
   #'  -------------------
   ####  RDI per cluster  ####
   #'  -------------------
   #'  Relative Density Index per cluster (loads as cluster_density)
   load("./Outputs/Relative_Abundance/RN_model/RelativeDensityIndex_per_SppCluster.RData")
-  head(cluster_density[[1]]); head(cluster_density[[2]]); head(cluster_density[[3]])
-  rdi <- bind_rows(cluster_density[[1]], cluster_density[[2]], cluster_density[[3]]) %>%
+  head(cluster_density[[1]]); head(cluster_density[[2]]); head(cluster_density[[3]]); head(cluster_density[[4]])
+  rdi <- bind_rows(cluster_density[[1]], cluster_density[[2]], cluster_density[[3]], cluster_density[[4]]) %>%
     as.data.frame(.) %>%
     dplyr::select(c(GMU, Year, ClusterID, area_km2, Species, SppDensity.100km2.r)) %>%
     filter(Species != "bobcat" & Species != "lagomorphs") %>%
@@ -330,7 +339,7 @@
     rename("Cluster" = "ClusterID") %>%
     arrange(GMU, Year)
   
-  write_csv(rdi_all, "./Outputs/Relative_Abundance/RN_model/Tables/Cluster_Relative_Density_all_Spp.csv")
+  write_csv(rdi_all, paste0("./Outputs/Relative_Abundance/RN_model/Tables/Cluster_Relative_Density_all_Spp_", Sys.Date(), ".csv"))
   
   #'  Average RDI per species per GMU, across years
   mean_rdi_per_GMU <- rdi %>%
@@ -352,7 +361,7 @@
     dplyr::select(-se_RDI) %>%
     rename("Mean RDI (SE)" = "mean_RDI") 
 
-  write_csv(mean_rdi_per_GMU, "./Outputs/Relative_Abundance/RN_model/Tables/GMU_Average_Relative_Density_all_Spp.csv")
+  write_csv(mean_rdi_per_GMU, paste0("./Outputs/Relative_Abundance/RN_model/Tables/GMU_Average_Relative_Density_all_Spp_", Sys.Date(), ".csv"))
   
   #'  Average RDI per species, across years and GMUs
   (mean_rdi <- rdi %>%
