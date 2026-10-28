@@ -240,7 +240,9 @@
   # load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp20s_RNmod.RData")
   # load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp21s_RNmod.RData")
   # load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp22s_RNmod.RData")
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_23s.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp23s_RNmod.RData")
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp2023.RData")
 
   #'  ---------------------------------
   #####  Format site-level covariates  #####
@@ -1059,99 +1061,100 @@
   filenames <- list.files("./Outputs/Relative_Abundance/RN_model/JAGS_out", pattern="*.RData", full.names=TRUE)
   lapply(filenames, load, environment())
   
-  #'  Format GMU specific mean & sd
-  gmu_densities <- function(mod, spp, yr) {
-    #'  Pull out relevant summary stats 
-    gmu10a_mean <- round(mod$mean$density100km2.gmu10a, 2)
-    gmu10a_sd <- round(mod$sd$density100km2.gmu10a, 3)
-    gmu6_mean <- round(mod$mean$density100km2.gmu6, 2)
-    gmu6_sd <- round(mod$sd$density100km2.gmu6, 3)
-    gmu1_mean <- round(mod$mean$density100km2.gmu1, 2)
-    gmu1_sd <- round(mod$sd$density100km2.gmu1, 3)
-    
-    #'  Create data frame
-    mod_summary <- cbind(spp, yr, gmu1_mean, gmu1_sd, gmu6_mean, gmu6_sd, gmu10a_mean, gmu10a_sd)
-    mod_summary <- as.data.frame(mod_summary) %>%
-      mutate(gmu1_mean = ifelse(yr == "2020", NA, gmu1_mean),
-             gmu1_sd = ifelse(yr == "2020", NA, gmu1_sd))
-    names(mod_summary) <- c("Species", "Year", "GMU1 avg. density", "GMU1 SD", 
-                            "GMU6 avg. density", "GMU6 SD", "GMU10A avg. density", "GMU10A SD")
-    
-    return(mod_summary)
-  }
-  bear_density_20s <- gmu_densities(RN_bear_20s, spp = "black bear", yr = 2020)
-  bear_density_21s <- gmu_densities(RN_bear_21s, spp = "black bear", yr = 2021)
-  bear_density_22s <- gmu_densities(RN_bear_22s, spp = "black bear", yr = 2022)
-  bob_density_20s <- gmu_densities(RN_bob_20s, spp = "bobcat", yr = 2020)
-  bob_density_21s <- gmu_densities(RN_bob_21s, spp = "bobcat", yr = 2021)
-  bob_density_22s <- gmu_densities(RN_bob_22s, spp = "bobcat", yr = 2022)
-  coy_density_20s <- gmu_densities(RN_coy_20s, spp = "coyote", yr = 2020)
-  coy_density_21s <- gmu_densities(RN_coy_21s, spp = "coyote", yr = 2021)
-  coy_density_22s <- gmu_densities(RN_coy_22s, spp = "coyote", yr = 2022)
-  lion_density_20s <- gmu_densities(RN_lion_20s, spp = "mountain lion", yr = 2020)
-  lion_density_21s <- gmu_densities(RN_lion_21s, spp = "mountain lion", yr = 2021)
-  lion_density_22s <- gmu_densities(RN_lion_22s, spp = "mountain lion", yr = 2022)
-  wolf_density_20s <- gmu_densities(RN_wolf_20s, spp = "wolf", yr = 2020)
-  wolf_density_21s <- gmu_densities(RN_wolf_21s, spp = "wolf", yr = 2021)
-  wolf_density_22s <- gmu_densities(RN_wolf_22s, spp = "wolf", yr = 2022)
-  
-  elk_density_20s <- gmu_densities(RN_elk_20s, spp = "elk", yr = 2020)
-  elk_density_21s <- gmu_densities(RN_elk_21s, spp = "elk", yr = 2021)
-  elk_density_22s <- gmu_densities(RN_elk_22s, spp = "elk", yr = 2022)
-  lago_density_20s <- gmu_densities(RN_lago_20s, spp = "lagomorphs", yr = 2020)
-  lago_density_21s <- gmu_densities(RN_lago_21s, spp = "lagomorphs", yr = 2021)
-  lago_density_22s <- gmu_densities(RN_lago_22s, spp = "lagomorphs", yr = 2022)
-  moose_density_20s <- gmu_densities(RN_moose_20s, spp = "moose", yr = 2020)
-  moose_density_21s <- gmu_densities(RN_moose_21s, spp = "moose", yr = 2021)
-  moose_density_22s <- gmu_densities(RN_moose_22s, spp = "moose", yr = 2022)
-  wtd_density_20s <- gmu_densities(RN_wtd_20s, spp = "white-tailed deer", yr = 2020)
-  wtd_density_21s <- gmu_densities(RN_wtd_21s, spp = "white-tailed deer", yr = 2021)
-  wtd_density_22s <- gmu_densities(RN_wtd_22s, spp = "white-tailed deer", yr = 2022)
-  
-  #'  Merge all together
-  RN_density <- rbind(bear_density_20s, bear_density_21s, bear_density_22s, bob_density_20s, bob_density_21s, bob_density_22s,
-                      coy_density_20s, coy_density_21s, coy_density_22s, lion_density_20s, lion_density_21s, lion_density_22s,
-                      wolf_density_20s, wolf_density_21s, wolf_density_22s, elk_density_20s, elk_density_21s, elk_density_22s,
-                      lago_density_20s, lago_density_21s, lago_density_22s, moose_density_20s, moose_density_21s, moose_density_22s,
-                      wtd_density_20s, wtd_density_21s, wtd_density_22s)
-  #'  GMU1
-  RN_density_gmu1 <- dplyr::select(RN_density, c("Species", "Year", "GMU1 avg. density", "GMU1 SD")) %>%
-    rename("Mean density" = "GMU1 avg. density") %>%
-    rename("SD" = "GMU1 SD") %>%
-    filter(Year != "2020") %>%
-    arrange(Year, `Mean density`)
-  RN_density_gmu6 <- dplyr::select(RN_density, c("Species", "Year", "GMU6 avg. density", "GMU6 SD")) %>%
-    rename("Mean density" = "GMU6 avg. density") %>%
-    rename("SD" = "GMU6 SD") %>%
-    arrange(Year, `Mean density`)
-  RN_density_gmu10a <- dplyr::select(RN_density, c("Species", "Year", "GMU10A avg. density", "GMU10A SD")) %>%
-    rename("Mean density" = "GMU10A avg. density") %>%
-    rename("SD" = "GMU10A SD") %>%
-    arrange(Year, `Mean density`)
-  
-  write_csv(RN_density_gmu1, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu1.csv")
-  write_csv(RN_density_gmu6, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu6.csv")
-  write_csv(RN_density_gmu10a, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu10a.csv")
-  
+  #' #'  Format GMU specific mean & sd
+  #' gmu_densities <- function(mod, spp, yr) {
+  #'   #'  Pull out relevant summary stats 
+  #'   gmu10a_mean <- round(mod$mean$density100km2.gmu10a, 2)
+  #'   gmu10a_sd <- round(mod$sd$density100km2.gmu10a, 3)
+  #'   gmu6_mean <- round(mod$mean$density100km2.gmu6, 2)
+  #'   gmu6_sd <- round(mod$sd$density100km2.gmu6, 3)
+  #'   gmu1_mean <- round(mod$mean$density100km2.gmu1, 2)
+  #'   gmu1_sd <- round(mod$sd$density100km2.gmu1, 3)
+  #'   
+  #'   #'  Create data frame
+  #'   mod_summary <- cbind(spp, yr, gmu1_mean, gmu1_sd, gmu6_mean, gmu6_sd, gmu10a_mean, gmu10a_sd)
+  #'   mod_summary <- as.data.frame(mod_summary) %>%
+  #'     mutate(gmu1_mean = ifelse(yr == "2020", NA, gmu1_mean),
+  #'            gmu1_sd = ifelse(yr == "2020", NA, gmu1_sd))
+  #'   names(mod_summary) <- c("Species", "Year", "GMU1 avg. density", "GMU1 SD", 
+  #'                           "GMU6 avg. density", "GMU6 SD", "GMU10A avg. density", "GMU10A SD")
+  #'   
+  #'   return(mod_summary)
+  #' }
+  #' bear_density_20s <- gmu_densities(RN_bear_20s, spp = "black bear", yr = 2020)
+  #' bear_density_21s <- gmu_densities(RN_bear_21s, spp = "black bear", yr = 2021)
+  #' bear_density_22s <- gmu_densities(RN_bear_22s, spp = "black bear", yr = 2022)
+  #' # bob_density_20s <- gmu_densities(RN_bob_20s, spp = "bobcat", yr = 2020)
+  #' # bob_density_21s <- gmu_densities(RN_bob_21s, spp = "bobcat", yr = 2021)
+  #' # bob_density_22s <- gmu_densities(RN_bob_22s, spp = "bobcat", yr = 2022)
+  #' coy_density_20s <- gmu_densities(RN_coy_20s, spp = "coyote", yr = 2020)
+  #' coy_density_21s <- gmu_densities(RN_coy_21s, spp = "coyote", yr = 2021)
+  #' coy_density_22s <- gmu_densities(RN_coy_22s, spp = "coyote", yr = 2022)
+  #' lion_density_20s <- gmu_densities(RN_lion_20s, spp = "mountain lion", yr = 2020)
+  #' lion_density_21s <- gmu_densities(RN_lion_21s, spp = "mountain lion", yr = 2021)
+  #' lion_density_22s <- gmu_densities(RN_lion_22s, spp = "mountain lion", yr = 2022)
+  #' wolf_density_20s <- gmu_densities(RN_wolf_20s, spp = "wolf", yr = 2020)
+  #' wolf_density_21s <- gmu_densities(RN_wolf_21s, spp = "wolf", yr = 2021)
+  #' wolf_density_22s <- gmu_densities(RN_wolf_22s, spp = "wolf", yr = 2022)
+  #' 
+  #' elk_density_20s <- gmu_densities(RN_elk_20s, spp = "elk", yr = 2020)
+  #' elk_density_21s <- gmu_densities(RN_elk_21s, spp = "elk", yr = 2021)
+  #' elk_density_22s <- gmu_densities(RN_elk_22s, spp = "elk", yr = 2022)
+  #' lago_density_20s <- gmu_densities(RN_lago_20s, spp = "lagomorphs", yr = 2020)
+  #' lago_density_21s <- gmu_densities(RN_lago_21s, spp = "lagomorphs", yr = 2021)
+  #' lago_density_22s <- gmu_densities(RN_lago_22s, spp = "lagomorphs", yr = 2022)
+  #' moose_density_20s <- gmu_densities(RN_moose_20s, spp = "moose", yr = 2020)
+  #' moose_density_21s <- gmu_densities(RN_moose_21s, spp = "moose", yr = 2021)
+  #' moose_density_22s <- gmu_densities(RN_moose_22s, spp = "moose", yr = 2022)
+  #' wtd_density_20s <- gmu_densities(RN_wtd_20s, spp = "white-tailed deer", yr = 2020)
+  #' wtd_density_21s <- gmu_densities(RN_wtd_21s, spp = "white-tailed deer", yr = 2021)
+  #' wtd_density_22s <- gmu_densities(RN_wtd_22s, spp = "white-tailed deer", yr = 2022)
+  #' 
+  #' #'  Merge all together
+  #' RN_density <- rbind(bear_density_20s, bear_density_21s, bear_density_22s, bob_density_20s, bob_density_21s, bob_density_22s,
+  #'                     coy_density_20s, coy_density_21s, coy_density_22s, lion_density_20s, lion_density_21s, lion_density_22s,
+  #'                     wolf_density_20s, wolf_density_21s, wolf_density_22s, elk_density_20s, elk_density_21s, elk_density_22s,
+  #'                     lago_density_20s, lago_density_21s, lago_density_22s, moose_density_20s, moose_density_21s, moose_density_22s,
+  #'                     wtd_density_20s, wtd_density_21s, wtd_density_22s)
+  #' #'  GMU1
+  #' RN_density_gmu1 <- dplyr::select(RN_density, c("Species", "Year", "GMU1 avg. density", "GMU1 SD")) %>%
+  #'   rename("Mean density" = "GMU1 avg. density") %>%
+  #'   rename("SD" = "GMU1 SD") %>%
+  #'   filter(Year != "2020") %>%
+  #'   arrange(Year, `Mean density`)
+  #' RN_density_gmu6 <- dplyr::select(RN_density, c("Species", "Year", "GMU6 avg. density", "GMU6 SD")) %>%
+  #'   rename("Mean density" = "GMU6 avg. density") %>%
+  #'   rename("SD" = "GMU6 SD") %>%
+  #'   arrange(Year, `Mean density`)
+  #' RN_density_gmu10a <- dplyr::select(RN_density, c("Species", "Year", "GMU10A avg. density", "GMU10A SD")) %>%
+  #'   rename("Mean density" = "GMU10A avg. density") %>%
+  #'   rename("SD" = "GMU10A SD") %>%
+  #'   arrange(Year, `Mean density`)
+  #' 
+  #' write_csv(RN_density_gmu1, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu1.csv")
+  #' write_csv(RN_density_gmu6, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu6.csv")
+  #' write_csv(RN_density_gmu10a, "./Outputs/Relative_Abundance/RN_model/RN_density_gmu10a.csv")
+   
   #'  List model outputs together 
-  rn_bear_list <- list(RN_bear_20s, RN_bear_21s, RN_bear_22s)
-  rn_bob_list <- list(RN_bob_20s, RN_bob_21s, RN_bob_22s)
-  rn_coy_list <- list(RN_coy_20s, RN_coy_21s, RN_coy_22s)
-  rn_lion_list <- list(RN_lion_20s, RN_lion_21s, RN_lion_22s)
-  rn_wolf_list <- list(RN_wolf_20s, RN_wolf_21s, RN_wolf_22s)
+  rn_bear_list <- list(RN_bear_20s, RN_bear_21s, RN_bear_22s, RN_bear_23s)
+  # rn_bob_list <- list(RN_bob_20s, RN_bob_21s, RN_bob_22s)
+  rn_coy_list <- list(RN_coy_20s, RN_coy_21s, RN_coy_22s, RN_coy_23s)
+  rn_lion_list <- list(RN_lion_20s, RN_lion_21s, RN_lion_22s, RN_lion_23s)
+  rn_wolf_list <- list(RN_wolf_20s, RN_wolf_21s, RN_wolf_22s, RN_wolf_23s)
   
-  rn_elk_list <- list(RN_elk_20s, RN_elk_21s, RN_elk_22s)
-  rn_lago_list <- list(RN_lago_20s, RN_lago_21s, RN_lago_22s)
-  rn_moose_list <- list(RN_moose_20s, RN_moose_21s, RN_moose_22s)
-  rn_wtd_list <- list(RN_wtd_20s, RN_wtd_21s, RN_wtd_22s)
+  rn_elk_list <- list(RN_elk_20s, RN_elk_21s, RN_elk_22s, RN_elk_23s)
+  # rn_lago_list <- list(RN_lago_20s, RN_lago_21s, RN_lago_22s)
+  rn_moose_list <- list(RN_moose_20s, RN_moose_21s, RN_moose_22s, RN_moose_23s)
+  rn_wtd_list <- list(RN_wtd_20s, RN_wtd_21s, RN_wtd_22s, RN_wtd_23s)
   
   #'  Load saved detection histories
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp20s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp21s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp22s_RNmod.RData")
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp23s_RNmod.RData")
   
   #'  List one detection history per year (doesn't matter which species it relates to)
-  dh_list <- list(DH_npp20s_RNmod[[1]], DH_npp21s_RNmod[[1]], DH_npp22s_RNmod[[1]])
+  dh_list <- list(DH_npp20s_RNmod[[1]], DH_npp21s_RNmod[[1]], DH_npp22s_RNmod[[1]], DH_npp23s_RNmod[[1]])
   
   #'  Save estimated N per site
   estimated_N <- function(mod, dh, spp) {
@@ -1177,34 +1180,39 @@
     return(RN_est)
   }
   rn_bear_out <- mapply(estimated_N, rn_bear_list, dh = dh_list, spp = "bear_black", SIMPLIFY = FALSE)
-  rn_bob_out <- mapply(estimated_N, rn_bob_list, dh = dh_list, spp = "bobcat", SIMPLIFY = FALSE)
+  # rn_bob_out <- mapply(estimated_N, rn_bob_list, dh = dh_list, spp = "bobcat", SIMPLIFY = FALSE)
   rn_coy_out <- mapply(estimated_N, rn_coy_list, dh = dh_list, spp = "coyote", SIMPLIFY = FALSE)
   rn_lion_out <- mapply(estimated_N, rn_lion_list, dh = dh_list, spp = "mountain_lion", SIMPLIFY = FALSE)
   rn_wolf_out <- mapply(estimated_N, rn_wolf_list, dh = dh_list, spp = "wolf", SIMPLIFY = FALSE)
   
   rn_elk_out <- mapply(estimated_N, rn_elk_list, dh = dh_list, spp = "elk", SIMPLIFY = FALSE)
-  rn_lago_out <- mapply(estimated_N, rn_lago_list, dh = dh_list, spp = "lagomorphs", SIMPLIFY = FALSE)
+  # rn_lago_out <- mapply(estimated_N, rn_lago_list, dh = dh_list, spp = "lagomorphs", SIMPLIFY = FALSE)
   rn_moose_out <- mapply(estimated_N, rn_moose_list, dh = dh_list, spp = "moose", SIMPLIFY = FALSE)
   rn_wtd_out <- mapply(estimated_N, rn_wtd_list, dh = dh_list, spp = "whitetailed_deer", SIMPLIFY = FALSE)
   
-  rn_2020 <- rbind(rn_bear_out[[1]], rn_bob_out[[1]], rn_coy_out[[1]], rn_lion_out[[1]], rn_wolf_out[[1]],
-                   rn_elk_out[[1]], rn_lago_out[[1]], rn_moose_out[[1]], rn_wtd_out[[1]]) %>%
+  rn_2020 <- rbind(rn_bear_out[[1]], rn_coy_out[[1]], rn_lion_out[[1]], rn_wolf_out[[1]],
+                   rn_elk_out[[1]], rn_moose_out[[1]], rn_wtd_out[[1]]) %>% #rn_bob_out[[1]], rn_lago_out[[1]], 
     arrange(NewLocationID, Species) %>%
     mutate(season = "Smr20") %>%
     relocate(season, .after = Setup)
-  rn_2021 <- rbind(rn_bear_out[[2]], rn_bob_out[[2]], rn_coy_out[[2]], rn_lion_out[[2]], rn_wolf_out[[2]],
-                   rn_elk_out[[2]], rn_lago_out[[2]], rn_moose_out[[2]], rn_wtd_out[[2]]) %>%
+  rn_2021 <- rbind(rn_bear_out[[2]], rn_coy_out[[2]], rn_lion_out[[2]], rn_wolf_out[[2]],
+                   rn_elk_out[[2]], rn_moose_out[[2]], rn_wtd_out[[2]]) %>% #rn_bob_out[[2]], rn_lago_out[[2]], 
     arrange(NewLocationID, Species) %>%
     mutate(season = "Smr21") %>%
     relocate(season, .after = Setup)
-  rn_2022 <- rbind(rn_bear_out[[3]], rn_bob_out[[3]], rn_coy_out[[3]], rn_lion_out[[3]], rn_wolf_out[[3]],
-                   rn_elk_out[[3]], rn_lago_out[[3]], rn_moose_out[[3]], rn_wtd_out[[3]]) %>%
+  rn_2022 <- rbind(rn_bear_out[[3]], rn_coy_out[[3]], rn_lion_out[[3]], rn_wolf_out[[3]],
+                   rn_elk_out[[3]], rn_moose_out[[3]], rn_wtd_out[[3]]) %>% # rn_bob_out[[3]], rn_lago_out[[3]], 
+    arrange(NewLocationID, Species) %>%
+    mutate(season = "Smr22") %>%
+    relocate(season, .after = Setup)
+  rn_2023 <- rbind(rn_bear_out[[4]], rn_coy_out[[4]], rn_lion_out[[4]], rn_wolf_out[[4]],
+                   rn_elk_out[[4]], rn_moose_out[[4]], rn_wtd_out[[4]]) %>% 
     arrange(NewLocationID, Species) %>%
     mutate(season = "Smr22") %>%
     relocate(season, .after = Setup)
  
-  RN_abundance <- list(rn_2020, rn_2021, rn_2022)
-  save(RN_abundance, file = "./Outputs/Relative_Abundance/RN_model/RN_abundance.RData")
+  RN_abundance <- list(rn_2020, rn_2021, rn_2022, rn_2023)
+  save(RN_abundance, file = paste0("./Outputs/Relative_Abundance/RN_model/RN_abundance_", Sys.Date(), ".RData"))
   
 
   #####  Visualize local abundance data  #####
@@ -1220,6 +1228,7 @@
   cams_20s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp")
   cams_21s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_21s_wgs84.shp")
   cams_22s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_22s_wgs84.shp")
+  cams_23s_wgs84 <- st_read("./Shapefiles/IDFG spatial data 2023 additional/cams_23s_wgs84.shp")
   bigwater <- st_read("./Shapefiles/National Hydrology Database Idaho State/Idaho_waterbodies_1km2.shp")
   bigwater_wgs84 <- st_transform(bigwater, crs = "+proj=longlat +datum=WGS84 +no_defs") %>%
     filter(gnis_name == "Priest Lake" | gnis_name == "Upper Priest Lake" | 
@@ -1235,7 +1244,7 @@
   rivers_clip <- st_intersection(rivers, eoe_gmu_wgs84)
   
   #'  List camera spatial data
-  cam_list <- list(cams_20s_wgs84, cams_21s_wgs84, cams_22s_wgs84)
+  cam_list <- list(cams_20s_wgs84, cams_21s_wgs84, cams_22s_wgs84, cams_23s_wgs84)
   
   #'  Append RN abundance estimates to spatial data
   spatial_rn <- function(rn, spp, cams) {
@@ -1255,26 +1264,26 @@
     return(rn_shp)
   }
   spatial_rn_bear <- mapply(rn = rn_bear_out, spatial_rn, spp = "bear_black", cams = cam_list, SIMPLIFY = FALSE)
-  spatial_rn_bob <- mapply(rn = rn_bob_out, spatial_rn, spp = "bobcat", cams = cam_list, SIMPLIFY = FALSE)
+  # spatial_rn_bob <- mapply(rn = rn_bob_out, spatial_rn, spp = "bobcat", cams = cam_list, SIMPLIFY = FALSE)
   spatial_rn_coy <- mapply(rn = rn_coy_out, spatial_rn, spp = "coyote", cams = cam_list, SIMPLIFY = FALSE)
   spatial_rn_lion <- mapply(rn = rn_lion_out, spatial_rn, spp = "mountain_lion", cams = cam_list, SIMPLIFY = FALSE)
   spatial_rn_wolf <- mapply(rn = rn_wolf_out, spatial_rn, spp = "wolf", cams = cam_list, SIMPLIFY = FALSE)
   
   spatial_rn_elk <- mapply(rn = rn_elk_out, spatial_rn, spp = "elk", cams = cam_list, SIMPLIFY = FALSE)
-  spatial_rn_lago <- mapply(rn = rn_lago_out, spatial_rn, spp = "lagomorphs", cams = cam_list, SIMPLIFY = FALSE)
+  # spatial_rn_lago <- mapply(rn = rn_lago_out, spatial_rn, spp = "lagomorphs", cams = cam_list, SIMPLIFY = FALSE)
   spatial_rn_moose <- mapply(rn = rn_moose_out, spatial_rn, spp = "moose", cams = cam_list, SIMPLIFY = FALSE)
   spatial_rn_wtd <- mapply(rn = rn_wtd_out, spatial_rn, spp = "whitetailed_deer", cams = cam_list, SIMPLIFY = FALSE)
   
   #'  List spatial RN abundance data and save
-  spatial_RN_list <- list(spatial_rn_bear, spatial_rn_bob, spatial_rn_coy, spatial_rn_lion, spatial_rn_wolf,
-                          spatial_rn_elk, spatial_rn_lago, spatial_rn_moose, spatial_rn_wtd)
-  save(spatial_RN_list, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_RN_list.RData")
+  spatial_RN_list <- list(spatial_rn_bear, spatial_rn_coy, spatial_rn_lion, spatial_rn_wolf,
+                          spatial_rn_elk, spatial_rn_moose, spatial_rn_wtd) #spatial_rn_bob, spatial_rn_lago, 
+  save(spatial_RN_list, file = "./Shapefiles/IDFG spatial data/Camera_locations/spatial_RN_list_2020_2023.RData")
   
   #'  Merge wolf results into single large spatial dataframe and save as a shapefile
-  spatial_rn_wolf_locs <- bind_rows(spatial_rn_wolf[[1]], spatial_rn_wolf[[2]], spatial_rn_wolf[[3]])
-  st_write(spatial_rn_wolf_locs, "./Shapefiles/IDFG spatial data/Camera_locations/spatial_rn_wolf_locs.shp")
+  spatial_rn_wolf_locs <- bind_rows(spatial_rn_wolf[[1]], spatial_rn_wolf[[2]], spatial_rn_wolf[[3]], spatial_rn_wolf[[4]])
+  st_write(spatial_rn_wolf_locs, "./Shapefiles/IDFG spatial data/Camera_locations/spatial_rn_wolf_locs_2020_2023.shp")
   
-  year_list <- list("2020", "2021", "2022")
+  year_list <- list("2020", "2021", "2022", "2023")
   
   #'  Function to map RN abundance
   map_rn <- function(sf_rn, yr, spp) {
@@ -1327,30 +1336,30 @@
     return(gmu_maps)
   }
   rn_maps_bear <- mapply(map_rn, sf_rn = spatial_rn_bear, yr = year_list, spp = "Black bear", SIMPLIFY = FALSE)
-  rn_maps_bob <- mapply(map_rn, sf_rn = spatial_rn_bob, yr = year_list, spp = "Bobcat", SIMPLIFY = FALSE)
+  # rn_maps_bob <- mapply(map_rn, sf_rn = spatial_rn_bob, yr = year_list, spp = "Bobcat", SIMPLIFY = FALSE)
   rn_maps_coy <- mapply(map_rn, sf_rn = spatial_rn_coy, yr = year_list, spp = "Coyote", SIMPLIFY = FALSE)
   rn_maps_lion <- mapply(map_rn, sf_rn = spatial_rn_lion, yr = year_list, spp = "Mountain lion", SIMPLIFY = FALSE)
   rn_maps_wolf <- mapply(map_rn, sf_rn = spatial_rn_wolf, yr = year_list, spp = "wolf", SIMPLIFY = FALSE)
   
   rn_maps_elk <- mapply(map_rn, sf_rn = spatial_rn_elk, yr = year_list, spp = "Elk", SIMPLIFY = FALSE)
-  rn_maps_lago <- mapply(map_rn, sf_rn = spatial_rn_lago, yr = year_list, spp = "Lagomorphs", SIMPLIFY = FALSE)
+  # rn_maps_lago <- mapply(map_rn, sf_rn = spatial_rn_lago, yr = year_list, spp = "Lagomorphs", SIMPLIFY = FALSE)
   rn_maps_moose <- mapply(map_rn, sf_rn = spatial_rn_moose, yr = year_list, spp = "Moose", SIMPLIFY = FALSE)
   rn_maps_wtd <- mapply(map_rn, sf_rn = spatial_rn_wtd, yr = year_list, spp = "White-tailed deer", SIMPLIFY = FALSE)
   
   #'  Plot same species and study area back to back across years
   gmu_by_yr_plots <- function(fig, spp) {
     #'  Note: list order is [[i]][[j]] 
-    #'  where i = 2020, 2021, or 2022 and j = GMU1, GMU6, or GMU10a 
+    #'  where i = 2020, 2021, 2022, or 2023 and j = GMU1, GMU6, or GMU10a 
     #'  GMU 1 plots
-    gmu1_patch <- fig[[1]][[1]] + fig[[2]][[1]] + fig[[3]][[1]] +
+    gmu1_patch <- fig[[1]][[1]] + fig[[2]][[1]] + fig[[3]][[1]] + fig[[4]][[1]] +
       plot_annotation(paste("GMU 1", spp, "relative local abundance (RN model)"))
     
     #'  GMU 6 plots
-    gmu6_patch <- fig[[1]][[2]] + fig[[2]][[2]] + fig[[3]][[2]] +
+    gmu6_patch <- fig[[1]][[2]] + fig[[2]][[2]] + fig[[3]][[2]] + fig[[4]][[2]] +
       plot_annotation(paste("GMU 6", spp, "relative local abundance (RN model)"))
     
     #'  GMU 10A plots
-    gmu10a_patch <- fig[[1]][[3]] + fig[[2]][[3]] + fig[[3]][[3]] +
+    gmu10a_patch <- fig[[1]][[3]] + fig[[2]][[3]] + fig[[3]][[3]] + fig[[4]][[3]] +
       plot_annotation(paste("GMU 10A", spp, "relative local abundance (RN model)"))
     
     #'  Print figure panels
@@ -1362,71 +1371,71 @@
     return(gmu_patchwork_list)
   }
   rn_gmu_bear <- gmu_by_yr_plots(rn_maps_bear, spp = "black bear")
-  rn_gmu_bob <- gmu_by_yr_plots(rn_maps_bob, spp = "bobcat")
+  # rn_gmu_bob <- gmu_by_yr_plots(rn_maps_bob, spp = "bobcat")
   rn_gmu_coy <- gmu_by_yr_plots(rn_maps_coy, spp = "coyote")
   rn_gmu_lion <- gmu_by_yr_plots(rn_maps_lion, spp = "mountain lion")
   rn_gmu_wolf <- gmu_by_yr_plots(rn_maps_wolf, spp = "wolf")
   
   rn_gmu_elk <- gmu_by_yr_plots(rn_maps_elk, spp = "elk")
-  rn_gmu_lago <- gmu_by_yr_plots(rn_maps_lago, spp = "lagomorphs")
+  # rn_gmu_lago <- gmu_by_yr_plots(rn_maps_lago, spp = "lagomorphs")
   rn_gmu_moose <- gmu_by_yr_plots(rn_maps_moose, spp = "moose")
   rn_gmu_wtd <- gmu_by_yr_plots(rn_maps_wtd, spp = "white-tailed deer")
   
   
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_bear.tiff", rn_gmu_bear[[1]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_bear_2020_2023.tiff", rn_gmu_bear[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_bear.tiff", rn_gmu_bear[[2]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_bear_2020_2023.tiff", rn_gmu_bear[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_bear.tiff", rn_gmu_bear[[3]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_bear_2020_2023.tiff", rn_gmu_bear[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_bob.tiff", rn_gmu_bob[[1]],
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_bob.tiff", rn_gmu_bob[[1]],
+  #        units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_bob.tiff", rn_gmu_bob[[2]],
+  #        units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_bob.tiff", rn_gmu_bob[[3]],
+  #        units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_coy_2020_2023.tiff", rn_gmu_coy[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_bob.tiff", rn_gmu_bob[[2]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_coy_2020_2023.tiff", rn_gmu_coy[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_bob.tiff", rn_gmu_bob[[3]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_coy_2020_2023.tiff", rn_gmu_coy[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_coy.tiff", rn_gmu_coy[[1]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_lion_2020_2023.tiff", rn_gmu_lion[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_coy.tiff", rn_gmu_coy[[2]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_lion_2020_2023.tiff", rn_gmu_lion[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_coy.tiff", rn_gmu_coy[[3]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_lion_2020_2023.tiff", rn_gmu_lion[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_lion.tiff", rn_gmu_lion[[1]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_wolf_2020_2023.tiff", rn_gmu_wolf[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_lion.tiff", rn_gmu_lion[[2]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_wolf_2020_2023.tiff", rn_gmu_wolf[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_lion.tiff", rn_gmu_lion[[3]],
-         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_wolf.tiff", rn_gmu_wolf[[1]],
-         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_wolf.tiff", rn_gmu_wolf[[2]],
-         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_wolf.tiff", rn_gmu_wolf[[3]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_wolf_2020_2023.tiff", rn_gmu_wolf[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
   
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_elk.tiff", rn_gmu_elk[[1]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_elk_2020_2023.tiff", rn_gmu_elk[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_elk.tiff", rn_gmu_elk[[2]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_elk_2020_2023.tiff", rn_gmu_elk[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_elk.tiff", rn_gmu_elk[[3]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_elk_2020_2023.tiff", rn_gmu_elk[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_lago.tiff", rn_gmu_lago[[1]],
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_lago.tiff", rn_gmu_lago[[1]],
+  #        units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_lago.tiff", rn_gmu_lago[[2]],
+  #        units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_lago.tiff", rn_gmu_lago[[3]],
+  #        units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_moose_2020_2023.tiff", rn_gmu_moose[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_lago.tiff", rn_gmu_lago[[2]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_moose_2020_2023.tiff", rn_gmu_moose[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_lago.tiff", rn_gmu_lago[[3]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_moose_2020_2023.tiff", rn_gmu_moose[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_moose.tiff", rn_gmu_moose[[1]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_wtd_2020_2023.tiff", rn_gmu_wtd[[1]],
          units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_moose.tiff", rn_gmu_moose[[2]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_wtd_2020_2023.tiff", rn_gmu_wtd[[2]],
          units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_moose.tiff", rn_gmu_moose[[3]],
-         units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu1_wtd.tiff", rn_gmu_wtd[[1]],
-         units = "in", width = 13, height = 6, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu6_wtd.tiff", rn_gmu_wtd[[2]],
-         units = "in", width = 15, height = 4, dpi = 600, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_wtd.tiff", rn_gmu_wtd[[3]],
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_gmu10A_wtd_2020_2023.tiff", rn_gmu_wtd[[3]],
          units = "in", width = 15, height = 6, dpi = 600, device = "tiff", compression = "lzw")
   
   
@@ -1440,15 +1449,32 @@
     return(dat)
   }
   rn_bear_all <- mapply(add_yr, dat = spatial_rn_bear, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
-  rn_bob_all <- mapply(add_yr, dat = spatial_rn_bob, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  # rn_bob_all <- mapply(add_yr, dat = spatial_rn_bob, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   rn_coy_all <- mapply(add_yr, dat = spatial_rn_coy, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   rn_lion_all <- mapply(add_yr, dat = spatial_rn_lion, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   rn_wolf_all <- mapply(add_yr, dat = spatial_rn_wolf, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   
   rn_elk_all <- mapply(add_yr, dat = spatial_rn_elk, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
-  rn_lago_all <- mapply(add_yr, dat = spatial_rn_lago, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  # rn_lago_all <- mapply(add_yr, dat = spatial_rn_lago, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   rn_moose_all <- mapply(add_yr, dat = spatial_rn_moose, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   rn_wtd_all <- mapply(add_yr, dat = spatial_rn_wtd, yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  
+  #'  Join survey year with each GMU (note GMU1 was not surveyed in 2020)
+  year_surveyed <- rep(c(2020, 2021, 2022, 2023), 3)
+  gmu_by_year <- bind_rows(eoe_gmu_wgs84, eoe_gmu_wgs84, eoe_gmu_wgs84, eoe_gmu_wgs84) %>%
+    mutate(Year = year_surveyed) %>%
+    filter(NAME != "1" | Year != 2020)
+  year_surveyed <- rep(c(2020, 2021, 2022, 2023), 384)
+  river_by_year <- bind_rows(rivers_clip, rivers_clip, rivers_clip, rivers_clip) %>%
+    mutate(Year = year_surveyed) %>%
+    filter(Year != 2020)
+  year_surveyed <- rep(c(2020, 2021, 2022, 2023), 6)
+  bigwater_by_year <- bind_rows(bigwater_wgs84, bigwater_wgs84, bigwater_wgs84, bigwater_wgs84) %>%
+    mutate(Year = year_surveyed) %>%
+    filter(gnis_name != "Lake Pend Oreille" | Year != 2020) %>%
+    filter(gnis_name != "Upper Priest Lake" | Year != 2020) %>%
+    filter(gnis_name != "Priest Lake" | Year != 2020)
+    
   
   #'  Make one giant faceted plot where rows represent GMU and columns represent years 
   #'  to ensure that the dot sizes are all consistent for at least a single species
@@ -1462,21 +1488,29 @@
     
     #'  Create figure
     spp_rn <- ggplot() +
-      geom_sf(data = eoe_gmu_wgs84, fill = NA) + 
-      geom_sf(data = rivers_clip, color = "lightskyblue3") + 
-      geom_sf(data = bigwater_wgs84, fill = "lightskyblue2") +
+      geom_sf(data = gmu_by_year, fill = NA) + 
+      geom_sf(data = river_by_year, color = "lightskyblue3") + 
+      geom_sf(data = bigwater_by_year, fill = "lightskyblue2") +
       geom_sf(data = sf_rn, aes(size = RN.n.rounded, colour = GMU, fill = GMU), shape = 21, alpha = 3/10) +
       scale_size_continuous(breaks = size_breaks, range = c(0,12)) +
       scale_color_manual(values = pal) +
       scale_fill_manual(values = pal) +
-      labs(size = "Predicted \nRAI", x = "Longitude", y = "Latitude") +
+      labs(size = "Predicted \nRAI", x = "Longitude", y = "Latitude", 
+           title = paste("Predicted relative abundance indicies for", spp)) +
       theme_classic() +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
             text = element_text(size = 18)) +
-      labs(title = paste("Predicted relative abundance indicies for", spp)) + 
+      #'  Legends: opaque, larger symbols (alpha override only affects the legend)
+      guides(
+        size = guide_legend(order = 1, ncol = 1, 
+                            override.aes = list(alpha = 1, fill = "grey70",
+                                                colour = "grey20", stroke = 1)),
+        colour = guide_legend(order = 2, ncol = 1, override.aes = list(alpha = 1, size = 7, stroke = 1.2)),
+        fill = "none"      # colour and fill share one palette, so show only one GMU legend
+      ) +
       # facet_grid(rows = vars(Species), cols = vars(Year)) +
       # force_panelsizes(rows = 2, cols = 1, TRUE)
-      facet_wrap(~Year) 
+      facet_wrap(~Year, nrow = 1, ncol = 4) 
       
     #'  Plot each map
     print(spp_rn)
@@ -1484,12 +1518,12 @@
     return(spp_rn)
   }
   rn_maps_bear <- map_rn_v2(rn_bear_all, spp = "black bears")
-  rn_maps_bob <- map_rn_v2(rn_bob_all, spp = "bobcats")
+  # rn_maps_bob <- map_rn_v2(rn_bob_all, spp = "bobcats")
   rn_maps_coy <- map_rn_v2(rn_coy_all, spp = "coyotes")
   rn_maps_lion <- map_rn_v2(rn_lion_all, spp = "mountain lions")
   rn_maps_wolf <- map_rn_v2(rn_wolf_all, spp = "wolves")
   rn_maps_elk <- map_rn_v2(rn_elk_all, spp = "elk")
-  rn_maps_lago <- map_rn_v2(rn_lago_all, spp = "lagomorphs")
+  # rn_maps_lago <- map_rn_v2(rn_lago_all, spp = "lagomorphs")
   rn_maps_moose <- map_rn_v2(rn_moose_all, spp = "moose")
   rn_maps_wtd <- map_rn_v2(rn_wtd_all, spp = "white-tailed deer")
   
@@ -1506,23 +1540,23 @@
   rn_maps_predators_nowolf <- map_rn_v2(predators_nowolf, spp = "predators")
   
   
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_blackbear.tiff", rn_maps_bear,
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_blackbear_2020_2023.tiff", rn_maps_bear,
          units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_bobcat.tiff", rn_maps_bob,
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_bobcat.tiff", rn_maps_bob,
+  #        units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_coyote_2020_2023.tiff", rn_maps_coy,
          units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_coyote.tiff", rn_maps_coy,
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_lion_2020_2023.tiff", rn_maps_lion,
          units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_lion.tiff", rn_maps_lion,
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_wolf_2020_2023.tiff", rn_maps_wolf,
          units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_wolf.tiff", rn_maps_wolf,
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_elk_2020_2023.tiff", rn_maps_elk,
          units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_elk.tiff", rn_maps_elk,
+  # ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_lagomorphs.tiff", rn_maps_lago,
+  #        units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_moose_2020_2023.tiff", rn_maps_moose,
          units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_lagomorphs.tiff", rn_maps_lago,
-         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_moose.tiff", rn_maps_moose,
-         units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
-  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_wtd.tiff", rn_maps_wtd,
+  ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_wtd_2020_2023.tiff", rn_maps_wtd,
          units = "in", width = 13, height = 11, dpi = 400, device = "tiff", compression = "lzw")
   
   ggsave("./Outputs/Relative_Abundance/RN_model/Figures/RN_map_ungualtes.tiff", rn_maps_ungulates,
