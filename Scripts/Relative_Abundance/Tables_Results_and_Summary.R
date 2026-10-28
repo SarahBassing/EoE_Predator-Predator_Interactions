@@ -152,23 +152,23 @@
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_20s.RData") 
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_21s.RData") 
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_22s.RData") 
-  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_23s.RData") 
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/Unique_detection_events_23s.RData") # note indexing differs
   #'  Seasonal detection histories
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp20s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp21s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp22s_RNmod.RData")
-  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp23s_RNmod.RData")
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/DH_npp23s_RNmod.RData") # note indexing differs
   #'  Name lists so life is easier
-  spp_order <- c("bear_black", "coyote", "mountain_lion", "wolf", "elk", "moose", "whitetaileddeer") #"bobcat", "muledeer", "rabbit_hare"
+  spp_order <- c("bear_black", "bobcat", "coyote", "mountain_lion", "wolf", "elk", "moose", "muledeer", "whitetaileddeer", "rabbit_hare")
   names(DH_npp20s_RNmod) <- spp_order
   names(DH_npp21s_RNmod) <- spp_order
   names(DH_npp22s_RNmod) <- spp_order
-  names(DH_npp23s_RNmod) <- spp_order
+  names(DH_npp23s_RNmod) <- c("bear_black", "coyote", "mountain_lion", "wolf", "elk", "moose", "whitetaileddeer") # order differs due to different indexing
   #' Sampling effort
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp20s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp21s_RNmod.RData")
   load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp22s_RNmod.RData")
-  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp23s_RNmod.RData")
+  load("./Data/Relative abundance data/RAI Phase 2/Detection_Histories_RNmodel/SamplingEffort_npp23s_RNmod.RData") # note indexing differs
   
   #'  ----------------------------------
   #####  Summary stats for publication  #####
@@ -180,13 +180,14 @@
   dim(DH_npp23s_RNmod[[1]])
   
   #'  Average number of operable camera days
-  (ndays20 <- mean(effort_20s_RNmod$ndays)); sd(effort_20s_RNmod$ndays)/sqrt(length(effort_20s_RNmod$ndays))
-  (ndays21 <- mean(effort_21s_RNmod$ndays)); sd(effort_21s_RNmod$ndays)/sqrt(length(effort_21s_RNmod$ndays))
-  (ndays22 <- mean(effort_22s_RNmod$ndays)); sd(effort_22s_RNmod$ndays)/sqrt(length(effort_22s_RNmod$ndays))
-  (ndays23 <- mean(effort_23s_RNmod$ndays)); sd(effort_23s_RNmod$ndays)/sqrt(length(effort_23s_RNmod$ndays))
+  (ndays20 <- mean(effort_20s_RNmod$ndays)); sd(effort_20s_RNmod$ndays); sd(effort_20s_RNmod$ndays)/sqrt(length(effort_20s_RNmod$ndays))
+  (ndays21 <- mean(effort_21s_RNmod$ndays)); sd(effort_20s_RNmod$ndays); sd(effort_20s_RNmod$ndays)/sqrt(length(effort_21s_RNmod$ndays))
+  (ndays22 <- mean(effort_22s_RNmod$ndays)); sd(effort_22s_RNmod$ndays); sd(effort_22s_RNmod$ndays)/sqrt(length(effort_22s_RNmod$ndays))
+  (ndays23 <- mean(effort_23s_RNmod$ndays)); sd(effort_23s_RNmod$ndays); sd(effort_23s_RNmod$ndays)/sqrt(length(effort_23s_RNmod$ndays))
   ndays <- c(ndays20, ndays21, ndays22, ndays23)
-  mean(ndays)
-  sd(ndays)/sqrt(length(ndays))
+  round(mean(ndays), 0)
+  round(sd(ndays), 2)
+  round(sd(ndays)/sqrt(length(ndays)), 2)
   
   #'  Species list
   spp_list <- names(DH_npp20s_RNmod)
@@ -204,9 +205,9 @@
   dets_20s <- mapply(seasonal_dets, DH = DH_npp20s_RNmod, spp = spp_list, yr = "2020", SIMPLIFY = FALSE) %>% bind_rows()
   dets_21s <- mapply(seasonal_dets, DH = DH_npp21s_RNmod, spp = spp_list, yr = "2021", SIMPLIFY = FALSE) %>% bind_rows()
   dets_22s <- mapply(seasonal_dets, DH = DH_npp22s_RNmod, spp = spp_list, yr = "2022", SIMPLIFY = FALSE) %>% bind_rows()
-  dets_23s <- mapply(seasonal_dets, DH = DH_npp22s_RNmod, spp = spp_list, yr = "2023", SIMPLIFY = FALSE) %>% bind_rows()
+  dets_23s <- mapply(seasonal_dets, DH = DH_npp23s_RNmod, spp = names(DH_npp23s_RNmod), yr = "2023", SIMPLIFY = FALSE) %>% bind_rows()
   dets <- bind_rows(dets_20s, dets_21s, dets_22s, dets_23s) %>%
-    filter(Species == "bear_black" | Species == "coyote" | Species == "mountain_lion" | Species == "wolf" | 
+    filter(Species == "bear_black" | Species == "coyote" | Species == "mountain_lion" | Species == "wolf" |
              Species == "elk" | Species == "moose" | Species == "whitetaileddeer") %>%
     group_by(Species, Year) %>%
     summarise(ndets = sum(ndets)) %>%
@@ -273,7 +274,7 @@
     return(det_summary)
   }
   DH_bear <- all_detections(DH_npp20s_RNmod$bear_black, DH_npp21s_RNmod$bear_black, DH_npp22s_RNmod$bear_black, DH_npp23s_RNmod$bear_black, spp = "Black bear")
-  DH_bob <- all_detections(DH_npp20s_RNmod$bobcat, DH_npp21s_RNmod$bobcat, DH_npp22s_RNmod$bobcat, DH_npp23s_RNmod$bobcat, spp = "Bobcat")
+  # DH_bob <- all_detections(DH_npp20s_RNmod$bobcat, DH_npp21s_RNmod$bobcat, DH_npp22s_RNmod$bobcat, DH_npp23s_RNmod$bobcat, spp = "Bobcat")
   DH_coy <- all_detections(DH_npp20s_RNmod$coyote, DH_npp21s_RNmod$coyote, DH_npp22s_RNmod$coyote, DH_npp23s_RNmod$coyote, spp = "Coyote")
   DH_lion <- all_detections(DH_npp20s_RNmod$mountain_lion, DH_npp21s_RNmod$mountain_lion, DH_npp22s_RNmod$mountain_lion, DH_npp23s_RNmod$mountain_lion, spp = "Mountain lion")
   DH_wolf <- all_detections(DH_npp20s_RNmod$wolf, DH_npp21s_RNmod$wolf, DH_npp22s_RNmod$wolf, DH_npp23s_RNmod$wolf, spp = "Wolf")
@@ -291,20 +292,43 @@
   
   #'  Calculate mean number of detection events per species per year
   (mean_dets <- mean(DH_summary$`Total detection events`))
+  (sd_dets <- sd(DH_summary$`Total detection events`))
   (se_dets <- sd(DH_summary$`Total detection events`)/sqrt(nrow(DH_summary)))
   
   # DH_pred <- DH_summary[DH_summary$Species == "Black bear" | DH_summary$Species == "Coyote" | DH_summary$Species == "Mountain lion" | DH_summary$Species == "Wolf",]
   DH_pred <- dets[dets$Species == "Black bear" | dets$Species == "Coyote" | dets$Species == "Mountain lion" | dets$Species == "Wolf",]
   (mean_dets_pred <- mean(DH_pred$ndets)) #`Total detection events`
+  (sd_dets_pred <- sd(DH_pred$ndets))
   (se_dets_pred <- sd(DH_pred$ndets)/sqrt(nrow(DH_pred))) #`Total detection events`
+  (median_dets_pred <- median(DH_pred$ndets))
+  (iqr_dets_pre <- IQR(DH_pred$ndets))
   # DH_prey <- DH_summary[DH_summary$Species == "Elk" | DH_summary$Species == "Moose" | DH_summary$Species == "White-tailed Deer",]
   DH_prey <- dets[dets$Species == "Elk" | dets$Species == "Moose" | dets$Species == "White-tailed deer",]
   (mean_dets_prey <- mean(DH_prey$ndets)) #`Total detection events`
+  (sd_dets_prey <- sd(DH_prey$ndets))
   (se_dets_prey <- sd(DH_prey$ndets)/sqrt(nrow(DH_prey))) #`Total detection events`
-  
+  (median_dets_prey <- median(DH_prey$ndets))
+  (iqr_dets_prey <- IQR(DH_prey$ndets))
   
   #'  Save!
   write.csv(DH_summary, paste0("./Outputs/Relative_Abundance/RN_model/Tables/Summary_table_detections_", Sys.Date(), ".csv"))
+  
+  
+  #'  ALL species detected and total unique detection events
+  all_dets_summary <- rbind(npp20s_det_events, npp21s_det_events, npp22s_det_events, npp23s_det_events) %>% 
+    #'  Extract detection year
+    mutate(Year = year(Date)) %>%
+    dplyr::select(c(Species, Year, det_events)) %>% 
+    group_by(Species, Year) %>%
+    #'  Number of detection events
+    summarize(n_dets = sum(det_events)) %>%
+    ungroup() %>%
+    rename("Total unique detection events" = "n_dets")
+  
+  #'  Save!
+  write.csv(all_dets_summary, paste0("./Outputs/Relative_Abundance/RN_model/Tables/Summary_table_ALL_detections_", Sys.Date(), ".csv"))
+  
+  
   
   #'  -------------------
   ####  RDI per cluster  ####
