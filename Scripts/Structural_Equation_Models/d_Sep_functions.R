@@ -65,7 +65,7 @@
   #'  Bayesian p-value is asking what proportion of the posterior falls on each side
   #'  of zero. Under the formulation below, if the posterior is clustered away from 0, 
   #'  the tail that crosses 0 is small and the resulting p-value is small. If the 
-  #'  posterior straddles 0 fairly symetrically, then ~half the posterio should be 
+  #'  posterior straddles 0 fairly symmetrically, then ~half the posterior should be 
   #'  on either size of 0, giving a p-value close to 1, consistent with the null hypothesis. 
   bayes_pvalue <- function(post) {
     p_pos <- mean(post > 0)
@@ -111,15 +111,15 @@
   }
   
   #'  ----------------------
-  ####  Generate Basic set  ####
+  ####  Generate Basis set  ####
   #'  ----------------------
-  #'  Function to generate and simplify the basic set 
-  basic_set <- function(dag) {
-    #'  Generate the basic set 
-    basicset <- basiSet(dag)
-    print(length(basicset))
-    View(basicset)
-    return(basicset)
+  #'  Function to generate and simplify the basis set 
+  basis_set <- function(dag) {
+    #'  Generate the basis set 
+    basisset <- basiSet(dag)
+    print(length(basisset))
+    View(basisset)
+    return(basisset)
   }
   
   #'  -------------------------------------------------------
