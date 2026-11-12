@@ -248,12 +248,46 @@
       
       #'  Apparent competition where prey.A.tmin1 --> predator.tmin1 --> prey.B.t
       indirect.wtd.lion.elk.v2 <- beta.wtd[3] * beta.lion[1]    # effect of wtd.tmin1 on lion.tmin1 --> effect of lion.tmin1 on elk.t
-      indirect.wtd.lion.wtd.v2 <- beta.wtd[3] * beta.lion[2]    # effect of wtd.tmin1 on lion.tmin1 --> effect of lion.tmin1 on wtd.t (wtd affecting itself via effect on lions)
+      # indirect.wtd.lion.wtd.v2 <- beta.wtd[3] * beta.lion[2]    # effect of wtd.tmin1 on lion.tmin1 --> effect of lion.tmin1 on wtd.t (wtd affecting itself via effect on lions)
       indirect.wtd.wolf.elk.v2 <- beta.wtd[5] * beta.wolf[2]    # effect of wtd.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on elk.t
       indirect.wtd.wolf.moose.v2 <- beta.wtd[5] * beta.wolf[3]  # effect of wtd.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on moose.t
-      indirect.wtd.wolf.wtd.v2 <- beta.wtd[5] * beta.wolf[4]    # effect of wtd.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on wtd.t (wtd affecting itself via effect on wolves)
+      # indirect.wtd.wolf.wtd.v2 <- beta.wtd[5] * beta.wolf[4]    # effect of wtd.tmin1 on wolf.tmin1 --> effect of wolf.tmin1 on wtd.t (wtd affecting itself via effect on wolves)
       indirect.wtd.bear.elk.v2 <- beta.wtd[6] * beta.bear[2]    # effect of wtd.tmin1 on bear.tmin1 --> effect of bear.tmin1 on elk.t
       
       
+      #'  Derived parameters: Sum Effects
+      #'  -------------------------------
+      #'  Summed lagged and contemporaneous direct effects, ignoring paths through other species or its own persistence
+      sum.wtd.lion <- beta.wtd[2] + beta.wtd[3]         # effect of wtd.tmin1 on lion.t AND effect of wtd.t on lion.t
+      sum.wtd.wolf <- beta.wtd[4] + beta.wtd[5]         # effect of wtd.tmin1 on wolf.t AND effect of wtd.t on wolf.t
+      
+      #'  Derived parameters: Total Effects
+      #'  ---------------------------------
+      #'  Total effect of spp.A.tmin1 --> spp.B.t, summing over every direct path where A[t-1] --> B[t] and indirect paths
+      #'  Total effect of wtd on lions through efffect on wolves and themsleves
+      #'  wtd[t-1] --> lion[t]
+      #'  wtd[t-1] --> wtd[t] --> lion[t]
+      #'  wtd[t-1] --> lion[t-1] --> wtd[t] --> lion[t]
+      #'  wtd[t-1] --> wolf[t-1] --> wtd[t] --> lion[t]
+      total.wtd.lion <- beta.wtd[2] + beta.wtd[1] * beta.wtd[3] + beta.wtd[3] * beta.lion[2] * beta.wtd[3] + beta.wtd[5] * beta.wolf[4] * beta.wtd[3]
+      #'  Total effect of wtd on wolves through effect on lions and themsleves
+      #'  wtd[t-1] --> wolf[t]
+      #'  wtd[t-1] --> wtd[t] --> wolf[t]
+      #'  wtd[t-1] --> wolf[t-1] --> wolf[t]
+      #'  wtd[t-1] --> lion[t-1] --> wtd[t] --> wolf[t]
+      #'  wtd[t-1] --> wolf[t-1] --> wtd[t] --> wolf[t]
+      total.wtd.wolf <- beta.wtd[4] + beta.wtd[1] * beta.wtd[5] + beta.wtd[5] * beta.wolf[1] + beta.wtd[3] * beta.lion[2] * beta.wtd[5] + beta.wtd[5] * beta.wolf[4] * beta.wtd[5]
+      #'  Total effect of wtd on bears through effect on wolves, lions and themsleves
+      #'  wtd[t-1] --> wtd[t] --> bear[t]
+      #'  wtd[t-1] --> bear[t-1] --> bear[t]
+      #'  wtd[t-1] --> lion[t-1] --> wtd[t] --> bear[t]
+      #'  wtd[t-1] --> wolf[t-1] --> wtd[t] --> bear[t]
+      total.wtd.bear <- beta.wtd[1] * beta.wtd[6] + beta.wtd[6] * beta.bear[1] + beta.wtd[3] * beta.lion[2] * beta.wtd[6] + beta.wtd[5] * beta.wolf[4] * beta.wtd[6]
+      #'  Total effect of wtd on elk through effect on wolves, bears and themsleves
+      #'  wtd[t-1] --> lion[t-1] --> elk[t]
+      #'  wtd[t-1] --> wolf[t-1] --> elk[t]
+      #'  wtd[t-1] --> bear[t-1] --> elk[t]
+      total.wtd.elk <- beta.wtd[3] * beta.lion[1] + beta.wtd[5] * beta.wolf[2] + beta.wtd[6] * beta.bear[2]
+ 
       }")
   
