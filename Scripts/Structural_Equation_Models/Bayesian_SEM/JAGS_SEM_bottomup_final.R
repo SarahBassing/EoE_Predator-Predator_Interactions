@@ -127,16 +127,6 @@
           elk.tau_hat[i,y]   <- 1 / pow(elk.sigma_hat[i,y], 2)
           moose.tau_hat[i,y] <- 1 / pow(moose.sigma_hat[i,y], 2)
           wtd.tau_hat[i,y]   <- 1 / pow(wtd.sigma_hat[i,y], 2)
-          
-          #' #'  Save Log-likelihood for LOO -- observation layer only
-          #' loglik.lion[i,y]  <- logdensity.norm(lion.hat[i,y],  lion.latent[i,y],  lion.tau_hat[i,y])
-          #' loglik.wolf[i,y]  <- logdensity.norm(wolf.hat[i,y],  wolf.latent[i,y],  wolf.tau_hat[i,y])
-          #' loglik.bear[i,y]  <- logdensity.norm(bear.hat[i,y],  bear.latent[i,y],  bear.tau_hat[i,y])
-          #' loglik.coy[i,y]   <- logdensity.norm(coy.hat[i,y],   coy.latent[i,y],   coy.tau_hat[i,y])
-          #' loglik.elk[i,y]   <- logdensity.norm(elk.hat[i,y],   elk.latent[i,y],   elk.tau_hat[i,y])
-          #' loglik.moose[i,y] <- logdensity.norm(moose.hat[i,y], moose.latent[i,y], moose.tau_hat[i,y])
-          #' loglik.wtd[i,y]   <- logdensity.norm(wtd.hat[i,y],   wtd.latent[i,y],   wtd.tau_hat[i,y])
-          
         }
       }
       
@@ -190,24 +180,24 @@
       #'  ------------------------------------
       #'  Exploitation competition where predator.tmin1 --> prey.t --> predator.t
       #'  Via elk.........................................
-      indirect.bear.elk.lion <- beta.bear[2] * beta.elk[3]     # effect of bear.tmin1 on elk.t --> effect of elk.t on lion.t
-      indirect.bear.elk.wolf <- beta.bear[2] * beta.elk[5]     # effect of bear.tmin1 on elk.t --> effect of elk.t on wolf.t
+      indirect.bear.elk.lion <- beta.bear[2] * beta.elk[3]     # effect of bear.tmin1 on elk.t --> effect of elk.t on lion.t (contemporaneous)
+      indirect.bear.elk.wolf <- beta.bear[2] * beta.elk[5]     # effect of bear.tmin1 on elk.t --> effect of elk.t on wolf.t (contemporaneous)
       
       #'  Via white-tailed deer...........................
-      indirect.coy.wtd.lion <- beta.coy[2] * beta.wtd[3]       # effect of coy.tmin1 on wtd.t --> effect of wtd.t on lion.t
-      indirect.coy.wtd.wolf <- beta.coy[2] * beta.wtd[4]       # effect of coy.tmin1 on wtd.t --> effect of wtd.t on wolf.t
-      indirect.coy.wtd.bear <- beta.coy[2] * beta.wtd[5]       # effect of coy.tmin1 on wtd.t --> effect of wtd.t on bear.t
-      indirect.coy.wtd.coy <- beta.coy[2] * beta.wtd[7]        # effect of coy.tmin1 on wtd.t --> effect of wtd.t on coy.t (coy depleting coy food over time)
-      indirect.bear.wtd.lion <- beta.bear[3] * beta.wtd[3]     # effect of bear.tmin1 on wtd.t --> effect of wdt.t on lion.t
-      indirect.bear.wtd.wolf <- beta.bear[3] * beta.wtd[4]     # effect of bear.tmin1 on wtd.t --> effect of wtd.t on wolf.t
-      indirect.bear.wtd.bear <- beta.bear[3] * beta.wtd[5]     # effect of bear.tmin1 on wtd.t --> effect of wtd.t on bear.t
-      indirect.bear.wtd.coy <- beta.bear[3] * beta.wtd[7]      # effect of bear.tmin1 on wtd.t --> effect of wtd.t on coy.t
+      indirect.coy.wtd.lion <- beta.coy[2] * beta.wtd[3]       # effect of coy.tmin1 on wtd.t --> effect of wtd.t on lion.t (contemporaneous)
+      indirect.coy.wtd.wolf <- beta.coy[2] * beta.wtd[4]       # effect of coy.tmin1 on wtd.t --> effect of wtd.t on wolf.t (contemporaneous)
+      indirect.coy.wtd.bear <- beta.coy[2] * beta.wtd[5]       # effect of coy.tmin1 on wtd.t --> effect of wtd.t on bear.t (contemporaneous)
+      indirect.coy.wtd.coy <- beta.coy[2] * beta.wtd[7]        # effect of coy.tmin1 on wtd.t --> effect of wtd.t on coy.t (contemporaneous, coy depleting coy food over time)
+      indirect.bear.wtd.lion <- beta.bear[3] * beta.wtd[3]     # effect of bear.tmin1 on wtd.t --> effect of wtd.t on lion.t (contemporaneous)
+      indirect.bear.wtd.wolf <- beta.bear[3] * beta.wtd[4]     # effect of bear.tmin1 on wtd.t --> effect of wtd.t on wolf.t (contemporaneous)
+      indirect.bear.wtd.bear <- beta.bear[3] * beta.wtd[5]     # effect of bear.tmin1 on wtd.t --> effect of wtd.t on bear.t (contemporaneous)  NOTE: different mechanism but same outcome as indirect.wtd.bear.wtd
+      indirect.bear.wtd.coy <- beta.bear[3] * beta.wtd[7]      # effect of bear.tmin1 on wtd.t --> effect of wtd.t on coy.t (contemporaneous)
       
       #'  Exploitation competition where predator.tmin2 --> prey.tmin1 --> predator.t
       #'  Via elk...........................................
       indirect.bear.elklag.lion <- beta.bear[2] * beta.elk[2]  # effect of bear.tmin2 on elk.tmin1 --> effect of elk.tmin1 on lion.t
       indirect.bear.elklag.wolf <- beta.bear[2] * beta.elk[4]  # effect of bear.tmin2 on elk.tmin1 --> effect of elk.tmin1 on wolf.t
-      indirect.bear.elklag.bear <- beta.bear[2] * beta.elk[6]  # effect of bear.tmin2 on elk.tmin1 --> effect of elk.tmin1 on bear.t  (bear depleting bear food over time)
+      indirect.bear.elklag.bear <- beta.bear[2] * beta.elk[6]  # effect of bear.tmin2 on elk.tmin1 --> effect of elk.tmin1 on bear.t  (bear depleting bear food over time) NOTE: different mechanism but same outcome as indirect.elk.bearlag.elk
       
       #'  Via white-tailed deer..............................
       indirect.coy.wtdlag.lion <- beta.coy[2] * beta.wtd[2]    # effect of coy.tmin2 on wtd.tmin1 --> effect of wtd.tmin1 on lion.t
@@ -217,14 +207,97 @@
       
       #'  2-yr lag effect on same species where predator effect on prey is extended via prey's AR1 term where predator.tmin2 --> prey.tmin1 --> prey.t
       #'  Via prey's AR1 term.............................
-      indirect.bear.elk.self <- beta.bear[2] * beta.elk[1]     # effect of bear.tmin1 on elk.tmin2 --> effect of elk.tmin1 on elk.t
-      indirect.bear.wtd.self <- beta.bear[3] * beta.wtd[1]     # effect of bear.tmin1 on wtd.tmin2 --> effect of wtd.tmin1 on wtd.t
-      indirect.coy.wtd.self <- beta.coy[2] * beta.wtd[1]       # effect of coy.tmin1 on wtd.tmin2 --> effect of wtd.tmin1 on wtd.
+      indirect.bear.elk.self <- beta.bear[2] * beta.elk[1]     # effect of bear.tmin2 on elk.tmin1 --> effect of elk.tmin1 on elk.t   
+      indirect.bear.wtd.self <- beta.bear[3] * beta.wtd[1]     # effect of bear.tmin2 on wtd.tmin1 --> effect of wtd.tmin1 on wtd.t
+      indirect.coy.wtd.self <- beta.coy[2] * beta.wtd[1]       # effect of coy.tmin2 on wtd.tmin1 --> effect of wtd.tmin1 on wtd.t
+      
+      #'  2-yr lag effect on same species where prey effect on predator is extended via predator's AR1 term where prey.tmin2 --> predator.tmin1 --> predator.t
+      #'  Via predator's AR1 term.........................
+      indirect.elk.wolf.self <- beta.elk[4] * beta.wolf[1]     # effect of elk.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on wolf.t
+      indirect.moose.wolf.self <- beta.moose[2] * beta.wolf[1] # effect of moose.tmin2 on wolf.tmin1 --> effect of wolf.tmin1 on wolf.t
+      indirect.wtd.wolf.self <- beta.wtd[4] * beta.wolf[1]     # effect of wtd.tmin1 on wolf.tmin1 (contemporaneous) --> effect of wolf.tmin1 on wolf.t
+      indirect.elk.bear.self <- beta.elk[6] * beta.bear[1]     # effect of elk.tmin2 on bear.tmin1 --> effect of bear.tmin1 on bear.t
+      indirect.wtd.bear.self <- beta.wtd[5] * beta.bear[1]     # effect of wtd.tmin1 on bear.tmin1 (contemporaneous) --> effect of bear.tmin1 on bear.t
+      indirect.wtd.coy.self <- beta.wtd[6] * beta.coy[1]       # effect of wtd.tmin2 on coy.tmin1 --> effect of coy.tmin1 on coy.t
       
       #'  Apparent competition where prey.A.tmin2 --> predator.tmin1 --> prey.B.t
       #'  Via black bear.............................
-      indirect.elk.bear.elk <- beta.elk[6] * beta.bear[2]      # effect of elk.tmin2 on bear.tmin1 --> effect of bear.tmin1 on elk.t (elk affecting itself via effect on bears)
-      indirect.elk.bear.wtd <- beta.elk[6] * beta.bear[3]      # effect of elk.tmin2 on bear.tmin1 --> effect of bear.tmin1 on wtd.t
+      indirect.elk.bearlag.elk <- beta.elk[6] * beta.bear[2]   # effect of elk.tmin2 on bear.tmin1 --> effect of bear.tmin1 on elk.t (elk affecting itself via effect on bears) NOTE: different mechanism but same outcome as indirect.bear.elklag.bear
+      indirect.elk.bearlag.wtd <- beta.elk[6] * beta.bear[3]   # effect of elk.tmin2 on bear.tmin1 --> effect of bear.tmin1 on wtd.t
+      indirect.wtd.bear.elk <- beta.wtd[5] * beta.bear[2]      # effect of wtd.tmin1 on bear.tmin1 (contemporaneous) --> effect of bear.tmin1 on elk.t
+      # indirect.wtd.bear.wtd <- beta.wtd[5] * beta.bear[3]      # effect of wtd.tmin1 on bear.tmin1 (contemporaneous) --> effect of wtd.tmin1 on wtd.t (wtd affecting itself via effect on bears) NOTE: different mechanism but same outcome as indirect.bear.wtd.bear
+      
+      #'  Derived parameters: Sum Effects
+      #'  -------------------------------
+      #'  Summed lagged and contemporaneous direct effects, ignoring paths through other species or its own persistence
+      sum.elk.lion <- beta.elk[2] + beta.elk[3]         # effect of elk.tmin1 on lion.t AND effect of elk.t on lion.t
+      sum.elk.wolf <- beta.elk[4] + beta.elk[5]         # effect of elk.tmin1 on wolf.t And effect of elk.t on wolf.t
+      sum.moose.wolf <- beta.moose[2] + beta.moose[3]   # effect of moose.tmin1 on wolf.t AND effect of moose.t on wolf.t
+      sum.wtd.lion <- beta.wtd[2] + beta.wtd[3]         # effect of wtd.tmin1 on lion.t AND effect of wtd.t on lion.t
+      sum.wtd.coy <- beta.wtd[6] + beta.wtd[7]          # effect of wtd.tmin1 on coy.t AND effect of wtd.t on coy.t
+      
+      #'  Derived parameters: Total Effects
+      #'  ---------------------------------
+      #'  Total effect of spp.A.tmin1 --> spp.B.t, summing over every direct path where A[t-1] --> B[t] and indirect paths
+      #'  Total effect of bear on lion through effects on elk and wtd 
+      #'  bear[t-1] --> elk[t] --> lion[t]  
+      #'  bear[t-1] --> wtd.[t] --> lion[t]
+      total.bear.lion <- beta.bear[2] * beta.elk[3] + beta.bear[3] * beta.wtd[3] 
+      #'  Total effect of bear on wolf through effects on elk and wtd
+      #'  bear[t-1] --> elk[t] --> wolf[t]  
+      #'  bear[t-1] --> wtd[t] --> wolf[t]
+      total.bear.wolf <- beta.bear[2] * beta.elk[5] + beta.bear[3] * beta.wtd[4] 
+      #'  Total effect of elk on lion through its effect on itself 
+      #'  elk[t-1] --> lion[t]  
+      #'  elk[t-1] --> elk[t] --> lion[t]
+      total.elk.lion <- beta.elk[2] + beta.elk[1] * beta.elk[3]         
+      #'  Total effect of elk on wolf through its effect on itself and wolf effect on itself 
+      #'  elk[t-1] --> wolf[t]  
+      #'  elk[t-1] --> elk[t] --> wolf[t]  
+      #'  elk[t-1] --> wolf[t-1] --> wolf[t]
+      total.elk.wolf <- beta.elk[4] + beta.elk[1] * beta.elk[5] + beta.elk[5] * beta.wolf[1]  
+      #'  Total effect of moose on wolf through its effect on itself and wolf effect on itself
+      #'  same as above but swap moose for elk
+      total.moose.wolf <- beta.moose[2] + beta.moose[1] * beta.moose[3] + beta.moose[3] * beta.wolf[1] 
+      #'  Total effect of wtd on lion through effects on itself, bears, elk, and coy
+      #'  wtd[t-1] --> lion[t]
+      #'  wtd[t-1] --> wtd[t] --> lion[t]
+      #'  wtd[t-1] --> bear[t-1] --> elk[t] --> lion[t]
+      #'  wtd[t-1] --> bear[t-1] --> wtd[t] --> lion[t]
+      #'  wtd[t-1] --> coy[t-1] --> wtd[t] --> lion[t]
+      total.wtd.lion <- beta.wtd[2] + beta.wtd[1] * beta.wtd[3] + beta.wtd[5] * beta.bear[2] * beta.elk[3] + beta.wtd[5] * beta.bear[3] * beta.wtd[3] + beta.wtd[7] * beta.coy[2] * beta.wtd[3]
+      #'  Total effect of wtd on wolf through effects on itself, bear, elk, and coy
+      #'  wtd[t-1] --> wtd[t] --> wolf[t]
+      #'  wtd[t-1] --> wolf[t-1] --> wolf[t]
+      #'  wtd[t-1] --> bear[t-1] --> elk[t] --> wolf[t]
+      #'  wtd[t-1] --> bear[t-1] --> wtd[t] --> wolf[t]
+      #'  wtd[t-1] --> coy[t-1] --> wtd[t] --> wolf[t]
+      total.wtd.wolf <- beta.wtd[1] * beta.wtd[4] + beta.wtd[4] * beta.wolf[1] + beta.wtd[5] * beta.bear[2] * beta.elk[5] + beta.wtd[5] * beta.bear[3] * beta.wtd[4] + beta.wtd[7] * beta.coy[2] * beta.wtd[4]
+      #'  Total effect of wtd on bear through effects on itself, coy, and bear effect on itself
+      #'  wtd[t-1] --> wtd[t] --> bear[t]
+      #'  wtd[t-1] --> bear[t-1] --> bear[t]
+      #'  wtd[t-1] --> bear[t-1] --> wtd[t] --> bear[t]
+      #'  wtd[t-1] --> coy[t-1] --> wtd[t] --> bear[t]
+      total.wtd.bear <- beta.wtd[1] * beta.wtd[5] + beta.wtd[5] * beta.bear[1] + beta.wtd[5] * beta.bear[3] * beta.wtd[5] + beta.wtd[7] * beta.coy[2] * beta.wtd[5]
+      #'  Total effect of wtd on coy through effects on itself, bear, and coy effect on itself
+      #'  wtd[t-1] --> coy[t]
+      #'  wtd[t-1] --> wtd[t] --> coy[t]
+      #'  wtd[t-1] --> coy[t-1] --> coy[t]
+      #'  wtd[t-1] --> bear[t-1] --> wtd[t] --> coy[t]
+      #'  wtd[t-1] --> coy[t-1] --> wtd[t] --> coy[t]
+      total.wtd.coy <- beta.wtd[6] + beta.wtd[1] * beta.wtd[7] + beta.wtd[7] * beta.coy[1] + beta.wtd[5] * beta.bear[3] * beta.wtd[7] + beta.wtd[7] * beta.coy[2] * beta.wtd[7]
+      #' #'  Total effect of bear on itself through AR1 and effect on wtd 
+      #' #'  bear[t-1] --> bear[t]  
+      #' #'  bear[t-1] --> wtd[t] --> bear[t]
+      #' total.bear.self <- beta.bear[1] + beta.bear[3] * beta.wtd[5] 
+      #' #'  Total effect of coy on itself through AR1 and effect on wtd  
+      #' #'  coy[t-1] --> coy[t]  
+      #' #'  coy[t-1] --> wtd[t] --> coy[t]
+      #' total.coy.self <- beta.coy[1] + beta.coy[2] * beta.wtd[7]   
+      #' #'  Total effect of wtd on itself through effects on bear and coy
+      #' # total.wtd.wtd # ignoring 
+      
+      
       
       }")
 
