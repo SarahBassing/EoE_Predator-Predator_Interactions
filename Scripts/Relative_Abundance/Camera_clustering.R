@@ -957,20 +957,31 @@
     distinct(NwLctID, GMU, Clusters, area_km2) %>%
     group_by(GMU, Clusters, area_km2) %>%
     summarize(ncams = n()) %>%
-    ungroup()
+    ungroup() %>%
+    mutate(area_km2 = round(area_km2, 2)) %>%
+    arrange(match(GMU, c("GMU1", "GMU6", "GMU10A")))
+  write_csv(cam_clusters, "./Outputs/Relative_Abundance/RN_model/Tables/camera_cluster_table.csv")
+  
   min(cam_clusters$ncams); max(cam_clusters$ncams)
   mean(cam_clusters$ncams)
+  median(cam_clusters$ncams)
+  sd(cam_clusters$ncams)
   sd(cam_clusters$ncams)/sqrt(length(cam_clusters$ncams))
   
   #'  Cluster area
   avg_cluster_area <- cam_clusters %>%
     group_by(GMU) %>%
     summarize(mean_areakm2 = round(mean(area_km2),2),
+              sd_areakm2 = round(sd(area_km2), 2),
               se_areakm2 = round(sd(area_km2)/sqrt(nrow(.)),3)) %>%
     ungroup()
+  write_csv(avg_cluster_area, "./Outputs/Relative_Abundance/RN_model/Tables/cluster_area_avg_table.csv")
+  
   #'  Mean, min, and max cluster area
   mean(cam_clusters$area_km2)
+  median(cam_clusters$area_km2)
   min(cam_clusters$area_km2); max(cam_clusters$area_km2)
+  sd(cam_clusters$area_km2)
   sd(cam_clusters$area_km2)/sqrt(length(cam_clusters$area_km2))
   
   #'  ----------------------------------
