@@ -18,9 +18,9 @@
   
   #'  Load spatial data
   #'  Cluster polygons
-  gmu1_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1.shp") %>% mutate(GMU = "GMU1")
-  gmu6_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6.shp") %>% mutate(GMU = "GMU6")
-  gmu10a_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a.shp") %>% mutate(GMU = "GMU10A")
+  gmu1_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu1_05.11.26.shp") %>% mutate(GMU = "GMU1")
+  gmu6_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu6_05.11.26.shp") %>% mutate(GMU = "GMU6")
+  gmu10a_poly <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_cluster_polygons_gmu10a_05.11.26.shp") %>% mutate(GMU = "GMU10A")
   
   #'  Camera clusters
   clusters_gmu1 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/Camera_clusters/cam_clusters_gmu1.shp") 
@@ -32,11 +32,13 @@
     ungroup()
   
   #'  Royle-Nichols estimates spatial data
-  load("./Shapefiles/IDFG spatial data/Camera_locations/spatial_RN_list.RData")
+  load("./Shapefiles/IDFG spatial data/Camera_locations/spatial_RN_list_2020_2023.RData")
   
   #'  Relative Density Index per cluster (loads as cluster_density)
-  load("./Outputs/Relative_Abundance/RN_model/RelativeDensityIndex_per_SppCluster.RData")
-  head(cluster_density[[1]]); head(cluster_density[[2]]); head(cluster_density[[3]])
+  # load("./Outputs/Relative_Abundance/RN_model/RelativeDensityIndex_per_SppCluster.RData")
+  # head(cluster_density[[1]]); head(cluster_density[[2]]); head(cluster_density[[3]])
+  load("./Shapefiles/IDFG spatial data/Camera_locations/spatial_RDI_list_2020_2023.RData")
+  spatial_rdi_list[[1]] # black bears 2020 [[1]], 2021 [[2]], 2022 [[3]], 2023 [[4]]
   
   #'  Camera locations
   cams_20s_wgs84 <- st_read("./Shapefiles/IDFG spatial data/Camera_locations/cams_20s_wgs84.shp")
@@ -81,15 +83,13 @@
     return(dat)
   }
   rn_bear_all <- mapply(add_yr, dat = spatial_RN_list[[1]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
-  rn_bob_all <- mapply(add_yr, dat = spatial_RN_list[[2]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
-  rn_coy_all <- mapply(add_yr, dat = spatial_RN_list[[3]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
-  rn_lion_all <- mapply(add_yr, dat = spatial_RN_list[[4]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
-  rn_wolf_all <- mapply(add_yr, dat = spatial_RN_list[[5]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_coy_all <- mapply(add_yr, dat = spatial_RN_list[[2]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_lion_all <- mapply(add_yr, dat = spatial_RN_list[[3]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_wolf_all <- mapply(add_yr, dat = spatial_RN_list[[4]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   
-  rn_elk_all <- mapply(add_yr, dat = spatial_RN_list[[6]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
-  rn_lago_all <- mapply(add_yr, dat = spatial_RN_list[[7]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
-  rn_moose_all <- mapply(add_yr, dat = spatial_RN_list[[8]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
-  rn_wtd_all <- mapply(add_yr, dat = spatial_RN_list[[9]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_elk_all <- mapply(add_yr, dat = spatial_RN_list[[5]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_moose_all <- mapply(add_yr, dat = spatial_RN_list[[6]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
+  rn_wtd_all <- mapply(add_yr, dat = spatial_RN_list[[7]], yr = year_list, SIMPLIFY = FALSE) %>% bind_rows(.)
   
   #'  Merge cluster polygons across GMUs
   cluster_poly <- bind_rows(gmu1_poly, gmu6_poly, gmu10a_poly) %>%
