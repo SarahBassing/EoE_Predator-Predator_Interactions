@@ -119,7 +119,10 @@
               "indirect.elk.wolf.moose",   "indirect.elk.wolf.wtd", "indirect.wtd.wolf.elk",   
               "indirect.wtd.wolf.moose",   "indirect.wtd.wolf.wtd", "indirect.wtd.lion.elk.v2", 
               "indirect.wtd.lion.wtd.v2", "indirect.wtd.wolf.elk.v2", "indirect.wtd.wolf.moose.v2", 
-              "indirect.wtd.wolf.wtd.v2", "indirect.wtd.bear.elk.v2",latent_params) 
+              "indirect.wtd.wolf.wtd.v2", "indirect.wtd.bear.elk.v2",
+              "sum.wtd.lion", "sum.wtd.wolf",
+              "total.wtd.lion", "total.wtd.wolf", "total.wtd.bear", "total.wtd.elk",
+              latent_params) 
   
   start.time = Sys.time()
   SEM_topdown_final <- jagsUI::jags(data_JAGS_bundle_topdown_final, inits = initsList_topdown_final, params, 
@@ -140,12 +143,12 @@
                                          covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
                                          covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
                                          nwolf = 6, nlion = 4, nbear = 1, ncoy = 1, nelk = 1, 
-                                         nmoose = 1, nwtd = 1, nharv = 3, nfor = 0, nwsi = 0)
+                                         nmoose = 1, nwtd = 1, nharv = 5, nfor = 0, nwsi = 0)  #nharv = 3
   num.chains <- 3
   initsList_topdown_inter <- vector('list', num.chains) 
   for(i in 1:num.chains) {
     initsList_topdown_inter[[i]] <- generate_inits(nwolf = 6, nlion = 4, nbear = 1, ncoy = 1, nelk = 1, nmoose = 1, 
-                                             nwtd = 1, nharv = 3, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4)
+                                             nwtd = 1, nharv = 5, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4)  #nharv = 3
   }
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter.R")
   start.time = Sys.time()
@@ -165,14 +168,14 @@
                                                      dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
                                                      covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
                                                      covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
-                                                     nwolf = 6, nlion = 3, nbear = 3, ncoy = 2, nelk = 1, 
-                                                     nmoose = 1, nwtd = 1, nharv = 3, nfor = 0, nwsi = 0)
+                                                     nwolf = 6, nlion = 3, nbear = 5, ncoy = 2, nelk = 1, #nbear = 3
+                                                     nmoose = 1, nwtd = 1, nharv = 5, nfor = 0, nwsi = 0) #nharv = 3
                                                
   num.chains <- 3
   initsList_topdown_inter_final <- vector('list', num.chains) 
   for(i in 1:num.chains) {
-    initsList_topdown_inter_final[[i]] <- generate_inits(nwolf = 6, nlion = 3, nbear = 3, ncoy = 2, nelk = 1, nmoose = 1, 
-                                                         nwtd = 1, nharv = 3, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4)
+    initsList_topdown_inter_final[[i]] <- generate_inits(nwolf = 6, nlion = 3, nbear = 5, ncoy = 2, nelk = 1, nmoose = 1, 
+                                                         nwtd = 1, nharv = 5, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4) #nbear = 3 nharv = 3
   }
   source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_topdown_inter_final.R")
   
@@ -180,15 +183,27 @@
   latent_params <- c("lion.latent", "wolf.latent", "bear.latent", "coy.latent", "elk.latent", "moose.latent", "wtd.latent")
   
   #'  Updated list of parameters to follow (includes derived parameters for indirect effects now)
-  params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk",
-              "beta.moose", "beta.wtd", "beta.harvest", "sigma.spp", "indirect.wolf.lion.elk", 
-              "indirect.wolf.lion.wtd", "indirect.wolf.lion.coy", "indirect.wolf.bear.wtd",
-              "indirect.wolf.coy.wtd", "indirect.lion.coy.wtd", "indirect.wolf.bear.wolf",
-              "indirect.bear.wolf.bear", "indirect.bear.wolf.lion", "indirect.bear.wolf.coy",
-              "indirect.wolf.bear.self", "indirect.wolf.coy.self", "indirect.lion.coy.self", 
-              "indirect.bear.wolf.self", "indirect.wolf.elk.self", "indirect.lion.elk.self", 
-              "indirect.wolf.moose.self", "indirect.lion.wtd.self", "indirect.coy.wtd.self", 
-              "indirect.bear.wtd.self", latent_params) 
+  params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.lion", "beta.bear", 
+              "beta.coy", "beta.elk", "beta.moose", "beta.wtd", "beta.harvest", "sigma.spp",  
+              "indirect.wolf.lion.elk", "indirect.wolf.lion.wtd", "indirect.wolf.lion.coy",
+              "indirect.bear.lion.elk", "indirect.bear.lion.wtd", "indirect.bear.lion.coy",
+              "indirect.bear.wolf.elk", "indirect.bear.wolf.moose", "indirect.wolf.bear.wtd", 
+              "indirect.wolf.bear.elk", "indirect.wolf.bear.lion", "indirect.wolf.coy.wtd", 
+              "indirect.lion.coy.wtd", "indirect.wolf.bear.wolf", "indirect.bear.wolf.lion", 
+              "indirect.bear.wolf.coy", "indirect.wolf.bear.self", "indirect.wolf.coy.self", 
+              "indirect.lion.coy.self", "indirect.bear.wolf.self", "indirect.wolf.elk.self", 
+              "indirect.lion.elk.self", "indirect.bear.elk.self", "indirect.wolf.moose.self", 
+              "indirect.lion.wtd.self", "indirect.coy.wtd.self","indirect.bear.wtd.self",
+              "total.bear.lion", "total.bear.elk", "total.bear.wolf", latent_params)
+              # c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.lion", "beta.bear", "beta.coy", "beta.elk",
+              # "beta.moose", "beta.wtd", "beta.harvest", "sigma.spp",  
+              # "indirect.wolf.lion.wtd", "indirect.wolf.lion.coy", "indirect.wolf.bear.wtd",
+              # "indirect.wolf.coy.wtd", "indirect.lion.coy.wtd", "indirect.wolf.bear.wolf",
+              # "indirect.bear.wolf.bear", "indirect.bear.wolf.lion", "indirect.bear.wolf.coy",
+              # "indirect.wolf.bear.self", "indirect.wolf.coy.self", "indirect.lion.coy.self", 
+              # "indirect.bear.wolf.self", "indirect.wolf.elk.self", "indirect.lion.elk.self", 
+              # "indirect.wolf.moose.self", "indirect.lion.wtd.self", "indirect.coy.wtd.self", 
+              # "indirect.bear.wtd.self", "total.bear.wolf", latent_params) 
   
   start.time = Sys.time()
   SEM_topdown_inter_final <- jagsUI::jags(data_JAGS_bundle_topdown_inter_final, inits = initsList_topdown_inter_final, params, 
@@ -259,8 +274,14 @@
               "indirect.bear.wtd.coy", "indirect.bear.elklag.lion", "indirect.bear.elklag.wolf", 
               "indirect.bear.elklag.bear", "indirect.coy.wtdlag.lion", "indirect.coy.wtdlag.coy",
               "indirect.bear.wtdlag.lion", "indirect.bear.wtdlag.coy", "indirect.bear.elk.self", 
-              "indirect.bear.wtd.self", "indirect.coy.wtd.self", "indirect.elk.bear.elk", 
-              "indirect.elk.bear.wtd", latent_params) 
+              "indirect.bear.wtd.self", "indirect.coy.wtd.self", "indirect.elk.wolf.self",
+              "indirect.moose.wolf.self", "indirect.wtd.wolf.self", "indirect.elk.bear.self",
+              "indirect.wtd.bear.self", "indirect.wtd.coy.self", "indirect.elk.bearlag.elk",
+              "indirect.elk.bearlag.wtd", "indirect.wtd.bear.elk", 
+              "sum.elk.lion", "sum.elk.wolf", "sum.moose.wolf", "sum.wtd.lion", "sum.wtd.coy",
+              "total.bear.lion", "total.bear.wolf", "total.elk.lion", "total.elk.wolf", 
+              "total.moose.wolf", "total.wtd.lion", "total.wtd.wolf", "total.wtd.bear", 
+              "total.wtd.coy", latent_params) 
   
   start.time = Sys.time()
   SEM_bottomup_final <- jagsUI::jags(data_JAGS_bundle_bottomup_final, inits = initsList_bottomup_final, params, 
@@ -324,8 +345,9 @@
   #'  Updated list of parameters to follow (includes derived parameters for indirect effects now)
   params <- c("beta.int", "beta.int.tmin1", "beta.wolf", "beta.bear", "beta.coy",
               "beta.elk", "beta.moose", "beta.wtd", "beta.forest", "beta.wsi", "sigma.spp",
-              "indirect.elk.wolf.bear", "indirect.moose.wolf.bear.v1", "indirect.moose.wolf.bear.v2",
-              "indirect.elk.wolf.coy",  "indirect.moose.wolf.coy.v1",  "indirect.moose.wolf.coy.v2",
+              "indirect.elk.wolf.bear.v1", "indirect.elk.wolf.bear.v2", "indirect.moose.wolf.bear.v1", 
+              "indirect.moose.wolf.bear.v2", "indirect.elk.wolf.coy.v1",  
+              "indirect.elk.wolf.coy.v2",  "indirect.moose.wolf.coy.v1",  "indirect.moose.wolf.coy.v2",
               "indirect.elk.bear.lion", "indirect.wtd.bear.lion", "indirect.elk.bear.wolf.v1", 
               "indirect.wtd.bear.wolf.v1", "indirect.elk.bear.wolf.v2", "indirect.wtd.bear.wolf.v2",
               "indirect.elk.bear.coy", "indirect.wtd.bear.coy", "indirect.wolf.bear.lion",
@@ -334,7 +356,11 @@
               "indirect.bear.wolf.coy.v2", "indirect.elk.wolf.self", "indirect.moose.wolf.self",
               "indirect.elk.bear.self", "indirect.wtd.bear.self", "indirect.wtd.coy.self",
               "indirect.bear.wolf.self", "indirect.wolf.bear.self", "indirect.wolf.coy.self",  
-              "indirect.bear.coy.self", latent_params) 
+              "indirect.bear.coy.self", 
+              "sum.bear.wolf", "sum.elk.lion", "sum.elk.wolf", "sum.moose.wolf", "sum.wtd.lion", "sum.wtd.coy",
+              "total.bear.wolf", "total.bear.coy", "total.elk.lion", "total.elk.wolf", "total.elk.bear",
+              "total.moose.wolf", "total.wtd.lion", "total.wtd.wolf", "total.wtd.bear", "total.wtd.coy",
+              latent_params) 
   
   start.time = Sys.time()
   SEM_bottomup_inter_final <- jagsUI::jags(data_JAGS_bundle_bottomup_inter_final, inits = initsList_bottomup_inter, params,
@@ -348,36 +374,6 @@
   which(SEM_bottomup_inter_final$summary[,"Rhat"] > 1.1)
   mcmcplot(SEM_bottomup_inter_final$samples)
   save(SEM_bottomup_inter_final, file = paste0("./Outputs/SEM/JAGS_out/SEM_bottomup_inter_final_", Sys.Date(), ".RData"))
-  
-  
-  # #####  Bottom-up, Top-down, Interference & Exploitative Hybrid  #####
-  # data_JAGS_bundle_hybrid <- bundle_dat(dat_yr1 = posteriors_20s, dat_yr2 = posteriors_21s, 
-  #                                         dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
-  #                                         covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
-  #                                         covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
-  #                                         nwolf = 1, nlion = 1, nbear = 1, ncoy = 1, nelk = 4, 
-  #                                         nmoose = 2, nwtd = 3, nharv = 0, nfor = 4, nwsi = 3)
-  # num.chains <- 3
-  # initsList_hybrid <- vector('list', num.chains) 
-  # for(i in 1:num.chains) {
-  #   initsList_hybrid[[i]] <- generate_inits(nwolf = 1, nlion = 1, nbear = 1, ncoy = 1, nelk = 4, nmoose = 2, 
-  #                                             nwtd = 3, nharv = 0, nfor = 4, nwsi = 3, nSpp = 7, nSites = 23, nYear = 4)
-  # }
-  # source("./Scripts/Structural_Equation_Models/Bayesian_SEM/JAGS_SEM_posthoc_hybrid.R")
-  # start.time = Sys.time()
-  # SEM_hybrid <- jagsUI::jags(data_JAGS_bundle_hybrid, inits = initsList_hybrid, params, 
-  #                              "./Outputs/SEM/JAGS_out/JAGS_SEM_posthoc_hybrid.txt",
-  #                              n.adapt = na, n.chains = nc, n.thin = nt, n.iter = ni, 
-  #                              n.burnin = nb, parallel = TRUE)
-  # end.time <- Sys.time(); (run.time <- end.time - start.time)
-  # print(SEM_hybrid$summary)
-  # which(SEM_hybrid$summary[,"Rhat"] < 0.9)
-  # which(SEM_hybrid$summary[,"Rhat"] > 1.1)
-  # mcmcplot(SEM_hybrid$samples)
-  # save(SEM_hybrid, file = paste0("./Outputs/SEM/JAGS_out/SEM_posthoc_hybrid_", Sys.Date(), ".RData"))
-  
-
-  
   
   
   #'  ---------------------------
@@ -649,23 +645,14 @@
                                            "Top-down, exploitative", 
                                            "Bottom-up, exploitative", 
                                            "Bottom-up, interference"),
-                                           # "Bottom-up, interference",
-                                           # "Top-down, exploitative", 
-                                           # "Bottom-up, exploitative"),
                                  ELPD = c(sum(stacked_elpd_per_site),
                                           loso_topdown_exploit$total_elpd,
                                           loso_bottomup_exploit$total_elpd,
                                           loso_bottomup_inter$total_elpd),
-                                         # loso_bottomup_inter$total_elpd,
-                                         # loso_topdown_exploit$total_elpd,
-                                         # loso_bottomup_exploit$total_elpd),
                                  SE = c(se_stacked,
                                         loso_topdown_exploit$se_elpd,
                                         loso_bottomup_exploit$se_elpd,
                                         loso_bottomup_inter$se_elpd)) %>%
-                                        # loso_bottomup_inter$se_elpd,
-                                        # loso_topdown_exploit$se_elpd,
-                                        # loso_bottomup_exploit$se_elpd)) %>%
     mutate(ELPD = round(ELPD, 2),
            SE = round(SE, 2))
   updated_loso_tbl <- updated_loso_tbl[order(-updated_loso_tbl$ELPD),]
@@ -754,7 +741,7 @@
   #'  Load model outputs
   load("./Outputs/SEM/JAGS_out/SEM_topdown_exploitation_final_2026-10-05.RData") #2026-09-13
   load("./Outputs/SEM/JAGS_out/SEM_topdown_inter_final_2026-10-05.RData")
-  load("./Outputs/SEM/JAGS_out/SEM_bottomup_exploitation_final_2026-10-05.RData")
+  load("./Outputs/SEM/JAGS_out/SEM_bottomup_exploitation_final_2026-10-06.RData") # 2026-10-05
   load("./Outputs/SEM/JAGS_out/SEM_bottomup_inter_final_2026-10-05.RData")
   
   grab_coefs <- function(mod_out) {
