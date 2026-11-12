@@ -16,7 +16,7 @@
   #'  This produces warnings that can be ignored.
   #'  
   #'  Script then conducts d-separation tests iteratively It first defines the 
-  #'  ROPE function and identifies the basic set for each SEM. It then sources a
+  #'  ROPE function and identifies the basis set for each SEM. It then sources a
   #'  template JAGS model and updates the template for each individual d-sep test
   #'  by creating a set of custom regressions in the JAGS template for each test*.
   #'  It then fits each iteration* of the model and calculates a p-value using the
@@ -41,7 +41,7 @@
   source("./Scripts/Structural_Equation_Models/Format_spatial_covariates_for_SEMs.R")
   #'  Formats density data for SEMs
   source("./Scripts/Structural_Equation_Models/Format_RNmodel_Posteriors_for_SEM.R")
-  #'  Basic set and d-Separation test functions
+  #'  basis set and d-Separation test functions
   source("./Scripts/Structural_Equation_Models/d_Sep_functions.R")
   #'  Set options so all no rows are omitted in model output
   options(max.print = 9999)
@@ -77,8 +77,8 @@
                      moose.t ~ moose.tmin1 + wolf.tmin1,
                      wtd.t ~ wtd.tmin1 + lion.tmin1 + deerHarv.tmin1)
   
-  #'  Generate basic set
-  bs_topdown <- basic_set(dag_topdown)
+  #'  Generate basis set
+  bs_topdown <- basis_set(dag_topdown)
   
   #'  ----------------------
   ######  d-Sep iterations  ######
@@ -151,7 +151,7 @@
   
   #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #'  this time to simply test correlation between exogenous variables flagged 
-  #'  in the basic set
+  #'  in the basis set
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_exog_only.R")
   #'  Fit independence claims for pairs of exogenous variables
   start.time = Sys.time()
@@ -346,7 +346,7 @@
   bayes.p_topdown_all <- list(bayes.p_topdown_list, bayes.p_topdown_tmin1_list, bayes.p_topdown_exog_list)
   
   #'  Name list by iteration and convert to a data.frame
-  name_pval_iterations <- function(post_list, basicset_name) {
+  name_pval_iterations <- function(post_list, basisset_name) {
     #'  Rename object with iteration number
     for(i in 1:length(post_list)) {
       list_name <- sprintf("regression.%03d", i)
@@ -356,13 +356,13 @@
     post_list_df <- stack(post_list) %>%
       transmute(iteration = ind,
                 p.val = round(values, 4),
-                basicset = basicset_name)
+                basisset = basisset_name)
     return(post_list_df)
   }
-  basicset_name <- list("normal", "tmin1", "exog")
-  p.rope_topdown_df <- mapply(name_pval_iterations, post_list = p.rope_topdown_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  basisset_name <- list("normal", "tmin1", "exog")
+  p.rope_topdown_df <- mapply(name_pval_iterations, post_list = p.rope_topdown_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("p.rope" = "p.val")
-  bayes.p_topdown_df <- mapply(name_pval_iterations, post_list = bayes.p_topdown_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  bayes.p_topdown_df <- mapply(name_pval_iterations, post_list = bayes.p_topdown_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("bayes.p" = "p.val")
   
   #'  Quick peak
@@ -370,16 +370,16 @@
   head(bayes.p_topdown_df)
   
   #'  Join p.rope and bayes.p values into single data.frame
-  p.val_topdown_all_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = c("iteration", "basicset")) %>% relocate("bayes.p", .after = "p.rope")
+  p.val_topdown_all_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = c("iteration", "basisset")) %>% relocate("bayes.p", .after = "p.rope")
   
   #'  Save!
   write_csv(p.val_topdown_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_all_claims.csv")
   
   #'  Remove "tmin1" claims from final set of conditional independence claims
   #'  These are redundant and a result of how the lag effect had to be accounted for
-  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  in the basis set DAG. These relationships are already captured in the model 
   #'  through various pathways.
-  p.val_topdown_all_df_skinny <- filter(p.val_topdown_all_df, basicset != "tmin1")
+  p.val_topdown_all_df_skinny <- filter(p.val_topdown_all_df, basisset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
   fishers.C_topdown <- fishers_C(pval = p.val_topdown_all_df_skinny$bayes.p, 
                                        n_iter = nrow(p.val_topdown_all_df_skinny))
@@ -395,11 +395,11 @@
                            wolf.t ~ wolf.tmin1 + wolfHarv.tmin1,
                            bear.t ~ bear.tmin1 + wolf.tmin1 + bearHarv.tmin1,
                            coy.t ~ coy.tmin1 + wolf.tmin1 + lion.tmin1,
-                           elk.t ~ elk.tmin1 + wolf.tmin1 + lion.tmin1,
+                           elk.t ~ elk.tmin1 + wolf.tmin1 + lion.tmin1 + elkHarv.tmin1,
                            moose.t ~ moose.tmin1 + wolf.tmin1,
-                           wtd.t ~ wtd.tmin1 + lion.tmin1)
-  #'  Generate basic set
-  bs_topdown_inter <- basic_set(dag_topdown_inter)
+                           wtd.t ~ wtd.tmin1 + lion.tmin1 + deerHarv.tmin1)
+  #'  Generate basis set
+  bs_topdown_inter <- basis_set(dag_topdown_inter)
   
   #'  ----------------------
   ######  d-Sep iterations  ######
@@ -417,26 +417,26 @@
     #'  Regression 4: coy.latent
     list(covs = c("coy.latent", "wolf.latent", "lion.latent"), spp = c(".coy", ".wolf", ".lion"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 5: elk.latent
-    list(covs = c("elk.latent", "wolf.latent", "lion.latent"), spp = c(".elk", ".wolf", ".lion"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
+    list(covs = c("elk.latent", "wolf.latent", "lion.latent", "elkHarv"), spp = c(".elk", ".wolf", ".lion", ".harvest"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1","y-1")),
     #'  Regression 6: moose.latent
     list(covs = c("moose.latent", "wolf.latent"), spp = c(".moose", ".wolf"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")),
     #'  Regression 7: wtd.latent
-    list(covs = c("wtd.latent", "lion.latent"), spp = c(".wtd", ".lion"), indices = as.integer(c(1,1)), lags = c("y-1","y-1"))
+    list(covs = c("wtd.latent", "lion.latent", "deerHarv"), spp = c(".wtd", ".lion", ".harvest"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1"))
   )
   #'  Source d-Sep custom regressions for iterative d-separation tests 
-  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter.R")
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter.R") # 11/11/26 now includes elk & wtd harvest
   
   data_JAGS_bundle_topdown_inter <- bundle_dat(dat_yr1 = posteriors_20s, dat_yr2 = posteriors_21s, 
                                                dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
                                                covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
                                                covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
                                                nwolf = 7, nlion = 4, nbear = 2, ncoy = 2, nelk = 2, 
-                                               nmoose = 2, nwtd = 2, nharv = 4, nfor = 0, nwsi = 0)
+                                               nmoose = 2, nwtd = 2, nharv = 6, nfor = 0, nwsi = 0) #nharv = 4
   num.chains <- 3
   initsList_topdown_inter <- vector('list', num.chains) 
   for(i in 1:num.chains) {
     initsList_topdown_inter[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 2, ncoy = 2, nelk = 2, nmoose = 2, 
-                                                   nwtd = 2, nharv = 4, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4)
+                                                   nwtd = 2, nharv = 6, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4) #nharv = 4
   }
   
   #'  Fit and save model iterations
@@ -452,12 +452,13 @@
   end.time <- Sys.time(); (run.time <- end.time - start.time)
   
   #'  Source second d-Sep custom regressions for iterative d-separation tests 
-  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_tmin1_only.R")
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_tmin1_only.R") # 11/11/26 now includes elk & wtd harvest
   
-  #'  Load the final version of the top-down exploitative SEM
+  #'  Load the final version of the top-down interference SEM
   #'  Necessary to have this in the global environment (with the spp.latent params saved)
   #'  for testing the A tmin1 --> B tmin1 independence claims
-  load("./Outputs/SEM/JAGS_out/SEM_topdown_inter_2026-09-13.RData")
+  load("./Outputs/SEM/JAGS_out/SEM_topdown_inter_2026-10-27.RData") # includes elk and wtd harvest
+  # load("./Outputs/SEM/JAGS_out/SEM_topdown_inter_2026-09-13.RData")
   
   #'  Fit independence claims for variables where t-1 --> t-1 
   start.time = Sys.time()
@@ -472,8 +473,8 @@
   
   #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #'  this time to simply test correlation between exogenous variables flagged 
-  #'  in the basic set
-  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_exog_only.R")
+  #'  in the basis set
+  source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_exog_only.R") # 11/11/26 now includes elk & wtd harvest
   #'  Fit independence claims for pairs of exogenous variables
   start.time = Sys.time()
   saved_paths <- future_lapply(
@@ -500,30 +501,61 @@
   #'  Create list of "observed" values of focal response variable, one per d-Sep test               # instances where x was used as y in d-Sep test noted below
   y_list <- list(data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,      #
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   # 
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,    #      
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,      #
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,    #
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,    #
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   # 
                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,  #
                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat,     # wtd flipped both times
                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat,      # wtd flipped all three times
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,    # wtd flipped    
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,    # wtd flipped
                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   #      
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   #
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #
                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat,  #
                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat,     #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   #     
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   #
                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat,    #
-                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #     
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat,    #
-                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #    
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,    #  
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,    #
                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat,   #
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat,    #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat)                                                           
-  #'  Leaves you with 74 d-Sep tests that were t-1 --> t or t --> t
+                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat,   #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat)                              #
+  #'  Leaves you with 86 d-Sep tests that were t-1 --> t or t --> t
+    
+  #'y_list <- list(data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+  #'                data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,      #
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   # 
+  #'                data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,    #      
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+  #'                data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,  #
+  #'                data_JAGS_bundle$lion.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat,     # wtd flipped both times
+  #'                data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat,      # wtd flipped all three times
+  #'                data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,    # wtd flipped    
+  #'                data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #
+  #'                data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   #      
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+  #'                data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #
+  #'                data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat,  #
+  #'                data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat,     #
+  #'                data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   #     
+  #'                data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat,    #
+  #'                data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #     
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat,    #
+  #'                data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #    
+  #'                data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,    #  
+  #'                data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat,   #
+  #'                data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat,    #
+  #'                data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat)                                                           
+  #' #'  Leaves you with 74 d-Sep tests that were t-1 --> t or t --> t
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
   #'  Pay close attention to the indexing, especially with the beta.harvest indices. 
@@ -536,31 +568,62 @@
   #'  Note: indexing is based on the number of independence claims assessed using the
   #'  d_Sep_active_regression_topdown_inter.R active regression list. This is not a complete
   #'  list of all independence claims being tested.
-  post_list_topdown_inter <- list(mod_out[[1]]$beta.wtd[,1], mod_out[[2]]$beta.wtd[,1], mod_out[[3]]$beta.wtd[,1],
-                                  mod_out[[4]]$beta.wtd[,1], mod_out[[5]]$beta.wtd[,1], mod_out[[6]]$beta.wtd[,1],
-                                  mod_out[[7]]$beta.moose[,1], mod_out[[8]]$beta.moose[,1], mod_out[[9]]$beta.moose[,1],
-                                  mod_out[[10]]$beta.moose[,1], mod_out[[11]]$beta.moose[,1], mod_out[[12]]$beta.moose[,1],
-                                  mod_out[[13]]$beta.elk[,1], mod_out[[14]]$beta.elk[,1], mod_out[[15]]$beta.elk[,1],
-                                  mod_out[[16]]$beta.elk[,1], mod_out[[17]]$beta.elk[,1], mod_out[[18]]$beta.elk[,1],
-                                  mod_out[[19]]$beta.lion[,1], mod_out[[20]]$beta.lion[,1], mod_out[[21]]$beta.lion[,1],
-                                  mod_out[[22]]$beta.lion[,1], mod_out[[23]]$beta.coy[,1], mod_out[[24]]$beta.harvest[,1],        
-                                  mod_out[[25]]$beta.bear[,1], mod_out[[26]]$beta.harvest[,1], mod_out[[27]]$beta.harvest[,1],             
-                                  mod_out[[28]]$beta.wolf[,1], mod_out[[29]]$beta.wtd[,2], mod_out[[30]]$beta.wtd[,2],             # note the different indexing
-                                  mod_out[[31]]$beta.wtd[,2], mod_out[[32]]$beta.wtd[,2], mod_out[[33]]$beta.wtd[,2],              # note the different indexing
-                                  mod_out[[34]]$beta.wtd[,2], mod_out[[35]]$beta.coy[,1], mod_out[[36]]$beta.coy[,1],              # note the different indexing
-                                  mod_out[[37]]$beta.coy[,1], mod_out[[38]]$beta.coy[,1], mod_out[[39]]$beta.coy[,1],    
-                                  mod_out[[40]]$beta.harvest[,1], mod_out[[41]]$beta.harvest[,1], mod_out[[42]]$beta.harvest[,1], 
-                                  mod_out[[43]]$beta.harvest[,2], mod_out[[44]]$beta.harvest[,2], mod_out[[45]]$beta.bear[,1],     # note the different indexing
-                                  mod_out[[46]]$beta.bear[,1], mod_out[[47]]$beta.bear[,1], mod_out[[48]]$beta.bear[,1],  
-                                  mod_out[[49]]$beta.bear[,1], mod_out[[50]]$beta.harvest[,1], mod_out[[51]]$beta.harvest[,1], 
-                                  mod_out[[52]]$beta.harvest[,1], mod_out[[53]]$beta.harvest[,2], mod_out[[54]]$beta.harvest[,2], # note the different indexing
-                                  mod_out[[55]]$beta.harvest[,1], mod_out[[56]]$beta.harvest[,1], mod_out[[57]]$beta.harvest[,1],       
-                                  mod_out[[58]]$beta.harvest[,2], mod_out[[59]]$beta.harvest[,2], mod_out[[60]]$beta.moose[,2],   # note the different indexing
-                                  mod_out[[61]]$beta.moose[,2], mod_out[[62]]$beta.moose[,2], mod_out[[63]]$beta.moose[,2],       # note the different indexing
-                                  mod_out[[64]]$beta.moose[,2], mod_out[[65]]$beta.elk[,2], mod_out[[66]]$beta.elk[,2],           # note the different indexing
-                                  mod_out[[67]]$beta.elk[,2], mod_out[[68]]$beta.elk[,2], mod_out[[69]]$beta.coy[,2],             # note the different indexing
-                                  mod_out[[70]]$beta.coy[,2], mod_out[[71]]$beta.coy[,2], mod_out[[72]]$beta.bear[,2],            # note the different indexing
-                                  mod_out[[73]]$beta.bear[,2], mod_out[[74]]$beta.wolf[,2])                                       # note the different indexing
+  post_list_topdown_inter <- list(
+    mod_out[[1]]$beta.harvest[,1], mod_out[[2]]$beta.harvest[,2], mod_out[[3]]$beta.harvest[,1],      # note the different indexing
+    mod_out[[4]]$beta.harvest[,2], mod_out[[5]]$beta.harvest[,2], mod_out[[6]]$beta.harvest[,2],      # note the different indexing
+    mod_out[[7]]$beta.wtd[,1], mod_out[[8]]$beta.wtd[,1], mod_out[[9]]$beta.wtd[,1],               
+    mod_out[[10]]$beta.wtd[,1], mod_out[[11]]$beta.wtd[,1], mod_out[[12]]$beta.wtd[,1],            
+    mod_out[[13]]$beta.moose[,1], mod_out[[14]]$beta.moose[,1], mod_out[[15]]$beta.moose[,1],      
+    mod_out[[16]]$beta.moose[,1], mod_out[[17]]$beta.moose[,1], mod_out[[18]]$beta.moose[,1],      
+    mod_out[[19]]$beta.harvest[,2], mod_out[[20]]$beta.harvest[,1], mod_out[[21]]$beta.harvest[,1],   # note the different indexing
+    mod_out[[22]]$beta.harvest[,2], mod_out[[23]]$beta.harvest[,2], mod_out[[24]]$beta.harvest[,2],   # note the different indexing
+    mod_out[[25]]$beta.elk[,1], mod_out[[26]]$beta.elk[,1], mod_out[[27]]$beta.elk[,1],            
+    mod_out[[28]]$beta.elk[,1], mod_out[[29]]$beta.elk[,1], mod_out[[30]]$beta.elk[,1],            
+    mod_out[[31]]$beta.lion[,1], mod_out[[32]]$beta.lion[,1], mod_out[[33]]$beta.lion[,1],         
+    mod_out[[34]]$beta.lion[,1], mod_out[[35]]$beta.coy[,1], mod_out[[36]]$beta.harvest[,2],          # note the different indexing
+    mod_out[[37]]$beta.bear[,1], mod_out[[38]]$beta.harvest[,2], mod_out[[39]]$beta.harvest[,2],      # note the different indexing
+    mod_out[[40]]$beta.wolf[,1], mod_out[[41]]$beta.wtd[,2], mod_out[[42]]$beta.wtd[,2],              # note the different indexing
+    mod_out[[43]]$beta.wtd[,2], mod_out[[44]]$beta.wtd[,2], mod_out[[45]]$beta.wtd[,2],               # note the different indexing
+    mod_out[[46]]$beta.wtd[,2], mod_out[[47]]$beta.coy[,1], mod_out[[48]]$beta.coy[,1],               # note the different indexing
+    mod_out[[49]]$beta.coy[,1], mod_out[[50]]$beta.coy[,1], mod_out[[51]]$beta.coy[,1],            
+    mod_out[[52]]$beta.harvest[,1], mod_out[[53]]$beta.harvest[,2], mod_out[[54]]$beta.harvest[,1],   # note the different indexing
+    mod_out[[55]]$beta.harvest[,2], mod_out[[56]]$beta.harvest[,2], mod_out[[57]]$beta.bear[,1],      # note the different indexing
+    mod_out[[58]]$beta.bear[,1], mod_out[[59]]$beta.bear[,1], mod_out[[60]]$beta.bear[,1],            # note the different indexing
+    mod_out[[61]]$beta.bear[,1], mod_out[[62]]$beta.harvest[,1], mod_out[[63]]$beta.harvest[,2],      # note the different indexing
+    mod_out[[64]]$beta.harvest[,1], mod_out[[65]]$beta.harvest[,2], mod_out[[66]]$beta.harvest[,2],   # note the different indexing
+    mod_out[[67]]$beta.harvest[,1], mod_out[[68]]$beta.harvest[,2], mod_out[[69]]$beta.harvest[,1],   # note the different indexing
+    mod_out[[70]]$beta.harvest[,2], mod_out[[71]]$beta.harvest[,2], mod_out[[72]]$beta.moose[,2],     # note the different indexing
+    mod_out[[73]]$beta.moose[,2], mod_out[[74]]$beta.moose[,2], mod_out[[75]]$beta.moose[,2],         # note the different indexing
+    mod_out[[76]]$beta.moose[,2], mod_out[[77]]$beta.elk[,2], mod_out[[78]]$beta.elk[,2],             # note the different indexing
+    mod_out[[79]]$beta.elk[,2], mod_out[[80]]$beta.elk[,2], mod_out[[81]]$beta.coy[,2],               # note the different indexing
+    mod_out[[82]]$beta.coy[,2], mod_out[[83]]$beta.coy[,2], mod_out[[84]]$beta.bear[,2],              # note the different indexing
+    mod_out[[85]]$beta.bear[,2], mod_out[[86]]$beta.wolf[,2])                                         # note the different indexing
+  
+  # post_list_topdown_inter <- list(mod_out[[1]]$beta.wtd[,1], mod_out[[2]]$beta.wtd[,1], mod_out[[3]]$beta.wtd[,1],
+  #                                 mod_out[[4]]$beta.wtd[,1], mod_out[[5]]$beta.wtd[,1], mod_out[[6]]$beta.wtd[,1],
+  #                                 mod_out[[7]]$beta.moose[,1], mod_out[[8]]$beta.moose[,1], mod_out[[9]]$beta.moose[,1],
+  #                                 mod_out[[10]]$beta.moose[,1], mod_out[[11]]$beta.moose[,1], mod_out[[12]]$beta.moose[,1],
+  #                                 mod_out[[13]]$beta.elk[,1], mod_out[[14]]$beta.elk[,1], mod_out[[15]]$beta.elk[,1],
+  #                                 mod_out[[16]]$beta.elk[,1], mod_out[[17]]$beta.elk[,1], mod_out[[18]]$beta.elk[,1],
+  #                                 mod_out[[19]]$beta.lion[,1], mod_out[[20]]$beta.lion[,1], mod_out[[21]]$beta.lion[,1],
+  #                                 mod_out[[22]]$beta.lion[,1], mod_out[[23]]$beta.coy[,1], mod_out[[24]]$beta.harvest[,1],        
+  #                                 mod_out[[25]]$beta.bear[,1], mod_out[[26]]$beta.harvest[,1], mod_out[[27]]$beta.harvest[,1],             
+  #                                 mod_out[[28]]$beta.wolf[,1], mod_out[[29]]$beta.wtd[,2], mod_out[[30]]$beta.wtd[,2],             # note the different indexing
+  #                                 mod_out[[31]]$beta.wtd[,2], mod_out[[32]]$beta.wtd[,2], mod_out[[33]]$beta.wtd[,2],              # note the different indexing
+  #                                 mod_out[[34]]$beta.wtd[,2], mod_out[[35]]$beta.coy[,1], mod_out[[36]]$beta.coy[,1],              # note the different indexing
+  #                                 mod_out[[37]]$beta.coy[,1], mod_out[[38]]$beta.coy[,1], mod_out[[39]]$beta.coy[,1],    
+  #                                 mod_out[[40]]$beta.harvest[,1], mod_out[[41]]$beta.harvest[,1], mod_out[[42]]$beta.harvest[,1], 
+  #                                 mod_out[[43]]$beta.harvest[,2], mod_out[[44]]$beta.harvest[,2], mod_out[[45]]$beta.bear[,1],     # note the different indexing
+  #                                 mod_out[[46]]$beta.bear[,1], mod_out[[47]]$beta.bear[,1], mod_out[[48]]$beta.bear[,1],  
+  #                                 mod_out[[49]]$beta.bear[,1], mod_out[[50]]$beta.harvest[,1], mod_out[[51]]$beta.harvest[,1], 
+  #                                 mod_out[[52]]$beta.harvest[,1], mod_out[[53]]$beta.harvest[,2], mod_out[[54]]$beta.harvest[,2], # note the different indexing
+  #                                 mod_out[[55]]$beta.harvest[,1], mod_out[[56]]$beta.harvest[,1], mod_out[[57]]$beta.harvest[,1],       
+  #                                 mod_out[[58]]$beta.harvest[,2], mod_out[[59]]$beta.harvest[,2], mod_out[[60]]$beta.moose[,2],   # note the different indexing
+  #                                 mod_out[[61]]$beta.moose[,2], mod_out[[62]]$beta.moose[,2], mod_out[[63]]$beta.moose[,2],       # note the different indexing
+  #                                 mod_out[[64]]$beta.moose[,2], mod_out[[65]]$beta.elk[,2], mod_out[[66]]$beta.elk[,2],           # note the different indexing
+  #                                 mod_out[[67]]$beta.elk[,2], mod_out[[68]]$beta.elk[,2], mod_out[[69]]$beta.coy[,2],             # note the different indexing
+  #                                 mod_out[[70]]$beta.coy[,2], mod_out[[71]]$beta.coy[,2], mod_out[[72]]$beta.bear[,2],            # note the different indexing
+  #                                 mod_out[[73]]$beta.bear[,2], mod_out[[74]]$beta.wolf[,2])                                       # note the different indexing
   
   #'  Load more iterations of the JAGS model
   #'  Note: this list of outputs is based on the number of independence claims 
@@ -569,21 +632,42 @@
   all_results_topdown_inter_tmin1 <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1/TopDown_Interference", full.names = TRUE), readRDS)
   
   #'  Create list of "observed" values of focal response variable, one per d-Sep test                 # instances where x was used as y in d-Sep test noted below
-  y_list2 <- list(data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat,
-                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$bearHarv, data_JAGS_bundle$bear.hat,     # harvest flipped
-                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wolf.hat,      # wtd both flipped
-                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,
-                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,  # moose both flipped
-                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,    # moose flipped
-                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$elk.hat,      # elk both flipped
+  y_list2 <- list(data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,     #
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wtd.hat,    # wtd flipped
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,      #
+                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wtd.hat,      # wtd flipped both times
+                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat,    # wtd and moose flipped
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,      #
+                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,  # moose flipped both times
+                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat,    # moose flipped
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,     #
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$elk.hat,      # elk flipped both times
                   data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,      # elk flipped
-                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat,    # lion both flipped
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat,    # lion flipped both times
                   data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,     # lion and coy flipped
-                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$coy.hat,      # coy both flipped
-                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, 
-                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    # bear both flipped
-                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat)
-  #'  Leaves you with 41 d-Sep tests that were t-1 --> t-1
+                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$coy.hat,      # coy flipped both times
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #
+                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    # bear flipped both times
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat)                               #
+  #'  Leaves you with 56 d-Sep tests that were t-1 --> t-1
+  
+  #' y_list2 <- list(data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat,
+  #'                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bearHarv, data_JAGS_bundle$bear.hat,     # harvest flipped
+  #'                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wolf.hat,      # wtd both flipped
+  #'                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,
+  #'                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,  # moose both flipped
+  #'                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,    # moose flipped
+  #'                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$elk.hat,      # elk both flipped
+  #'                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,      # elk flipped
+  #'                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat,    # lion both flipped
+  #'                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,     # lion and coy flipped
+  #'                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$coy.hat,      # coy both flipped
+  #'                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, 
+  #'                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    # bear both flipped
+  #'                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat)
+  #' #'  Leaves you with 41 d-Sep tests that were t-1 --> t-1
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
   #'  Generally don't need to worry about indexing here because most of these independence
@@ -606,19 +690,34 @@
                                         mod_out2[[31]]$b_x,  mod_out2[[32]]$b_x,  mod_out2[[33]]$b_x,
                                         mod_out2[[34]]$b_x,  mod_out2[[35]]$b_x,  mod_out2[[36]]$b_x, 
                                         mod_out2[[37]]$b_x,  mod_out2[[38]]$b_x,  mod_out2[[39]]$b_x, 
-                                        mod_out2[[40]]$b_x,  mod_out2[[41]]$b_x)
+                                        mod_out2[[40]]$b_x,  mod_out2[[41]]$b_x, mod_out2[[42]]$b_x,
+                                        mod_out2[[43]]$b_x,  mod_out2[[44]]$b_x, mod_out2[[45]]$b_x,
+                                        mod_out2[[46]]$b_x,  mod_out2[[47]]$b_x, mod_out2[[48]]$b_x,
+                                        mod_out2[[49]]$b_x,  mod_out2[[50]]$b_x, mod_out2[[51]]$b_x,
+                                        mod_out2[[52]]$b_x,  mod_out2[[53]]$b_x, mod_out2[[54]]$b_x,
+                                        mod_out2[[55]]$b_x,  mod_out2[[56]]$b_x)
   
   
   #'  Load more iterations of the JAGS model (this time assessing correlation between exogenous variables)
   all_results_topdown_inter_exog <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1/TopDown_Interference_exog", full.names = TRUE), readRDS)
-  y_list3 <- list(data_JAGS_bundle$wolfHarv, data_JAGS_bundle$lionHarv, data_JAGS_bundle$lionHarv) # y_array
-  #'  Leaves you with 3 d-Sep tests that were exog --> exog
+  y_list3 <- list(data_JAGS_bundle$elkHarv, data_JAGS_bundle$bearHarv, data_JAGS_bundle$wolfHarv,
+                  data_JAGS_bundle$lionHarv, data_JAGS_bundle$bearHarv, data_JAGS_bundle$wolfHarv,
+                  data_JAGS_bundle$lionHarv, data_JAGS_bundle$wolfHarv, data_JAGS_bundle$lionHarv,
+                  data_JAGS_bundle$lionHarv)
+  #'  Leaves you with 10 d-Sep tests that were exog --> exog
+  
+  #' y_list3 <- list(data_JAGS_bundle$wolfHarv, data_JAGS_bundle$lionHarv, data_JAGS_bundle$lionHarv) # y_array
+  #' #'  Leaves you with 3 d-Sep tests that were exog --> exog
   
   mod_out3 <- list()
   for(i in 1:length(all_results_topdown_inter_exog)) {
     mod_out3[[i]] <- all_results_topdown_inter_exog[[i]]$fit$sims.list
   }
-  post_list_topdown_inter_exog <- list(mod_out3[[1]]$b_x, mod_out3[[2]]$b_x, mod_out3[[3]]$b_x) # correspond to x_array
+  post_list_topdown_inter_exog <- list(mod_out3[[1]]$b_x, mod_out3[[2]]$b_x, mod_out3[[3]]$b_x,
+                                       mod_out3[[4]]$b_x, mod_out3[[5]]$b_x, mod_out3[[6]]$b_x,
+                                       mod_out3[[7]]$b_x, mod_out3[[8]]$b_x, mod_out3[[9]]$b_x,
+                                       mod_out3[[10]]$b_x) # correspond to x_array
+  # post_list_topdown_inter_exog <- list(mod_out3[[1]]$b_x, mod_out3[[2]]$b_x, mod_out3[[3]]$b_x) # correspond to x_array
   
   #'  Calculate p.rope value for each iteration of the d-Sep test
   # p_rope_iterations <- function(y_dat, post_beta) { 
@@ -643,7 +742,7 @@
   bayes.p_topdown_inter_all <- list(bayes.p_topdown_inter_list, bayes.p_topdown_inter_tmin1_list, bayes.p_topdown_inter_exog_list)
   
   #'  Name list by iteration and convert to a data.frame
-  #' name_pval_iterations <- function(post_list, basicset_name) {
+  #' name_pval_iterations <- function(post_list, basisset_name) {
   #'   #'  Rename object with iteration number
   #'   for(i in 1:length(post_list)) {
   #'     list_name <- sprintf("regression.%03d", i)
@@ -653,13 +752,13 @@
   #'   post_list_df <- stack(post_list) %>%
   #'     transmute(iteration = ind,
   #'               p.val = round(values, 4),
-  #'               basicset = basicset_name)
+  #'               basisset = basisset_name)
   #'   return(post_list_df)
   #' }
-  basicset_name <- list("normal", "tmin1", "exog")
-  p.rope_topdown_inter_df <- mapply(name_pval_iterations, post_list = p.rope_topdown_inter_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  basisset_name <- list("normal", "tmin1", "exog")
+  p.rope_topdown_inter_df <- mapply(name_pval_iterations, post_list = p.rope_topdown_inter_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("p.rope" = "p.val")
-  bayes.p_topdown_inter_df <- mapply(name_pval_iterations, post_list = bayes.p_topdown_inter_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  bayes.p_topdown_inter_df <- mapply(name_pval_iterations, post_list = bayes.p_topdown_inter_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("bayes.p" = "p.val")
   
   #'  Quick peak
@@ -667,16 +766,16 @@
   head(bayes.p_topdown_inter_df)
   
   #'  Join p.rope and bayes.p values into single data.frame
-  p.val_topdown_inter_all_df <- full_join(p.rope_topdown_inter_df, bayes.p_topdown_inter_df, by = c("iteration", "basicset")) %>% relocate("bayes.p", .after = "p.rope")
+  p.val_topdown_inter_all_df <- full_join(p.rope_topdown_inter_df, bayes.p_topdown_inter_df, by = c("iteration", "basisset")) %>% relocate("bayes.p", .after = "p.rope")
   
   #'  Save!
-  write_csv(p.val_topdown_inter_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_inter_all_claims.csv")
+  write_csv(p.val_topdown_inter_all_df, paste0("./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_inter_all_claims_", Sys.Date(), ".csv"))
   
   #'  Remove "tmin1" claims from final set of conditional independence claims
   #'  These are redundant and a result of how the lag effect had to be accounted for
-  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  in the basis set DAG. These relationships are already captured in the model 
   #'  through various pathways.
-  p.val_topdown_inter_all_df_skinny <- filter(p.val_topdown_inter_all_df, basicset != "tmin1")
+  p.val_topdown_inter_all_df_skinny <- filter(p.val_topdown_inter_all_df, basisset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
   fishers.C_topdown_inter <- fishers_C(pval = p.val_topdown_inter_all_df_skinny$bayes.p, 
                                  n_iter = nrow(p.val_topdown_inter_all_df_skinny))
@@ -695,8 +794,8 @@
                       moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
                       wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
   
-  #'  Generate basic set
-  bs_bottomup <- basic_set(dag_bottomup)
+  #'  Generate basis set
+  bs_bottomup <- basis_set(dag_bottomup)
   
   #'  ----------------------
   ######  d-Sep iterations  ######
@@ -771,7 +870,7 @@
   
   #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #'  this time to simply test correlation between exogenous variables flagged 
-  #'  in the basic set
+  #'  in the basis set
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_exog_only.R")
   #'  Fit independence claims for pairs of exogenous variables
   start.time = Sys.time()
@@ -917,7 +1016,7 @@
   bayes.p_bottomup_all <- c(bayes.p_bottomup_list, bayes.p_bottomup_tmin1_list, bayes.p_bottomup_exog_list)
   
   #'  Name list by iteration and convert to a data.frame
-  name_pval_iterations <- function(post_list, basicset_name) {
+  name_pval_iterations <- function(post_list, basisset_name) {
     #'  Rename object with iteration number
     for(i in 1:length(post_list)) {
       list_name <- sprintf("regression.%03d", i)
@@ -927,13 +1026,13 @@
     post_list_df <- stack(post_list) %>%
       transmute(iteration = ind,
                 p.val = round(values, 4),
-                basicset = basicset_name)
+                basisset = basisset_name)
     return(post_list_df)
   }
-  basicset_name <- list("normal", "tmin1", "exog")
-  p.rope_bottomup_df <- mapply(name_pval_iterations, post_list = p.rope_bottomup_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  basisset_name <- list("normal", "tmin1", "exog")
+  p.rope_bottomup_df <- mapply(name_pval_iterations, post_list = p.rope_bottomup_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("p.rope" = "p.val")
-  bayes.p_bottomup_df <- mapply(name_pval_iterations, post_list = bayes.p_bottomup_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  bayes.p_bottomup_df <- mapply(name_pval_iterations, post_list = bayes.p_bottomup_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("bayes.p" = "p.val")
   
   #'  Quick peak
@@ -941,16 +1040,16 @@
   head(bayes.p_bottomup_df)
   
   #'  Join p.rope and bayes.p values into single data.frame
-  p.val_bottomup_all_df <- full_join(p.rope_bottomup_df, bayes.p_bottomup_df, by = c("iteration", "basicset")) %>% relocate("bayes.p", .after = "p.rope")
+  p.val_bottomup_all_df <- full_join(p.rope_bottomup_df, bayes.p_bottomup_df, by = c("iteration", "basisset")) %>% relocate("bayes.p", .after = "p.rope")
   
   #'  Save!
   write_csv(p.val_bottomup_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_all_claims.csv")
   
   #'  Remove "tmin1" claims from final set of conditional independence claims
   #'  These are redundant and a result of how the lag effect had to be accounted for
-  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  in the basis set DAG. These relationships are already captured in the model 
   #'  through various pathways.
-  p.val_bottomup_all_df_skinny <- filter(p.val_bottomup_all_df, basicset != "tmin1")
+  p.val_bottomup_all_df_skinny <- filter(p.val_bottomup_all_df, basisset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
   fishers.C_bottomup <- fishers_C(pval = p.val_bottomup_all_df_skinny$bayes.p, 
                                  n_iter = nrow(p.val_bottomup_all_df_skinny))
@@ -971,8 +1070,8 @@
                             moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
                             wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
   
-  #'  Generate basic set
-  bs_bottomup_inter <- basic_set(dag_bottomup_inter)
+  #'  Generate basis set
+  bs_bottomup_inter <- basis_set(dag_bottomup_inter)
   
   #'  ----------------------
   ######  d-Sep iterations  ######
@@ -1047,7 +1146,7 @@
   
   #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #'  this time to simply test correlation between exogenous variables flagged 
-  #'  in the basic set
+  #'  in the basis set
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_exog_only.R")
   #'  Fit independence claims for pairs of exogenous variables
   start.time = Sys.time()
@@ -1188,7 +1287,7 @@
   bayes.p_bottomup_inter_all <- list(bayes.p_bottomup_inter_list, bayes.p_bottomup_inter_tmin1_list, bayes.p_bottomup_inter_exog_list)
   
   #'  Name list by iteration and convert to a data.frame
-  name_pval_iterations <- function(post_list, basicset_name) {
+  name_pval_iterations <- function(post_list, basisset_name) {
     #'  Rename object with iteration number
     for(i in 1:length(post_list)) {
       list_name <- sprintf("regression.%03d", i)
@@ -1198,13 +1297,13 @@
     post_list_df <- stack(post_list) %>%
       transmute(iteration = ind,
                 p.val = round(values, 4),
-                basicset = basicset_name)
+                basisset = basisset_name)
     return(post_list_df)
   }
-  basicset_name <- list("normal", "tmin1", "exog")
-  p.rope_bottomup_inter_df <- mapply(name_pval_iterations, post_list = p.rope_bottomup_inter_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  basisset_name <- list("normal", "tmin1", "exog")
+  p.rope_bottomup_inter_df <- mapply(name_pval_iterations, post_list = p.rope_bottomup_inter_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("p.rope" = "p.val")
-  bayes.p_bottomup_inter_df <- mapply(name_pval_iterations, post_list = bayes.p_bottomup_inter_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  bayes.p_bottomup_inter_df <- mapply(name_pval_iterations, post_list = bayes.p_bottomup_inter_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("bayes.p" = "p.val")
   
   #'  Quick peak
@@ -1212,23 +1311,23 @@
   head(bayes.p_bottomup_inter_df)
   
   #'  Join p.rope and bayes.p values into single data.frame
-  p.val_bottomup_inter_all_df <- full_join(p.rope_bottomup_inter_df, bayes.p_bottomup_inter_df, by = c("iteration", "basicset")) %>% relocate("bayes.p", .after = "p.rope")
+  p.val_bottomup_inter_all_df <- full_join(p.rope_bottomup_inter_df, bayes.p_bottomup_inter_df, by = c("iteration", "basisset")) %>% relocate("bayes.p", .after = "p.rope")
   
   #'  Save!
   write_csv(p.val_bottomup_inter_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_inter_all_claims.csv")
   
   #'  Remove "tmin1" claims from final set of conditional independence claims
   #'  These are redundant and a result of how the lag effect had to be accounted for
-  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  in the basis set DAG. These relationships are already captured in the model 
   #'  through various pathways.
-  p.val_bottomup_inter_all_df_skinny <- filter(p.val_bottomup_inter_all_df, basicset != "tmin1")
+  p.val_bottomup_inter_all_df_skinny <- filter(p.val_bottomup_inter_all_df, basisset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
   fishers.C_bottomup_inter <- fishers_C(pval = p.val_bottomup_inter_all_df_skinny$bayes.p, 
                                   n_iter = nrow(p.val_bottomup_inter_all_df_skinny))
   print(fishers.C_bottomup_inter)
   
   #' #'  -------------------------------
-  #' ####  Basic set for original SEMs  ####
+  #' ####  basis set for original SEMs  ####
   #' #'  -------------------------------
   #' #'  -------------------
   #' #####  Top-down model  #####
@@ -1242,8 +1341,8 @@
   #'                    moose.t ~ moose.tmin1 + wolf.tmin1,
   #'                    wtd.t ~ wtd.tmin1 + lion.tmin1 + deerHarv.tmin1)
   #' 
-  #' #'  Generate basic set
-  #' bs_topdown <- basic_set(dag_topdown)
+  #' #'  Generate basis set
+  #' bs_topdown <- basis_set(dag_topdown)
   #' 
   #' #'  --------------------------------
   #' #####  Top-down interference model  #####
@@ -1256,7 +1355,7 @@
   #'                          moose.t ~ moose.tmin1 + wolf.tmin1,
   #'                          wtd.t ~ wtd.tmin1 + lion.tmin1)
   #' 
-  #' bs_topdown_inter <- basic_set(dag_topdown_inter)
+  #' bs_topdown_inter <- basis_set(dag_topdown_inter)
   #' 
   #' #'  --------------------
   #' #####  Bottom-up model  ####
@@ -1268,7 +1367,7 @@
   #'                     elk.t ~ elk.tmin1 + forest.tmin1 + wsi.tmin1,
   #'                     moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
   #'                     wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
-  #' bs_bottomup <- basic_set(dag_bottomup)
+  #' bs_bottomup <- basis_set(dag_bottomup)
   #' 
   #' #'  ---------------------------------
   #' #####  Bottom-up interference model  ####
@@ -1281,7 +1380,7 @@
   #'                           moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
   #'                           wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
   #' 
-  #' bs_bottomup_inter <- basic_set(dag_bottomup_inter)
+  #' bs_bottomup_inter <- basis_set(dag_bottomup_inter)
   #' 
   #' #'  -------------------------------
   #' ####  Iterate through d-Sep tests  ####
@@ -1354,7 +1453,7 @@
   #' 
   #' #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #' #'  this time to simply test correlation between exogenous variables flagged 
-  #' #'  in the basic set
+  #' #'  in the basis set
   #' source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_exog_only.R")
   #' #'  Fit independence claims for pairs of exogenous variables
   #' start.time = Sys.time()
@@ -1436,7 +1535,7 @@
   #' 
   #' #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #' #'  this time to simply test correlation between exogenous variables flagged 
-  #' #'  in the basic set
+  #' #'  in the basis set
   #' source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_exog_only.R")
   #' #'  Fit independence claims for pairs of exogenous variables
   #' start.time = Sys.time()
@@ -1520,7 +1619,7 @@
   #' 
   #' #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #' #'  this time to simply test correlation between exogenous variables flagged 
-  #' #'  in the basic set
+  #' #'  in the basis set
   #' source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_exog_only.R")
   #' #'  Fit independence claims for pairs of exogenous variables
   #' start.time = Sys.time()
@@ -1601,7 +1700,7 @@
   #' 
   #' #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #' #'  this time to simply test correlation between exogenous variables flagged 
-  #' #'  in the basic set
+  #' #'  in the basis set
   #' source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_exog_only.R")
   #' #'  Fit independence claims for pairs of exogenous variables
   #' start.time = Sys.time()
@@ -1809,15 +1908,15 @@
   #' p.rope_topdown_df <- stack(p.rope_topdown_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "normal")
+  #'             basisset = "normal")
   #' p.rope_topdown_tmin1_df <- stack(p.rope_topdown_tmin1_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "tmin1")
+  #'             basisset = "tmin1")
   #' p.rope_topdown_exog_df <- stack(p.rope_topdown_exog_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "exog")
+  #'             basisset = "exog")
   #' 
   #' #'  ----------------------
   #' ######  Bayesian p-value  ######
@@ -1839,7 +1938,7 @@
   #' bayes.p_topdown_df <- stack(bayes.p_topdown_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "normal")
+  #'             basisset = "normal")
   #' 
   #' for(i in 1:length(bayes.p_topdown_tmin1_list)) {
   #'   list_name <- sprintf("regression.%03d", i)
@@ -1848,7 +1947,7 @@
   #' bayes.p_topdown_tmin1_df <- stack(bayes.p_topdown_tmin1_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "tmin1")
+  #'             basisset = "tmin1")
   #' 
   #' for(i in 1:length(bayes.p_topdown_exog_list)) {
   #'   list_name <- sprintf("regression.%03d", i)
@@ -1857,12 +1956,12 @@
   #' bayes.p_topdown_exog_df <- stack(bayes.p_topdown_exog_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "exog")
+  #'             basisset = "exog")
   #' 
   #' #'  Join both d-Sep test p-values and save
-  #' p.val_topdown_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
-  #' p.val_topdown_tmin1_df <- full_join(p.rope_topdown_tmin1_df, bayes.p_topdown_tmin1_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
-  #' p.val_topdown_exog_df <- full_join(p.rope_topdown_exog_df, bayes.p_topdown_exog_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
+  #' p.val_topdown_df <- full_join(p.rope_topdown_df, bayes.p_topdown_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
+  #' p.val_topdown_tmin1_df <- full_join(p.rope_topdown_tmin1_df, bayes.p_topdown_tmin1_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
+  #' p.val_topdown_exog_df <- full_join(p.rope_topdown_exog_df, bayes.p_topdown_exog_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
   #' p.val_topdown_all_df <- bind_rows(p.val_topdown_df, p.val_topdown_tmin1_df, p.val_topdown_exog_df)
   #' 
   #' write_csv(p.val_topdown_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_all_claims.csv")
@@ -2041,15 +2140,15 @@
   #' p.rope_topdown_inter_df <- stack(p.rope_topdown_inter_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "normal")
+  #'             basisset = "normal")
   #' p.rope_topdown_inter_tmin1_df <- stack(p.rope_topdown_inter_tmin1_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "tmin1")
+  #'             basisset = "tmin1")
   #' p.rope_topdown_inter_exog_df <- stack(p.rope_topdown_inter_exog_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "exog")
+  #'             basisset = "exog")
   #' 
   #' #'  ----------------------
   #' ######  Bayesian p-value  ######
@@ -2079,20 +2178,20 @@
   #' bayes.p_topdown_inter_df <- stack(bayes.p_topdown_inter_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "normal")
+  #'             basisset = "normal")
   #' bayes.p_topdown_inter_tmin1_df <- stack(bayes.p_topdown_inter_tmin1_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "tmin1")
+  #'             basisset = "tmin1")
   #' bayes.p_topdown_inter_exog_df <- stack(bayes.p_topdown_inter_exog_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "exog")
+  #'             basisset = "exog")
   #' 
   #' #'  Join both d-Sep test p-values and save
-  #' p.val_topdown_inter_df <- full_join(p.rope_topdown_inter_df, bayes.p_topdown_inter_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
-  #' p.val_topdown_inter_tmin1_df <- full_join(p.rope_topdown_inter_tmin1_df, bayes.p_topdown_inter_tmin1_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
-  #' p.val_topdown_inter_exog_df <- full_join(p.rope_topdown_inter_exog_df, bayes.p_topdown_inter_exog_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
+  #' p.val_topdown_inter_df <- full_join(p.rope_topdown_inter_df, bayes.p_topdown_inter_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
+  #' p.val_topdown_inter_tmin1_df <- full_join(p.rope_topdown_inter_tmin1_df, bayes.p_topdown_inter_tmin1_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
+  #' p.val_topdown_inter_exog_df <- full_join(p.rope_topdown_inter_exog_df, bayes.p_topdown_inter_exog_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
   #' p.val_topdown_inter_all_df <- bind_rows(p.val_topdown_inter_df, p.val_topdown_inter_tmin1_df, p.val_topdown_inter_exog_df)
   #' 
   #' write_csv(p.val_topdown_inter_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_inter_all_claims.csv")
@@ -2245,15 +2344,15 @@
   #' p.rope_bottomup_df <- stack(p.rope_bottomup_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "normal")
+  #'             basisset = "normal")
   #' p.rope_bottomup_tmin1_df <- stack(p.rope_bottomup_tmin1_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "tmin1")
+  #'             basisset = "tmin1")
   #' p.rope_bottomup_exog_df <- stack(p.rope_bottomup_exog_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "exog")
+  #'             basisset = "exog")
   #' 
   #' #'  ----------------------
   #' ######  Bayesian p-value  ######
@@ -2283,20 +2382,20 @@
   #' bayes.p_bottomup_df <- stack(bayes.p_bottomup_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "normal")
+  #'             basisset = "normal")
   #' bayes.p_bottomup_tmin1_df <- stack(bayes.p_bottomup_tmin1_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "tmin1")
+  #'             basisset = "tmin1")
   #' bayes.p_bottomup_exog_df <- stack(bayes.p_bottomup_exog_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "exog")
+  #'             basisset = "exog")
   #' 
   #' #'  Join both d-Sep test p-values and save
-  #' p.val_bottomup_df <- full_join(p.rope_bottomup_df, bayes.p_bottomup_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
-  #' p.val_bottomup_tmin1_df <- full_join(p.rope_bottomup_tmin1_df, bayes.p_bottomup_tmin1_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
-  #' p.val_bottomup_exog_df <- full_join(p.rope_bottomup_exog_df, bayes.p_bottomup_exog_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
+  #' p.val_bottomup_df <- full_join(p.rope_bottomup_df, bayes.p_bottomup_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
+  #' p.val_bottomup_tmin1_df <- full_join(p.rope_bottomup_tmin1_df, bayes.p_bottomup_tmin1_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
+  #' p.val_bottomup_exog_df <- full_join(p.rope_bottomup_exog_df, bayes.p_bottomup_exog_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
   #' p.val_bottomup_all_df <- bind_rows(p.val_bottomup_df, p.val_bottomup_tmin1_df, p.val_bottomup_exog_df)
   #' 
   #' write_csv(p.val_bottomup_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_all_claims.csv")
@@ -2445,15 +2544,15 @@
   #' p.rope_bottomup_inter_df <- stack(p.rope_bottomup_inter_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "normal")
+  #'             basisset = "normal")
   #' p.rope_bottomup_inter_tmin1_df <- stack(p.rope_bottomup_inter_tmin1_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "tmin1")
+  #'             basisset = "tmin1")
   #' p.rope_bottomup_inter_exog_df <- stack(p.rope_bottomup_inter_exog_list) %>%
   #'   transmute(iteration = ind,
   #'             p.rope = round(values, 4),
-  #'             basicset = "exog")
+  #'             basisset = "exog")
   #' 
   #' #'  ----------------------
   #' ######  Bayesian p-value  ######
@@ -2475,7 +2574,7 @@
   #' bayes.p_bottomup_inter_df <- stack(bayes.p_bottomup_inter_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "normal")
+  #'             basisset = "normal")
   #' 
   #' for(i in 1:length(bayes.p_bottomup_inter_tmin1_list)) {
   #'   list_name <- sprintf("regression.%03d", i)
@@ -2484,7 +2583,7 @@
   #' bayes.p_bottomup_inter_tmin1_df <- stack(bayes.p_bottomup_inter_tmin1_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "tmin1")
+  #'             basisset = "tmin1")
   #' 
   #' for(i in 1:length(bayes.p_bottomup_inter_exog_list)) {
   #'   list_name <- sprintf("regression.%03d", i)
@@ -2493,12 +2592,12 @@
   #' bayes.p_bottomup_inter_exog_df <- stack(bayes.p_bottomup_inter_exog_list) %>%
   #'   transmute(iteration = ind,
   #'             bayes.p = round(values, 4),
-  #'             basicset = "exog")
+  #'             basisset = "exog")
   #' 
   #' #'  Join both d-Sep test p-values and save
-  #' p.val_bottomup_inter_df <- full_join(p.rope_bottomup_inter_df, bayes.p_bottomup_inter_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
-  #' p.val_bottomup_inter_tmin1_df <- full_join(p.rope_bottomup_inter_tmin1_df, bayes.p_bottomup_inter_tmin1_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
-  #' p.val_bottomup_inter_exog_df <- full_join(p.rope_bottomup_inter_exog_df, bayes.p_bottomup_inter_exog_df, by = c("iteration", "basicset")) %>% relocate("basicset", .after = "bayes.p")
+  #' p.val_bottomup_inter_df <- full_join(p.rope_bottomup_inter_df, bayes.p_bottomup_inter_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
+  #' p.val_bottomup_inter_tmin1_df <- full_join(p.rope_bottomup_inter_tmin1_df, bayes.p_bottomup_inter_tmin1_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
+  #' p.val_bottomup_inter_exog_df <- full_join(p.rope_bottomup_inter_exog_df, bayes.p_bottomup_inter_exog_df, by = c("iteration", "basisset")) %>% relocate("basisset", .after = "bayes.p")
   #' p.val_bottomup_inter_all_df <- bind_rows(p.val_bottomup_inter_df, p.val_bottomup_inter_tmin1_df, p.val_bottomup_inter_exog_df)
   #' 
   #' write_csv(p.val_bottomup_inter_all_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_inter_all_claims_updated.csv")
@@ -2527,8 +2626,8 @@
                            wtd.t ~ wtd.tmin1 + lion.tmin1 + deerHarv.tmin1 + wolf.tmin1 + coy.tmin1)
                      
   
-  #'  Generate basic set
-  bs_topdown_final <- basic_set(dag_topdown_final)
+  #'  Generate basis set
+  bs_topdown_final <- basis_set(dag_topdown_final)
   
   #'  ----------------------
   ######  d-Sep iterations  ######
@@ -2602,7 +2701,7 @@
   
   #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #'  this time to simply test correlation between exogenous variables flagged 
-  #'  in the basic set
+  #'  in the basis set
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_exog_only_final.R")
   #'  Fit independence claims for pairs of exogenous variables
   start.time = Sys.time()
@@ -2792,7 +2891,7 @@
   bayes.p_topdown_final_all <- list(bayes.p_topdown_final_list, bayes.p_topdown_tmin1_final_list, bayes.p_topdown_exog_final_list)
   
   #'  Name list by iteration and convert to a data.frame
-  name_pval_iterations <- function(post_list, basicset_name) {
+  name_pval_iterations <- function(post_list, basisset_name) {
     #'  Rename object with iteration number
     for(i in 1:length(post_list)) {
       list_name <- sprintf("regression.%03d", i)
@@ -2802,13 +2901,13 @@
     post_list_df <- stack(post_list) %>%
       transmute(iteration = ind,
                 p.val = round(values, 4),
-                basicset = basicset_name)
+                basisset = basisset_name)
     return(post_list_df)
   }
-  basicset_name <- list("normal", "tmin1", "exog")
-  p.rope_topdown_final_df <- mapply(name_pval_iterations, post_list = p.rope_topdown_final_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  basisset_name <- list("normal", "tmin1", "exog")
+  p.rope_topdown_final_df <- mapply(name_pval_iterations, post_list = p.rope_topdown_final_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("p.rope" = "p.val")
-  bayes.p_topdown_final_df <- mapply(name_pval_iterations, post_list = bayes.p_topdown_final_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  bayes.p_topdown_final_df <- mapply(name_pval_iterations, post_list = bayes.p_topdown_final_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("bayes.p" = "p.val")
   
   #'  Quick peak
@@ -2816,7 +2915,7 @@
   head(bayes.p_topdown_final_df)
   
   #'  Join p.rope and bayes.p values into single data.frame
-  p.val_topdown_all_final_df <- full_join(p.rope_topdown_final_df, bayes.p_topdown_final_df, by = c("iteration", "basicset")) %>% relocate("bayes.p", .after = "p.rope")
+  p.val_topdown_all_final_df <- full_join(p.rope_topdown_final_df, bayes.p_topdown_final_df, by = c("iteration", "basisset")) %>% relocate("bayes.p", .after = "p.rope")
   
   #'  Save!
   write_csv(p.val_topdown_all_final_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_all_final_claims.csv")
@@ -2832,9 +2931,9 @@
   
   #'  Remove "tmin1" claims from final set of conditional independence claims
   #'  These are redundant and a result of how the lag effect had to be accounted for
-  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  in the basis set DAG. These relationships are already captured in the model 
   #'  through various pathways.
-  p.val_topdown_all_final_df_skinny <- filter(p.val_topdown_all_final_df, basicset != "tmin1")
+  p.val_topdown_all_final_df_skinny <- filter(p.val_topdown_all_final_df, basisset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
   fishers.C_topdown_final <- fishers_C(pval = p.val_topdown_all_final_df_skinny$bayes.p, 
                                        n_iter = nrow(p.val_topdown_all_final_df_skinny), K = K, n = n)
@@ -2844,16 +2943,16 @@
   #'  --------------------------------
   #####  Top-down interference model  #####
   #'  --------------------------------
-  dag_topdown_inter_final <- DAG(lion.t ~ wolf.tmin1 + lionHarv.tmin1, 
+  dag_topdown_inter_final <- DAG(lion.t ~ wolf.tmin1 + lionHarv.tmin1 + bear.tmin1, # bear added post deer/elk harvest
                                  wolf.t ~ wolf.tmin1 + wolfHarv.tmin1 + bear.t,
                                  bear.t ~ bear.tmin1 + bearHarv.tmin1 + wolf.tmin1,
                                  coy.t ~ coy.tmin1 + wolf.tmin1 + lion.tmin1,
-                                 elk.t ~ elk.tmin1 + wolf.tmin1 + lion.tmin1,
+                                 elk.t ~ elk.tmin1 + wolf.tmin1 + lion.tmin1 + bear.tmin1 + elkHarv.tmin1, # bear added post deer/elk harvest
                                  moose.t ~ moose.tmin1 + wolf.tmin1,
-                                 wtd.t ~ wtd.tmin1 + lion.tmin1 + coy.tmin1 + bear.tmin1)
+                                 wtd.t ~ wtd.tmin1 + lion.tmin1 + coy.tmin1 + bear.tmin1 + deerHarv.tmin1)
                            
   
-  bs_topdown_inter_final <- basic_set(dag_topdown_inter_final)
+  bs_topdown_inter_final <- basis_set(dag_topdown_inter_final)
   
   #'  ----------------------
   ######  d-Sep iterations  ######
@@ -2863,7 +2962,7 @@
   #'  with each iteration of d-Sep testing
   sem_registry <- list(
     #'  Regression 1: lion.latent
-    list(covs = c("wolf.latent", "lionHarv"), spp = c(".wolf", ".harvest"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")), 
+    list(covs = c("wolf.latent", "lionHarv", "bear.latent"), spp = c(".wolf", ".harvest", ".bear"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")), 
     #'  Regression 2: wolf.latent
     list(covs = c("wolf.latent", "wolfHarv", "bear.latent"), spp = c(".wolf", ".harvest", ".bear"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y")),
     #'  Regression 3: bear.latent
@@ -2871,11 +2970,11 @@
     #'  Regression 4: coy.latent
     list(covs = c("coy.latent", "wolf.latent", "lion.latent"), spp = c(".coy", ".wolf", ".lion"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
     #'  Regression 5: elk.latent
-    list(covs = c("elk.latent", "wolf.latent", "lion.latent"), spp = c(".elk", ".wolf", ".lion"), indices = as.integer(c(1,1,1)), lags = c("y-1","y-1","y-1")),
+    list(covs = c("elk.latent", "wolf.latent", "lion.latent", "bear.latent", "elkHarv"), spp = c(".elk", ".wolf", ".lion", ".bear", ".harvest"), indices = as.integer(c(1,1,1,1,1)), lags = c("y-1","y-1","y-1","y-1","y-1")),
     #'  Regression 6: moose.latent
     list(covs = c("moose.latent", "wolf.latent"), spp = c(".moose", ".wolf"), indices = as.integer(c(1,1)), lags = c("y-1","y-1")),
     #'  Regression 7: wtd.latent
-    list(covs = c("wtd.latent", "lion.latent", "coy.latent", "bear.latent"), spp = c(".wtd", ".lion", ".coy", ".bear"), indices = as.integer(c(1,1,1,1)), lags = c("y-1","y-1","y-1","y-1"))
+    list(covs = c("wtd.latent", "lion.latent", "coy.latent", "bear.latent", "deerHarv"), spp = c(".wtd", ".lion", ".coy", ".bear", ".harvest"), indices = as.integer(c(1,1,1,1,1)), lags = c("y-1","y-1","y-1","y-1","y-1"))
   )
   #'  Source d-Sep custom regressions for iterative d-separation tests 
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_final.R")
@@ -2884,14 +2983,14 @@
                                                      dat_yr3 = posteriors_22s, dat_yr4 = posteriors_23s, 
                                                      covs_yr1 = covs_2020, covs_yr2 = covs_2021, 
                                                      covs_yr3 = covs_2022, covs_yr4 = covs_2023, 
-                                                     nwolf = 7, nlion = 4, nbear = 4, ncoy = 3, nelk = 2, 
-                                                     nmoose = 2, nwtd = 2, nharv = 4, nfor = 0, nwsi = 0)
+                                                     nwolf = 7, nlion = 4, nbear = 6, ncoy = 3, nelk = 2,  #nbear = 4
+                                                     nmoose = 2, nwtd = 2, nharv = 6, nfor = 0, nwsi = 0)  #nharv = 4
                                                
   num.chains <- 3
   initsList_topdown_inter_final <- vector('list', num.chains) 
   for(i in 1:num.chains) {
-    initsList_topdown_inter_final[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 4, ncoy = 3, nelk = 2, nmoose = 2, 
-                                                   nwtd = 2, nharv = 4, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4)
+    initsList_topdown_inter_final[[i]] <- generate_inits(nwolf = 7, nlion = 4, nbear = 6, ncoy = 3, nelk = 2, nmoose = 2, 
+                                                   nwtd = 2, nharv = 6, nfor = 0, nwsi = 0, nSpp = 7, nSites = 23, nYear = 4) #nbear = 4  nharv = 4
   }
   
   #'  Fit and save model iterations
@@ -2927,7 +3026,7 @@
   
   #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #'  this time to simply test correlation between exogenous variables flagged 
-  #'  in the basic set
+  #'  in the basis set
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_topdown_inter_exog_only_final.R")
   #'  Fit independence claims for pairs of exogenous variables
   start.time = Sys.time()
@@ -3095,7 +3194,7 @@
   bayes.p_topdown_inter_final_all <- list(bayes.p_topdown_inter_final_list, bayes.p_topdown_inter_tmin1_final_list, bayes.p_topdown_inter_exog_final_list)
   
   #'  Call name_pval_iterations() function to name list by iteration and convert to a data.frame
-  #' name_pval_iterations <- function(post_list, basicset_name) {
+  #' name_pval_iterations <- function(post_list, basisset_name) {
   #'   #'  Rename object with iteration number
   #'   for(i in 1:length(post_list)) {
   #'     list_name <- sprintf("regression.%03d", i)
@@ -3105,13 +3204,13 @@
   #'   post_list_df <- stack(post_list) %>%
   #'     transmute(iteration = ind,
   #'               p.val = round(values, 4),
-  #'               basicset = basicset_name)
+  #'               basisset = basisset_name)
   #'   return(post_list_df)
   #' }
-  basicset_name <- list("normal", "tmin1", "exog")
-  p.rope_topdown_inter_final_df <- mapply(name_pval_iterations, post_list = p.rope_topdown_inter_final_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  basisset_name <- list("normal", "tmin1", "exog")
+  p.rope_topdown_inter_final_df <- mapply(name_pval_iterations, post_list = p.rope_topdown_inter_final_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("p.rope" = "p.val")
-  bayes.p_topdown_inter_final_df <- mapply(name_pval_iterations, post_list = bayes.p_topdown_inter_final_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  bayes.p_topdown_inter_final_df <- mapply(name_pval_iterations, post_list = bayes.p_topdown_inter_final_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("bayes.p" = "p.val")
   
   #'  Quick peak
@@ -3119,7 +3218,7 @@
   head(bayes.p_topdown_inter_final_df)
   
   #'  Join p.rope and bayes.p values into single data.frame
-  p.val_topdown_inter_all_final_df <- full_join(p.rope_topdown_inter_final_df, bayes.p_topdown_inter_final_df, by = c("iteration", "basicset")) %>% relocate("bayes.p", .after = "p.rope")
+  p.val_topdown_inter_all_final_df <- full_join(p.rope_topdown_inter_final_df, bayes.p_topdown_inter_final_df, by = c("iteration", "basisset")) %>% relocate("bayes.p", .after = "p.rope")
   
   #'  Save!
   write_csv(p.val_topdown_inter_all_final_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_inter_all_final_claims.csv")
@@ -3136,9 +3235,9 @@
   
   #'  Remove "tmin1" claims from final set of conditional independence claims
   #'  These are redundant and a result of how the lag effect had to be accounted for
-  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  in the basis set DAG. These relationships are already captured in the model 
   #'  through various pathways.
-  p.val_topdown_inter_all_final_df_skinny <- filter(p.val_topdown_inter_all_final_df, basicset != "tmin1")
+  p.val_topdown_inter_all_final_df_skinny <- filter(p.val_topdown_inter_all_final_df, basisset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
   fishers.C_topdown_inter_final <- fishers_C(pval = p.val_topdown_inter_all_final_df_skinny$bayes.p, 
                                              n_iter = nrow(p.val_topdown_inter_all_final_df_skinny), K = K, n = n)
@@ -3157,7 +3256,7 @@
                             moose.t ~ moose.tmin1 + forest.tmin1 + wsi.tmin1,
                             wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1 + coy.tmin1 + bear.tmin1)
                       
-  bs_bottomup_final <- basic_set(dag_bottomup_final)
+  bs_bottomup_final <- basis_set(dag_bottomup_final)
   
   #'  ----------------------
   ######  d-Sep iterations  ######
@@ -3232,7 +3331,7 @@
   
   #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #'  this time to simply test correlation between exogenous variables flagged 
-  #'  in the basic set
+  #'  in the basis set
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_exog_only_final.R")
   #'  Fit independence claims for pairs of exogenous variables
   start.time = Sys.time()
@@ -3371,7 +3470,7 @@
   bayes.p_bottomup_final_all <- list(bayes.p_bottomup_final_list, bayes.p_bottomup_tmin1_final_list, bayes.p_bottomup_exog_final_list)
   
   #'  Call name_pval_iterations() function to name list by iteration and convert to a data.frame
-  #' name_pval_iterations <- function(post_list, basicset_name) {
+  #' name_pval_iterations <- function(post_list, basisset_name) {
   #'   #'  Rename object with iteration number
   #'   for(i in 1:length(post_list)) {
   #'     list_name <- sprintf("regression.%03d", i)
@@ -3381,13 +3480,13 @@
   #'   post_list_df <- stack(post_list) %>%
   #'     transmute(iteration = ind,
   #'               p.val = round(values, 4),
-  #'               basicset = basicset_name)
+  #'               basisset = basisset_name)
   #'   return(post_list_df)
   #' }
-  basicset_name <- list("normal", "tmin1", "exog")
-  p.rope_bottomup_final_df <- mapply(name_pval_iterations, post_list = p.rope_bottomup_final_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  basisset_name <- list("normal", "tmin1", "exog")
+  p.rope_bottomup_final_df <- mapply(name_pval_iterations, post_list = p.rope_bottomup_final_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("p.rope" = "p.val")
-  bayes.p_bottomup_final_df <- mapply(name_pval_iterations, post_list = bayes.p_bottomup_final_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  bayes.p_bottomup_final_df <- mapply(name_pval_iterations, post_list = bayes.p_bottomup_final_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("bayes.p" = "p.val")
   
   #'  Quick peak
@@ -3395,7 +3494,7 @@
   head(bayes.p_bottomup_final_df)
   
   #'  Join p.rope and bayes.p values into single data.frame
-  p.val_bottomup_all_final_df <- full_join(p.rope_bottomup_final_df, bayes.p_bottomup_final_df, by = c("iteration", "basicset")) %>% relocate("bayes.p", .after = "p.rope")
+  p.val_bottomup_all_final_df <- full_join(p.rope_bottomup_final_df, bayes.p_bottomup_final_df, by = c("iteration", "basisset")) %>% relocate("bayes.p", .after = "p.rope")
   
   #'  Save!
   write_csv(p.val_bottomup_all_final_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_all_final_claims.csv")
@@ -3412,9 +3511,9 @@
   
   #'  Remove "tmin1" claims from final set of conditional independence claims
   #'  These are redundant and a result of how the lag effect had to be accounted for
-  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  in the basis set DAG. These relationships are already captured in the model 
   #'  through various pathways.
-  p.val_bottomup_all_final_df_skinny <- filter(p.val_bottomup_all_final_df, basicset != "tmin1")
+  p.val_bottomup_all_final_df_skinny <- filter(p.val_bottomup_all_final_df, basisset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
   fishers.C_bottomup_final <- fishers_C(pval = p.val_bottomup_all_final_df_skinny$bayes.p, 
                                         n_iter = nrow(p.val_bottomup_all_final_df_skinny), K = K, n = n)
@@ -3434,7 +3533,7 @@
                                   wtd.t ~ wtd.tmin1 + forest.tmin1 + wsi.tmin1)
                             
   
-  bs_bottomup_inter_final <- basic_set(dag_bottomup_inter_final)
+  bs_bottomup_inter_final <- basis_set(dag_bottomup_inter_final)
   
   #'  ----------------------
   ######  d-Sep iterations  ######
@@ -3507,7 +3606,7 @@
   
   #'  Source third d-Sep custom regressions for iterative d-separation tests -
   #'  this time to simply test correlation between exogenous variables flagged 
-  #'  in the basic set
+  #'  in the basis set
   source("./Scripts/Structural_Equation_Models/d_Sep_active_regressions_bottomup_inter_updated_exog_only_final.R")
   #'  Fit independence claims for pairs of exogenous variables
   start.time = Sys.time()
@@ -3646,7 +3745,7 @@
   bayes.p_bottomup_inter_final_all <- list(bayes.p_bottomup_inter_final_list, bayes.p_bottomup_inter_tmin1_final_list, bayes.p_bottomup_inter_exog_final_list)
   
   #'  Call name_pval_iterations() function to name list by iteration and convert to a data.frame
-  #' name_pval_iterations <- function(post_list, basicset_name) {
+  #' name_pval_iterations <- function(post_list, basisset_name) {
   #'   #'  Rename object with iteration number
   #'   for(i in 1:length(post_list)) {
   #'     list_name <- sprintf("regression.%03d", i)
@@ -3656,13 +3755,13 @@
   #'   post_list_df <- stack(post_list) %>%
   #'     transmute(iteration = ind,
   #'               p.val = round(values, 4),
-  #'               basicset = basicset_name)
+  #'               basisset = basisset_name)
   #'   return(post_list_df)
   #' }
-  basicset_name <- list("normal", "tmin1", "exog")
-  p.rope_bottomup_inter_final_df <- mapply(name_pval_iterations, post_list = p.rope_bottomup_inter_final_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  basisset_name <- list("normal", "tmin1", "exog")
+  p.rope_bottomup_inter_final_df <- mapply(name_pval_iterations, post_list = p.rope_bottomup_inter_final_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("p.rope" = "p.val")
-  bayes.p_bottomup_inter_final_df <- mapply(name_pval_iterations, post_list = bayes.p_bottomup_inter_final_all, basicset_name = basicset_name, SIMPLIFY = FALSE) %>% 
+  bayes.p_bottomup_inter_final_df <- mapply(name_pval_iterations, post_list = bayes.p_bottomup_inter_final_all, basisset_name = basisset_name, SIMPLIFY = FALSE) %>% 
     bind_rows(.) %>% rename("bayes.p" = "p.val")
   
   #'  Quick peak
@@ -3670,7 +3769,7 @@
   head(bayes.p_bottomup_inter_final_df)
   
   #'  Join p.rope and bayes.p values into single data.frame
-  p.val_bottomup_inter_all_final_df <- full_join(p.rope_bottomup_inter_final_df, bayes.p_bottomup_inter_final_df, by = c("iteration", "basicset")) %>% relocate("bayes.p", .after = "p.rope")
+  p.val_bottomup_inter_all_final_df <- full_join(p.rope_bottomup_inter_final_df, bayes.p_bottomup_inter_final_df, by = c("iteration", "basisset")) %>% relocate("bayes.p", .after = "p.rope")
   
   #'  Save!
   write_csv(p.val_bottomup_inter_all_final_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_bottomup_inter_all_final_claims.csv")
@@ -3687,9 +3786,9 @@
   
   #'  Remove "tmin1" claims from final set of conditional independence claims
   #'  These are redundant and a result of how the lag effect had to be accounted for
-  #'  in the basic set DAG. These relationships are already captured in the model 
+  #'  in the basis set DAG. These relationships are already captured in the model 
   #'  through various pathways.
-  p.val_bottomup_inter_all_final_df_skinny <- filter(p.val_bottomup_inter_all_final_df, basicset != "tmin1")
+  p.val_bottomup_inter_all_final_df_skinny <- filter(p.val_bottomup_inter_all_final_df, basisset != "tmin1")
   #'  Call fishers_C() function to calculate model GoF using Fisher's C
   fishers.C_bottomup_inter_final <- fishers_C(pval = p.val_bottomup_inter_all_final_df_skinny$bayes.p, 
                                               n_iter = nrow(p.val_bottomup_inter_all_final_df_skinny), K = K, n = n)
@@ -3700,12 +3799,12 @@
   ####  Model selection table  ####
   #'  -------------------------
   modSelect_AIC_tbl <- function(result_list, criterion = "AICc", low_ratio_threshold = 40) {
-    C_vals <- sapply(result_list, function(x) x$C)
-    df_vals <- sapply(result_list, function(x) x$df)
-    p_vals <- sapply(result_list, function(x) x$p.value)
-    K_vals <- sapply(result_list, function(x) x$K)
-    n_vals <- sapply(result_list, function(x) x$n)
-    crit_vals <- sapply(result_list, function(x) x[[criterion]])
+    C_vals <- sapply(result_list, function(x) x$C)                  # Fisher's C
+    df_vals <- sapply(result_list, function(x) x$df)                # degrees of freedom for Fisher's C
+    p_vals <- sapply(result_list, function(x) x$p.value)            # Chi-square test p-value
+    K_vals <- sapply(result_list, function(x) x$K)                  # Number of parameters estimated
+    n_vals <- sapply(result_list, function(x) x$n)                  # Sample size
+    crit_vals <- sapply(result_list, function(x) x[[criterion]])    # AIC or AICc score
     
     nK_ratio <- n_vals / K_vals
     flag <- ifelse(nK_ratio < low_ratio_threshold, "*", "")
