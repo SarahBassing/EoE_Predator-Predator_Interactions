@@ -1214,11 +1214,13 @@
     
     #'  Grab estimated RDI per cluster (GMU 10A: cl1 - cl8; GMU 1: cl9 - cl18; GMU 6: cl19 - cl23)
     rdi_mean <- unlist(mod$mean[rdi_names]) 
+    rdi_sd <- unlist(mod$sd[rdi_names]) 
     rdi_ll <- unlist(mod$q2.5[rdi_names]) 
     rdi_ul <- unlist(mod$q97.5[rdi_names]) 
     
     #'  Create data frame with mean and 95% CRI for each cluster's estimated RDI
     rdi <- data.frame(rdi = round(rdi_mean, 2), 
+                      rdi_sd = round(rdi_sd, 2),
                       rdi_lower = round(rdi_ll, 2), 
                       rdi_upper = round(rdi_ul, 2)) %>%
       #'  Add cluster and species info
@@ -1253,6 +1255,48 @@
   spatial_RDI_wolf_locs <- bind_rows(spatial_rdi_wolf[[1]], spatial_rdi_wolf[[2]], spatial_rdi_wolf[[3]], spatial_rdi_wolf[[4]])
   st_write(spatial_RDI_wolf_locs, "./Shapefiles/IDFG spatial data/Camera_locations/spatial_rdi_wolf_locs_2020_2023.shp")
   
+  
+  #'  Drop spatial attributes and create summary table of RDI input data for SEM
+  #'  List years
+  year <- c("2020", "2021", "2022", "2023")
+  #'  Function to reformat data 
+  reformat_rdi <- function(spatial_rdi, spp) {
+    #'  Name list by year
+    names(spatial_rdi) <- year
+    #'  Bind annual lists into single data frame
+    nonspatial_rdi_df <- bind_rows(spatial_rdi, .id = "Year") %>%
+      as.data.frame(.) %>%
+      #'  Remove spatial data
+      dplyr::select(-geometry) %>%
+      #'  Reformat columns
+      transmute(GMU = GMU, 
+                Year = Year, 
+                Species = spp,
+                Cluster = Cluster,
+                Area_km2 = round(area_km2, 2),
+                #'  Combine mean and SD from cluster-level posterior distribution
+                RDI = paste0(rdi, " (", rdi_sd, ")"))
+    return(nonspatial_rdi_df)
+  }
+  rdi_bear_clean <- reformat_rdi(spatial_rdi_bear, spp = "Black bear")
+  rdi_coy_clean <- reformat_rdi(spatial_rdi_coy, spp = "Coyote")
+  rdi_lion_clean <- reformat_rdi(spatial_rdi_lion, spp = "Mountain lion")
+  rdi_wolf_clean <- reformat_rdi(spatial_rdi_wolf, spp = "Wolf")
+  rdi_elk_clean <- reformat_rdi(spatial_rdi_elk, spp = "Elk")
+  rdi_moose_clean <- reformat_rdi(spatial_rdi_moose, spp = "Moose")
+  rdi_wtd_clean <- reformat_rdi(spatial_rdi_wtd, spp = "White-tailed deer")
+  
+  #'  Bind all together now
+  rdi_master_input <- bind_rows(rdi_bear_clean, rdi_coy_clean, rdi_lion_clean,
+                                rdi_wolf_clean, rdi_elk_clean, rdi_moose_clean, 
+                                rdi_wtd_clean) %>%
+    pivot_wider(id_cols = c(GMU, Year, Cluster, Area_km2), names_from = Species, values_from = RDI) %>%
+    #'  Arrange by GMU based on N to S arrangement
+    arrange(match(GMU, c("GMU1", "GMU6", "GMU10A")))
+
+  write_csv(rdi_master_input, paste0("./Outputs/Relative_Abundance/RN_model/Tables/RDI_master_input_", Sys.Date(), ".csv"))
+  
+    
   #' #'  Grab estimated RDI and SD per cluster
   #' estimated_N <- function(mod, dh, spp) {
   #'   #'  Grab estimated RDI and SD per cluster
