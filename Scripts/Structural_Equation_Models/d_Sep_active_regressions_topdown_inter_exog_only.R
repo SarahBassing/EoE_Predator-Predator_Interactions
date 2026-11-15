@@ -22,13 +22,49 @@
   #'  ----------------------------------------------------------------
   
   dSep_iterations_topdown_inter_exog_only <- list(
-    # Regression #76
-    # bs_topdown_inter[[76]] # "bearHarv.tmin1" "wolfHarv.tmin1"
+    # Regression #3
+    # bs_topdown_inter[[3]] # "deerHarv.tmin1" "elkHarv.tmin1"
+    list(y_array = data_JAGS_bundle_topdown_inter$elkHarv, x_array = data_JAGS_bundle_topdown_inter$deerHarv),
+    # Regression #7
+    # bs_topdown_inter[[7]] # "deerHarv.tmin1" "bearHarv.tmin1"
+    list(y_array = data_JAGS_bundle_topdown_inter$bearHarv, x_array = data_JAGS_bundle_topdown_inter$deerHarv),
+    # Regression #9
+    # bs_topdown_inter[[9]] # "deerHarv.tmin1" "wolfHarv.tmin1"
+    list(y_array = data_JAGS_bundle_topdown_inter$wolfHarv, x_array = data_JAGS_bundle_topdown_inter$deerHarv),
+    # Regression #10
+    # bs_topdown_inter[[10]] # "deerHarv.tmin1" "lionHarv.tmin1"
+    list(y_array = data_JAGS_bundle_topdown_inter$lionHarv, x_array = data_JAGS_bundle_topdown_inter$deerHarv),
+    # Regression #53
+    # bs_topdown_inter[[53]] # "elkHarv.tmin1" "bearHarv.tmin1"
+    list(y_array = data_JAGS_bundle_topdown_inter$bearHarv, x_array = data_JAGS_bundle_topdown_inter$elkHarv),
+    # Regression #55
+    # bs_topdown_inter[[55]] # "elkHarv.tmin1" "wolfHarv.tmin1"
+    list(y_array = data_JAGS_bundle_topdown_inter$wolfHarv, x_array = data_JAGS_bundle_topdown_inter$elkHarv),
+    # Regression #56
+    # bs_topdown_inter[[56]] # "elkHarv.tmin1" "lionHarv.tmin1"
+    list(y_array = data_JAGS_bundle_topdown_inter$lionHarv, x_array = data_JAGS_bundle_topdown_inter$elkHarv),
+    # Regression #109
+    # bs_topdown_inter[[109]] # "bearHarv.tmin1" "wolfHarv.tmin1"
     list(y_array = data_JAGS_bundle_topdown_inter$wolfHarv, x_array = data_JAGS_bundle_topdown_inter$bearHarv),
-    # Regression #77
-    # bs_topdown_inter[[77]] # "bearHarv.tmin1" "lionHarv.tmin1"
+    # Regression #110
+    # bs_topdown_inter[[110]] # "bearHarv.tmin1" "lionHarv.tmin1"
     list(y_array = data_JAGS_bundle_topdown_inter$lionHarv, x_array = data_JAGS_bundle_topdown_inter$bearHarv),
-    # # Regression #92
-    # bs_topdown_inter[[92]] # "wolfHarv.tmin1" "lionHarv.tmin1"
-    list(y_array = data_JAGS_bundle_topdown_inter$lionHarv, x_array = data_JAGS_bundle_topdown_inter$wolfHarv)
-  )
+    # Regression #125
+    # bs_topdown_inter[[125]] # "wolfHarv.tmin1" "lionHarv.tmin1"
+    list(y_array = data_JAGS_bundle_topdown_inter$lionHarv, x_array = data_JAGS_bundle_topdown_inter$wolfHarv))
+    
+    
+    
+    
+    
+    
+  #   # Regression #76
+  #   # bs_topdown_inter[[76]] # "bearHarv.tmin1" "wolfHarv.tmin1"
+  #   list(y_array = data_JAGS_bundle_topdown_inter$wolfHarv, x_array = data_JAGS_bundle_topdown_inter$bearHarv),
+  #   # Regression #77
+  #   # bs_topdown_inter[[77]] # "bearHarv.tmin1" "lionHarv.tmin1"
+  #   list(y_array = data_JAGS_bundle_topdown_inter$lionHarv, x_array = data_JAGS_bundle_topdown_inter$bearHarv),
+  #   # # Regression #92
+  #   # bs_topdown_inter[[92]] # "wolfHarv.tmin1" "lionHarv.tmin1"
+  #   list(y_array = data_JAGS_bundle_topdown_inter$lionHarv, x_array = data_JAGS_bundle_topdown_inter$wolfHarv)
+  # )
