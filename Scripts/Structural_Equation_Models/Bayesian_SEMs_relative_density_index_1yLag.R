@@ -483,7 +483,7 @@
                                       nYear = 4, n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt,
                                       out_dir = "./Outputs/SEM/LOSO_CV/topdown_exploit")
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  save(loso_topdown_exploit, file = "./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_exploit.RData")
+  save(loso_topdown_exploit, file = paste0("./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_exploit_", Sys.Date(), ".RData"))
   
   start.time = Sys.time()
   loso_topdown_inter <- run_loso_cv(mod = "./Outputs/SEM/JAGS_out/JAGS_SEM_topdown_inter_final.txt", dat = data_JAGS_bundle_topdown_inter_final,
@@ -491,7 +491,7 @@
                                       nYear = 4, n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt,
                                       out_dir = "./Outputs/SEM/LOSO_CV/topdown_inter")
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  save(loso_topdown_inter, file = "./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_inter.RData")
+  save(loso_topdown_inter, file = paste0("./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_inter_", Sys.Date(), ".RData"))
   
   start.time = Sys.time()
   loso_bottomup_exploit <- run_loso_cv(mod = "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_final.txt", dat = data_JAGS_bundle_bottomup_final,
@@ -499,7 +499,7 @@
                                       nYear = 4, n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt,
                                       out_dir = "./Outputs/SEM/LOSO_CV/bottomup_exploit")
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  save(loso_bottomup_exploit, file = "./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_exploit.RData")
+  save(loso_bottomup_exploit, file = paste0("./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_exploit_", Sys.Date(), ".RData"))
   
   start.time = Sys.time()
   loso_bottomup_inter <- run_loso_cv(mod = "./Outputs/SEM/JAGS_out/JAGS_SEM_bottomup_inter_final.txt", dat = data_JAGS_bundle_bottomup_inter_final,
@@ -507,13 +507,13 @@
                                       nYear = 4, n.chains = nc, n.adapt = na, n.burnin = nb, n.iter = ni, n.thin = nt,
                                       out_dir = "./Outputs/SEM/LOSO_CV/bottomup_inter")
   end.time <- Sys.time(); (run.time <- end.time - start.time)
-  save(loso_bottomup_inter, file = "./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_inter.RData")
+  save(loso_bottomup_inter, file = paste0("./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_inter_", Sys.Date(), ".RData"))
   
   #' #'  Read in LOSO_CV results
-  #' load("./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_exploit.RData")
-  #' load("./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_inter.RData")
-  #' load("./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_exploit.RData")
-  #' load("./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_inter.RData")
+  #' load("./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_exploit_2026-11-14.RData") 
+  #' load("./Outputs/SEM/LOSO_CV/LOSO_CV_topdown_inter_2026-11-14.RData")
+  #' load("./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_exploit_2026-11-14.RData")
+  #' load("./Outputs/SEM/LOSO_CV/LOSO_CV_bottomup_inter_2026-11-14.RData")
   
   #'  Compare LOSO CV across models
   compare_loso <- data.frame(model = c("topdown_exploitative", "topdown_interference", 
@@ -540,7 +540,7 @@
     arrange(-elpd_diff)
   # names(loso_tbl)[names(loso_tbl) == "elpd_diff"] <- paste0("\u0394", "ELPD")  #' "ΔELPD"
   print(loso_tbl)
-  write_csv(loso_tbl, "./Outputs/SEM/Tables_for_publication/LOSO_CV_results.csv")
+  write_csv(loso_tbl, paste0("./Outputs/SEM/Tables_for_publication/LOSO_CV_results_", Sys.Date(), ".csv"))
   
   #'  Paired comparisons to evaluate site-by-site differences between models 
   #'  Some sites were likely harder to estimate than others and this problem likely
@@ -589,7 +589,7 @@
   names(loso_full_tbl)[names(loso_full_tbl) == "elpd_diff"] <- paste0("\u0394", "ELPD")  #' "ΔELPD"
   names(loso_full_tbl)[names(loso_full_tbl) == "se_diff"] <- paste0("SE(", "\u0394", "ELPD)")  #' "ΔELPD"
   print(loso_full_tbl)
-  write_csv(loso_full_tbl, "./Outputs/SEM/Tables_for_publication/LOSO_CV_full_results.csv")
+  write_csv(loso_full_tbl, paste0("./Outputs/SEM/Tables_for_publication/LOSO_CV_full_results_", Sys.Date(), ".csv"))
   
   #'  bottomup_inter and topdown_exploit are essentially indistinguishable 
   #'  bottomup_exploit is not meaningfully different from bottomup_inter
@@ -609,7 +609,8 @@
   lpd_matrix <- cbind(
     topdown_exploitative   = loso_topdown_exploit$elpd_per_site,
     bottomup_exploitative  = loso_bottomup_exploit$elpd_per_site,
-    bottomup_interference = loso_bottomup_inter$elpd_per_site
+    bottomup_interference = loso_bottomup_inter$elpd_per_site,
+    topdown_interference   = loso_topdown_inter$elpd_per_site   # added with updated model (after deer/elk harvest added)
   )
  
   #'  Compute stacking weights using the loo::stacking_weights function
@@ -644,25 +645,28 @@
   updated_loso_tbl <- data.frame(Model = c("Model-averaged (stacked)",
                                            "Top-down, exploitative", 
                                            "Bottom-up, exploitative", 
-                                           "Bottom-up, interference"),
+                                           "Bottom-up, interference",
+                                           "Top-down, interference"),
                                  ELPD = c(sum(stacked_elpd_per_site),
                                           loso_topdown_exploit$total_elpd,
                                           loso_bottomup_exploit$total_elpd,
-                                          loso_bottomup_inter$total_elpd),
+                                          loso_bottomup_inter$total_elpd,
+                                          loso_topdown_inter$total_elpd),
                                  SE = c(se_stacked,
                                         loso_topdown_exploit$se_elpd,
                                         loso_bottomup_exploit$se_elpd,
-                                        loso_bottomup_inter$se_elpd)) %>%
+                                        loso_bottomup_inter$se_elpd,
+                                        loso_topdown_inter$se_elpd)) %>%
     mutate(ELPD = round(ELPD, 2),
            SE = round(SE, 2))
   updated_loso_tbl <- updated_loso_tbl[order(-updated_loso_tbl$ELPD),]
   updated_loso_tbl$deltaELPD <- updated_loso_tbl$ELPD - updated_loso_tbl$ELPD[1]
   names(updated_loso_tbl)[names(updated_loso_tbl) == "deltaELPD"] <- paste0("\u0394", "ELPD")  #' "ΔELPD"
   rownames(updated_loso_tbl) <- NULL
-  mod_wgts <- c(NA, round(stack_wgts[1], 2), round(stack_wgts[2], 2), round(stack_wgts[3], 2))
+  mod_wgts <- c(NA, round(stack_wgts[1], 2), round(stack_wgts[2], 2), round(stack_wgts[3], 2), round(stack_wgts[4], 2))
   updated_loso_tbl$Weights <- mod_wgts
   print(updated_loso_tbl)
-  write.csv(updated_loso_tbl, "./Outputs/SEM/Tables_for_publication/LOSO_CV_results_modelAvg.csv")
+  write.csv(updated_loso_tbl, paste0("./Outputs/SEM/Tables_for_publication/LOSO_CV_results_modelAvg_", Sys.Date(), ".csv"))
   
   #'  Pairwise comparison between stacked vs best-supported individual model 
   #'  to determine if averaging made a large enough improvement to matter.
@@ -739,10 +743,10 @@
   #'  -----------------------------
   #'  Results table of direct effects for each SEM
   #'  Load model outputs
-  load("./Outputs/SEM/JAGS_out/SEM_topdown_exploitation_final_2026-10-05.RData") #2026-09-13
-  load("./Outputs/SEM/JAGS_out/SEM_topdown_inter_final_2026-10-05.RData")
+  load("./Outputs/SEM/JAGS_out/SEM_topdown_exploitation_final_2026-11-14.RData") #2026-09-13 #2026-10-05
+  load("./Outputs/SEM/JAGS_out/SEM_topdown_inter_final_2026-11-11.RData") #2026-10-05
   load("./Outputs/SEM/JAGS_out/SEM_bottomup_exploitation_final_2026-10-06.RData") # 2026-10-05
-  load("./Outputs/SEM/JAGS_out/SEM_bottomup_inter_final_2026-10-05.RData")
+  load("./Outputs/SEM/JAGS_out/SEM_bottomup_inter_final_2026-11-14.RData") #2026-10-05
   
   grab_coefs <- function(mod_out) {
     coef_mean <- mod_out$mean 
@@ -804,20 +808,21 @@
     bind_rows()
   
   #'  Order coefficients by species-specific regression
-  topdown_exploit_coef_order <- c("beta.int.tmin1[1]", "beta.int[1]", "beta.harvest[1]", "beta.elk[2]", "beta.wtd[2]", "beta.wtd[3]", 
-                                  "beta.int.tmin1[2]", "beta.int[2]", "beta.wolf[1]", "beta.harvest[2]", "beta.moose[2]", "beta.elk[3]", "beta.wtd[4]", "beta.wtd[5]", 
+  topdown_exploit_coef_order <- c("beta.int.tmin1[1]", "beta.int[1]", "beta.harvest[1]", "beta.elk[2]", "beta.wtd[2]", "beta.wtd[3]",
+                                  "beta.int.tmin1[2]", "beta.int[2]", "beta.wolf[1]", "beta.harvest[2]", "beta.moose[2]", "beta.elk[3]", "beta.wtd[4]", "beta.wtd[5]",
                                   "beta.int.tmin1[3]", "beta.int[3]", "beta.bear[1]", "beta.harvest[3]", "beta.wtd[6]",
-                                  "beta.int.tmin1[4]", "beta.int[4]", "beta.coy[1]", "beta.wtd[7]", 
-                                  "beta.int.tmin1[5]", "beta.int[5]", "beta.elk[1]", "beta.wolf[2]", "beta.lion[1]", "beta.harvest[4]", "beta.bear[2]", 
-                                  "beta.int.tmin1[6]", "beta.int[6]", "beta.moose[1]", "beta.wolf[3]", 
+                                  "beta.int.tmin1[4]", "beta.int[4]", "beta.coy[1]", "beta.wtd[7]",
+                                  "beta.int.tmin1[5]", "beta.int[5]", "beta.elk[1]", "beta.wolf[2]", "beta.lion[1]", "beta.harvest[4]", "beta.bear[2]",
+                                  "beta.int.tmin1[6]", "beta.int[6]", "beta.moose[1]", "beta.wolf[3]",
                                   "beta.int.tmin1[7]", "beta.int[7]", "beta.wtd[1]", "beta.lion[2]", "beta.harvest[5]", "beta.wolf[4]", "beta.coy[2]")
-  topdown_exploit_data_order <- c("Intercept t-1", "Intercept t", "Lion harvest t-1", "Elk t-1", "Deer t-1", "Deer t", 
-                                  "Intercept t-1", "Intercept t", "Wolf t-1", "Wolf harvest t-1", "Moose t-1", "Elk t-1", "Deer t-1", "Deer t", 
+  topdown_exploit_data_order <- c("Intercept t-1", "Intercept t", "Mountain lion harvest t-1", "Elk t-1", "Deer t-1", "Deer t",
+                                  "Intercept t-1", "Intercept t", "Wolf t-1", "Wolf harvest t-1", "Moose t-1", "Elk t-1", "Deer t-1", "Deer t",
                                   "Intercept t-1", "Intercept t", "Bear t-1", "Bear harvest t-1", "Deer t",
-                                  "Intercept t-1", "Intercept t", "Coy t-1", "Deer t-1", 
-                                  "Intercept t-1", "Intercept t", "Elk t-1", "Wolf t-1", "Lion t-1", "Elk harvest t-1", "Bear t-1", 
-                                  "Intercept t-1", "Intercept t", "Moose t-1", "Wolf t-1", 
-                                  "Intercept t-1", "Intercept t", "Deer t-1", "Lion t-1", "Deer harvest t-1", "Wolf t-1", "Coy t-1")
+                                  "Intercept t-1", "Intercept t", "Coyote t-1", "Deer t-1",
+                                  "Intercept t-1", "Intercept t", "Elk t-1", "Wolf t-1", "Mountain lion t-1", "Elk harvest t-1", "Bear t-1",
+                                  "Intercept t-1", "Intercept t", "Moose t-1", "Wolf t-1",
+                                  "Intercept t-1", "Intercept t", "Deer t-1", "Mountain lion t-1", "Deer harvest t-1", "Wolf t-1", "Coyote t-1")
+  #'  Repeat species name n times based on number of intercepts/slopes estimated within each species' regression
   sub_reg_spp_topdown_ex <- c(rep("Mountain lion", 6), rep("Wolf", 8), rep("Black bear", 5), rep("Coyote", 4), rep("Elk", 7), rep("Moose", 4), rep("White-tailed deer", 7))
   topdown_exploit_coefs_tbl <- topdown_exploit_coefs %>% arrange(factor(param, levels = topdown_exploit_coef_order)) %>%
     mutate(Model = "Top-down, Exploitative", 
@@ -827,21 +832,21 @@
     relocate(Model, .before = param) %>% relocate(Species_submodel, .before = param) %>%
     relocate(Parameter, .before = param)
   
-  topdown_inter_coef_order <- c("beta.int.tmin1[1]", "beta.int[1]", "beta.harvest[1]", "beta.wolf[2]", 
-                                "beta.int.tmin1[2]", "beta.int[2]", "beta.wolf[1]", "beta.harvest[2]", "beta.bear[2]", 
+  topdown_inter_coef_order <- c("beta.int.tmin1[1]", "beta.int[1]", "beta.harvest[1]", "beta.wolf[2]", "beta.bear[2]",
+                                "beta.int.tmin1[2]", "beta.int[2]", "beta.wolf[1]", "beta.harvest[2]", "beta.bear[3]", 
                                 "beta.int.tmin1[3]", "beta.int[3]", "beta.bear[1]", "beta.harvest[3]", "beta.wolf[3]", 
                                 "beta.int.tmin1[4]", "beta.int[4]", "beta.coy[1]", "beta.wolf[4]", "beta.lion[1]", 
-                                "beta.int.tmin1[5]", "beta.int[5]", "beta.elk[1]", "beta.wolf[5]", "beta.lion[2]", 
+                                "beta.int.tmin1[5]", "beta.int[5]", "beta.elk[1]", "beta.wolf[5]", "beta.lion[2]", "beta.bear[4]", "beta.harvest[4]", 
                                 "beta.int.tmin1[6]", "beta.int[6]", "beta.moose[1]", "beta.wolf[6]",
-                                "beta.int.tmin1[7]", "beta.int[7]", "beta.wtd[1]", "beta.lion[3]", "beta.coy[2]", "beta.bear[3]")
-  topdown_inter_data_order <- c("Intercept t-1", "Intercept t", "Lion harvest t-1", "Wolf t-1", 
+                                "beta.int.tmin1[7]", "beta.int[7]", "beta.wtd[1]", "beta.lion[3]", "beta.coy[2]", "beta.bear[5]", "beta.harvest[5]")
+  topdown_inter_data_order <- c("Intercept t-1", "Intercept t", "Mountain lion harvest t-1", "Wolf t-1", "Bear t-1",
                                 "Intercept t-1", "Intercept t", "Wolf t-1", "Wolf harvest t-1", "Bear t", 
                                 "Intercept t-1", "Intercept t", "Bear t-1", "Bear harvest t-1", "Wolf t-1",  
-                                "Intercept t-1", "Intercept t", "Coy t-1", "Wolf t-1", "Lion t-1",  
-                                "Intercept t-1", "Intercept t", "Elk t-1", "Wolf t-1", "Lion t-1", 
+                                "Intercept t-1", "Intercept t", "Coyote t-1", "Wolf t-1", "Mountain lion t-1",  
+                                "Intercept t-1", "Intercept t", "Elk t-1", "Wolf t-1", "Mountain lion t-1", "Bear t-1", "Elk harvest t-1",
                                 "Intercept t-1", "Intercept t", "Moose t-1", "Wolf t-1", 
-                                "Intercept t-1", "Intercept t", "Deer t-1", "Lion t-1", "Coy t-1", "Bear t-1")
-  sub_reg_spp_topdown_int <- c(rep("Mountain lion", 4), rep("Wolf", 5), rep("Black bear", 5), rep("Coyote", 5), rep("Elk", 5), rep("Moose", 4), rep("White-tailed deer", 6))
+                                "Intercept t-1", "Intercept t", "Deer t-1", "Mountain lion t-1", "Coyote t-1", "Bear t-1", "Deer harvest t-1")
+  sub_reg_spp_topdown_int <- c(rep("Mountain lion", 5), rep("Wolf", 5), rep("Black bear", 5), rep("Coyote", 5), rep("Elk", 7), rep("Moose", 4), rep("White-tailed deer", 7))
   topdown_inter_coefs_tbl <- topdown_inter_coefs %>% arrange(factor(param, levels = topdown_inter_coef_order)) %>%
     mutate(Model = "Top-down, Interference", 
            Species_submodel = sub_reg_spp_topdown_int,
@@ -859,10 +864,10 @@
   bottomup_exploit_data_order <- c("Intercept t-1", "Intercept t", "Elk t-1", "Elk t", "Deer t-1", "Deer t", 
                                    "Intercept t-1", "Intercept t", "Wolf t-1", "Elk t-1", "Elk t", "Moose t-1", "Moose t", "Deer t", 
                                    "Intercept t-1", "Intercept t", "Bear t-1", "Elk t-1", "Forest t-1", "Deer t", 
-                                   "Intercept t-1", "Intercept t", "Coy t-1", "Deer t-1", "Deer t", 
+                                   "Intercept t-1", "Intercept t", "Coyote t-1", "Deer t-1", "Deer t", 
                                    "Intercept t-1", "Intercept t", "Elk t-1", "Forest t-1", "WSI t-1", "Bear t-1", 
                                    "Intercept t-1", "Intercept t", "Moose t-1", "Forest t-1", "WSI t-1",
-                                   "Intercept t-1", "Intercept t", "Deer t-1", "Forest t-1", "WSI t-1", "Coy t-1", "Bear t-1")
+                                   "Intercept t-1", "Intercept t", "Deer t-1", "Forest t-1", "WSI t-1", "Coyote t-1", "Bear t-1")
   sub_reg_spp_bottomup_ex <- c(rep("Mountain lion", 6), rep("Wolf", 8), rep("Black bear", 6), rep("Coyote", 5), rep("Elk", 6), rep("Moose", 5), rep("White-tailed deer", 7))
   bottomup_exploit_coefs_tbl <- bottomup_exploit_coefs %>% arrange(factor(param, levels = bottomup_exploit_coefs_order)) %>%
     mutate(Model = "Bottom-up, Exploitative", 
@@ -881,7 +886,7 @@
   bottomup_inter_data_order <- c("Intercept t-1", "Intercept t", "Elk t-1", "Elk t", "Deer t-1", "Deer t", "Bear t-1", 
                                  "Intercept t-1", "Intercept t", "Wolf t-1", "Elk t-1", "Elk t", "Moose t-1", "Moose t", "Bear t-1", "Bear t", 
                                  "Intercept t-1", "Intercept t", "Bear t-1", "Elk t-1", "Forest t-1", "Wolf t-1", "Deer t", 
-                                 "Intercept t-1", "Intercept t", "Coy t-1", "Deer t-1", "Deer t", "Wolf t-1", "Bear t-1", 
+                                 "Intercept t-1", "Intercept t", "Coyote t-1", "Deer t-1", "Deer t", "Wolf t-1", "Bear t-1", 
                                  "Intercept t-1", "Intercept t", "Elk t-1", "Forest t-1", "WSI t-1", 
                                  "Intercept t-1", "Intercept t", "Moose t-1", "Forest t-1", "WSI t-1", 
                                  "Intercept t-1", "Intercept t", "Deer t-1", "Forest t-1", "WSI t-1")
@@ -893,8 +898,10 @@
     relocate(Model, .before = param) %>% relocate(Species_submodel, .before = param) %>%
     relocate(Parameter, .before = param)
   
-  SEM_final_coefs_tbl <- bind_rows(bottomup_exploit_coefs_tbl, bottomup_inter_coefs_tbl, topdown_inter_coefs_tbl, topdown_exploit_coefs_tbl)
-  write_csv(SEM_final_coefs_tbl, "./Outputs/SEM/Tables_for_publication/SEM_coefficients_table_2026-10-05.csv")
+  SEM_final_coefs_tbl <- bind_rows(bottomup_exploit_coefs_tbl, bottomup_inter_coefs_tbl, topdown_inter_coefs_tbl, topdown_exploit_coefs_tbl) %>%
+    mutate(`95% CRI` = paste0(" ", ll, ", ", ul)) %>%
+    relocate(`95% CRI`, .after = mean)
+  write_csv(SEM_final_coefs_tbl, paste0("./Outputs/SEM/Tables_for_publication/SEM_coefficients_table_", Sys.Date(), ".csv"))
   
   #'  ----------------------------
   #####  Coefficient comparisons  #####
@@ -916,7 +923,86 @@
     dplyr::select(c(Model, Species_submodel, Parameter, mean_direction)) %>%
     pivot_wider(names_from = Species_submodel, values_from = mean_direction)
   
-  write_csv(SEM_final_coefs_tbl_skinny, "./Outputs/SEM/Tables_for_publication/SEM_direct_effects_table.csv")
-  write_csv(SEM_final_coefs_tbl_skinny_symbols, "./Outputs/SEM/Tables_for_publication/SEM_direct_effect_directions_table.csv")
+  write_csv(SEM_final_coefs_tbl_skinny, paste0("./Outputs/SEM/Tables_for_publication/SEM_direct_effects_table_", Sys.Date(), ".csv"))
+  write_csv(SEM_final_coefs_tbl_skinny_symbols, paste0("./Outputs/SEM/Tables_for_publication/SEM_direct_effect_directions_table_", Sys.Date(), ".csv"))
+  
+  #'  -------------------------------------------
+  #####  Derived parameter estimates & 95% CRI  #####
+  #'  -------------------------------------------
+  #'  Grab indirect, total, and sum effects 
+  grab_derived_coefs <- function(mod_out) {
+    #'  Grab mean and 95% CRI for all posteriors
+    coef_mean <- mod_out$mean 
+    coef_ll <- mod_out$q2.5
+    coef_ul <- mod_out$q97.5
+    coef_overlap0 <- mod_out$overlap0
+    coef_list <- list(coef_mean, coef_ll, coef_ul, coef_overlap0)
+    names(coef_list) <- c("coef_mean", "coef_ll", "coef_ul", "coef_overlap0")
+    
+    #'  Create empty lists to fill with subsets of data
+    indirect_list <- total_list <- sum_list <- list()
+    
+    #'  Retain just the indirect effects coefficients 
+    for(i in 1:length(coef_list)) {
+      indirect_list[[i]] <- coef_list[[i]] %>% 
+        subset(., startsWith(names(.), "indirect")) 
+    }
+    #'  Retain just the total effects coefficients 
+    for(i in 1:length(coef_list)) {
+      total_list[[i]] <- coef_list[[i]] %>% 
+        subset(., startsWith(names(.), "total")) 
+    }
+    #'  Retain just the sum effects coefficients 
+    for(i in 1:length(coef_list)) {
+      sum_list[[i]] <- coef_list[[i]] %>% 
+        subset(., startsWith(names(.), "sum")) 
+    }
+    derived_coefs <- list(indirect_list, total_list, sum_list)
+    return(derived_coefs)
+  }
+  #'  List of lists: indirect effects[[1]], total effects[[2]], sum effects[[3]]
+  #'  Within each: mean [[1]], lower limit [[2]], upper limit [[3]], coef overlap [[4]]
+  topdown_exploit_derived_list <- grab_derived_coefs(SEM_topdown_final)
+  topdown_inter_derived_list <- grab_derived_coefs(SEM_topdown_inter_final)  # no sum effects
+  bottomup_exploit_derived_list <- grab_derived_coefs(SEM_bottomup_final)
+  bottomup_inter_derived_list <- grab_derived_coefs(SEM_bottomup_inter_final)
+  
+  #'  Function to extract and reformat all coefficients for a given parameter into a data.frame
+  derived_coef_tbl <- function(coef_list) {
+    #'  Grab mean, 95% CRI and 0 overlap indicator per focal parameter
+    param_mu <- as.data.frame(coef_list[[1]])
+    param_ll <- as.data.frame(coef_list[[2]])
+    param_ul <- as.data.frame(coef_list[[3]])
+    param_overlap0 <- as.data.frame(coef_list[[4]])
+    
+    #'  Bring all together into a single data frame
+    param.df <- bind_rows(param_mu, param_ll, param_ul, param_overlap0) %>%
+      #'  Flip columns to rows, rows to columns
+      t(.) %>%
+      as.data.frame(.) %>%
+      rownames_to_column(., "params") %>%
+      mutate(V4 = ifelse(V4 == 1, TRUE, FALSE))
+    names(param.df) <- c("params", "mean", "ll", "ul", "overlap")
+    
+    return(param.df)
+  }
+
+  
+  #'  Call function and convert to a single table per model
+  topdown_exploit_derived_coefs <- lapply(topdown_exploit_derived_list, derived_coef_tbl) %>%
+    bind_rows()
+  #'  Gotta split is up for topdown inter model b/c no sum effects [[3]] screws this up
+  topdown_inter_indirect_coefs <- derived_coef_tbl(topdown_inter_derived_list[[1]])
+  topdown_inter_total_coefs <- derived_coef_tbl(topdown_inter_derived_list[[2]])
+  topdown_inter_derived_coefs <- bind_rows(topdown_inter_indirect_coefs, topdown_inter_total_coefs)
+  bottomup_exploit_derived_coefs <- lapply(bottomup_exploit_derived_list, derived_coef_tbl) %>%
+    bind_rows()
+  bottomup_inter_derived_coefs <- lapply(bottomup_inter_derived_list, derived_coef_tbl) %>%
+    bind_rows()
+  
+  
+  ############################ FIGURE OUT HOW TO RENAME THESE WITHOUT A LOT OF PAIN
+  
+  
   
   
