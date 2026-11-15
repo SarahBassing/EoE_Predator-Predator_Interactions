@@ -2938,6 +2938,7 @@
   fishers.C_topdown_final <- fishers_C(pval = p.val_topdown_all_final_df_skinny$bayes.p, 
                                        n_iter = nrow(p.val_topdown_all_final_df_skinny), K = K, n = n)
   print(fishers.C_topdown_final)
+  save(fishers.C_topdown_final, file = paste0("./Outputs/SEM/JAGS_out/d_Sep/FishersC_topdown_final_", Sys.Date(), ".RData"))
   
   
   #'  --------------------------------
@@ -3011,7 +3012,8 @@
   #'  Load the final version of the top-down interference SEM
   #'  Necessary to have this in the global environment (with the spp.latent params saved)
   #'  for testing the A tmin1 --> B tmin1 independence claims
-  load("./Outputs/SEM/JAGS_out/SEM_topdown_inter_final_2026-09-13.RData")
+  load("./Outputs/SEM/JAGS_out/SEM_topdown_inter_final_2026-11-11.RData")   # included updates following deer/elk harvest addition
+  # load("./Outputs/SEM/JAGS_out/SEM_topdown_inter_final_2026-09-13.RData")
   
   #'  Fit independence claims for variables where t-1 --> t-1 
   start.time = Sys.time()
@@ -3054,29 +3056,59 @@
   #'  Create list of "observed" values of focal response variable, one per d-Sep test               # instances where x was used as y in d-Sep test noted below
   y_list <- list(data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,      #
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   # 
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,    #      
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,      # 
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,    #
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,    #
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,  #
                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   # 
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,    #    
+                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   # 
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,    #
                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,    #
-                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #      
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wtd.hat,    # wtd flipped 
-                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat,    # wtd both flipped
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,    #
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$lion.hat,    #
+                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat,   #
+                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat,    # both wtd are flipped
                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #
                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat,  #
-                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #     
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   #
-                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #     
                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #
-                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,    #    
-                 data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #  
+                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,     #
                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
-                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat)                              #                                 
-  #'  Leaves you with 71 d-Sep tests that were t-1 --> t or t --> t
+                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,   #
+                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat)   #
+  #'  Leaves you with 81 d-Sep tests that were t-1 --> t or t --> t
+  
+ 
+  #' y_list <- list(data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+  #'                data_JAGS_bundle$wtd.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,      #
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   # 
+  #'                data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$coy.hat,    #      
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+  #'                data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,  #
+  #'                data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   # 
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+  #'                data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,    #    
+  #'                data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,    #
+  #'                data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat,    #      
+  #'                data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wtd.hat,    # wtd flipped 
+  #'                data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat,    # wtd both flipped
+  #'                data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #
+  #'                data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat,  #
+  #'                data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #     
+  #'                data_JAGS_bundle$lion.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,   #
+  #'                data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #     
+  #'                data_JAGS_bundle$elk.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #
+  #'                data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,    #    
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #  
+  #'                data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   #
+  #'                data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat)                              #                                 
+  #' #'  Leaves you with 71 d-Sep tests that were t-1 --> t or t --> t
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
   #'  Pay close attention to the indexing, especially with the beta.harvest indices. 
@@ -3089,30 +3121,59 @@
   #'  Note: indexing is based on the number of independence claims assessed using the
   #'  d_Sep_active_regression_topdown_inter_final.R active regression list. This is not a complete
   #'  list of all independence claims being tested.
-  post_list_topdown_inter_final <- list(mod_out[[1]]$beta.wtd[,1], mod_out[[2]]$beta.wtd[,1], mod_out[[3]]$beta.wtd[,1],
-                                        mod_out[[4]]$beta.wtd[,1], mod_out[[5]]$beta.wtd[,1], mod_out[[6]]$beta.wtd[,1],
-                                        mod_out[[7]]$beta.moose[,1], mod_out[[8]]$beta.moose[,1], mod_out[[9]]$beta.moose[,1],
-                                        mod_out[[10]]$beta.moose[,1], mod_out[[11]]$beta.moose[,1], mod_out[[12]]$beta.moose[,1],
-                                        mod_out[[13]]$beta.elk[,1], mod_out[[14]]$beta.elk[,1], mod_out[[15]]$beta.elk[,1],
-                                        mod_out[[16]]$beta.elk[,1], mod_out[[17]]$beta.elk[,1], mod_out[[18]]$beta.elk[,1],
-                                        mod_out[[19]]$beta.lion[,1], mod_out[[20]]$beta.lion[,1], mod_out[[21]]$beta.lion[,1],
-                                        mod_out[[22]]$beta.lion[,1], mod_out[[23]]$beta.coy[,1], mod_out[[24]]$beta.coy[,1],        
-                                        mod_out[[25]]$beta.coy[,1], mod_out[[26]]$beta.coy[,1], mod_out[[27]]$beta.coy[,1],             
-                                        mod_out[[28]]$beta.harvest[,1], mod_out[[29]]$beta.harvest[,1], mod_out[[30]]$beta.harvest[,1],   
-                                        mod_out[[31]]$beta.harvest[,1], mod_out[[32]]$beta.harvest[,2], mod_out[[33]]$beta.harvest[,2],  # note the different indexing
-                                        mod_out[[34]]$beta.bear[,1], mod_out[[35]]$beta.bear[,1], mod_out[[36]]$beta.bear[,1],          
-                                        mod_out[[37]]$beta.bear[,2], mod_out[[38]]$beta.bear[,1], mod_out[[39]]$beta.harvest[,1],    
-                                        mod_out[[40]]$beta.harvest[,1], mod_out[[41]]$beta.wolf[,2], mod_out[[42]]$beta.wtd[,2],         # note the different indexing 
-                                        mod_out[[43]]$beta.wtd[,2], mod_out[[44]]$beta.wtd[,2], mod_out[[45]]$beta.wtd[,2],              # note the different indexing
-                                        mod_out[[46]]$beta.wtd[,2], mod_out[[47]]$beta.wtd[,2], mod_out[[48]]$beta.harvest[,1],          # note the different indexing  
-                                        mod_out[[49]]$beta.harvest[,1], mod_out[[50]]$beta.harvest[,1], mod_out[[51]]$beta.harvest[,2],  # note the different indexing  
-                                        mod_out[[52]]$beta.harvest[,2], mod_out[[53]]$beta.harvest[,1], mod_out[[54]]$beta.harvest[,1],  # note the different indexing
-                                        mod_out[[55]]$beta.harvest[,1], mod_out[[56]]$beta.harvest[,2], mod_out[[57]]$beta.harvest[,2],  # note the different indexing       
-                                        mod_out[[58]]$beta.moose[,2], mod_out[[59]]$beta.moose[,2], mod_out[[60]]$beta.moose[,2],        # note the different indexing
-                                        mod_out[[61]]$beta.moose[,2], mod_out[[62]]$beta.moose[,2], mod_out[[63]]$beta.elk[,2],          # note the different indexing
-                                        mod_out[[64]]$beta.elk[,2], mod_out[[65]]$beta.elk[,2], mod_out[[66]]$beta.elk[,2],              # note the different indexing
-                                        mod_out[[67]]$beta.coy[,2], mod_out[[68]]$beta.coy[,2], mod_out[[69]]$beta.coy[,2],              # note the different indexing
-                                        mod_out[[70]]$beta.bear[,2], mod_out[[71]]$beta.wolf[,2])                                        # note the different indexing
+  post_list_topdown_inter_final <- list(mod_out[[1]]$beta.harvest[,1], mod_out[[2]]$beta.harvest[,2], mod_out[[3]]$beta.harvest[,1],     #  note the different indexing
+                                        mod_out[[4]]$beta.harvest[,2], mod_out[[5]]$beta.harvest[,2], mod_out[[6]]$beta.harvest[,2],     #  note the different indexing
+                                        mod_out[[7]]$beta.wtd[,1], mod_out[[8]]$beta.wtd[,1], mod_out[[9]]$beta.wtd[,1],                 
+                                        mod_out[[10]]$beta.wtd[,1], mod_out[[11]]$beta.wtd[,1], mod_out[[12]]$beta.wtd[,1],              
+                                        mod_out[[13]]$beta.moose[,1], mod_out[[14]]$beta.moose[,1], mod_out[[15]]$beta.moose[,1],       
+                                        mod_out[[16]]$beta.moose[,1], mod_out[[17]]$beta.moose[,1], mod_out[[18]]$beta.moose[,1],        
+                                        mod_out[[19]]$beta.harvest[,2], mod_out[[20]]$beta.harvest[,1], mod_out[[21]]$beta.harvest[,1],  #  note the different indexing
+                                        mod_out[[22]]$beta.harvest[,2], mod_out[[23]]$beta.harvest[,2], mod_out[[24]]$beta.harvest[,2],  #  note the different indexing
+                                        mod_out[[25]]$beta.elk[,1], mod_out[[26]]$beta.elk[,1], mod_out[[27]]$beta.elk[,1],             
+                                        mod_out[[28]]$beta.elk[,1], mod_out[[29]]$beta.elk[,1], mod_out[[30]]$beta.elk[,1],               
+                                        mod_out[[31]]$beta.lion[,1], mod_out[[32]]$beta.lion[,1], mod_out[[33]]$beta.lion[,1],           
+                                        mod_out[[34]]$beta.lion[,1], mod_out[[35]]$beta.coy[,1], mod_out[[36]]$beta.coy[,1],             
+                                        mod_out[[37]]$beta.coy[,1], mod_out[[38]]$beta.coy[,1], mod_out[[39]]$beta.coy[,1],              
+                                        mod_out[[40]]$beta.harvest[,2], mod_out[[41]]$beta.harvest[,1], mod_out[[42]]$beta.harvest[,2],   # note the different indexing
+                                        mod_out[[43]]$beta.harvest[,1], mod_out[[44]]$beta.harvest[,2], mod_out[[45]]$beta.harvest[,2],   # note the different indexing
+                                        mod_out[[46]]$beta.harvest[,2], mod_out[[47]]$beta.harvest[,1], mod_out[[48]]$beta.harvest[,2],   # note the different indexing
+                                        mod_out[[49]]$beta.harvest[,1], mod_out[[50]]$beta.harvest[,2], mod_out[[51]]$beta.harvest[,2],   # note the different indexing
+                                        mod_out[[52]]$beta.bear[,1], mod_out[[53]]$beta.bear[,1], mod_out[[54]]$beta.bear[,2],            # note the different indexing
+                                        mod_out[[55]]$beta.harvest[,2], mod_out[[56]]$beta.wolf[,1], mod_out[[57]]$beta.wtd[,2],          # note the different indexing
+                                        mod_out[[58]]$beta.wtd[,2], mod_out[[59]]$beta.wtd[,2], mod_out[[60]]$beta.wtd[,2],               # note the different indexing
+                                        mod_out[[61]]$beta.wtd[,2], mod_out[[62]]$beta.wtd[,2], mod_out[[63]]$beta.harvest[,1],           # note the different indexing
+                                        mod_out[[64]]$beta.harvest[,2], mod_out[[65]]$beta.harvest[,1], mod_out[[66]]$beta.harvest[,2],   # note the different indexing
+                                        mod_out[[67]]$beta.harvest[,2], mod_out[[68]]$beta.moose[,2], mod_out[[69]]$beta.moose[,2],       # note the different indexing
+                                        mod_out[[70]]$beta.moose[,2], mod_out[[71]]$beta.moose[,2], mod_out[[72]]$beta.moose[,2],         # note the different indexing
+                                        mod_out[[73]]$beta.elk[,2], mod_out[[74]]$beta.elk[,2], mod_out[[75]]$beta.elk[,2],               # note the different indexing
+                                        mod_out[[76]]$beta.elk[,2], mod_out[[77]]$beta.coy[,2], mod_out[[78]]$beta.coy[,2],               # note the different indexing
+                                        mod_out[[79]]$beta.coy[,2], mod_out[[80]]$beta.bear[,2], mod_out[[81]]$beta.wolf[,2])             # note the different indexing
+  
+  
+  # post_list_topdown_inter_final <- list(mod_out[[1]]$beta.wtd[,1], mod_out[[2]]$beta.wtd[,1], mod_out[[3]]$beta.wtd[,1],
+  #                                       mod_out[[4]]$beta.wtd[,1], mod_out[[5]]$beta.wtd[,1], mod_out[[6]]$beta.wtd[,1],
+  #                                       mod_out[[7]]$beta.moose[,1], mod_out[[8]]$beta.moose[,1], mod_out[[9]]$beta.moose[,1],
+  #                                       mod_out[[10]]$beta.moose[,1], mod_out[[11]]$beta.moose[,1], mod_out[[12]]$beta.moose[,1],
+  #                                       mod_out[[13]]$beta.elk[,1], mod_out[[14]]$beta.elk[,1], mod_out[[15]]$beta.elk[,1],
+  #                                       mod_out[[16]]$beta.elk[,1], mod_out[[17]]$beta.elk[,1], mod_out[[18]]$beta.elk[,1],
+  #                                       mod_out[[19]]$beta.lion[,1], mod_out[[20]]$beta.lion[,1], mod_out[[21]]$beta.lion[,1],
+  #                                       mod_out[[22]]$beta.lion[,1], mod_out[[23]]$beta.coy[,1], mod_out[[24]]$beta.coy[,1],        
+  #                                       mod_out[[25]]$beta.coy[,1], mod_out[[26]]$beta.coy[,1], mod_out[[27]]$beta.coy[,1],             
+  #                                       mod_out[[28]]$beta.harvest[,1], mod_out[[29]]$beta.harvest[,1], mod_out[[30]]$beta.harvest[,1],   
+  #                                       mod_out[[31]]$beta.harvest[,1], mod_out[[32]]$beta.harvest[,2], mod_out[[33]]$beta.harvest[,2],  # note the different indexing
+  #                                       mod_out[[34]]$beta.bear[,1], mod_out[[35]]$beta.bear[,1], mod_out[[36]]$beta.bear[,1],          
+  #                                       mod_out[[37]]$beta.bear[,2], mod_out[[38]]$beta.bear[,1], mod_out[[39]]$beta.harvest[,1],    
+  #                                       mod_out[[40]]$beta.harvest[,1], mod_out[[41]]$beta.wolf[,2], mod_out[[42]]$beta.wtd[,2],         # note the different indexing 
+  #                                       mod_out[[43]]$beta.wtd[,2], mod_out[[44]]$beta.wtd[,2], mod_out[[45]]$beta.wtd[,2],              # note the different indexing
+  #                                       mod_out[[46]]$beta.wtd[,2], mod_out[[47]]$beta.wtd[,2], mod_out[[48]]$beta.harvest[,1],          # note the different indexing  
+  #                                       mod_out[[49]]$beta.harvest[,1], mod_out[[50]]$beta.harvest[,1], mod_out[[51]]$beta.harvest[,2],  # note the different indexing  
+  #                                       mod_out[[52]]$beta.harvest[,2], mod_out[[53]]$beta.harvest[,1], mod_out[[54]]$beta.harvest[,1],  # note the different indexing
+  #                                       mod_out[[55]]$beta.harvest[,1], mod_out[[56]]$beta.harvest[,2], mod_out[[57]]$beta.harvest[,2],  # note the different indexing       
+  #                                       mod_out[[58]]$beta.moose[,2], mod_out[[59]]$beta.moose[,2], mod_out[[60]]$beta.moose[,2],        # note the different indexing
+  #                                       mod_out[[61]]$beta.moose[,2], mod_out[[62]]$beta.moose[,2], mod_out[[63]]$beta.elk[,2],          # note the different indexing
+  #                                       mod_out[[64]]$beta.elk[,2], mod_out[[65]]$beta.elk[,2], mod_out[[66]]$beta.elk[,2],              # note the different indexing
+  #                                       mod_out[[67]]$beta.coy[,2], mod_out[[68]]$beta.coy[,2], mod_out[[69]]$beta.coy[,2],              # note the different indexing
+  #                                       mod_out[[70]]$beta.bear[,2], mod_out[[71]]$beta.wolf[,2])                                        # note the different indexing
   
   #'  Load more iterations of the JAGS model
   #'  Note: this list of outputs is based on the number of independence claims 
@@ -3121,21 +3182,42 @@
   all_results_topdown_inter_tmin1_final <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1/TopDown_Interference_Final", full.names = TRUE), readRDS)
   
   #'  Create list of "observed" values of focal response variable, one per d-Sep test                 # instances where x was used as y in d-Sep test noted below
-  y_list2 <- list(data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat,    #
-                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$wtd, data_JAGS_bundle$bear.hat,          # wtd flipped
-                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wolf.hat,      # wtd both flipped      
+  y_list2 <- list(data_JAGS_bundle$wtd.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat,     #
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$wtd.hat,    # wtd flipped
                   data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,      #
-                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,  # moose both flipped  
-                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   # moose flipped  
-                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat,      # elk flipped     
-                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat,      # elk both flipped     
-                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat,     # lion flipped
-                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat,    # lion both flipped     
-                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$coy.hat,      # coy both flipped      
-                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat,     # coy flipped 
-                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$bear.hat,    # bear both flipped
-                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat)    #
-  #'  Leaves you with 42 d-Sep tests that were t-1 --> t-1
+                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$bear.hat,      # both wtd flipped
+                  data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$moose.hat,    # wtd and moose flipped
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,      #
+                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat,  # moose both flipped
+                  data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$elk.hat,    # moose flipped
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat,     #
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,     #
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat,      # elk both flipped
+                  data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,      # elk flipped
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat,    # lion both flipped
+                  data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$coy.hat,     # lion and coy flipped
+                  data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$coy.hat,      # coy both flipped
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat,    #
+                  data_JAGS_bundle$bear.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat,    # second bear flipped
+                  data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat)                               #
+  #'  Leaves you with 56 d-Sep tests that were t-1 --> t-1
+  
+  #' y_list2 <- list(data_JAGS_bundle$moose.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat,    #
+  #'                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$wtd, data_JAGS_bundle$bear.hat,          # wtd flipped
+  #'                 data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wtd.hat, data_JAGS_bundle$wolf.hat,      # wtd both flipped      
+  #'                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$coy.hat,      #
+  #'                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$moose.hat,  # moose both flipped  
+  #'                 data_JAGS_bundle$moose.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$lion.hat,   # moose flipped  
+  #'                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$bear.hat,      # elk flipped     
+  #'                 data_JAGS_bundle$elk.hat, data_JAGS_bundle$elk.hat, data_JAGS_bundle$wolf.hat,      # elk both flipped     
+  #'                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$bear.hat,     # lion flipped
+  #'                 data_JAGS_bundle$lion.hat, data_JAGS_bundle$lion.hat, data_JAGS_bundle$wolf.hat,    # lion both flipped     
+  #'                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$coy.hat,      # coy both flipped      
+  #'                 data_JAGS_bundle$coy.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat,     # coy flipped 
+  #'                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$bear.hat, data_JAGS_bundle$bear.hat,    # bear both flipped
+  #'                 data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat, data_JAGS_bundle$wolf.hat)    #
+  #' #'  Leaves you with 42 d-Sep tests that were t-1 --> t-1
   
   #'  Create list of posterior distributions for coefficient of interest, one per d-Sep test
   #'  Generally don't need to worry about indexing here because most of these independence
@@ -3158,18 +3240,48 @@
                                               mod_out2[[31]]$b_x,  mod_out2[[32]]$b_x,  mod_out2[[33]]$b_x,
                                               mod_out2[[34]]$b_x,  mod_out2[[35]]$b_x,  mod_out2[[36]]$b_x, 
                                               mod_out2[[37]]$b_x,  mod_out2[[38]]$b_x,  mod_out2[[39]]$b_x, 
-                                              mod_out2[[40]]$b_x,  mod_out2[[41]]$b_x,  mod_out2[[42]]$b_x)
+                                              mod_out2[[40]]$b_x,  mod_out2[[41]]$b_x,  mod_out2[[42]]$b_x,
+                                              mod_out2[[43]]$b_x,  mod_out2[[44]]$b_x,  mod_out2[[45]]$b_x,
+                                              mod_out2[[46]]$b_x,  mod_out2[[47]]$b_x,  mod_out2[[48]]$b_x,
+                                              mod_out2[[49]]$b_x,  mod_out2[[50]]$b_x,  mod_out2[[51]]$b_x,
+                                              mod_out2[[52]]$b_x,  mod_out2[[53]]$b_x,  mod_out2[[55]]$b_x,
+                                              mod_out2[[55]]$b_x,  mod_out2[[56]]$b_x)
+  
+  # post_list_topdown_inter_tmin1_final <- list(mod_out2[[1]]$b_x, mod_out2[[2]]$b_x,  mod_out2[[3]]$b_x,
+  #                                             mod_out2[[4]]$b_x,  mod_out2[[5]]$b_x,  mod_out2[[6]]$b_x,
+  #                                             mod_out2[[7]]$b_x,  mod_out2[[8]]$b_x,  mod_out2[[9]]$b_x,
+  #                                             mod_out2[[10]]$b_x,  mod_out2[[11]]$b_x,  mod_out2[[12]]$b_x, 
+  #                                             mod_out2[[13]]$b_x,  mod_out2[[14]]$b_x,  mod_out2[[15]]$b_x, 
+  #                                             mod_out2[[16]]$b_x,  mod_out2[[17]]$b_x,  mod_out2[[18]]$b_x,
+  #                                             mod_out2[[19]]$b_x,  mod_out2[[20]]$b_x,  mod_out2[[21]]$b_x, 
+  #                                             mod_out2[[22]]$b_x,  mod_out2[[23]]$b_x,  mod_out2[[24]]$b_x,
+  #                                             mod_out2[[25]]$b_x,  mod_out2[[26]]$b_x,  mod_out2[[27]]$b_x,
+  #                                             mod_out2[[28]]$b_x,  mod_out2[[29]]$b_x,  mod_out2[[30]]$b_x,
+  #                                             mod_out2[[31]]$b_x,  mod_out2[[32]]$b_x,  mod_out2[[33]]$b_x,
+  #                                             mod_out2[[34]]$b_x,  mod_out2[[35]]$b_x,  mod_out2[[36]]$b_x, 
+  #                                             mod_out2[[37]]$b_x,  mod_out2[[38]]$b_x,  mod_out2[[39]]$b_x, 
+  #                                             mod_out2[[40]]$b_x,  mod_out2[[41]]$b_x,  mod_out2[[42]]$b_x)
    
   #'  Load more iterations of the JAGS model (this time assessing correlation between exogenous variables)
   all_results_topdown_inter_exog_final <- lapply(list.files("./Outputs/SEM/JAGS_out/d_Sep/Results/tmin1/TopDown_Interference_exog_final", full.names = TRUE), readRDS)
-  y_list3 <- list(data_JAGS_bundle$wolfHarv, data_JAGS_bundle$lionHarv, data_JAGS_bundle$lionHarv) # y_array
-  #'  Leaves you with 3 d-Sep tests that were exog --> exog
+  y_list3 <- list(data_JAGS_bundle$elkHarv, data_JAGS_bundle$bearHarv, data_JAGS_bundle$wolfHarv,
+                  data_JAGS_bundle$lionHarv, data_JAGS_bundle$bearHarv, data_JAGS_bundle$wolfHarv,
+                  data_JAGS_bundle$lionHarv, data_JAGS_bundle$wolfHarv, data_JAGS_bundle$lionHarv,
+                  data_JAGS_bundle$lionHarv)
+  #'  Leaves you with 10 d-Sep tests that were exog --> exog
+  
+  #' y_list3 <- list(data_JAGS_bundle$wolfHarv, data_JAGS_bundle$lionHarv, data_JAGS_bundle$lionHarv) # y_array
+  #' #'  Leaves you with 3 d-Sep tests that were exog --> exog
   
   mod_out3 <- list()
   for(i in 1:length(all_results_topdown_inter_exog_final)) {
     mod_out3[[i]] <- all_results_topdown_inter_exog_final[[i]]$fit$sims.list
   }
-  post_list_topdown_inter_exog_final <- list(mod_out3[[1]]$b_x, mod_out3[[2]]$b_x, mod_out3[[3]]$b_x) # correspond to x_array
+  post_list_topdown_inter_exog_final <- list(mod_out3[[1]]$b_x, mod_out3[[2]]$b_x, mod_out3[[3]]$b_x,
+                                             mod_out3[[4]]$b_x, mod_out3[[5]]$b_x, mod_out3[[6]]$b_x,
+                                             mod_out3[[7]]$b_x, mod_out3[[8]]$b_x, mod_out3[[9]]$b_x,
+                                             mod_out3[[10]]$b_x) # correspond to x_array
+  # post_list_topdown_inter_exog_final <- list(mod_out3[[1]]$b_x, mod_out3[[2]]$b_x, mod_out3[[3]]$b_x) # correspond to x_array
   
   #'  Call p_rope_iterations() to calculate p.rope value for each iteration of the d-Sep test
   # p_rope_iterations <- function(y_dat, post_beta) { 
@@ -3221,7 +3333,7 @@
   p.val_topdown_inter_all_final_df <- full_join(p.rope_topdown_inter_final_df, bayes.p_topdown_inter_final_df, by = c("iteration", "basisset")) %>% relocate("bayes.p", .after = "p.rope")
   
   #'  Save!
-  write_csv(p.val_topdown_inter_all_final_df, "./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_inter_all_final_claims.csv")
+  write_csv(p.val_topdown_inter_all_final_df, paste0("./Outputs/SEM/JAGS_out/d_Sep/p_val_topdown_inter_all_final_claims_", Sys.Date(), ".csv"))
   
   #'  Review the final SEM and count number of estimated parameters (K) - needed for Fisher's C AIC
   print(SEM_topdown_inter_final$summary)
@@ -3242,7 +3354,7 @@
   fishers.C_topdown_inter_final <- fishers_C(pval = p.val_topdown_inter_all_final_df_skinny$bayes.p, 
                                              n_iter = nrow(p.val_topdown_inter_all_final_df_skinny), K = K, n = n)
   print(fishers.C_topdown_inter_final)
- 
+  save(fishers.C_topdown_inter_final, file = paste0("./Outputs/SEM/JAGS_out/d_Sep/FishersC_topdown_inter_final_", Sys.Date(), ".RData"))
    
   
   #'  ---------------------------------
@@ -3518,6 +3630,7 @@
   fishers.C_bottomup_final <- fishers_C(pval = p.val_bottomup_all_final_df_skinny$bayes.p, 
                                         n_iter = nrow(p.val_bottomup_all_final_df_skinny), K = K, n = n)
   print(fishers.C_bottomup_final)
+  save(fishers.C_bottomup_final, file = paste0("./Outputs/SEM/JAGS_out/d_Sep/FishersC_bottomup_final_", Sys.Date(), ".RData"))
   
   
   
@@ -3793,6 +3906,7 @@
   fishers.C_bottomup_inter_final <- fishers_C(pval = p.val_bottomup_inter_all_final_df_skinny$bayes.p, 
                                               n_iter = nrow(p.val_bottomup_inter_all_final_df_skinny), K = K, n = n)
   print(fishers.C_bottomup_inter_final)
+  save(fishers.C_bottomup_inter_final, file = paste0("./Outputs/SEM/JAGS_out/d_Sep/FishersC_bottomup_inter_final_", Sys.Date(), ".RData"))
   
   
   #'  -------------------------
@@ -3839,4 +3953,4 @@
                                       "Bottom-up, exploitative" = fishers.C_bottomup_final,
                                       "Bottom-up, interference" = fishers.C_bottomup_inter_final))
   print(AIC_table)
-  write.csv(AIC_table, "./Outputs/SEM/Tables_for_publication/FishersC_AICc_results.csv")
+  write.csv(AIC_table, paste0("./Outputs/SEM/Tables_for_publication/FishersC_AICc_results_", Sys.Date(), ".csv"))
