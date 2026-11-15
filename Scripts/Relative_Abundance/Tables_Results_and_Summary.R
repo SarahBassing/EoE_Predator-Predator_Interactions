@@ -100,7 +100,7 @@
         Mean = as.numeric(Mean),
         Lower_CRI = as.numeric(Lower_CRI),
         Upper_CRI = as.numeric(Upper_CRI),
-        `95% CRI` = paste0(" ", Lower_CRI, " - ", Upper_CRI),
+        `95% CRI` = paste0(" ", Lower_CRI, ", ", Upper_CRI),
         overlap0 = ifelse(overlap0 == 0, FALSE, TRUE)) %>%
       dplyr::select(-c(Lower_CRI, Upper_CRI)) %>%
       #'  Give parameters more meaningful names
